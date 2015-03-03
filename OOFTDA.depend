@@ -1,0 +1,209 @@
+# depslib dependency file v1.0
+1425386142 source:/home/b.le-bihan/Documents/C/PhD/OOFTDA/main.cpp
+	<iostream>
+	<fstream>
+	<time.h>
+	<stdio.h>
+	<complex.h>
+	"ofs.h"
+	"otsh.h"
+	"ots.h"
+	"oftsh.h"
+	"ofts.h"
+	"ftda.h"
+	"qbtbp.h"
+	"qbtbp_ofs.h"
+	"tests.h"
+	<gsl/gsl_odeiv2.h>
+	<gsl_interp.h>
+	<gsl/gsl_roots.h>
+	<gsl/gsl_blas.h>
+	<gsl/gsl_eigen.h>
+	"custom_ode.h"
+
+1424284078 source:/home/b.le-bihan/Documents/C/PhD/OOFTDA/src/ofs.cpp
+
+1425380999 /home/b.le-bihan/Documents/C/PhD/OOFTDA/include/ofs.h
+	<iostream>
+	<iomanip>
+	<math.h>
+	<stdio.h>
+	<stdlib.h>
+	"ots.h"
+	"ofs.tpp"
+
+1423767632 source:/home/b.le-bihan/Documents/C/PhD/OOFTDA/src/cop.cpp
+	<stdio.h>
+	<stdlib.h>
+	<math.h>
+	"arit-c.h"
+
+1424283885 /home/b.le-bihan/Documents/C/PhD/OOFTDA/include/arit-c.h
+	<math.h>
+	<iostream>
+
+1424372989 source:/home/b.le-bihan/Documents/C/PhD/OOFTDA/src/ftda.cpp
+	<iostream>
+	<iomanip>
+	<limits.h>
+	<math.h>
+	"ftda.h"
+	<stdio.h>
+	<stdlib.h>
+
+1424372757 /home/b.le-bihan/Documents/C/PhD/OOFTDA/include/ftda.h
+
+1424710607 source:/home/b.le-bihan/Documents/C/PhD/OOFTDA/src/otsh.cpp
+	"otsh.h"
+	<complex.h>
+
+1425385753 /home/b.le-bihan/Documents/C/PhD/OOFTDA/include/otsh.h
+	<iostream>
+	<iomanip>
+	<limits.h>
+	<math.h>
+	<stdio.h>
+	<stdlib.h>
+	<complex.h>
+	<vector>
+	"ftda.h"
+	"otsh.tpp"
+
+1424287399 /home/b.le-bihan/Documents/C/PhD/OOFTDA/include/ofs.tpp
+
+1425380987 /home/b.le-bihan/Documents/C/PhD/OOFTDA/src/ofs.tpp
+
+1424964086 /home/b.le-bihan/Documents/C/PhD/OOFTDA/src/otsh.tpp
+
+1425385764 /home/b.le-bihan/Documents/C/PhD/OOFTDA/include/ots.h
+	<iostream>
+	<iomanip>
+	<limits.h>
+	<math.h>
+	<stdio.h>
+	<stdlib.h>
+	<complex.h>
+	"ftda.h"
+	"otsh.h"
+	"ots.tpp"
+
+1423736268 /home/b.le-bihan/Documents/C/PhD/OOFTDA/include/msgs.h
+
+1421925496 source:/home/b.le-bihan/Documents/C/PhD/OOFTDA/src/msgs.c
+	<stdio.h>
+	<stdlib.h>
+
+1424371505 source:/home/b.le-bihan/Documents/C/PhD/OOFTDA/backup/ftda.cpp
+	<iostream>
+	<iomanip>
+	<limits.h>
+	<math.h>
+	"ftda.h"
+	<stdio.h>
+	<stdlib.h>
+
+1424371354 /home/b.le-bihan/Documents/C/PhD/OOFTDA/backup/ftda.h
+
+1425386865 /home/b.le-bihan/Documents/C/PhD/OOFTDA/src/ots.tpp
+
+1425380173 /home/b.le-bihan/Documents/C/PhD/OOFTDA/include/oftsh.h
+	<iostream>
+	<iomanip>
+	<limits.h>
+	<math.h>
+	<stdio.h>
+	<stdlib.h>
+	"ftda.h"
+	"ots.h"
+	"ofs.h"
+	"oftsh.tpp"
+
+1425386746 /home/b.le-bihan/Documents/C/PhD/OOFTDA/src/oftsh.tpp
+
+1425379909 /home/b.le-bihan/Documents/C/PhD/OOFTDA/include/ofts.h
+	<iostream>
+	<iomanip>
+	<limits.h>
+	<math.h>
+	<stdio.h>
+	<stdlib.h>
+	<complex.h>
+	"ftda.h"
+	"oftsh.h"
+	"ofs.h"
+	"ofts.tpp"
+
+1425386833 /home/b.le-bihan/Documents/C/PhD/OOFTDA/src/ofts.tpp
+
+1424978371 source:/home/b.le-bihan/Documents/C/PhD/OOFTDA/src/qbtbp.cpp
+	<iostream>
+	<fstream>
+	<time.h>
+	<stdio.h>
+	<complex.h>
+	"qbtbp.h"
+
+1424950673 /home/b.le-bihan/Documents/C/PhD/OOFTDA/include/qbtbp.h
+	<iostream>
+	<time.h>
+	<stdio.h>
+	<complex.h>
+	"ots.h"
+	"ofts.h"
+	"ofs.h"
+
+1424722048 source:/home/b.le-bihan/Documents/C/PhD/OOFTDA/src/ots.cpp
+	<complex.h>
+	"ots.h"
+
+1424721669 source:/home/b.le-bihan/Documents/C/PhD/OOFTDA/src/oftsh.cpp
+	"oftsh.h"
+
+1425058058 source:/home/b.le-bihan/Documents/C/PhD/OOFTDA/src/qbtbp_ofs.cpp
+	<iostream>
+	<fstream>
+	<time.h>
+	<stdio.h>
+	<complex.h>
+	<vector>
+	<gsl/gsl_matrix.h>
+	<gsl/gsl_vector.h>
+	<gsl/gsl_blas.h>
+	"custom_ode.h"
+	"qbtbp.h"
+
+1425057650 /home/b.le-bihan/Documents/C/PhD/OOFTDA/include/qbtbp_ofs.h
+	<iostream>
+	<time.h>
+	<stdio.h>
+	<complex.h>
+	"ots.h"
+	"ofts.h"
+	"ofs.h"
+	"custom_ode.h"
+
+1424972785 source:/home/b.le-bihan/Documents/C/PhD/OOFTDA/src/tests.cpp
+	<iostream>
+	<fstream>
+	<time.h>
+	<stdio.h>
+	<complex.h>
+	"tests.h"
+	"ofts.h"
+	"ofs.h"
+
+1424971896 /home/b.le-bihan/Documents/C/PhD/OOFTDA/include/tests.h
+
+1425050032 /home/b.le-bihan/Documents/C/PhD/OOFTDA/include/custom_ode.h
+	<gsl/gsl_odeiv2.h>
+	<gsl/gsl_roots.h>
+
+1425050025 source:/home/b.le-bihan/Documents/C/PhD/OOFTDA/src/custom_ode.cpp
+	"custom_ode.h"
+	<gsl/gsl_odeiv2.h>
+	<gsl/gsl_errno.h>
+
+1425385700 /home/b.le-bihan/Documents/C/PhD/OOFTDA/src/otsh_vector.tpp
+
+1425385462 /home/b.le-bihan/Documents/C/PhD/OOFTDA/src/ots_vector.tpp
+
