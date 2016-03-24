@@ -1,0 +1,7 @@
+library(plyr)
+library(ggplot2)
+library(reshape2)
+library(scales)
+library(grid)
+library(tikzDevice)
+library(latex2exp)

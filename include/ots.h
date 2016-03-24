@@ -12,6 +12,16 @@
 
 #include "ftda.h"
 #include "otsh.h"
+#include "parameters.h"
+
+/**
+ * \file ots.h
+ * \brief Taylor series template class
+ * \author BLB.
+ * \date May 2015
+ * \version 1.0
+ */
+
 
 //--------------------------------------------------------------------------------//
 //  Important note: the delete of Ots objects is badly handled because
@@ -23,6 +33,8 @@ using namespace std;
 
 template <typename T>
 class Ots;
+
+typedef Ots<cdouble> Otsc;
 
 template<typename T>
 std::ostream& operator << (std::ostream& stream, Ots<T> const& ots);
@@ -39,8 +51,10 @@ private:
 
 public:
     //Create
+    Ots<T>();
     Ots<T>(int newNv, int newOrder);
     Ots<T>(int newNv, int newOrder, T *coef0);
+    Ots<T>(int newOrder);
 
     //Delete
     ~Ots<T>();
@@ -56,16 +70,21 @@ public:
 
     //Getters
     int getOrder() const;
-    int getVariables() const;
+    int getNV() const;
     T getCoef(int const& mOrder, int const& pos) const;
+    Otsh<T>* getTerm(int const& mOrder) const;
 
     //Setters
-    void setCoefs(T const& m);
+    void setAllCoefs(T const& m);
     void setCoef (T const& m, int const& pos);
+    void setCoef (T const& m, int pos, int i);
     void conjugate();
     void setRandomCoefs();
 
+    void conjugateforOFS();
+
     //Functions
+    Ots<T>& smprod(Ots<T> const& a, Ots<T> const& b, T const& m, int const& n);
     Ots<T>& smprod(Ots<T> const& a, Ots<T> const& b, T const& m);
     Ots<T>&  mprod(Ots<T> const& a, Ots<T> const& b, T const& m);
     Ots<T>&  sprod(Ots<T> const& a, Ots<T> const& b);
@@ -86,13 +105,22 @@ public:
     void acoef0s(T const& x0);
     T coef0s(Ots<T> const& a);
 
+    //Derivative
+    Ots<T>&  der(Ots< T > const& a, int ni);
+    Ots<T>& sder(Ots< T > const& a, int ni);
+    Ots<T>&  der(Ots< T > const& a, int ni, int m);
+
     //Friendly streaming
     friend std::ostream& operator << <>(std::ostream& stream, Ots<T> const& ots);
+
+    //Evaluate
+    template<typename U> void evaluate(U X[], T& z);
+    template<typename U> void evaluate_conjugate(U X[], T& z);
 };
 
 //Function
 template<typename T> T cpow(T const& x, T const& alpha);
-template<typename T> Ots<T> operator / (Ots<T> const& a, Ots<T> const& b);
+template<typename T>   Ots<T> operator / (Ots<T> const& a, Ots<T> const& b);
 template <typename T>  Ots<T> operator * (T const& c, Ots<T> const& a);
 
 //Include the implementation .tpp

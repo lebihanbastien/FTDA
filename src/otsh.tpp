@@ -2,10 +2,20 @@
 // Implementation of the Otsh template class
 //############################################################################
 
+/**
+ * \file otsh.tpp
+ * \brief Homogeneous Taylor series template class (src)
+ * \author BLB
+ * \date May 2015
+ * \version 1.0
+ */
+
+
 template<typename T> int Otsh<T>::globalOrder = 20;
 template<typename T> int Otsh<T>::globalVariable = 3;
 
 
+//---------------------------------------------------------------------------
 //Create
 //---------------------------------------------------------------------------
 
@@ -16,17 +26,17 @@ template<typename T> Otsh<T>::Otsh()
 {
     order = 0;
     nv = 0;
-    coef = new T(0);
+    coef = new T();
 }
 
 /*
-   Allocates memory  without any link to a coefficient array (requires the inmediate used of setCoefs afterwards).
+   Allocates memory  without any link to a coefficient array (requires the inmediate used of setAllCoefs afterwards).
 */
 template<typename T> Otsh<T>::Otsh(int newNv, int newOrder)
 {
     order = newOrder;
     nv = newNv;
-    coef = new T(0);//[ FTDA::nmon(nv, order)]();
+    coef = new T();//[ FTDA::nmon(nv, order)]();
 
     //Tree
     if(nv==1)  //1-variable polynomial
@@ -64,7 +74,7 @@ template<typename T> Otsh<T>::Otsh(int newNv, int newOrder)
    h: the polynomial to link;
    coef0: the array of coefficients;
 */
-template<typename T> void Otsh<T>::setCoefs(T *coef0)
+template<typename T> void Otsh<T>::setAllCoefs(T *coef0)
 {
     if(nv==1) //1-variable homogeneous polynomial
     {
@@ -79,11 +89,12 @@ template<typename T> void Otsh<T>::setCoefs(T *coef0)
         //perform recursice allocation
         for(i=0, coefc=coef0; i<=order; coefc+= FTDA::nmon(nv-1,order-i), i++)
         {
-            term[i].setCoefs(coefc);
+            term[i].setAllCoefs(coefc);
         }
     }
 }
 
+//---------------------------------------------------------------------------
 //Copy
 //---------------------------------------------------------------------------
 /*
@@ -98,7 +109,7 @@ template<typename T> Otsh<T>::Otsh(Otsh<T> const& b)
 //-----------------------------------------------------------
     order = b.order;
     nv = b.nv;
-    coef = new T(0);//[ FTDA::nmon(nv, order)]();
+    coef = new T();//[ FTDA::nmon(nv, order)]();
     //Tree
     if(nv==1)  //1-variable polynomial
     {
@@ -131,7 +142,7 @@ template<typename T> Otsh<T>::Otsh(Otsh<T> const& b)
     //Copy in linking of the coefficients
     T *coef0 = new T[ FTDA::nmon(b.nv, b.order)]();
     for(int i = 0 ; i <  FTDA::nmon(b.nv, b.order) ; i++) coef0[i] = b.coef[i];
-    this->setCoefs(coef0);
+    this->setAllCoefs(coef0);
 }
 
 /*
@@ -182,7 +193,7 @@ template<typename T> Otsh<T>& Otsh<T>::operator = (Otsh<T> const& b)
         //Copy in linking of the coefficients
         T *coef0 = new T[ FTDA::nmon(b.nv, b.order)]();
         for(int i = 0 ; i <  FTDA::nmon(b.nv, b.order) ; i++) coef0[i] = b.coef[i];
-        this->setCoefs(coef0);
+        this->setAllCoefs(coef0);
     }
     return *this; //same object if returned
 }
@@ -217,8 +228,10 @@ template<typename T> Otsh<T>& Otsh<T>::ccopy (Otsh<T> const& b)
 }
 
 
-//Delete       TO BE DETERMINED: how properly delete with recursivity?
-//              Seems to work fine like this, but memory leak?
+//---------------------------------------------------------------------------
+//Delete
+// TO BE DETERMINED: how properly delete with recursivity?
+// Seems to work fine like this, but memory leak?
 //---------------------------------------------------------------------------
 template<typename T> Otsh<T>::~Otsh<T>()
 {
@@ -229,6 +242,7 @@ template<typename T> Otsh<T>::~Otsh<T>()
     }*/
 }
 
+//---------------------------------------------------------------------------
 //Zeroing
 //---------------------------------------------------------------------------
 template<typename T> void Otsh<T>::zero()
@@ -236,6 +250,12 @@ template<typename T> void Otsh<T>::zero()
     for(int i = 0 ; i<  FTDA::nmon(nv, order); i++) this->setCoef(0.0, i);
 }
 
+template<> inline void Otsh<cdouble>::zero()
+{
+    for(int i = 0 ; i<  FTDA::nmon(nv, order); i++) this->setCoef(0.0+0.0*I, i);
+}
+
+//---------------------------------------------------------------------------
 //Setters
 //---------------------------------------------------------------------------
 template<typename T> void Otsh<T>::setCoef(T value, int pos)
@@ -244,10 +264,12 @@ template<typename T> void Otsh<T>::setCoef(T value, int pos)
     else cout << "Error in setCoef: position is out of scope\n No coefficient is set." << endl;
 }
 
-//Used to get a coef from term[0] of an Ots. As a consequence,
-//Positions bigger than FTDA::nmon(nv, order) can be set, but no
-//bigger than binomial(nv + ots.order, nv).
-//Use with care!!
+/**
+ * \brief Used to get a coef from term[0] of an Ots. As a consequence,
+ * Positions bigger than FTDA::nmon(nv, order) can be set, but no
+ * bigger than binomial(nv + ots.order, nv).
+ * Use with care!!
+ */
 template<typename T> void Otsh<T>::setCoefTot(T value, int pos)
 {
     coef[pos] = value;
@@ -263,13 +285,36 @@ template<typename T> void Otsh<T>::setRandomCoefs()
 {
     for(int pos = 0; pos< FTDA::nmon(nv, order); pos++)
     {
-        coef[pos] = 2.0*((double) rand()/RAND_MAX - 0.5); //between -1 and 1
+        coef[pos] = (double) rand()/RAND_MAX; //between 0 and 1
+        coef[pos] = coef[pos]/((double)(order+1)*(order+1));
     }
+}
+
+template<> inline void Otsh<cdouble>::setRandomCoefs()
+{
+    for(int pos = 0; pos< FTDA::nmon(nv, order); pos++)
+    {
+        coef[pos] =(double) rand()/RAND_MAX*I+(double) rand()/RAND_MAX; //between 0 and 1
+        coef[pos] = coef[pos]/((double)(order+1)*(order+1));
+    }
+}
+
+template <typename T> void Otsh<T>::conjugate()
+{
+    for(int pos = 0; pos< FTDA::nmon(nv, order); pos++)
+    {
+        coef[pos] = (sizeof(T) == sizeof(double))? (T) coef[pos]:conj(coef[pos]);
+    }
+}
+
+template <> inline void Otsh<double>::conjugate()
+{
+    //nothing is done here.
 }
 
 
 // Conjugate (2 variables only !)
-template <typename T> void Otsh<T>::conjugate()
+template <typename T> void Otsh<T>::conjugateforOFS()
 {
     if(nv != 2) cout << "Error in conjugate() of Otsh: number of variables is different from 2." << endl;
     else
@@ -288,7 +333,7 @@ template <typename T> void Otsh<T>::conjugate()
 }
 
 // Double case
-template <> inline void Otsh<double>::conjugate()
+template <> inline void Otsh<double>::conjugateforOFS()
 {
     if(nv != 2) cout << "Error in conjugate() of Otsh: number of variables is different from 2." << endl;
     else
@@ -327,13 +372,19 @@ template<typename T> Otsh<T> Otsh<T>::getTerm(int i)
 /*
     If position is out of scope, 0.0 is returned by default
 */
-template<typename T>  T Otsh<T>::getCoef(int i)
+template<typename T>  T Otsh<T>::getCoef(int i) const
 {
     if(i >=0 && i <  FTDA::nmon(nv, order)) return coef[i];
     else return 0.0;
 }
 
-template<typename T> T* Otsh<T>::getCoefAddress()
+template<>  inline  cdouble Otsh<cdouble>::getCoef(int i) const
+{
+    if(i >=0 && i <  FTDA::nmon(nv, order)) return coef[i];
+    else return 0.0+0.0*I;
+}
+
+template<typename T> T* Otsh<T>::getCA()
 {
     return coef;
 }
@@ -344,7 +395,7 @@ template<typename T> int Otsh<T>::getOrder()
     return order;
 }
 
-template<typename T> int Otsh<T>::getVariables()
+template<typename T> int Otsh<T>::getNV()
 {
     return nv;
 }
@@ -579,6 +630,128 @@ template<typename T> Otsh<T> operator - (Otsh<T> const& a, Otsh<T> const& b)
     return cop;
 }
 
+// Derivative
+//---------------------------------------------------------------------------
+template<typename T> Otsh<T>& Otsh<T>::derh(Otsh< T > const& a, int ni)
+{
+    Otsh<T> *dd, *pp, *pf;
+    pf = a.term+a.order;
+    if(this->nv > ni)  //the number of variables is greater than ni
+    {
+        for(pp = a.term, dd=this->term; pp < pf; pp++,dd++)
+        {
+            dd->derh(*pp, ni);
+        }
+    }
+    else
+    {
+        if(ni==1)
+        {
+            this->setCoef((T) a.order*a.getCoef(0), 0);
+        }
+        else
+        {
+            for(dd=this->term, pp=a.term+1; pp<=pf; pp++,dd++)
+            {
+                dd->mult(*pp, (T) (pp - a.term));
+            }
+        }
+    }
+
+    return *this;
+}
+
+
+template<> inline Otsh<cdouble>& Otsh<cdouble>::derh(Otsh< cdouble > const& a, int ni)
+{
+    Otsh<cdouble> *dd, *pp, *pf;
+    pf = a.term+a.order;
+    if(this->nv > ni)  //the number of variables is greater than ni
+    {
+        for(pp = a.term, dd=this->term; pp < pf; pp++,dd++)
+        {
+            dd->derh(*pp, ni);
+        }
+    }
+    else
+    {
+        if(ni==1)
+        {
+            this->setCoef(a.order*a.getCoef(0)+0.0*I, 0);
+        }
+        else
+        {
+            for(dd=this->term, pp=a.term+1; pp<=pf; pp++,dd++)
+            {
+                dd->mult(*pp, (pp - a.term)+0.0*I);
+            }
+        }
+    }
+
+    return *this;
+}
+
+
+template<typename T> Otsh<T>& Otsh<T>::sderh(Otsh< T > const& a, int ni)
+{
+    Otsh<T> *dd, *pp, *pf;
+    pf = a.term+a.order;
+    if(this->nv > ni)  //the number of variables is greater than ni
+    {
+        for(pp = a.term, dd=this->term; pp < pf; pp++,dd++)
+        {
+            dd->sderh(*pp, ni);
+        }
+    }
+    else
+    {
+        if(ni==1)
+        {
+            this->addCoef((T) a.order*a.getCoef(0), 0);
+        }
+        else
+        {
+            for(dd=this->term, pp=a.term+1; pp<=pf; pp++,dd++)
+            {
+                dd->smult(*pp, (T) (pp - a.term));
+            }
+        }
+    }
+
+    return *this;
+}
+
+
+template<> inline Otsh<cdouble>& Otsh<cdouble>::sderh(Otsh< cdouble > const& a, int ni)
+{
+    Otsh<cdouble> *dd, *pp, *pf;
+    pf = a.term+a.order;
+    if(this->nv > ni)  //the number of variables is greater than ni
+    {
+        for(pp = a.term, dd=this->term; pp < pf; pp++,dd++)
+        {
+            dd->sderh(*pp, ni);
+        }
+    }
+    else
+    {
+        if(ni==1)
+        {
+            this->addCoef(a.order*a.getCoef(0)+0.0*I, 0);
+        }
+        else
+        {
+            for(dd=this->term, pp=a.term+1; pp<=pf; pp++,dd++)
+            {
+                dd->smult(*pp, (pp - a.term)+0.0*I);
+            }
+        }
+    }
+
+    return *this;
+}
+
+
 //Stream
 //---------------------------------------------------------------------------
 template<typename T> std::ostream& operator << (std::ostream& stream, Otsh<T> const& otsh)
@@ -603,6 +776,7 @@ template<typename T> std::ostream& operator << (std::ostream& stream, Otsh<T> co
     return stream;
 }
 
+
 //Complex version
 template<> inline std::ostream& operator << (std::ostream& stream, Otsh< complex double > const& otsh)
 {
@@ -624,4 +798,69 @@ template<> inline std::ostream& operator << (std::ostream& stream, Otsh< complex
         if(i< FTDA::nmon(otsh.nv, otsh.order)-1)  FTDA::prxkt(k, otsh.nv);
     }
     return stream;
+}
+
+
+
+//---------------------------------------------------------------------------
+// Evaluate
+//---------------------------------------------------------------------------
+/**
+ *  \brief  Evaluates the Ofs object at coordinates X and set it in \c z: \c z \f$ += T_n(X) \f$. cdouble version
+ */
+template<typename T> template<typename U> void Otsh<T>::sevaluate(U X[], T& z)
+{
+    int *kv = (int*) calloc(order, sizeof(int));
+    kv[0] = order;
+    for(int i=1; i<nv; i++) kv[i] = 0;
+    U aux, bux;
+
+    for (int i=0; i< FTDA::nmon(nv, order); i++)
+    {
+        //z += X[ii]^kv[ii]*coef(i)
+        bux = 1.0;
+        for(int ii = 0; ii < nv; ii++)
+        {
+            aux = 1.0;
+            if(kv[ii] != 0.0)
+            {
+                for(int j = 1; j <= kv[ii]; j++) aux*= X[ii];
+            }
+            bux *= aux;
+        }
+        z += coef[i]*bux;
+        if(i< FTDA::nmon(nv, order)-1)  FTDA::prxkt(kv, nv);
+    }
+    free(kv);
+}
+
+
+
+/**
+ *  \brief  Evaluates the Ofs object at the conjugate of coordinates X and set it in \c z: \c z \f$ += T_n(\bar{X}) \f$.
+ */
+template<typename T> template<typename U> void Otsh<T>::sevaluate_conjugate(U X[], T& z)
+{
+    int kv[nv];
+    kv[0] = order;
+    for(int i=1; i<nv; i++) kv[i] = 0;
+    U aux, bux;
+
+    for (int i=0; i< FTDA::nmon(nv, order); i++)
+    {
+        //z += X[ii]^kv[ii]*coef(i)
+        bux = 1.0+0.0*I;
+        for(int ii = 0; ii < nv; ii++)
+        {
+            aux = 1.0+0.0*I;
+            if(kv[ii] != 0.0)
+            {
+                for(int j = 1; j <= kv[ii]; j++) aux*= conj(X[ii]);
+            }
+            bux *= aux;
+        }
+
+        z += coef[i]*bux;
+        if(i< FTDA::nmon(nv, order)-1)  FTDA::prxkt(kv, nv);
+    }
 }

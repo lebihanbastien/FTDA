@@ -1,0 +1,67 @@
+#pm structure for TFS version
+
+#--------------------------
+# Needed: 
+#--------------------------
+0. Ofts ofs <--> tfs at order n. Inline?
+1. matrix<Ofs> ofs <--> tfs
+2. algvec "
+3. vector " 
+
+#--------------------------
+# Structure: 
+#--------------------------
+1. Init COC and --> tfs
+2. Init the alphas and --> tfs
+2. Init DB.
+3. Init DF0 and --> tfs (the same since order 0)
+4. Init H and --> tfs (the same since order 0)
+5. Same for L, L2, N, Hinv, La, LaL, LaN
+
+6. Same for Wh, fh, +  a bunch of other OFTS (keep it to a minimum!)
+
+7. Computing order 0 and 1
+
+	- applyVF: * ofts_sfsum_tt, 
+		   * ofts_sfsum_t, 
+		   * ofts_smult_t 
+	- + we need to compute ((x - xEarth)^2 + y^2 + z^2)^-3/2: that brings
+		 * ofts_sprod
+		 * ofts_pows
+
+	- applyInvDotCOC: * smvprod_u
+			  * ofts_smult_u
+			  * subCoef
+
+	* smvprod_t
+	
+	* ofts_fsum_u
+
+	- Position of the primaries UNSHIFTED. Present in VF folder rather than in COC folder
+
+THINK about doing a parallel version: to W[i], one in TFS format, the other one in OFS
+
+#--------------------------
+# @TODO: 
+#-------------------------- 
+1. OFTS --> TFS functions
+- tftsh_smprod_tu and use it in pows.....DONE and TESTED
+
+- ofts_smult_t.....DONE at order N and TESTED
+- ofts_sprod.......DONE at order N and TESTED
+
+- OFS <--> TFS inline....................DONE AND TESTED
+- Ofts ofs <--> tfs at order n. Inline?..DONE AND TESTED
+
+- ofts_pows.............DONE AND TESTED --> NEEDS A GOOD ZERO ORDER!
+- ofts_smult_u..........DONE
+
+
+- ofts_sfsum_tt,..........DONE 
+- ofts_sfsum_t, ..........DONE
+- ofts_fsum_u.............DONE
+
+2. Matrix (clean and document)
+3. Algvec --> are they necessary?
+
+4. In the long run, probably separate the routine pows used in qbtbp (on Ofs<double>) and the other ones.

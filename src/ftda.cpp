@@ -1,11 +1,14 @@
-#include <iostream>
-#include <iomanip>
-#include <limits.h>
-#include <math.h>
 #include "ftda.h"
 
-#include <stdio.h>
-#include <stdlib.h>
+/**
+ * \file ftda.cpp
+ * \brief Basic operations for algebraic manipulation (exponents in reverse lexicographic order, number of coefficient in homogeneous polynomials...).
+ * \author BLB, Angel Jorba
+ * \date May 2015
+ * \version 1.0
+ *
+ *      Based on Jorba 1999.
+ */
 
 using namespace std;
 
@@ -14,72 +17,19 @@ int  FTDA::nov=0;       //static number of variables
 long int **FTDA::psi;  //cointains psi(i,j) for i=2..nov.
 
 
-/*
------------------------------------------------------------------------
-Binomial coefficients
------------------------------------------------------------------------
-*/
-unsigned long gcd_ui(unsigned long x, unsigned long y)
-{
-    unsigned long t;
-    if (y < x)
-    {
-        t = x;
-        x = y;
-        y = t;
-    }
-    while (y > 0)
-    {
-        t = y;
-        y = x % y;
-        x = t;  /* y1 <- x0 % y0 ; x1 <- y0 */
-    }
-    return x;
-}
-
-unsigned long binomial(unsigned long n, unsigned long k)
-{
-    unsigned long d, g, r = 1;
-    if (k == 0) return 1;
-    if (k == 1) return n;
-    if (k >= n) return (k == n);
-    if (k > n/2) k = n-k;
-    for (d = 1; d <= k; d++)
-    {
-        if (r >= ULONG_MAX/n)    /* Possible overflow */
-        {
-            unsigned long nr, dr;  /* reduced numerator / denominator */
-            g = gcd_ui(n, d);
-            nr = n/g;
-            dr = d/g;
-            g = gcd_ui(r, dr);
-            r = r/g;
-            dr = dr/g;
-            if (r >= ULONG_MAX/nr) return 0;  /* Unavoidable overflow */
-            r *= nr;
-            r /= dr;
-            n--;
-        }
-        else
-        {
-            r *= n--;
-            r /= d;
-        }
-    }
-    return r;
-}
-
-
-/*
-    Initializes the tables used by the manipulator. it has to
-    be called before using the manipulator.
-
-    parameters:
-    nr: maximum degree we are going to work with. it can not be greater than 63.
-    nv: number of variables
-
-    returned value: number of kbytes allocated by the internal tables.
-*/
+//-----------------------------------------------------------------------
+//Class routines
+//-----------------------------------------------------------------------
+/**
+ *   \brief Initializes the table psi(i,j), which contains the number of monomials of degree j with i variables.
+ *
+ *   parameters:
+ *   nr: maximum degree we are going to work with. it can not be greater than 63.
+ *   nv: number of variables
+ *
+ *   returned value: number of kbytes allocated by the internal tables.
+ *   Based on a routine by Angel Jorba, 1999.
+ **/
 int  FTDA::init(int nv, int nr)
 {
     int i,j,l;
@@ -144,11 +94,9 @@ int  FTDA::init(int nv, int nr)
     return(mem);
 }
 
-
-/*
-    Frees the space allocated by FTDA. it should be called
-    after using the manipulator mpt.
-*/
+/**
+ *  \brief Frees the space allocated by FTDA::init.
+ **/
 void  FTDA::free()
 {
     int i;
@@ -175,15 +123,14 @@ void  FTDA::free()
     return;
 }
 
-
-/*
-    Returns the number of monomials of degree nr with nv variables
-
-    parameters:
-    nv: number of variables
-    nr: order we are interested in (input).
-    returned value: number of monomials of order no.
-*/
+/**
+ *   \brief Returns the number of monomials of degree nr with nv variables, making use of the table FTDA::psi.
+ *
+ *  parameters:
+ *  nv: number of variables
+ *  nr: order we are interested in (input).
+ *  returned value: number of monomials of order no.
+ **/
 long int FTDA::nmon(int nv, int nr)
 {
     if (nr > nor)
@@ -200,18 +147,17 @@ long int FTDA::nmon(int nv, int nr)
     if(nv <= 1)
         return 1;
     else
-        return(psi[nv][nr]);
-    //return(binomial(nv+nr-1, nv-1));
+    return(psi[nv][nr]);
+
 }
 
-
-/*
-   given a multiindex k, this routine computes the next one
-   according to the (reverse) lexicographic order (for print purposes only).
-
-   parameters:
-   k: array of nv components containing the multiindex. it is overwritten on exit (input and output).
-*/
+/**
+ *  \brief given a multiindex k, this routine computes the next one
+ *  according to the (reverse) lexicographic order.
+ *
+ *  parameters:
+ *  k: array of nv components containing the multiindex. it is overwritten on exit (input and output).
+ **/
 void  FTDA::prxkt(int k[], int nv)
 {
     if(nv == 0)
@@ -243,10 +189,9 @@ void  FTDA::prxkt(int k[], int nv)
     exit(1);
 }
 
-
-/*
-    Returns the number of product operation in a taylor serie product
-*/
+/**
+ *   \brief Returns the number of product operation in a taylor serie product
+ **/
 long int pdk(int nv, int n)
 {
     long int result = 0;
@@ -257,3 +202,59 @@ long int pdk(int nv, int n)
     }
     return result;
 }
+
+
+//-----------------------------------------------------------------------
+//Binomial coefficients
+//-----------------------------------------------------------------------
+unsigned long gcd_ui(unsigned long x, unsigned long y)
+{
+    unsigned long t;
+    if (y < x)
+    {
+        t = x;
+        x = y;
+        y = t;
+    }
+    while (y > 0)
+    {
+        t = y;
+        y = x % y;
+        x = t;  /* y1 <- x0 % y0 ; x1 <- y0 */
+    }
+    return x;
+}
+
+unsigned long binomial(unsigned long n, unsigned long k)
+{
+    unsigned long d, g, r = 1;
+    if (k == 0) return 1;
+    if (k == 1) return n;
+    if (k >= n) return (k == n);
+    if (k > n/2) k = n-k;
+    for (d = 1; d <= k; d++)
+    {
+        if (r >= ULONG_MAX/n)    /* Possible overflow */
+        {
+            unsigned long nr, dr;  /* reduced numerator / denominator */
+            g = gcd_ui(n, d);
+            nr = n/g;
+            dr = d/g;
+            g = gcd_ui(r, dr);
+            r = r/g;
+            dr = dr/g;
+            if (r >= ULONG_MAX/nr) return 0;  /* Unavoidable overflow */
+            r *= nr;
+            r /= dr;
+            n--;
+        }
+        else
+        {
+            r *= n--;
+            r /= d;
+        }
+    }
+    return r;
+}
+
+

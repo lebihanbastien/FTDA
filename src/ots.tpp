@@ -2,32 +2,76 @@
 // Implementation of the Ots template class
 //############################################################################
 
+/**
+ * \file ots.tpp
+ * \brief Taylor series template class
+ * \author BLB.
+ * \date May 2015
+ * \version 1.0
+ */
+
+
+
+//---------------------------------------------------------------------------
 //Create
 //---------------------------------------------------------------------------
-
-template<typename T> Ots<T>::Ots(int newNv, int nr, T *coefs)
+/**
+ *  \brief Default constructor of the class Ots<T>.
+ */
+template<typename T> Ots<T>::Ots()
 {
     int i, index;
 
-    nv = newNv;
-    order = nr;
+    nv     = REDUCED_NV;
+    order  = OTS_ORDER;
+    T *coefs = new T[binomial(nv+order, nv)]();
+
 
     //Allocation of the homogeneous polynomials
-    term = new Otsh<T>*[nr+1];
+    term = new Otsh<T>*[order+1];
 
     //Allocation of the coefficients
     index = 0;
-    for(i=0; i<=nr; i++)
+    for(i=0; i<=order; i++)
     {
         //Allocation of each hp
         term[i] = new Otsh<T>(nv, i);//allocate_homog(nv, i);
         //Link h to coefs at each level of the tree
-        term[i]->setCoefs(coefs+index);
+        term[i]->setAllCoefs(coefs+index);
         index+=  FTDA::nmon(nv,i);
     }
 }
 
+/**
+ *  \brief Constructor with given order of for the Taylor series. The number of variables is set to REDUCED_NV by default.
+ */
+template<typename T> Ots<T>::Ots(int newOrder)
+{
+    int i, index;
 
+    nv     = REDUCED_NV;
+    order  = newOrder;
+    T *coefs = new T[binomial(nv+order, nv)]();
+
+
+    //Allocation of the homogeneous polynomials
+    term = new Otsh<T>*[order+1];
+
+    //Allocation of the coefficients
+    index = 0;
+    for(i=0; i<=order; i++)
+    {
+        //Allocation of each hp
+        term[i] = new Otsh<T>(nv, i);//allocate_homog(nv, i);
+        //Link h to coefs at each level of the tree
+        term[i]->setAllCoefs(coefs+index);
+        index+=  FTDA::nmon(nv,i);
+    }
+}
+
+/**
+ *  \brief Constructor with given order/number of variables for the Taylor series.
+ */
 template<typename T> Ots<T>::Ots(int newNv, int newOrder)
 {
     int i, index;
@@ -47,12 +91,13 @@ template<typename T> Ots<T>::Ots(int newNv, int newOrder)
         //Allocation of each hp
         term[i] = new Otsh<T>(nv, i);//allocate_homog(nv, i);
         //Link h to coefs at each level of the tree
-        term[i]->setCoefs(coefs+index);
+        term[i]->setAllCoefs(coefs+index);
         index+=  FTDA::nmon(nv,i);
     }
 }
 
 
+//---------------------------------------------------------------------------
 //Copy
 //---------------------------------------------------------------------------
 /*
@@ -86,7 +131,7 @@ template<typename T> Ots<T>::Ots(Ots<T> const& b)
         //Allocation of each hp
         term[nrc] = new Otsh<T>(nv, nrc);//allocate_homog(nv, i);
         //Link h to coefs at each level of the tree
-        term[nrc]->setCoefs(coef0+index);
+        term[nrc]->setAllCoefs(coef0+index);
         index+=  FTDA::nmon(nv,nrc);
     }
 }
@@ -126,7 +171,7 @@ template<typename T> Ots<T>& Ots<T>::operator = (Ots<T> const& b)
             //Allocation of each hp
             term[nrc] = new Otsh<T>(nv, nrc);//allocate_homog(nv, i);
             //Link h to coefs at each level of the tree
-            term[nrc]->setCoefs(coef0+index);
+            term[nrc]->setAllCoefs(coef0+index);
             index+=  FTDA::nmon(nv,nrc);
         }
 
@@ -164,13 +209,16 @@ template<typename T> Ots<T>& Ots<T>::ccopy (Ots<T> const& b)
     }
 }
 
+//---------------------------------------------------------------------------
 //Getters
 //---------------------------------------------------------------------------
+//Order of the expansion
 template<typename T> int Ots<T>::getOrder() const
 {
     return order;
 }
 
+//Coefficient at position pos
 template<typename T> T Ots<T>::getCoef(int const& mOrder, int const& pos) const
 {
     if(mOrder > order || pos >= FTDA::nmon(nv, mOrder))
@@ -183,14 +231,28 @@ template<typename T> T Ots<T>::getCoef(int const& mOrder, int const& pos) const
     else return this->term[mOrder]->getCoef(pos);
 }
 
-template<typename T> int Ots<T>::getVariables() const
+//Number of variables
+template<typename T> int Ots<T>::getNV() const
 {
     return nv;
 }
 
+//Get Term of order mOrder (OTSH object)
+template<typename T> Otsh<T>* Ots<T>::getTerm(int const& mOrder) const
+{
+    if(mOrder > order)
+    {
+        cout << "Error in getTerm: out of range. First term is returned" << endl;
+        cout << "Requested order: " << mOrder << ", Maximum allowed: " <<  order << endl;
+        return this->term[0];
+    }
+    else return this->term[mOrder];
+}
 
-//Delete       TO BE DETERMINED: how properly delete with recursivity?
-//              Seems to work fine like this, but memory leak?
+//---------------------------------------------------------------------------
+//Delete
+//  TO BE DETERMINED: how properly delete with recursivity?
+// Seems to work fine like this, but memory leak?
 //---------------------------------------------------------------------------
 template<typename T> Ots<T>::~Ots<T>()
 {
@@ -202,6 +264,7 @@ template<typename T> Ots<T>::~Ots<T>()
     }
 }
 
+//---------------------------------------------------------------------------
 //Zeroing
 //---------------------------------------------------------------------------
 template<typename T> void Ots<T>::zero()
@@ -209,9 +272,15 @@ template<typename T> void Ots<T>::zero()
     for(int nrc=0; nrc<= order; nrc++) for (int i=0; i< FTDA::nmon(nv, nrc); i++)  term[nrc]->setCoef(0.0, i);
 }
 
+template<> inline void Ots<cdouble>::zero()
+{
+    for(int nrc=0; nrc<= order; nrc++) for (int i=0; i< FTDA::nmon(nv, nrc); i++)  term[nrc]->setCoef(0.0+0.0*I, i);
+}
+
+//---------------------------------------------------------------------------
 //Setters
 //---------------------------------------------------------------------------
-template<typename T> void Ots<T>::setCoefs(T const& m)
+template<typename T> void Ots<T>::setAllCoefs(T const& m)
 {
     for(int nrc=0; nrc<= order; nrc++) for (int i=0; i< FTDA::nmon(nv, nrc); i++)  term[nrc]->setCoef(m, i);
 }
@@ -226,15 +295,27 @@ template<typename T> void Ots<T>::setCoef(T const& m, int const& pos)
     else this->term[0]->setCoefTot(m, pos);
 }
 
+template<typename T> void Ots<T>::setCoef(T const& m, int pos, int i)
+{
+    term[pos]->setCoef(m, i);
+}
+
 template <typename T> void Ots<T>::conjugate()
 {
     for(int i=0; i<= order; i++) term[i]->conjugate();
 }
 
+template <typename T> void Ots<T>::conjugateforOFS()
+{
+    for(int i=0; i<= order; i++) term[i]->conjugateforOFS();
+}
+
 template<typename T> void Ots<T>::setRandomCoefs()
 {
-    for(int nrc=0; nrc<= order; nrc++) term[nrc]->setRandomCoefs();
+    for(int nrc=0; nrc<= order/2; nrc++) term[nrc]->setRandomCoefs();
 }
+
+//---------------------------------------------------------------------------
 // Functions
 //---------------------------------------------------------------------------
 /*
@@ -242,8 +323,7 @@ template<typename T> void Ots<T>::setRandomCoefs()
 */
 template<typename T> Ots<T>& Ots<T>::sprod(Ots<T> const& a, Ots<T> const& b)
 {
-
-        int k, i, i0, i1;
+    int k, i, i0, i1;
     //Product
     for(k=0; k<=order; k++)
     {
@@ -251,11 +331,8 @@ template<typename T> Ots<T>& Ots<T>::sprod(Ots<T> const& a, Ots<T> const& b)
         i1 = min(a.order, k);
         for(i= k-i0; i<=i1; i++) term[k]->sprod(*a.term[i], *b.term[k-i]);
     }
-
-
     return *this;
 }
-
 
 /*
     Product: p = p + a*b only at order n
@@ -274,7 +351,6 @@ template<typename T> Ots<T>& Ots<T>::sprod(Ots<T> const& a, Ots<T> const& b, int
     return *this;
 }
 
-
 /*
     Product: p = p + a*b at order p->order
 */
@@ -285,7 +361,6 @@ template<typename T> Ots<T>& Ots<T>::prod(Ots<T> const& a, Ots<T> const& b)
 
     return *this;
 }
-
 
 /*
     Product: p = p + m*a*b at order p->order
@@ -302,6 +377,20 @@ template<typename T> Ots<T>& Ots<T>::smprod(Ots<T> const& a, Ots<T> const& b, T 
         }
     }
 
+    return *this;
+}
+
+/*
+    Product: p = p + m*a*b at order n
+*/
+template<typename T> Ots<T>& Ots<T>::smprod(Ots<T> const& a, Ots<T> const& b, T const& m, int const& n)
+{
+    int i, i0, i1;
+
+    i0 = min(b.order, n);
+    i1 = min(a.order, n);
+    //Product
+    for(i= n-i0; i<=i1; i++) term[n]->smprod(*a.term[i], *b.term[n-i], m);
     return *this;
 }
 
@@ -361,16 +450,14 @@ template<typename T> Ots<T>& Ots<T>::mult(Ots<T> const& a, T const& m)
     }
 }
 
-
 /*
-    Mult: ps = r*a at order ps->order
+    Mult: ps = r*ps at order ps->order
 */
 template<typename T> Ots<T>& Ots<T>::mult(T const& m)
 {
         for(int k=0; k <= order; k++) term[k]->mult(m);  //ps[k] *= m
         return *this;
 }
-
 
 /*
     Factored Sum: p = ma*a+mb*b at order p->order
@@ -388,13 +475,12 @@ template<typename T> Ots<T>& Ots<T>::fsum(Ots<T> const& a, T const& ma, Ots<T> c
         for(k=0; k <= order; k++)
         {
             term[k]-> mult(*a->term[k], ma);   //ps[k]   = ma*a[k], contains the zeroing
-            term[k]->smult(*b->term[k], mb);  //ps[k]  += mb*b[k]
+            term[k]->smult(*b->term[k], mb);   //ps[k]  += mb*b[k]
         }
         return *this;
     }
 
 }
-
 
 /*
     Division of taylor functions: p = a/b
@@ -414,6 +500,30 @@ template<typename T> Ots<T>& Ots<T>::divs(Ots<T> const& a, Ots<T> const& b)
         //Copy of a[k] in p[k]
         this->term[k]->smult(*a.term[k], 1.0);
         for(j=0; j<= k-1; j++)  this->term[k]->smprod(*b.term[k-j], *this->term[j], -1.0);
+        this->term[k]->mult(1.0/coef0s(b));
+    }
+
+    return *this;
+}
+
+/*
+    cdouble spec
+*/
+template<> inline Ots<cdouble>& Ots<cdouble>::divs(Ots<cdouble> const& a, Ots<cdouble> const& b)
+{
+    int k, j;
+
+    //Order 0
+    this->acoef0s(coef0s(a) / coef0s(b));
+
+    //Recurrence scheme
+    for(k=1; k <= order; k++)
+    {
+        //sets every coefficients to zero for order k
+        this->term[k]->zero();
+        //Copy of a[k] in p[k]
+        this->term[k]->smult(*a.term[k], 1.0+0.0*I);
+        for(j=0; j<= k-1; j++)  this->term[k]->smprod(*b.term[k-j], *this->term[j], -1.0+0.0*I);
         this->term[k]->mult(1.0/coef0s(b));
     }
 
@@ -444,9 +554,9 @@ template<typename T> Ots<T>& Ots<T>::mdivs(Ots<T> const& a, Ots<T> const& b, T c
     return *this;
 }
 
-/*
-    Power function: p = a^alpha
-*/
+/**
+ *   \brief Power function: p = a^alpha
+ **/
 template<typename T> Ots<T>& Ots<T>::pows(Ots<T> const& a,  T const& alpha)
 {
     int k, j;
@@ -454,6 +564,7 @@ template<typename T> Ots<T>& Ots<T>::pows(Ots<T> const& a,  T const& alpha)
 
     //Initialization of order zero
     x0 = coef0s(a);
+
     this->acoef0s(cpow(x0, alpha));
     //Recurrence scheme
     for(k=1; k <= order; k++)
@@ -463,18 +574,15 @@ template<typename T> Ots<T>& Ots<T>::pows(Ots<T> const& a,  T const& alpha)
         for(j=0; j<= k-1; j++) this->term[k]->smprod(*a.term[k-j], *this->term[j], alpha*(k-j)-j);// smprodh(ps->term[k], s->term[k-j], ps->term[j], alpha*(k-j)-j);
         this->term[k]->mult(1.0/(k*x0)); //multh(ps->term[k], 1.0/(x0*k));
     }
-
     return *this;
 }
-
-
 
 /*
     Returns the address of the first coefficient of order 0 of the taylor serie s
 */
 template<typename T> T Ots<T>::coef0s(Ots<T> const& a)
 {
-    return a.term[0][0].getCoef(0);
+    return a.term[0]->getCoef(0);
 }
 
 /*
@@ -482,9 +590,8 @@ template<typename T> T Ots<T>::coef0s(Ots<T> const& a)
 */
 template<typename T> void Ots<T>::acoef0s(T const& x0)
 {
-    this->term[0][0].setCoef(x0,0);
+    this->term[0]->setCoef(x0, 0);
 }
-
 
 /*
     Complex exponentiation
@@ -503,11 +610,17 @@ template<> inline complex double cpow< complex double>(complex double const& x, 
 
 template<> inline double cpow<double>(double const& x, double const& alpha)
 {
+    //Check that we dont have simultaneously: x < 0 and alpha not integer:
+    if( x <=0 && floor(alpha) != alpha)
+    {
+        cout << "error in  cpow<double>: result is complex. 1.0 is returned" << endl;
+        return 1.0;
+    }
+
     //Double version is simply power
-    return pow(x, alpha);
+    if(alpha > 0) return pow(x, alpha);
+    else return 1.0/pow(x, -alpha);
 }
-
-
 
 
 /*
@@ -532,9 +645,63 @@ template <typename T>  Ots<T> operator * (T const& c, Ots<T> const& a)
 }
 
 
+//Derivation
+//---------------------------------------------------------------------------
+//Partial derivation; Works for order = a.order and order = a.order-1
+template<typename T> Ots<T>& Ots<T>::der(Ots< T > const& a, int ni)
+{
+    int kmax;
+    if(order == a.order) kmax = order-1;
+    else if(order == a.order-1) kmax = order;
+    else
+    {
+        cout << "Error in der routines (ots object). Orders do not match." << endl;
+        return *this;
+    }
+
+
+    for(int k = 0; k <= kmax ; k++)
+    {
+        term[k]->derh(*a.term[k+1], ni);
+    }
+
+    return *this;
+}
+
+//Partial derivation; Works for order = a.order and order = a.order-1
+template<typename T> Ots<T>& Ots<T>::sder(Ots< T > const& a, int ni)
+{
+    int kmax;
+    if(order == a.order) kmax = order-1;
+    else if(order == a.order-1) kmax = order;
+    else
+    {
+        cout << "Error in der routines (ots object). Orders do not match." << endl;
+        return *this;
+    }
+
+
+    for(int k = 0; k <= kmax ; k++)
+    {
+        term[k]->sderh(*a.term[k+1], ni);
+    }
+
+    return *this;
+}
+
+//Partial derivation @order m;
+//WARNING: order m of a is derived and put order m-1 in this
+template<typename T> Ots<T>& Ots<T>::der(Ots< T > const& a, int ni, int m)
+{
+    if(m > 0) term[m-1]->derh(*a.term[m], ni);
+    return *this;
+}
+
+
+//---------------------------------------------------------------------------
 //Stream
 //---------------------------------------------------------------------------
-
+//Double version
 template<typename T> std::ostream& operator << (std::ostream& stream, Ots<T> const& ots)
 {
     int i,j, nrc;
@@ -562,8 +729,6 @@ template<typename T> std::ostream& operator << (std::ostream& stream, Ots<T> con
     return stream;
 }
 
-
-
 //Complex version
 template<> inline std::ostream& operator << (std::ostream& stream, Ots< complex double > const& ots)
 {
@@ -590,4 +755,28 @@ template<> inline std::ostream& operator << (std::ostream& stream, Ots< complex 
         }
     }
     return stream;
+}
+
+
+//---------------------------------------------------------------------------
+//Evaluate
+//---------------------------------------------------------------------------
+//Evaluate
+template<typename T> template<typename U> void Ots<T>::evaluate(U X[], T& z)
+{
+    z = 0;
+    for(int k = order; k >= 0 ; k--)
+    {
+        term[k]->sevaluate(X, z);
+    }
+}
+
+//Evaluate
+template<typename T> template<typename U> void Ots<T>::evaluate_conjugate(U X[], T& z)
+{
+    z = 0;
+    for(int k = order; k >= 0 ; k--)
+    {
+        term[k]->sevaluate_conjugate(X, z);
+    }
 }

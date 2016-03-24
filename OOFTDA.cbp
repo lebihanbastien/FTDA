@@ -5,6 +5,7 @@
 		<Option title="OOFTDA" />
 		<Option pch_mode="2" />
 		<Option compiler="gcc" />
+		<Option virtualFolders="include/;src/;" />
 		<Build>
 			<Target title="Debug">
 				<Option output="bin/Debug/OOFTDA" prefix_auto="1" extension_auto="1" />
@@ -12,15 +13,13 @@
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
+					<Add option="-pg" />
 					<Add option="-g" />
-					<Add directory="src" />
-					<Add directory="include" />
-					<Add directory="backup" />
+					<Add option="-fopenmp" />
 				</Compiler>
 				<Linker>
-					<Add directory="backup" />
-					<Add directory="src" />
-					<Add directory="include" />
+					<Add option="-pg" />
+					<Add option="-fopenmp" />
 				</Linker>
 			</Target>
 			<Target title="Release">
@@ -30,36 +29,109 @@
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-O2" />
+					<Add option="-fopenmp" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
+					<Add option="-fopenmp" />
 				</Linker>
 			</Target>
 		</Build>
 		<Compiler>
 			<Add option="-Wall" />
-			<Add option="-fexceptions" />
+			<Add directory="src" />
+			<Add directory="include" />
+			<Add directory="test" />
+			<Add directory="/home/b.le-bihan/BackUpBox/PhD/OOFTDA/" />
+			<Add directory="/usr/local/include/gsl" />
+			<Add directory="fortran" />
 		</Compiler>
+		<Linker>
+			<Add option="fortran/routines0.o -lgfortran" />
+			<Add option="fortran/foun.o -lgfortran" />
+			<Add directory="fortran" />
+			<Add directory="/home/b.le-bihan/BackUpBox/PhD/OOFTDA/" />
+		</Linker>
+		<Unit filename="include/coc.h" />
+		<Unit filename="include/config.h" />
+		<Unit filename="include/define_env.h" />
+		<Unit filename="include/diffcorr.h" />
+		<Unit filename="include/eminsem.h" />
+		<Unit filename="include/ertbp.h" />
 		<Unit filename="include/ftda.h" />
+		<Unit filename="include/gnuplot_i.h" />
+		<Unit filename="include/gslc.h" />
+		<Unit filename="include/matrix.h" />
+		<Unit filename="include/multimin.h" />
+		<Unit filename="include/multimin_test.h" />
+		<Unit filename="include/nfo2.h" />
+		<Unit filename="include/nrutil.h" />
+		<Unit filename="include/ode.h" />
+		<Unit filename="include/odezero.h" />
 		<Unit filename="include/ofs.h" />
 		<Unit filename="include/ofts.h" />
 		<Unit filename="include/oftsh.h" />
 		<Unit filename="include/ots.h" />
 		<Unit filename="include/otsh.h" />
+		<Unit filename="include/parameters.h">
+			<Option virtualFolder="include/" />
+		</Unit>
+		<Unit filename="include/pm.h" />
+		<Unit filename="include/pmcoc.h" />
+		<Unit filename="include/pmode.h" />
+		<Unit filename="include/pmt.h" />
+		<Unit filename="include/poincare.h" />
+		<Unit filename="include/qbcp.h" />
 		<Unit filename="include/qbtbp.h" />
-		<Unit filename="include/qbtbp_ofs.h" />
-		<Unit filename="include/tests.h" />
-		<Unit filename="main.cpp" />
-		<Unit filename="src/custom_ode.cpp" />
+		<Unit filename="include/timec.h" />
+		<Unit filename="include/trajectory.h" />
+		<Unit filename="main.cpp">
+			<Option virtualFolder="src/" />
+		</Unit>
+		<Unit filename="src/coc.cpp" />
+		<Unit filename="src/config.cpp" />
+		<Unit filename="src/define_env.cpp" />
+		<Unit filename="src/diffcorr.cpp" />
+		<Unit filename="src/eminsem.cpp" />
+		<Unit filename="src/ertbp.cpp" />
 		<Unit filename="src/ftda.cpp" />
+		<Unit filename="src/gnuplot_i.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src/gslc.cpp" />
+		<Unit filename="src/lpdyneq.cpp" />
+		<Unit filename="src/matrix.tpp" />
+		<Unit filename="src/multimin.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src/multimin_test.cpp" />
+		<Unit filename="src/nfo2.cpp" />
+		<Unit filename="src/nrutil.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="src/ode.cpp" />
+		<Unit filename="src/odezero.cpp" />
 		<Unit filename="src/ofs.tpp" />
 		<Unit filename="src/ofts.tpp" />
 		<Unit filename="src/oftsh.tpp" />
 		<Unit filename="src/ots.tpp" />
 		<Unit filename="src/otsh.tpp" />
+		<Unit filename="src/parameters.cpp" />
+		<Unit filename="src/pm.cpp" />
+		<Unit filename="src/pmcoc.cpp" />
+		<Unit filename="src/pmode.cpp" />
+		<Unit filename="src/pmt.cpp" />
+		<Unit filename="src/poincare.cpp" />
+		<Unit filename="src/qbcp.cpp" />
 		<Unit filename="src/qbtbp.cpp" />
-		<Unit filename="src/qbtbp_ofs.cpp" />
-		<Unit filename="src/tests.cpp" />
+		<Unit filename="src/timec.cpp" />
+		<Unit filename="src/trajectory.cpp" />
+		<Unit filename="test/ofs_test.cpp" />
+		<Unit filename="test/ofs_test.h" />
+		<Unit filename="test/ofts_test.cpp" />
+		<Unit filename="test/ofts_test.h" />
+		<Unit filename="test/oftsh_test.cpp" />
+		<Unit filename="test/oftsh_test.h" />
 		<Extensions>
 			<code_completion />
 			<debugger />

@@ -207,3 +207,1243 @@
 
 1425385462 /home/b.le-bihan/Documents/C/PhD/OOFTDA/src/ots_vector.tpp
 
+1425385462 D
+
+1425642277 source:/home/b.le-bihan/Dropbox/PhD/OOFTDA/src/custom_ode.cpp
+	<stdio.h>
+	<sstream>
+	<iostream>
+	"custom_ode.h"
+	<gsl/gsl_odeiv2.h>
+	<gsl/gsl_errno.h>
+
+1429006725 /home/b.le-bihan/Dropbox/PhD/OOFTDA/include/custom_ode.h
+	<gsl/gsl_odeiv2.h>
+	<gsl/gsl_roots.h>
+
+1424372989 source:/home/b.le-bihan/Dropbox/PhD/OOFTDA/src/ftda.cpp
+	<iostream>
+	<iomanip>
+	<limits.h>
+	<math.h>
+	"ftda.h"
+	<stdio.h>
+	<stdlib.h>
+
+1424372757 /home/b.le-bihan/Dropbox/PhD/OOFTDA/include/ftda.h
+
+1430818955 source:/home/b.le-bihan/Dropbox/PhD/OOFTDA/src/qbtbp.cpp
+	<iostream>
+	<fstream>
+	<time.h>
+	<stdio.h>
+	<complex.h>
+	"qbtbp.h"
+
+1429604780 /home/b.le-bihan/Dropbox/PhD/OOFTDA/include/qbtbp.h
+	<iostream>
+	<time.h>
+	<stdio.h>
+	<complex.h>
+	<gsl/gsl_matrix.h>
+	<gsl/gsl_vector.h>
+	<gsl/gsl_blas.h>
+	<gsl/gsl_fft_real.h>
+	<gsl/gsl_fft_halfcomplex.h>
+	<gsl/gsl_fft_complex.h>
+	"ots.h"
+	"ofts.h"
+	"ofs.h"
+	"ode.h"
+	"gslc.h"
+	"define_env.h"
+
+1425387039 /home/b.le-bihan/Dropbox/PhD/OOFTDA/include/ots.h
+	<iostream>
+	<iomanip>
+	<limits.h>
+	<math.h>
+	<stdio.h>
+	<stdlib.h>
+	<complex.h>
+	"ftda.h"
+	"otsh.h"
+	"ots.tpp"
+
+1429621722 /home/b.le-bihan/Dropbox/PhD/OOFTDA/include/otsh.h
+	<iostream>
+	<iomanip>
+	<limits.h>
+	<math.h>
+	<stdio.h>
+	<stdlib.h>
+	<complex.h>
+	<vector>
+	"ftda.h"
+	"otsh.tpp"
+
+1428928453 /home/b.le-bihan/Dropbox/PhD/OOFTDA/src/otsh.tpp
+
+1428928453 /home/b.le-bihan/Dropbox/PhD/OOFTDA/src/ots.tpp
+
+1430812146 /home/b.le-bihan/Dropbox/PhD/OOFTDA/include/ofts.h
+	<iostream>
+	<iomanip>
+	<limits.h>
+	<math.h>
+	<stdio.h>
+	<stdlib.h>
+	<complex.h>
+	"ftda.h"
+	"oftsh.h"
+	"ofs.h"
+	"parameters.h"
+	"ofts.tpp"
+
+1430811917 /home/b.le-bihan/Dropbox/PhD/OOFTDA/include/oftsh.h
+	<iostream>
+	<iomanip>
+	<limits.h>
+	<math.h>
+	<stdio.h>
+	<stdlib.h>
+	"ftda.h"
+	"ots.h"
+	"ofs.h"
+	"oftsh.tpp"
+
+1429621057 /home/b.le-bihan/Dropbox/PhD/OOFTDA/include/ofs.h
+	<iostream>
+	<fstream>
+	<sstream>
+	<iomanip>
+	<math.h>
+	<stdio.h>
+	<stdlib.h>
+	"ots.h"
+	"parameters.h"
+	"ofs.tpp"
+
+1430312628 /home/b.le-bihan/Dropbox/PhD/OOFTDA/src/ofs.tpp
+
+1430812973 /home/b.le-bihan/Dropbox/PhD/OOFTDA/src/oftsh.tpp
+
+1430813834 /home/b.le-bihan/Dropbox/PhD/OOFTDA/src/ofts.tpp
+
+1425666163 source:/home/b.le-bihan/Dropbox/PhD/OOFTDA/src/qbtbp_ofs.cpp
+	<iostream>
+	<fstream>
+	<time.h>
+	<stdio.h>
+	<complex.h>
+	"ode.h"
+	"qbtbp_ots.h"
+	"qbtbp_ofs.h"
+
+1424972785 source:/home/b.le-bihan/Dropbox/PhD/OOFTDA/src/tests.cpp
+	<iostream>
+	<fstream>
+	<time.h>
+	<stdio.h>
+	<complex.h>
+	"tests.h"
+	"ofts.h"
+	"ofs.h"
+
+1424971896 /home/b.le-bihan/Dropbox/PhD/OOFTDA/include/tests.h
+
+1424971896 1147... Initial commit: src+hearders+c::b files
+
+1430897731 source:/home/b.le-bihan/Dropbox/PhD/OOFTDA/main.cpp
+	<iostream>
+	<fstream>
+	<time.h>
+	<stdio.h>
+	<complex.h>
+	<sstream>
+	<gsl/gsl_odeiv2.h>
+	<gsl_interp.h>
+	<gsl/gsl_roots.h>
+	<gsl/gsl_blas.h>
+	<gsl/gsl_eigen.h>
+	<gsl/gsl_matrix.h>
+	<gsl/gsl_vector.h>
+	<gsl/gsl_blas.h>
+	<gsl/gsl_fft_real.h>
+	<gsl/gsl_fft_halfcomplex.h>
+	<gsl_complex.h>
+	<gsl_complex_math.h>
+	"ode.h"
+	"diffcorr.h"
+	"ofs.h"
+	"otsh.h"
+	"ots.h"
+	"oftsh.h"
+	"ofts.h"
+	"ftda.h"
+	"gslc.h"
+	"qbtbp.h"
+	"qbfbp.h"
+	"tests.h"
+	"nfo2.h"
+	"define_env.h"
+	"ga.h"
+	"coc.h"
+	"parameters.h"
+	"timec.h"
+	"pm.h"
+	"gnuplot_i.h"
+
+1425666670 /home/b.le-bihan/Dropbox/PhD/OOFTDA/include/qbtbp_ofs.h
+	<iostream>
+	<time.h>
+	<stdio.h>
+	<complex.h>
+	<gsl/gsl_matrix.h>
+	<gsl/gsl_vector.h>
+	<gsl/gsl_blas.h>
+	"ots.h"
+	"ofts.h"
+	"ofs.h"
+	"ode.h"
+	"gslc.h"
+
+1429264125 source:/home/b.le-bihan/Dropbox/PhD/OOFTDA/src/gnuplot_i.c
+	"gnuplot_i.h"
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+	<stdarg.h>
+	<assert.h>
+	<io.h>
+
+1429264147 /home/b.le-bihan/Dropbox/PhD/OOFTDA/include/gnuplot_i.h
+	<stdio.h>
+
+1429265814 source:/home/b.le-bihan/Dropbox/PhD/OOFTDA/src/diffcorr.cpp
+	"diffcorr.h"
+	"odezero.h"
+
+1429264303 /home/b.le-bihan/Dropbox/PhD/OOFTDA/include/diffcorr.h
+	<stdio.h>
+	<gsl/gsl_linalg.h>
+	<gsl/gsl_odeiv2.h>
+	"qbtbp.h"
+	"gnuplot_i.h"
+
+1425666654 /home/b.le-bihan/Dropbox/PhD/OOFTDA/include/qbtbp_ots.h
+	<iostream>
+	<time.h>
+	<stdio.h>
+	<complex.h>
+	"ots.h"
+	"ofts.h"
+	"ofs.h"
+
+1425665272 source:/home/b.le-bihan/Dropbox/PhD/OOFTDA/src/qbtbp_ots.cpp
+	<iostream>
+	<fstream>
+	<time.h>
+	<stdio.h>
+	<complex.h>
+	"qbtbp_ots.h"
+
+1430813196 /home/b.le-bihan/Dropbox/PhD/OOFTDA/include/gslc.h
+	<gsl/gsl_matrix.h>
+	<gsl/gsl_blas.h>
+	<gsl_complex_math.h>
+	<gsl/gsl_linalg.h>
+	<gsl/gsl_odeiv2.h>
+	<gsl/gsl_eigen.h>
+	"qbfbp.h"
+	<stdio.h>
+	<iostream>
+
+1430813265 source:/home/b.le-bihan/Dropbox/PhD/OOFTDA/src/gslc.cpp
+	"gslc.h"
+
+1429007443 /home/b.le-bihan/Dropbox/PhD/OOFTDA/include/ode.h
+	<gsl/gsl_odeiv2.h>
+	<gsl/gsl_roots.h>
+
+1429007457 source:/home/b.le-bihan/Dropbox/PhD/OOFTDA/src/ode.cpp
+	"ode.h"
+	<iostream>
+	<gsl/gsl_odeiv2.h>
+	<gsl/gsl_errno.h>
+
+1429619938 /home/b.le-bihan/Dropbox/PhD/OOFTDA/include/qbfbp.h
+	<iostream>
+	<time.h>
+	<stdio.h>
+	<complex.h>
+	<gsl_complex_math.h>
+	<fstream>
+	<sstream>
+	"ode.h"
+	"qbtbp.h"
+	"diffcorr.h"
+	"define_env.h"
+	"parameters.h"
+	"gnuplot_i.h"
+
+1430905746 source:/home/b.le-bihan/Dropbox/PhD/OOFTDA/src/qbfbp.cpp
+	"qbfbp.h"
+	"odezero.h"
+
+1429865485 /home/b.le-bihan/Dropbox/PhD/OOFTDA/include/nfo2.h
+	<gsl/gsl_matrix.h>
+	<gsl/gsl_blas.h>
+	<gsl_complex_math.h>
+	<gsl/gsl_linalg.h>
+	<gsl/gsl_odeiv2.h>
+	<gsl/gsl_eigen.h>
+	<gsl/gsl_fft_real.h>
+	<gsl/gsl_fft_halfcomplex.h>
+	<gsl/gsl_fft_complex.h>
+	"qbfbp.h"
+	"define_env.h"
+	"parameters.h"
+	<stdio.h>
+	<iostream>
+
+1430386859 source:/home/b.le-bihan/Dropbox/PhD/OOFTDA/src/nfo2.cpp
+	"nfo2.h"
+	"ga.h"
+	"gnuplot_i.h"
+
+1429619915 source:/home/b.le-bihan/Dropbox/PhD/OOFTDA/src/define_env.cpp
+	<math.h>
+	<stdio.h>
+	<stdlib.h>
+	<time.h>
+	<string.h>
+	"define_env.h"
+	"libration_points.h"
+	"parameters.h"
+
+1429619761 /home/b.le-bihan/Dropbox/PhD/OOFTDA/include/define_env.h
+	"libration_points.h"
+	<iostream>
+	<time.h>
+	<stdio.h>
+	<complex.h>
+	<gsl_complex_math.h>
+	<fstream>
+	<sstream>
+
+1426865808 /home/b.le-bihan/Dropbox/PhD/OOFTDA/include/libration_points.h
+
+1426865850 source:/home/b.le-bihan/Dropbox/PhD/OOFTDA/src/libration_points.cpp
+	<math.h>
+	<stdio.h>
+	<stdlib.h>
+	"libration_points.h"
+
+1427218706 source:/home/b.le-bihan/Dropbox/PhD/OOFTDA/src/ga.cpp
+	"ga.h"
+	"nfo2.h"
+
+1427208494 /home/b.le-bihan/Numerics/galib247/ga/ga.h
+	<ga/gaconfig.h>
+	<ga/GASimpleGA.h>
+	<ga/GASStateGA.h>
+	<ga/GAIncGA.h>
+	<ga/GADemeGA.h>
+	<ga/GADCrowdingGA.h>
+	<ga/GA1DBinStrGenome.h>
+	<ga/GA2DBinStrGenome.h>
+	<ga/GA3DBinStrGenome.h>
+	<ga/GABin2DecGenome.h>
+	<ga/GA1DArrayGenome.h>
+	<ga/GA2DArrayGenome.h>
+	<ga/GA3DArrayGenome.h>
+	<ga/GAListGenome.h>
+	<ga/GATreeGenome.h>
+
+1173273403 /home/b.le-bihan/Numerics/galib247/ga/gaconfig.h
+	<sgidefs.h>
+	<stdlib.h>
+	<assert.h>
+
+1173273403 /home/b.le-bihan/Numerics/galib247/ga/GASimpleGA.h
+	<ga/GABaseGA.h>
+
+1173273403 /home/b.le-bihan/Numerics/galib247/ga/GABaseGA.h
+	<ga/gaconfig.h>
+	<ga/gaid.h>
+	<ga/GAParameter.h>
+	<ga/GAStatistics.h>
+	<ga/GAGenome.h>
+	<ga/GAPopulation.h>
+
+1173273403 /home/b.le-bihan/Numerics/galib247/ga/gaid.h
+
+1173273403 /home/b.le-bihan/Numerics/galib247/ga/GAParameter.h
+	<ga/gaconfig.h>
+	<ga/gatypes.h>
+	<ga/std_stream.h>
+
+1173273404 /home/b.le-bihan/Numerics/galib247/ga/gatypes.h
+
+1173273403 /home/b.le-bihan/Numerics/galib247/ga/std_stream.h
+	<ga/gaconfig.h>
+	<iostream>
+	<fstream>
+	<iostream.h>
+	<fstream.h>
+
+1173273403 /home/b.le-bihan/Numerics/galib247/ga/GAStatistics.h
+	<ga/gatypes.h>
+	<ga/gaconfig.h>
+	<ga/GAGenome.h>
+	<ga/GAPopulation.h>
+
+1173273404 /home/b.le-bihan/Numerics/galib247/ga/GAGenome.h
+	<ga/gaid.h>
+	<ga/gaconfig.h>
+	<ga/gaerror.h>
+	<ga/GAEvalData.h>
+	<ga/std_stream.h>
+
+1173273403 /home/b.le-bihan/Numerics/galib247/ga/gaerror.h
+	<ga/gatypes.h>
+	<ga/gaconfig.h>
+	<ga/std_stream.h>
+
+1173273403 /home/b.le-bihan/Numerics/galib247/ga/GAEvalData.h
+
+1173273403 /home/b.le-bihan/Numerics/galib247/ga/GAPopulation.h
+	<ga/gaconfig.h>
+	<ga/gaid.h>
+	<ga/GASelector.h>
+	<ga/GAScaling.h>
+	<ga/GAEvalData.h>
+	<ga/GAGenome.h>
+
+1173273403 /home/b.le-bihan/Numerics/galib247/ga/GASelector.h
+	<string.h>
+	<ga/gaid.h>
+
+1173273404 /home/b.le-bihan/Numerics/galib247/ga/GAScaling.h
+	<ga/gaconfig.h>
+	<ga/gaid.h>
+	<ga/gatypes.h>
+	<ga/GAGenome.h>
+
+1173273403 /home/b.le-bihan/Numerics/galib247/ga/GASStateGA.h
+	<ga/GABaseGA.h>
+
+1173273403 /home/b.le-bihan/Numerics/galib247/ga/GAIncGA.h
+	<ga/GABaseGA.h>
+
+1173273403 /home/b.le-bihan/Numerics/galib247/ga/GADemeGA.h
+	<ga/GABaseGA.h>
+
+1173273403 /home/b.le-bihan/Numerics/galib247/ga/GADCrowdingGA.h
+	<ga/GABaseGA.h>
+
+1173273403 /home/b.le-bihan/Numerics/galib247/ga/GA1DBinStrGenome.h
+	<ga/GABinStr.h>
+	<ga/GAGenome.h>
+
+1173273403 /home/b.le-bihan/Numerics/galib247/ga/GABinStr.h
+	<string.h>
+	<ga/gatypes.h>
+	<ga/garandom.h>
+
+1173273403 /home/b.le-bihan/Numerics/galib247/ga/garandom.h
+	<stdlib.h>
+	<ga/gatypes.h>
+	<ga/gaconfig.h>
+	<math.h>
+	<limits.h>
+
+1173273403 /home/b.le-bihan/Numerics/galib247/ga/GA2DBinStrGenome.h
+	<ga/GABinStr.h>
+	<ga/GAGenome.h>
+
+1173273403 /home/b.le-bihan/Numerics/galib247/ga/GA3DBinStrGenome.h
+	<ga/GABinStr.h>
+	<ga/GAGenome.h>
+
+1173273403 /home/b.le-bihan/Numerics/galib247/ga/GABin2DecGenome.h
+	<ga/GA1DBinStrGenome.h>
+	<ga/gabincvt.h>
+
+1173273403 /home/b.le-bihan/Numerics/galib247/ga/gabincvt.h
+	<ga/gatypes.h>
+
+1173273404 /home/b.le-bihan/Numerics/galib247/ga/GA1DArrayGenome.h
+	<ga/GAArray.h>
+	<ga/GAGenome.h>
+	<ga/GAAllele.h>
+	<ga/GA1DArrayGenome.C>
+
+1173273404 /home/b.le-bihan/Numerics/galib247/ga/GAArray.h
+
+1173273403 /home/b.le-bihan/Numerics/galib247/ga/GAAllele.h
+	<ga/gaconfig.h>
+	<ga/garandom.h>
+	<ga/std_stream.h>
+	<ga/GAAllele.C>
+
+1173273403 /home/b.le-bihan/Numerics/galib247/ga/GAAllele.C
+	<string.h>
+	<ga/GAAllele.h>
+	<ga/gaerror.h>
+
+1173273403 /home/b.le-bihan/Numerics/galib247/ga/GA1DArrayGenome.C
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+	<ga/garandom.h>
+	<ga/GA1DArrayGenome.h>
+	<ga/GAMask.h>
+
+1173273403 /home/b.le-bihan/Numerics/galib247/ga/GAMask.h
+	<string.h>
+
+1173273403 /home/b.le-bihan/Numerics/galib247/ga/GA2DArrayGenome.h
+	<ga/GAArray.h>
+	<ga/GAGenome.h>
+	<ga/GAAllele.h>
+	<ga/GA2DArrayGenome.C>
+
+1173273403 /home/b.le-bihan/Numerics/galib247/ga/GA2DArrayGenome.C
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+	<ga/garandom.h>
+	<ga/GA2DArrayGenome.h>
+	<ga/GAMask.h>
+
+1173273404 /home/b.le-bihan/Numerics/galib247/ga/GA3DArrayGenome.h
+	<ga/GAArray.h>
+	<ga/GAGenome.h>
+	<ga/GAAllele.h>
+	<ga/GA3DArrayGenome.C>
+
+1173273403 /home/b.le-bihan/Numerics/galib247/ga/GA3DArrayGenome.C
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+	<ga/garandom.h>
+	<ga/GA3DArrayGenome.h>
+	<ga/GAMask.h>
+
+1173273403 /home/b.le-bihan/Numerics/galib247/ga/GAListGenome.h
+	<ga/GAList.h>
+	<ga/GAGenome.h>
+	<ga/GAListGenome.C>
+
+1173273404 /home/b.le-bihan/Numerics/galib247/ga/GAList.h
+	<ga/gaerror.h>
+	<ga/GAListBASE.h>
+	<ga/GAList.C>
+
+1173273403 /home/b.le-bihan/Numerics/galib247/ga/GAListBASE.h
+	<ga/GANode.h>
+
+1173273403 /home/b.le-bihan/Numerics/galib247/ga/GANode.h
+	<ga/gaconfig.h>
+	<ga/std_stream.h>
+
+1173273404 /home/b.le-bihan/Numerics/galib247/ga/GAList.C
+	<ga/GAList.h>
+
+1173273404 /home/b.le-bihan/Numerics/galib247/ga/GAListGenome.C
+	<stdio.h>
+	<stdlib.h>
+	<ga/GAListGenome.h>
+	<ga/GAMask.h>
+	<ga/garandom.h>
+
+1173273403 /home/b.le-bihan/Numerics/galib247/ga/GATreeGenome.h
+	<ga/GATree.h>
+	<ga/GAGenome.h>
+	<ga/GATreeGenome.C>
+
+1173273404 /home/b.le-bihan/Numerics/galib247/ga/GATree.h
+	<ga/gaerror.h>
+	<ga/GATreeBASE.h>
+	<ga/GATree.C>
+
+1173273403 /home/b.le-bihan/Numerics/galib247/ga/GATreeBASE.h
+	<ga/GANode.h>
+
+1173273403 /home/b.le-bihan/Numerics/galib247/ga/GATree.C
+	<ga/GATree.h>
+
+1173273404 /home/b.le-bihan/Numerics/galib247/ga/GATreeGenome.C
+	<stdio.h>
+	<stdlib.h>
+	<ga/GATreeGenome.h>
+	<ga/garandom.h>
+
+1427215760 /home/b.le-bihan/Dropbox/PhD/OOFTDA/include/ga.h
+	<ga/ga.h>
+	<ga/std_stream.h>
+	<gsl/gsl_matrix.h>
+	"gslc.h"
+	<stdio.h>
+	<iostream>
+
+1429006965 source:/home/b.le-bihan/Dropbox/PhD/OOFTDA/src/custom_odezero.cpp
+	"custom_odezero.h"
+	<complex.h>
+	<gsl_complex_math.h>
+	<gsl/gsl_blas.h>
+
+1429006829 /home/b.le-bihan/Dropbox/PhD/OOFTDA/include/custom_odezero.h
+	<gsl/gsl_odeiv2.h>
+	<gsl_interp.h>
+	<gsl/gsl_roots.h>
+	<math.h>
+	<stdio.h>
+	<stdlib.h>
+	<stddef.h>
+	"define_env.h"
+	"custom_ode.h"
+	<sys/types.h>
+	<sys/wait.h>
+
+1429007107 source:/home/b.le-bihan/Dropbox/PhD/OOFTDA/src/custome_ode.cpp
+	"custom_ode.h"
+	<iostream>
+	<gsl/gsl_odeiv2.h>
+	<gsl/gsl_errno.h>
+
+1429013657 source:/home/b.le-bihan/Dropbox/PhD/OOFTDA/src/odezero.cpp
+	"odezero.h"
+	<complex.h>
+	<gsl_complex_math.h>
+	<gsl/gsl_blas.h>
+
+1429007480 /home/b.le-bihan/Dropbox/PhD/OOFTDA/include/odezero.h
+	<gsl/gsl_odeiv2.h>
+	<gsl_interp.h>
+	<gsl/gsl_roots.h>
+	<math.h>
+	<stdio.h>
+	<stdlib.h>
+	<stddef.h>
+	"define_env.h"
+	"ode.h"
+	<sys/types.h>
+	<sys/wait.h>
+
+1430385027 source:/home/b.le-bihan/Dropbox/PhD/OOFTDA/src/coc.cpp
+	"coc.h"
+
+1430385076 /home/b.le-bihan/Dropbox/PhD/OOFTDA/include/coc.h
+	"qbfbp.h"
+	"define_env.h"
+	"parameters.h"
+	"timec.h"
+	<stdio.h>
+	<iostream>
+
+1430812217 /home/b.le-bihan/Dropbox/PhD/OOFTDA/include/parameters.h
+
+1430298629 /home/b.le-bihan/Dropbox/PhD/OOFTDA/include/time.h
+	<time.h>
+
+1430299039 source:/home/b.le-bihan/Dropbox/PhD/OOFTDA/src/timec.cpp
+	"timec.h"
+
+1430298986 /home/b.le-bihan/Dropbox/PhD/OOFTDA/include/timec.h
+	<stdio.h>
+	<time.h>
+
+1430386186 /home/b.le-bihan/Dropbox/PhD/OOFTDA/include/pm.h
+	"coc.h"
+
+1430825092 source:/home/b.le-bihan/Dropbox/PhD/OOFTDA/src/pm.cpp
+	"pm.h"
+
+1456924239 source:/home/b.le-bihan/BackUpBox/PhD/OOFTDA/main.cpp
+	<omp.h>
+	"ofs.h"
+	"ofts.h"
+	"poincare.h"
+	"trajectory.h"
+	"ertbp.h"
+	"pmt.h"
+	"pmode.h"
+	"ofs_test.h"
+	"oftsh_test.h"
+	"ofts_test.h"
+	"gnuplot_i.h"
+
+1456312128 /home/b.le-bihan/BackUpBox/PhD/OOFTDA/include/ode.h
+	<iostream>
+	<gsl/gsl_odeiv2.h>
+	<gsl/gsl_errno.h>
+	<gsl/gsl_roots.h>
+
+1456417776 /home/b.le-bihan/BackUpBox/PhD/OOFTDA/include/diffcorr.h
+	<stdio.h>
+	<gsl/gsl_linalg.h>
+	<gsl/gsl_odeiv2.h>
+	"qbtbp.h"
+	"qbcp.h"
+	"odezero.h"
+	"gnuplot_i.h"
+	"nrutil.h"
+
+1450106254 /home/b.le-bihan/BackUpBox/PhD/OOFTDA/include/qbtbp.h
+	<iostream>
+	<time.h>
+	<stdio.h>
+	<complex.h>
+	<gsl/gsl_matrix.h>
+	<gsl/gsl_vector.h>
+	<gsl/gsl_blas.h>
+	<gsl/gsl_fft_real.h>
+	<gsl/gsl_fft_halfcomplex.h>
+	<gsl/gsl_fft_complex.h>
+	<gsl/gsl_sf_bessel.h>
+	"ofts.h"
+	"ode.h"
+	"gslc.h"
+	"define_env.h"
+	"config.h"
+	"eminsem.h"
+	"nrutil.h"
+
+1456239449 /home/b.le-bihan/BackUpBox/PhD/OOFTDA/include/ots.h
+	<iostream>
+	<iomanip>
+	<limits.h>
+	<math.h>
+	<stdio.h>
+	<stdlib.h>
+	<complex.h>
+	"ftda.h"
+	"otsh.h"
+	"parameters.h"
+	"ots.tpp"
+
+1456231006 /home/b.le-bihan/BackUpBox/PhD/OOFTDA/include/ftda.h
+	<iostream>
+	<iomanip>
+	<limits.h>
+	<cstdio>
+	<cstdlib>
+	<math.h>
+
+1450101485 /home/b.le-bihan/BackUpBox/PhD/OOFTDA/include/otsh.h
+	<iostream>
+	<iomanip>
+	<limits.h>
+	<math.h>
+	<stdio.h>
+	<stdlib.h>
+	<complex.h>
+	<vector>
+	"ftda.h"
+	"parameters.h"
+	"otsh.tpp"
+
+1456309031 /home/b.le-bihan/BackUpBox/PhD/OOFTDA/src/otsh.tpp
+
+1456239422 /home/b.le-bihan/BackUpBox/PhD/OOFTDA/src/ots.tpp
+
+1456308561 /home/b.le-bihan/BackUpBox/PhD/OOFTDA/include/ofts.h
+	<iostream>
+	<iomanip>
+	<limits.h>
+	<math.h>
+	<stdio.h>
+	<stdlib.h>
+	<complex.h>
+	"ftda.h"
+	"oftsh.h"
+	"ofs.h"
+	"parameters.h"
+	"timec.h"
+	<gsl/gsl_errno.h>
+	"ofts.tpp"
+
+1456309361 /home/b.le-bihan/BackUpBox/PhD/OOFTDA/include/oftsh.h
+	<iostream>
+	<iomanip>
+	<limits.h>
+	<math.h>
+	<stdio.h>
+	<stdlib.h>
+	"ftda.h"
+	"ots.h"
+	"ofs.h"
+	"oftsh.tpp"
+
+1456236146 /home/b.le-bihan/BackUpBox/PhD/OOFTDA/include/ofs.h
+	<iostream>
+	<fstream>
+	<sstream>
+	<iomanip>
+	<math.h>
+	<stdio.h>
+	<stdlib.h>
+	"ots.h"
+	"parameters.h"
+	<gsl/gsl_vector.h>
+	<gsl/gsl_fft_complex.h>
+	"gslc.h"
+	"ofs.tpp"
+
+1456318037 /home/b.le-bihan/BackUpBox/PhD/OOFTDA/include/parameters.h
+	<string>
+	<complex.h>
+
+1456912532 /home/b.le-bihan/BackUpBox/PhD/OOFTDA/src/ofs.tpp
+
+1457522122 /home/b.le-bihan/BackUpBox/PhD/OOFTDA/src/oftsh.tpp
+
+1456308367 /home/b.le-bihan/BackUpBox/PhD/OOFTDA/src/ofts.tpp
+
+1456312099 /home/b.le-bihan/BackUpBox/PhD/OOFTDA/include/gslc.h
+	<iostream>
+	<fstream>
+	<time.h>
+	<stdio.h>
+	<complex.h>
+	<sstream>
+	<math.h>
+	<gsl/gsl_matrix.h>
+	<gsl/gsl_blas.h>
+	<gsl_complex_math.h>
+	<gsl/gsl_linalg.h>
+	<gsl/gsl_odeiv2.h>
+	<gsl/gsl_eigen.h>
+	"parameters.h"
+
+1443890795 /home/b.le-bihan/BackUpBox/PhD/OOFTDA/include/qbfbp.h
+	<iostream>
+	<time.h>
+	<stdio.h>
+	<complex.h>
+	<gsl_complex_math.h>
+	<fstream>
+	<sstream>
+	"ode.h"
+	"qbtbp.h"
+	"diffcorr.h"
+	"define_env.h"
+	"parameters.h"
+	"gnuplot_i.h"
+
+1456220664 /home/b.le-bihan/BackUpBox/PhD/OOFTDA/include/define_env.h
+	<iostream>
+	<time.h>
+	<stdio.h>
+	<complex.h>
+	<gsl_complex_math.h>
+	<fstream>
+	<sstream>
+	"ofs.h"
+	<complex.h>
+
+1440149627 /home/b.le-bihan/BackUpBox/PhD/OOFTDA/include/libration_points.h
+
+1456225223 /home/b.le-bihan/BackUpBox/PhD/OOFTDA/include/gnuplot_i.h
+	<stdio.h>
+
+1431427921 /home/b.le-bihan/BackUpBox/PhD/OOFTDA/include/tests.h
+
+1456230937 /home/b.le-bihan/BackUpBox/PhD/OOFTDA/include/nfo2.h
+	<gsl/gsl_matrix.h>
+	<gsl/gsl_blas.h>
+	<gsl_complex_math.h>
+	<gsl/gsl_linalg.h>
+	<gsl/gsl_odeiv2.h>
+	<gsl/gsl_eigen.h>
+	<gsl/gsl_fft_real.h>
+	<gsl/gsl_fft_halfcomplex.h>
+	<gsl/gsl_fft_complex.h>
+	"qbcp.h"
+	"define_env.h"
+	"parameters.h"
+	<stdio.h>
+	<iostream>
+
+1432302882 /home/b.le-bihan/BackUpBox/PhD/OOFTDA/include/ga.h
+
+1456218117 /home/b.le-bihan/BackUpBox/PhD/OOFTDA/include/coc.h
+	"qbcp.h"
+	"define_env.h"
+	"parameters.h"
+	"timec.h"
+	"matrix.h"
+	"config.h"
+	"nfo2.h"
+	<stdio.h>
+	<iostream>
+
+1456323900 /home/b.le-bihan/BackUpBox/PhD/OOFTDA/include/timec.h
+	<stdio.h>
+	<time.h>
+
+1456317980 /home/b.le-bihan/BackUpBox/PhD/OOFTDA/include/pm.h
+	"pmcoc.h"
+	"matrix.h"
+	"odezero.h"
+	"config.h"
+	"gnuplot_i.h"
+
+1457522863 source:/home/b.le-bihan/BackUpBox/PhD/OOFTDA/src/coc.cpp
+	"coc.h"
+
+1457534237 source:/home/b.le-bihan/BackUpBox/PhD/OOFTDA/src/define_env.cpp
+	<math.h>
+	<stdio.h>
+	<stdlib.h>
+	<time.h>
+	<string.h>
+	"define_env.h"
+	"parameters.h"
+
+1456426263 source:/home/b.le-bihan/BackUpBox/PhD/OOFTDA/src/diffcorr.cpp
+	"diffcorr.h"
+
+1456312155 /home/b.le-bihan/BackUpBox/PhD/OOFTDA/include/odezero.h
+	<gsl/gsl_odeiv2.h>
+	<gsl_interp.h>
+	<gsl/gsl_roots.h>
+	<math.h>
+	<stdio.h>
+	<stdlib.h>
+	<stddef.h>
+	<complex.h>
+	<gsl_complex_math.h>
+	<gsl/gsl_blas.h>
+	"define_env.h"
+	"ode.h"
+	<sys/types.h>
+	<sys/wait.h>
+	"parameters.h"
+	"ofts.h"
+	"gnuplot_i.h"
+
+1456231002 source:/home/b.le-bihan/BackUpBox/PhD/OOFTDA/src/ftda.cpp
+	"ftda.h"
+
+1432302857 source:/home/b.le-bihan/BackUpBox/PhD/OOFTDA/src/ga.cpp
+
+1456225168 source:/home/b.le-bihan/BackUpBox/PhD/OOFTDA/src/gnuplot_i.c
+	"gnuplot_i.h"
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+	<stdarg.h>
+	<assert.h>
+	<io.h>
+
+1456227324 source:/home/b.le-bihan/BackUpBox/PhD/OOFTDA/src/gslc.cpp
+	"gslc.h"
+
+1435156588 source:/home/b.le-bihan/BackUpBox/PhD/OOFTDA/src/libration_points.cpp
+	<math.h>
+	<stdio.h>
+	<stdlib.h>
+	"libration_points.h"
+
+1456230942 source:/home/b.le-bihan/BackUpBox/PhD/OOFTDA/src/nfo2.cpp
+	"nfo2.h"
+	"config.h"
+	"gnuplot_i.h"
+	"nrutil.h"
+
+1456231524 source:/home/b.le-bihan/BackUpBox/PhD/OOFTDA/src/ode.cpp
+	"ode.h"
+
+1456312157 source:/home/b.le-bihan/BackUpBox/PhD/OOFTDA/src/odezero.cpp
+	"odezero.h"
+
+1456318133 source:/home/b.le-bihan/BackUpBox/PhD/OOFTDA/src/pm.cpp
+	"pm.h"
+	"pmt.h"
+	<iostream>
+	<fstream>
+	"nrutil.h"
+
+1443951984 source:/home/b.le-bihan/BackUpBox/PhD/OOFTDA/src/qbfbp.cpp
+	"qbfbp.h"
+	"odezero.h"
+	"config.h"
+	"eminsem.h"
+	"nrutil.h"
+
+1456323798 source:/home/b.le-bihan/BackUpBox/PhD/OOFTDA/src/qbtbp.cpp
+	"qbtbp.h"
+
+1450104221 source:/home/b.le-bihan/BackUpBox/PhD/OOFTDA/src/tests.cpp
+	<iostream>
+	<fstream>
+	<time.h>
+	<stdio.h>
+	<complex.h>
+	"tests.h"
+	"ofts.h"
+	"ofs.h"
+
+1456323891 source:/home/b.le-bihan/BackUpBox/PhD/OOFTDA/src/timec.cpp
+	"timec.h"
+
+1456230874 /home/b.le-bihan/BackUpBox/PhD/OOFTDA/include/matrix.h
+	<iostream>
+	<fstream>
+	<sstream>
+	<iomanip>
+	<math.h>
+	<stdio.h>
+	<stdlib.h>
+	"ofts.h"
+	"parameters.h"
+	"matrix.tpp"
+
+1456230838 /home/b.le-bihan/BackUpBox/PhD/OOFTDA/src/matrix.tpp
+
+1431512686 /home/b.le-bihan/BackUpBox/PhD/OOFTDA/include/alvector.h
+	<iostream>
+	<fstream>
+	<sstream>
+	<iomanip>
+	<math.h>
+	<stdio.h>
+	<stdlib.h>
+	"ofts.h"
+	"parameters.h"
+	"alvector.tpp"
+
+1431512655 /home/b.le-bihan/BackUpBox/PhD/OOFTDA/src/alvector.tpp
+
+1449240184 /home/b.le-bihan/BackUpBox/PhD/OOFTDA/include/algvec.h
+	<iostream>
+	<fstream>
+	<sstream>
+	<iomanip>
+	<math.h>
+	<stdio.h>
+	<stdlib.h>
+	"ofts.h"
+	"parameters.h"
+	"algvec.tpp"
+
+1449237238 /home/b.le-bihan/BackUpBox/PhD/OOFTDA/src/algvec.tpp
+
+1456235860 source:/home/b.le-bihan/BackUpBox/PhD/OOFTDA/test/ofs_test.cpp
+	"ofs_test.h"
+
+1449152648 /home/b.le-bihan/BackUpBox/PhD/OOFTDA/test/ofs_test.h
+	<iostream>
+	<fstream>
+	<time.h>
+	<stdio.h>
+	<complex.h>
+	<sstream>
+	"ofs.h"
+	"timec.h"
+
+1456238137 source:/home/b.le-bihan/BackUpBox/PhD/OOFTDA/test/oftsh_test.cpp
+	"timec.h"
+	"oftsh_test.h"
+
+1432806422 /home/b.le-bihan/BackUpBox/PhD/OOFTDA/test/oftsh_test.h
+	<iostream>
+	<fstream>
+	<time.h>
+	<stdio.h>
+	<complex.h>
+	<sstream>
+	"oftsh.h"
+	"ofts.h"
+
+1456243043 source:/home/b.le-bihan/BackUpBox/PhD/OOFTDA/test/ofts_test.cpp
+	"timec.h"
+	"ofts_test.h"
+
+1449077111 /home/b.le-bihan/BackUpBox/PhD/OOFTDA/test/ofts_test.h
+	<iostream>
+	<fstream>
+	<time.h>
+	<stdio.h>
+	<complex.h>
+	<sstream>
+	"oftsh.h"
+	"ofts.h"
+
+1433493241 source:/home/b.le-bihan/BackUpBox/PhD/OOFTDA/src/ftsh.cpp
+	"ftsh.h"
+
+1433492661 /home/b.le-bihan/BackUpBox/PhD/OOFTDA/include/ftsh.h
+	<complex.h>
+
+1456325076 /home/b.le-bihan/BackUpBox/PhD/OOFTDA/include/poincare.h
+	"nrutil.h"
+	"multimin.h"
+	"pmode.h"
+	"config.h"
+	"parameters.h"
+
+1456924324 source:/home/b.le-bihan/BackUpBox/PhD/OOFTDA/src/poincare.cpp
+	"poincare.h"
+	<omp.h>
+
+1456230970 source:/home/b.le-bihan/BackUpBox/PhD/OOFTDA/src/nrutil.c
+	<complex.h>
+	<stdio.h>
+	<stddef.h>
+	<stdlib.h>
+	<stdio.h>
+
+1456311143 /home/b.le-bihan/BackUpBox/PhD/OOFTDA/include/nrutil.h
+	<complex.h>
+
+1436169796 source:/home/b.le-bihan/BackUpBox/PhD/OOFTDA/src/multimin.c
+	"multimin.h"
+
+1450100954 /home/b.le-bihan/BackUpBox/PhD/OOFTDA/include/multimin.h
+	"nrutil.h"
+	"math.h"
+
+1441183331 source:/home/b.le-bihan/BackUpBox/PhD/OOFTDA/src/multimin_test.cpp
+	"multimin_test.h"
+
+1450100989 /home/b.le-bihan/BackUpBox/PhD/OOFTDA/include/multimin_test.h
+	<iostream>
+	<iomanip>
+	<stdlib.h>
+	"timec.h"
+	"nrutil.h"
+	"multimin.h"
+
+1456318076 source:/home/b.le-bihan/BackUpBox/PhD/OOFTDA/src/parameters.cpp
+	"parameters.h"
+	<iostream>
+	<iomanip>
+	<stdio.h>
+	<math.h>
+
+1441812228 source:/home/b.le-bihan/BackUpBox/PhD/OOFTDA/config.cpp
+	"config.h"
+
+1455701218 /home/b.le-bihan/BackUpBox/PhD/OOFTDA/include/config.h
+	<vector>
+	"parameters.h"
+	"ofts.h"
+	"matrix.h"
+	"define_env.h"
+
+1448364622 /usr/local/include/gsl/gsl_complex_math.h
+	<gsl/gsl_inline.h>
+	<gsl/gsl_complex.h>
+
+1448364622 /usr/local/include/gsl/gsl_interp.h
+	<stdlib.h>
+	<gsl/gsl_inline.h>
+	<gsl/gsl_types.h>
+
+1417703839 /usr/local/include/gsl/gsl_complex.h
+
+1456224181 source:/home/b.le-bihan/BackUpBox/PhD/OOFTDA/src/eminsem.cpp
+	"eminsem.h"
+
+1456224236 /home/b.le-bihan/BackUpBox/PhD/OOFTDA/include/eminsem.h
+	"qbcp.h"
+	"qbtbp.h"
+	"config.h"
+
+1441354954 source:/home/b.le-bihan/BackUpBox/PhD/OOFTDA/fortran/routines0.f
+
+1457522915 source:/home/b.le-bihan/BackUpBox/PhD/OOFTDA/src/config.cpp
+	"config.h"
+	<gsl_complex_math.h>
+	<gsl/gsl_matrix.h>
+	<gsl/gsl_eigen.h>
+	<gsl/gsl_linalg.h>
+
+1456323717 /home/b.le-bihan/BackUpBox/PhD/OOFTDA/include/qbcp.h
+	<iostream>
+	<time.h>
+	<stdio.h>
+	<complex.h>
+	<gsl_complex_math.h>
+	<fstream>
+	<sstream>
+	"ode.h"
+	"qbtbp.h"
+	"diffcorr.h"
+	"define_env.h"
+	"parameters.h"
+	"odezero.h"
+	"config.h"
+	"eminsem.h"
+	"gnuplot_i.h"
+
+1457532405 source:/home/b.le-bihan/BackUpBox/PhD/OOFTDA/src/qbcp.cpp
+	"qbcp.h"
+	"nrutil.h"
+
+1456323641 /home/b.le-bihan/BackUpBox/PhD/OOFTDA/include/pmcoc.h
+	"coc.h"
+	"matrix.h"
+
+1457522156 source:/home/b.le-bihan/BackUpBox/PhD/OOFTDA/src/pmcoc.cpp
+	"pmcoc.h"
+
+1456312933 source:/home/b.le-bihan/BackUpBox/PhD/OOFTDA/src/trajectory.cpp
+	"pm.h"
+	"poincare.h"
+	"trajectory.h"
+	"config.h"
+
+1456220523 source:/home/b.le-bihan/BackUpBox/PhD/OOFTDA/src/pm_FTDA.cpp
+	"pm.h"
+	<iostream>
+	<fstream>
+	"nrutil.h"
+
+1454666091 /home/b.le-bihan/BackUpBox/PhD/OOFTDA/include/trajectory.h
+
+1456327133 source:/home/b.le-bihan/BackUpBox/PhD/OOFTDA/src/ertbp.cpp
+	"ertbp.h"
+
+1450105967 /home/b.le-bihan/BackUpBox/PhD/OOFTDA/include/ertbp.h
+	<math.h>
+	<iostream>
+	<time.h>
+	<stdio.h>
+	<complex.h>
+	"ofts.h"
+	"define_env.h"
+	<gsl/gsl_matrix.h>
+	<gsl/gsl_vector.h>
+	<gsl/gsl_blas.h>
+	<gsl/gsl_fft_real.h>
+	<gsl/gsl_fft_halfcomplex.h>
+	<gsl/gsl_fft_complex.h>
+	<gsl/gsl_sf_bessel.h>
+
+1456427041 source:/home/b.le-bihan/BackUpBox/PhD/OOFTDA/src/lpdyneq.cpp
+	"qbcp.h"
+
+1456317509 /home/b.le-bihan/BackUpBox/PhD/OOFTDA/include/pmt.h
+	"pmcoc.h"
+	"matrix.h"
+	"config.h"
+
+1457532566 source:/home/b.le-bihan/BackUpBox/PhD/OOFTDA/src/pmt.cpp
+	"pmt.h"
+	<iostream>
+	<fstream>
+	"nrutil.h"
+
+1456323680 /home/b.le-bihan/BackUpBox/PhD/OOFTDA/include/pmode.h
+	"pmt.h"
+	"pmcoc.h"
+
+1457532928 source:/home/b.le-bihan/BackUpBox/PhD/OOFTDA/src/pmode.cpp
+	"pmode.h"
+

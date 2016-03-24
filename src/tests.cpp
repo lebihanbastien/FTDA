@@ -10,6 +10,7 @@
 
 using namespace std;
 
+//Tests of OTS routines
 void oneVariableTest(int order, int corder)
 {
     //Fourier-Taylor serie
@@ -21,7 +22,7 @@ void oneVariableTest(int order, int corder)
     //Note that we only initialize non-null value for k<=order/2 and |l|<= nf/2
     //So that the final results contains ALL non-null coefficients.
     int nf = corder/2;
-    Ofs<double> ofs1(nf);
+    Ofsd ofs1(nf);
 
     for(int ord= 0; ord<= order/2; ord++)
     {
@@ -47,7 +48,7 @@ void oneVariableTest(int order, int corder)
     Ots<double> ots1(2, corder);
     fs2ts(&ots1, ofs1);
     double alpha = 2.534;
-    for(int k =0; k<=order; k++) ofts3.smult(ofts1, ots1, alpha, k);
+    for(int k =0; k<=order; k++) ofts3.ofts_smult_tu(ofts1, ots1, alpha, k);
     evalOp1 = creal(fts2scalar(ofts1, epsilon, t)*ofs1.evaluate(t)*alpha);
     evalOp2 = creal(fts2scalar(ofts3, epsilon, t));
 
@@ -68,19 +69,19 @@ void oneVariableTest(int order, int corder)
     cout << "eval(F(ofs1)): " << evalOp2 << endl;
 }
 
-
+//Tests of OFS routines
 void oneVariableTest_Ofs(int order, int corder)
 {
     //Fourier-Taylor serie
-    Ofts< Ofs<double> > ofts1(1, order,   2, corder);
-    Ofts< Ofs<double> > ofts2(1, order,   2, corder);
-    Ofts< Ofs<double> > ofts3(1, order,   2, corder);
+    Ofts< Ofsd > ofts1(1, order,   2, corder);
+    Ofts< Ofsd > ofts2(1, order,   2, corder);
+    Ofts< Ofsd > ofts3(1, order,   2, corder);
 
     //Initialisation
     //Note that we only initialize non-null value for k<=order/2 and |l|<= nf/2
     //So that the final results contains ALL non-null coefficients.
     int nf = corder;
-    Ofs<double> ofs1(nf);
+    Ofsd ofs1(nf);
 
     for(int ord= 0; ord<= order/2; ord++)
     {
@@ -116,15 +117,49 @@ void oneVariableTest_Ofs(int order, int corder)
     //--------------------------------------------------------------------------
     //Guarantee that ofts1[0] = 1.0!!
     ofts1.getCoef(0,0)->zero();
-    ofts1.setCoef(1.0,0);
+    ofts1.setCoef0(1.0,0,0);
     cout << ofts1 << endl;
 
     double alpha = -3.0/2;
-    for(int k =0; k<=order; k++) ofts3.pows(ofts1, alpha, k);
-    evalOp1 = creal(cpow(fts2scalar(ofts1, epsilon, t), alpha)); //creal(cpow(fts2scalar(ofts1, epsilon, t), alpha));
+    for(int k =0; k<=order; k++) ofts3.ofts_pows(ofts1, alpha, k);
+    evalOp1 = creal(cpow(fts2scalar(ofts1, epsilon, t), alpha+0.0*I)); //creal(cpow(fts2scalar(ofts1, epsilon, t), alpha));
     evalOp2 = creal(fts2scalar(ofts3, epsilon, t));
 
 
     cout << "F(eval(ofs1)): " << evalOp1 << endl;
     cout << "eval(F(ofs1)): " << evalOp2 << endl;
+}
+
+
+//Tests of OTS derivatives routines
+void derivTest()
+{
+    cout << "-------------------------------" << endl;
+    cout << "Testing the partial derivatives" << endl;
+    cout << "       of OTS objects.         " << endl;
+    cout << "-------------------------------" << endl;
+    cout << "Test on series of 3 variables and of order 3. " << endl;
+    Ots<cdouble> ots(3, 3);
+    Ots<cdouble> ots2(3, 3);
+    ots.setRandomCoefs();
+
+    cout << "Initial serie:" << endl;
+    cout << ots << endl;
+    cout << "------------------" << endl;
+
+    ots2.der(ots, 1);
+    cout << "Derivative wrt to x1:" << endl;
+    cout << ots2 << endl;
+    cout << "------------------" << endl;
+
+    ots2.der(ots, 2);
+    cout << "Derivative wrt to x2:" << endl;
+    cout << ots2 << endl;
+    cout << "------------------" << endl;
+
+    ots2.der(ots, 3);
+    cout << "Derivative wrt to x3:" << endl;
+    cout << ots2 << endl;
+    cout << "------------------" << endl;
+
 }

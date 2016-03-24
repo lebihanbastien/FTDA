@@ -1,0 +1,215 @@
+#ifndef POINCARE_H_INCLUDED
+#define POINCARE_H_INCLUDED
+
+extern "C"
+{
+    #include "nrutil.h"
+    #include "multimin.h"
+}
+#include "pm.h"
+
+//Integration methods
+#define DUAL_INT 1
+#define SINGLE_INT 2
+
+//Poincare map
+typedef struct Pmap Pmap;
+struct Pmap
+{
+    int order;           //the order of the expansions
+    double threshold;    //the threshold above which a reset of z(t) is needed
+    double proot;        //the precision on the roots z = 0
+    double pabs;         //absolute tolerance during integration
+    double prel;         //relative tolerance during integration
+    double tf;           //final time
+    int max_events;      //maximum z=0 events allowed
+    double Hvalue;       //value of the Hamiltonian
+};
+
+//Orbit structure
+typedef struct Orbit Orbit;
+struct Orbit
+{
+    //-----------
+    //Parent
+    //-----------
+    Pmap      *pmap;                    //Poincare map (parent)
+    QBFBP_L   *qbfbp_l;                 //QBFBP around a given Li point (parent)
+
+    //-----------
+    //Parameterization (common to all orbits)
+    //-----------
+    vector<OftsType>*  W;            //z(t) = W(s(t), t)
+    matrix<OftsType>* DW;            //Jacobian of W
+    OfsType* ofs;                    //Auxiliary Ofs object
+    double  n;                       //Pulsation of the QBFBP
+
+    //-----------
+    //For event detection
+    //-----------
+    value_params *val_par;           //Event parameters
+    value_function *fvalue;          //fvalue for event detection
+    double** events_mat;             //Pointer towards the stored position of events
+    double*  te_mat;                 //Pointer towards the stored time of events
+    double*  cmdist;                 //Distance to the center manifold at each event
+    double*  dhzw;                   //Energy gap between z(t) and the pm W(s(t),t) at each event
+    double*  dhwc;                   //Energy gap between W(s(t),t) and the initial energy at each event
+    int last_indix;                  //indix of the last computed event in events_mat
+    int reset_number;                //number of reset during computation (for dual integration)
+
+    //-----------
+    //Characteristics
+    //-----------
+    double   *z0;                    //Initial position in NC coordinates dim = 6
+    double   *si;                    //Initial (real) configuration dim = 4
+    double   *s0d;                   //Initial position in TFC coordinates (real+imag part) dim = 8
+    varType  *s0;                    //Initial position in TFC coordinates (real+imag part) dim = 4
+    double   *xf;                    //Final position dim = 6
+    double    tf;                    //final time after computation
+    int       int_method;            //integration method used to compute the orbit; -1 if not computed
+
+
+    //-----------
+    //ODE integration
+    //-----------
+    OdeStruct *ode_s_6;              //NC ode struct
+    OdeStruct *ode_s_8;              //TFC ode struct
+};
+
+
+//Poincare map
+void pmap_build(Pmap &pmap);
+void pmap_ham_test(Pmap &pmap);
+void pmap_Wmin_test(Pmap &pmap);;
+//Plot of one orbit
+int OrbitComp(Orbit &orbit,
+              OdeStruct &ode_s_6,
+              OdeStruct &ode_s_8,
+              const varType st0[]);
+//Initialize an orbit wrt a Poincare map so that H(orbit.s0) = H(Pmap)
+int orbit_init_pmap(Orbit &orbit, double si[]);
+
+
+
+//Update the ic of the orbit given an array of initial TFC conditions st0
+void orbit_update_ic(Orbit &orbit, const double si[]);
+
+
+//Compute one orbit
+int  orbit_return_map(Orbit *orbit, int return_method);
+//Plot one orbit
+void orbit_plot(Orbit *orbit, gnuplot_ctrl *h1, int type, int points, OdeStruct *ode_s_6, OdeStruct *ode_s_8);
+//Plot one orbit (3D)
+void orbit_plot_3d(Orbit *orbit, gnuplot_ctrl *h1, int points, OdeStruct *ode_s_6, OdeStruct *ode_s_8);
+//Plot poincare map for one orbit
+void orbit_poincare_plot(Orbit *orbit, gnuplot_ctrl *h1, int color);
+
+
+/**
+    \brief Computes the hamiltonian at the position st0
+    \param orbit a reference to the orbit that carries a set of useful parameters
+    \param st0 the input state
+**/
+double orbit_ham(Orbit &orbit, double st0[]);
+
+int dual_return_map(Orbit *orbit);
+
+int single_return_map(Orbit *orbit);
+
+int poincare_odezero_continuous(double y[],
+                                double s[],
+                                Orbit *orbit,
+                                double** ye,
+                                int *reset_number,
+                                double *tcross,
+                                double t1,
+                                OdeStruct *ode_s,
+                                OdeStruct *ode_s_8,
+                                value_function *fvalue,
+                                double threshold);
+//-----------------------------------------------------------------------------------------------------------------------------------------------------
+//
+//  TFC to NC
+//
+//  WARNING: to move somewhere else? indeed, may be used for other purpose than just Poincare maps. Better in pm.h
+//
+//-----------------------------------------------------------------------------------------------------------------------------------------------------
+
+/**
+    \brief Update the configuration z1 = W(g(st0), t)
+    \param st0 an array of 4 double which gives the configuration to input in real TFC coordinates
+    \param z1 the NC configuration to update (dim 6)
+    \param t the current time
+    \param params a set of parameters needed to perform evaluations of W and g
+**/
+void TFCtoNC(double st0[], double z1[], double t, void *params);
+
+
+//-----------------------------------------------------------------------------------------------------------------------------------------------------
+//
+//  Square distance & minimization of it
+//
+//-----------------------------------------------------------------------------------------------------------------------------------------------------
+/**
+    \brief Given an initial guess st0, computes the min argument of square distance between a given configuraton z1 and z = W(g(st), t) (see sqdist).
+    i.e. st1 = argmin sqdist(st, z1, t, &orbit)
+
+    \param Orbit a reference to the current orbit
+    \param z1 the target NC configuration (dim 6)
+    \param t the current time
+    \param st0 the initial guess in real TFC configuration (dim 4)
+    \param st1 the min argument to update real TFC configuration (dim 4)
+    \param multimin_method an integer to select a multidimensionnal minimization method
+**/
+void argmin_sqdist(Orbit &orbit, double z1[], double t, double st0[], double st1[], int multimin_method);
+
+
+/**
+    \brief Computes the square distance between a given configuraton z1 and z0 = W(g(st0), t)
+
+    \param st0 an array of 4 double which gives the configuration to study in real TFC coordinates
+    \param z1 the target NC configuration (dim 6)
+    \param t the current time
+    \param params a set of parameters needed to perform evaluations of W and g
+    \return a double, the square distance between a given configuraton z1 and z0 = W(g(st0), t)
+**/
+double sqdist(double st0[], double z1[], double t, void *params);
+
+
+/**
+    \brief Computes the gradient square distance between a given configuraton z1 and z0 = W(g(st0), t) (see sqdist)
+
+    \param st0 an array of 4 double which gives the configuration to study in real TFC coordinates
+    \param df the gradient to update
+    \param z1 the target NC configuration (dim 6)
+    \param t the current time
+    \param params a set of parameters needed to perform evaluations of W and g
+**/
+void dsqdist(double st0[], double df[], double z1[], double t, void *params);
+
+
+//-----------------------------------------------------------------------------------------------------------------------------------------------------
+//
+//  Orbit C structure handling
+//
+//-----------------------------------------------------------------------------------------------------------------------------------------------------
+/**
+    \brief Initialize one orbit structure
+ **/
+void init_orbit(Orbit *orbit,
+                vector<OftsType>*  W,
+                matrix<OftsType>* DW,
+                value_params   *val_par,
+                value_function *fvalue,
+                OdeStruct *ode_s_6,
+                OdeStruct *ode_s_8,
+                Pmap *pmap,
+                QBFBP_L *qbfbp_l,
+                OfsType* orbit_ofs);
+
+/**
+    \brief Free one orbit
+ **/
+void free_orbit(Orbit *orbit);
+
+#endif // POINCARE_H_INCLUDED

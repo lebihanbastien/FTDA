@@ -1,0 +1,897 @@
+Flat profile:
+
+Each sample counts as 0.01 seconds.
+  %   cumulative   self              self     total           
+ time   seconds   seconds    calls  ms/call  ms/call  name    
+ 78.32      1.12     1.12  2514540     0.00     0.00  Ofs<doublecomplex >::ofs_smult(Ofs<doublecomplex > const&, doublecomplex  const&)
+ 15.38      1.34     0.22    83818     0.00     0.02  void Oftsh<Ofs<doublecomplex > >::sevaluate<doublecomplex >(doublecomplex *, Ofs<doublecomplex >&)
+  2.45      1.38     0.04  5155332     0.00     0.00  FTDA::nmon(int, int)
+  0.70      1.39     0.01  2430722     0.00     0.00  FTDA::prxkt(int*, int)
+  0.70      1.40     0.01    20376     0.00     0.00  Ofs<doublecomplex >::zero()
+  0.70      1.41     0.01    11974     0.00     0.00  Ofs<doublecomplex >::evaluate(double const&)
+  0.70      1.42     0.01     8832     0.00     0.00  evaluateOdd(double, double, int, double*, double*)
+  0.70      1.43     0.01     7140     0.00     0.00  Ofs<doublecomplex >::Ofs(Ofs<doublecomplex > const&)
+  0.35      1.43     0.01                             FTDA::free()
+  0.00      1.43     0.00   435540     0.00     0.00  Ofs<doublecomplex >::setCoef(doublecomplex  const&, int const&)
+  0.00      1.43     0.00    15542     0.00     0.00  Ofs<doublecomplex >::~Ofs()
+  0.00      1.43     0.00    15540     0.00     0.00  Ofs<doublecomplex >::operator=(Ofs<doublecomplex > const&)
+  0.00      1.43     0.00    14720     0.00     0.00  evaluateEven(double, double, int, double*, double*)
+  0.00      1.43     0.00    12880     0.00     0.00  Oftsh<Ofs<doublecomplex > >::lcopy(Oftsh<Ofs<doublecomplex > > const&)
+  0.00      1.43     0.00    12008     0.00     0.00  std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >::operator[](unsigned long)
+  0.00      1.43     0.00    11974     0.00     0.12  void Ofts<Ofs<doublecomplex > >::evaluate<doublecomplex >(doublecomplex *, Ofs<doublecomplex >&, int const&)
+  0.00      1.43     0.00    10808     0.00     0.00  std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >::size() const
+  0.00      1.43     0.00    10768     0.00     0.00  std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >::_M_range_check(unsigned long) const
+  0.00      1.43     0.00    10768     0.00     0.00  std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >::at(unsigned long)
+  0.00      1.43     0.00     8480     0.00     0.00  binomial(unsigned long, unsigned long)
+  0.00      1.43     0.00     8402     0.00     0.00  Ofs<doublecomplex >::Ofs(int)
+  0.00      1.43     0.00     7378     0.00     0.00  Ofts<Ofs<doublecomplex > >::getNV() const
+  0.00      1.43     0.00     7140     0.00     0.00  readOFS(Ofs<doublecomplex >&, std::basic_ifstream<char, std::char_traits<char> >&, int)
+  0.00      1.43     0.00     7140     0.00     0.00  Ofts<Ofs<doublecomplex > >::getCoef(int const&, int const&) const
+  0.00      1.43     0.00     7140     0.00     0.00  Oftsh<Ofs<doublecomplex > >::getCA() const
+  0.00      1.43     0.00     7140     0.00     0.00  Oftsh<Ofs<doublecomplex > >::getCoef(int) const
+  0.00      1.43     0.00     5888     0.00     0.00  evaluateEvenDerivative(double, double, int, double*, double*)
+  0.00      1.43     0.00     2944     0.00     0.00  evaluateCoef(double*, double, double, int, double*)
+  0.00      1.43     0.00     2944     0.00     0.00  qbfbp_vfn_novar(double, double const*, double*, void*)
+  0.00      1.43     0.00     2944     0.00     0.00  evaluateOddDerivative(double, double, int, double*, double*)
+  0.00      1.43     0.00     2944     0.00     0.00  evaluateCoefDerivatives(double*, double, double, int, double*, int)
+  0.00      1.43     0.00     2692     0.00     0.47  qbfbp_fh(double, double const*, double*, void*)
+  0.00      1.43     0.00      280     0.00     0.00  Oftsh<Ofs<doublecomplex > >::linkCoefs(Ofs<doublecomplex >*)
+  0.00      1.43     0.00      280     0.00     0.00  Oftsh<Ofs<doublecomplex > >::Oftsh(int, int)
+  0.00      1.43     0.00      280     0.00     0.00  Oftsh<Ofs<doublecomplex > >::~Oftsh()
+  0.00      1.43     0.00      272     0.00     0.00  Ofts<Ofs<doublecomplex > >::getOrder() const
+  0.00      1.43     0.00      102     0.00     0.00  std::basic_string<char, std::char_traits<char>, std::allocator<char> > std::operator+<char, std::char_traits<char>, std::allocator<char> >(std::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, char const*)
+  0.00      1.43     0.00       68     0.00     0.00  Ofts<Ofs<doublecomplex > >* std::__addressof<Ofts<Ofs<doublecomplex > > >(Ofts<Ofs<doublecomplex > >&)
+  0.00      1.43     0.00       60     0.00     0.00  std::basic_string<char, std::char_traits<char>, std::allocator<char> > std::operator+<char, std::char_traits<char>, std::allocator<char> >(std::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, std::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)
+  0.00      1.43     0.00       40     0.00     0.00  Ofts<Ofs<doublecomplex > >::~Ofts()
+  0.00      1.43     0.00       34     0.00     0.00  readOFTS(Ofts<Ofs<doublecomplex > >&, std::string, int)
+  0.00      1.43     0.00       34     0.00     0.40  Ofts<Ofs<doublecomplex > >::Ofts(Ofts<Ofs<doublecomplex > > const&)
+  0.00      1.43     0.00       34     0.00     0.40  void std::_Construct<Ofts<Ofs<doublecomplex > >, Ofts<Ofs<doublecomplex > > >(Ofts<Ofs<doublecomplex > >*, Ofts<Ofs<doublecomplex > > const&)
+  0.00      1.43     0.00       34     0.00     0.00  void std::_Destroy<Ofts<Ofs<doublecomplex > > >(Ofts<Ofs<doublecomplex > >*)
+  0.00      1.43     0.00       34     0.00     0.00  operator new(unsigned long, void*)
+  0.00      1.43     0.00       34     0.00     0.00  gnuplot_cmd
+  0.00      1.43     0.00       12     0.00     0.00  __gnu_cxx::new_allocator<Ofts<Ofs<doublecomplex > > >::~new_allocator()
+  0.00      1.43     0.00       12     0.00     0.00  std::allocator<Ofts<Ofs<doublecomplex > > >::~allocator()
+  0.00      1.43     0.00       12     0.00     0.00  std::char_traits<char>::length(char const*)
+  0.00      1.43     0.00       12     0.00     0.00  std::_Vector_base<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >::_M_get_Tp_allocator()
+  0.00      1.43     0.00       12     0.00     0.00  std::basic_string<char, std::char_traits<char>, std::allocator<char> > std::operator+<char, std::char_traits<char>, std::allocator<char> >(char const*, std::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)
+  0.00      1.43     0.00       10     0.00     0.00  energy(double*, double)
+  0.00      1.43     0.00       10     0.00     0.00  init_libp(LibrationPoint*, CR3BP, int)
+  0.00      1.43     0.00        6     0.00     0.02  readVOFTS(std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >&, std::string, int)
+  0.00      1.43     0.00        6     0.00     0.11  Ofts<Ofs<doublecomplex > >::Ofts()
+  0.00      1.43     0.00        6     0.00     0.00  __gnu_cxx::new_allocator<Ofts<Ofs<doublecomplex > > >::deallocate(Ofts<Ofs<doublecomplex > >*, unsigned long)
+  0.00      1.43     0.00        6     0.00     0.00  __gnu_cxx::new_allocator<Ofts<Ofs<doublecomplex > > >::allocate(unsigned long, void const*)
+  0.00      1.43     0.00        6     0.00     0.00  __gnu_cxx::new_allocator<Ofts<Ofs<doublecomplex > > >::new_allocator(__gnu_cxx::new_allocator<Ofts<Ofs<doublecomplex > > > const&)
+  0.00      1.43     0.00        6     0.00     0.00  __gnu_cxx::new_allocator<Ofts<Ofs<doublecomplex > > >::new_allocator()
+  0.00      1.43     0.00        6     0.00     0.00  __gnu_cxx::new_allocator<Ofts<Ofs<doublecomplex > > >::max_size() const
+  0.00      1.43     0.00        6     0.00     0.00  std::allocator<Ofts<Ofs<doublecomplex > > >::allocator(std::allocator<Ofts<Ofs<doublecomplex > > > const&)
+  0.00      1.43     0.00        6     0.00     0.00  std::allocator<Ofts<Ofs<doublecomplex > > >::allocator()
+  0.00      1.43     0.00        6     0.00     0.00  void std::_Destroy_aux<false>::__destroy<Ofts<Ofs<doublecomplex > >*>(Ofts<Ofs<doublecomplex > >*, Ofts<Ofs<doublecomplex > >*)
+  0.00      1.43     0.00        6     0.00     0.00  std::_Vector_base<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >::_M_allocate(unsigned long)
+  0.00      1.43     0.00        6     0.00     0.00  std::_Vector_base<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >::_Vector_impl::_Vector_impl(std::allocator<Ofts<Ofs<doublecomplex > > > const&)
+  0.00      1.43     0.00        6     0.00     0.00  std::_Vector_base<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >::_Vector_impl::~_Vector_impl()
+  0.00      1.43     0.00        6     0.00     0.00  std::_Vector_base<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >::_M_deallocate(Ofts<Ofs<doublecomplex > >*, unsigned long)
+  0.00      1.43     0.00        6     0.00     0.00  std::_Vector_base<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >::_M_create_storage(unsigned long)
+  0.00      1.43     0.00        6     0.00     0.00  std::_Vector_base<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >::_Vector_base(unsigned long, std::allocator<Ofts<Ofs<doublecomplex > > > const&)
+  0.00      1.43     0.00        6     0.00     0.00  std::_Vector_base<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >::~_Vector_base()
+  0.00      1.43     0.00        6     0.00     2.28  void std::__uninitialized_fill_n<false>::__uninit_fill_n<Ofts<Ofs<doublecomplex > >*, unsigned long, Ofts<Ofs<doublecomplex > > >(Ofts<Ofs<doublecomplex > >*, unsigned long, Ofts<Ofs<doublecomplex > > const&)
+  0.00      1.43     0.00        6     0.00     2.28  std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >::_M_fill_initialize(unsigned long, Ofts<Ofs<doublecomplex > > const&)
+  0.00      1.43     0.00        6     0.00     2.28  std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >::vector(unsigned long, Ofts<Ofs<doublecomplex > > const&, std::allocator<Ofts<Ofs<doublecomplex > > > const&)
+  0.00      1.43     0.00        6     0.00     0.00  std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >::~vector()
+  0.00      1.43     0.00        6     0.00     2.28  void std::uninitialized_fill_n<Ofts<Ofs<doublecomplex > >*, unsigned long, Ofts<Ofs<doublecomplex > > >(Ofts<Ofs<doublecomplex > >*, unsigned long, Ofts<Ofs<doublecomplex > > const&)
+  0.00      1.43     0.00        6     0.00     2.28  void std::__uninitialized_fill_n_a<Ofts<Ofs<doublecomplex > >*, unsigned long, Ofts<Ofs<doublecomplex > >, Ofts<Ofs<doublecomplex > > >(Ofts<Ofs<doublecomplex > >*, unsigned long, Ofts<Ofs<doublecomplex > > const&, std::allocator<Ofts<Ofs<doublecomplex > > >&)
+  0.00      1.43     0.00        6     0.00     0.00  void std::_Destroy<Ofts<Ofs<doublecomplex > >*>(Ofts<Ofs<doublecomplex > >*, Ofts<Ofs<doublecomplex > >*)
+  0.00      1.43     0.00        6     0.00     0.00  void std::_Destroy<Ofts<Ofs<doublecomplex > >*, Ofts<Ofs<doublecomplex > > >(Ofts<Ofs<doublecomplex > >*, Ofts<Ofs<doublecomplex > >*, std::allocator<Ofts<Ofs<doublecomplex > > >&)
+  0.00      1.43     0.00        4     0.00     0.00  init_body(Body*, int)
+  0.00      1.43     0.00        4     0.00     0.00  gnuplot_close
+  0.00      1.43     0.00        4     0.00     0.00  gnuplot_init
+  0.00      1.43     0.00        4     0.00     0.00  gnuplot_plot_atmpfile
+  0.00      1.43     0.00        4     0.00     0.00  gnuplot_plot_xy
+  0.00      1.43     0.00        4     0.00     0.00  gnuplot_set_xlabel
+  0.00      1.43     0.00        4     0.00     0.00  gnuplot_set_ylabel
+  0.00      1.43     0.00        4     0.00     0.00  gnuplot_setcolor
+  0.00      1.43     0.00        4     0.00     0.00  gnuplot_setstyle
+  0.00      1.43     0.00        4     0.00     0.00  gnuplot_tmpfile
+  0.00      1.43     0.00        2     0.00     0.00  init_CR3BP(CR3BP*, int, int)
+  0.00      1.43     0.00        2     0.00     0.00  coefRetrieving(std::string, double*, int, int)
+  0.00      1.43     0.00        1     0.00     0.00  _GLOBAL__sub_I__Z10init_CR3BPP5CR3BPii
+  0.00      1.43     0.00        1     0.00     0.00  _GLOBAL__sub_I__Z10oftsh_testv
+  0.00      1.43     0.00        1     0.00     0.00  _GLOBAL__sub_I__Z14custom_odezeroPdS_dP20custom_ode_structure
+  0.00      1.43     0.00        1     0.00     0.00  _GLOBAL__sub_I__Z15oneVariableTestii
+  0.00      1.43     0.00        1     0.00     0.00  _GLOBAL__sub_I__Z4nfo2v
+  0.00      1.43     0.00        1     0.00     0.00  _GLOBAL__sub_I__Z5ENormPCdi
+  0.00      1.43     0.00        1     0.00     0.00  _GLOBAL__sub_I__Z5qbtbpi
+  0.00      1.43     0.00        1     0.00     0.00  _GLOBAL__sub_I__Z7odePlotPKddP24gsl_odeiv2_driver_structP12gnuplot_ctrlii
+  0.00      1.43     0.00        1     0.00     0.00  _GLOBAL__sub_I__Z7readCOCR3OfsICdESsiii
+  0.00      1.43     0.00        1     0.00     0.00  _GLOBAL__sub_I__Z8ofs_testv
+  0.00      1.43     0.00        1     0.00     0.00  _GLOBAL__sub_I__Z8qbfbp_vfdPKdPdPv
+  0.00      1.43     0.00        1     0.00     0.00  _GLOBAL__sub_I__Z9ofts_testv
+  0.00      1.43     0.00        1     0.00     0.00  _GLOBAL__sub_I__ZN4FTDA3norE
+  0.00      1.43     0.00        1     0.00     0.00  _GLOBAL__sub_I_main
+  0.00      1.43     0.00        1     0.00     0.00  init_QBFBP(QBFBP*, int, int, int)
+  0.00      1.43     0.00        1     0.00     0.00  init_QBFBP(QBFBP_L*, QBFBP*, int, int, int)
+  0.00      1.43     0.00        1     0.00     0.00  cn(QBFBP_L&, int)
+  0.00      1.43     0.00        1     0.00     0.00  __static_initialization_and_destruction_0(int, int)
+  0.00      1.43     0.00        1     0.00     0.00  __static_initialization_and_destruction_0(int, int)
+  0.00      1.43     0.00        1     0.00     0.00  __static_initialization_and_destruction_0(int, int)
+  0.00      1.43     0.00        1     0.00     0.00  __static_initialization_and_destruction_0(int, int)
+  0.00      1.43     0.00        1     0.00     0.00  __static_initialization_and_destruction_0(int, int)
+  0.00      1.43     0.00        1     0.00     0.00  __static_initialization_and_destruction_0(int, int)
+  0.00      1.43     0.00        1     0.00     0.00  __static_initialization_and_destruction_0(int, int)
+  0.00      1.43     0.00        1     0.00     0.00  __static_initialization_and_destruction_0(int, int)
+  0.00      1.43     0.00        1     0.00     0.00  __static_initialization_and_destruction_0(int, int)
+  0.00      1.43     0.00        1     0.00     0.00  __static_initialization_and_destruction_0(int, int)
+  0.00      1.43     0.00        1     0.00     0.00  __static_initialization_and_destruction_0(int, int)
+  0.00      1.43     0.00        1     0.00     0.00  __static_initialization_and_destruction_0(int, int)
+  0.00      1.43     0.00        1     0.00     0.00  __static_initialization_and_destruction_0(int, int)
+  0.00      1.43     0.00        1     0.00     0.00  __static_initialization_and_destruction_0(int, int)
+  0.00      1.43     0.00        1     0.00     0.00  ENorm(doublecomplex *, int)
+  0.00      1.43     0.00        1     0.00   156.16  pmInt()
+  0.00      1.43     0.00        1     0.00   141.74  OrbitPlot(doublecomplex  const*, std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >&, std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >&, std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >&, std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >&, Ofs<doublecomplex >&, double, gsl_odeiv2_driver_struct*, gsl_odeiv2_driver_struct*, gnuplot_ctrl*, gnuplot_ctrl*, gnuplot_ctrl*, gnuplot_ctrl*, double*, int, int, QBFBP&, int)
+  0.00      1.43     0.00        1     0.00     0.00  FTDA::init(int, int)
+  0.00      1.43     0.00        1     0.00     0.00  std::ios_base::setf(std::_Ios_Fmtflags)
+  0.00      1.43     0.00        1     0.00     0.00  std::setiosflags(std::_Ios_Fmtflags)
+  0.00      1.43     0.00        1     0.00     0.00  std::setprecision(int)
+  0.00      1.43     0.00        1     0.00     0.00  int const& std::max<int>(int const&, int const&)
+  0.00      1.43     0.00        1     0.00     0.00  std::operator|=(std::_Ios_Fmtflags&, std::_Ios_Fmtflags)
+  0.00      1.43     0.00        1     0.00     0.00  std::operator|(std::_Ios_Fmtflags, std::_Ios_Fmtflags)
+
+ %         the percentage of the total running time of the
+time       program used by this function.
+
+cumulative a running sum of the number of seconds accounted
+ seconds   for by this function and those listed above it.
+
+ self      the number of seconds accounted for by this
+seconds    function alone.  This is the major sort for this
+           listing.
+
+calls      the number of times this function was invoked, if
+           this function is profiled, else blank.
+ 
+ self      the average number of milliseconds spent in this
+ms/call    function per call, if this function is profiled,
+	   else blank.
+
+ total     the average number of milliseconds spent in this
+ms/call    function and its descendents per call, if this 
+	   function is profiled, else blank.
+
+name       the name of the function.  This is the minor sort
+           for this listing. The index shows the location of
+	   the function in the gprof listing. If the index is
+	   in parenthesis it shows where it would appear in
+	   the gprof listing if it were to be printed.
+
+		     Call graph (explanation follows)
+
+
+granularity: each sample hit covers 2 byte(s) for 0.70% of 1.43 seconds
+
+index % time    self  children    called     name
+                0.00    0.14    1206/11974       OrbitPlot(doublecomplex  const*, std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >&, std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >&, std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >&, std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >&, Ofs<doublecomplex >&, double, gsl_odeiv2_driver_struct*, gsl_odeiv2_driver_struct*, gnuplot_ctrl*, gnuplot_ctrl*, gnuplot_ctrl*, gnuplot_ctrl*, double*, int, int, QBFBP&, int) [8]
+                0.00    1.25   10768/11974       qbfbp_fh(double, double const*, double*, void*) [4]
+[1]     97.2    0.00    1.39   11974         void Ofts<Ofs<doublecomplex > >::evaluate<doublecomplex >(doublecomplex *, Ofs<doublecomplex >&, int const&) [1]
+                0.22    1.16   83818/83818       void Oftsh<Ofs<doublecomplex > >::sevaluate<doublecomplex >(doublecomplex *, Ofs<doublecomplex >&) [2]
+                0.01    0.00   11974/20376       Ofs<doublecomplex >::zero() [19]
+-----------------------------------------------
+                0.22    1.16   83818/83818       void Ofts<Ofs<doublecomplex > >::evaluate<doublecomplex >(doublecomplex *, Ofs<doublecomplex >&, int const&) [1]
+[2]     96.8    0.22    1.16   83818         void Oftsh<Ofs<doublecomplex > >::sevaluate<doublecomplex >(doublecomplex *, Ofs<doublecomplex >&) [2]
+                1.12    0.00 2514540/2514540     Ofs<doublecomplex >::ofs_smult(Ofs<doublecomplex > const&, doublecomplex  const&) [5]
+                0.03    0.00 5112898/5155332     FTDA::nmon(int, int) [9]
+                0.01    0.00 2430722/2430722     FTDA::prxkt(int*, int) [18]
+-----------------------------------------------
+                                                 <spontaneous>
+[3]     88.7    0.00    1.27                 rk8pd_apply [3]
+                0.00    1.26    2691/2692        qbfbp_fh(double, double const*, double*, void*) [4]
+                0.00    0.01    2743/2944        qbfbp_vfn_novar(double, double const*, double*, void*) [24]
+-----------------------------------------------
+                0.00    0.00       1/2692        gsl_odeiv2_evolve_apply [28]
+                0.00    1.26    2691/2692        rk8pd_apply [3]
+[4]     88.1    0.00    1.26    2692         qbfbp_fh(double, double const*, double*, void*) [4]
+                0.00    1.25   10768/11974       void Ofts<Ofs<doublecomplex > >::evaluate<doublecomplex >(doublecomplex *, Ofs<doublecomplex >&, int const&) [1]
+                0.01    0.00   10768/11974       Ofs<doublecomplex >::evaluate(double const&) [20]
+                0.00    0.00   10768/10768       std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >::at(unsigned long) [2056]
+-----------------------------------------------
+                1.12    0.00 2514540/2514540     void Oftsh<Ofs<doublecomplex > >::sevaluate<doublecomplex >(doublecomplex *, Ofs<doublecomplex >&) [2]
+[5]     78.3    1.12    0.00 2514540         Ofs<doublecomplex >::ofs_smult(Ofs<doublecomplex > const&, doublecomplex  const&) [5]
+-----------------------------------------------
+                                                 <spontaneous>
+[6]     10.9    0.00    0.16                 main [6]
+                0.00    0.16       1/1           pmInt() [7]
+                0.00    0.00       1/1           int const& std::max<int>(int const&, int const&) [2137]
+                0.00    0.00       1/1           FTDA::init(int, int) [2133]
+-----------------------------------------------
+                0.00    0.16       1/1           main [6]
+[7]     10.9    0.00    0.16       1         pmInt() [7]
+                0.00    0.14       1/1           OrbitPlot(doublecomplex  const*, std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >&, std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >&, std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >&, std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >&, Ofs<doublecomplex >&, double, gsl_odeiv2_driver_struct*, gsl_odeiv2_driver_struct*, gnuplot_ctrl*, gnuplot_ctrl*, gnuplot_ctrl*, gnuplot_ctrl*, double*, int, int, QBFBP&, int) [8]
+                0.00    0.01       6/6           std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >::vector(unsigned long, Ofts<Ofs<doublecomplex > > const&, std::allocator<Ofts<Ofs<doublecomplex > > > const&) [14]
+                0.00    0.00       6/6           Ofts<Ofs<doublecomplex > >::Ofts() [27]
+                0.00    0.00       6/6           readVOFTS(std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >&, std::string, int) [30]
+                0.00    0.00       2/8402        Ofs<doublecomplex >::Ofs(int) [26]
+                0.00    0.00      14/102         std::basic_string<char, std::char_traits<char>, std::allocator<char> > std::operator+<char, std::char_traits<char>, std::allocator<char> >(std::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, char const*) [2067]
+                0.00    0.00      12/34          gnuplot_cmd [33]
+                0.00    0.00      10/60          std::basic_string<char, std::char_traits<char>, std::allocator<char> > std::operator+<char, std::char_traits<char>, std::allocator<char> >(std::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, std::basic_string<char, std::char_traits<char>, std::allocator<char> > const&) [2069]
+                0.00    0.00       6/6           std::allocator<Ofts<Ofs<doublecomplex > > >::allocator() [2086]
+                0.00    0.00       6/40          Ofts<Ofs<doublecomplex > >::~Ofts() [2070]
+                0.00    0.00       6/12          std::allocator<Ofts<Ofs<doublecomplex > > >::~allocator() [2074]
+                0.00    0.00       6/6           std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >::~vector() [2095]
+                0.00    0.00       4/4           gnuplot_init [35]
+                0.00    0.00       4/12          std::basic_string<char, std::char_traits<char>, std::allocator<char> > std::operator+<char, std::char_traits<char>, std::allocator<char> >(char const*, std::basic_string<char, std::char_traits<char>, std::allocator<char> > const&) [2077]
+                0.00    0.00       4/4           gnuplot_close [34]
+                0.00    0.00       2/15542       Ofs<doublecomplex >::~Ofs() [2049]
+                0.00    0.00       1/1           init_QBFBP(QBFBP*, int, int, int) [2115]
+                0.00    0.00       1/1           init_QBFBP(QBFBP_L*, QBFBP*, int, int, int) [2116]
+                0.00    0.00       1/1           std::setprecision(int) [2136]
+                0.00    0.00       1/1           std::setiosflags(std::_Ios_Fmtflags) [2135]
+-----------------------------------------------
+                0.00    0.14       1/1           pmInt() [7]
+[8]      9.9    0.00    0.14       1         OrbitPlot(doublecomplex  const*, std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >&, std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >&, std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >&, std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >&, Ofs<doublecomplex >&, double, gsl_odeiv2_driver_struct*, gsl_odeiv2_driver_struct*, gnuplot_ctrl*, gnuplot_ctrl*, gnuplot_ctrl*, gnuplot_ctrl*, double*, int, int, QBFBP&, int) [8]
+                0.00    0.14    1206/11974       void Ofts<Ofs<doublecomplex > >::evaluate<doublecomplex >(doublecomplex *, Ofs<doublecomplex >&, int const&) [1]
+                0.00    0.00    1206/11974       Ofs<doublecomplex >::evaluate(double const&) [20]
+                0.00    0.00     200/2944        qbfbp_vfn_novar(double, double const*, double*, void*) [24]
+                0.00    0.00    1206/12008       std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >::operator[](unsigned long) [2053]
+                0.00    0.00      10/34          gnuplot_cmd [33]
+                0.00    0.00       8/12          std::basic_string<char, std::char_traits<char>, std::allocator<char> > std::operator+<char, std::char_traits<char>, std::allocator<char> >(char const*, std::basic_string<char, std::char_traits<char>, std::allocator<char> > const&) [2077]
+                0.00    0.00       4/4           gnuplot_set_xlabel [38]
+                0.00    0.00       4/4           gnuplot_set_ylabel [39]
+                0.00    0.00       4/4           gnuplot_plot_xy [37]
+                0.00    0.00       4/102         std::basic_string<char, std::char_traits<char>, std::allocator<char> > std::operator+<char, std::char_traits<char>, std::allocator<char> >(std::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, char const*) [2067]
+                0.00    0.00       1/1           ENorm(doublecomplex *, int) [2132]
+-----------------------------------------------
+                0.00    0.00      42/5155332     Ofts<Ofs<doublecomplex > >::Ofts() [27]
+                0.00    0.00    7140/5155332     Ofts<Ofs<doublecomplex > >::getCoef(int const&, int const&) const [32]
+                0.00    0.00    7140/5155332     Oftsh<Ofs<doublecomplex > >::getCoef(int) const [17]
+                0.00    0.00    7378/5155332     readOFTS(Ofts<Ofs<doublecomplex > >&, std::string, int) [29]
+                0.00    0.00    7854/5155332     Ofts<Ofs<doublecomplex > >::Ofts(Ofts<Ofs<doublecomplex > > const&) [10]
+                0.00    0.00   12880/5155332     Oftsh<Ofs<doublecomplex > >::linkCoefs(Ofs<doublecomplex >*) [31]
+                0.03    0.00 5112898/5155332     void Oftsh<Ofs<doublecomplex > >::sevaluate<doublecomplex >(doublecomplex *, Ofs<doublecomplex >&) [2]
+[9]      2.4    0.04    0.00 5155332         FTDA::nmon(int, int) [9]
+-----------------------------------------------
+                0.00    0.01      34/34          void std::_Construct<Ofts<Ofs<doublecomplex > >, Ofts<Ofs<doublecomplex > > >(Ofts<Ofs<doublecomplex > >*, Ofts<Ofs<doublecomplex > > const&) [11]
+[10]     1.0    0.00    0.01      34         Ofts<Ofs<doublecomplex > >::Ofts(Ofts<Ofs<doublecomplex > > const&) [10]
+                0.00    0.01    7140/7140        Oftsh<Ofs<doublecomplex > >::getCoef(int) const [17]
+                0.00    0.00    7140/8402        Ofs<doublecomplex >::Ofs(int) [26]
+                0.00    0.00     238/280         Oftsh<Ofs<doublecomplex > >::linkCoefs(Ofs<doublecomplex >*) [31]
+                0.00    0.00    7854/5155332     FTDA::nmon(int, int) [9]
+                0.00    0.00   14280/15542       Ofs<doublecomplex >::~Ofs() [2049]
+                0.00    0.00   14280/15540       Ofs<doublecomplex >::operator=(Ofs<doublecomplex > const&) [2050]
+                0.00    0.00    7208/8480        binomial(unsigned long, unsigned long) [2057]
+                0.00    0.00     238/280         Oftsh<Ofs<doublecomplex > >::Oftsh(int, int) [2064]
+-----------------------------------------------
+                0.00    0.01      34/34          void std::__uninitialized_fill_n<false>::__uninit_fill_n<Ofts<Ofs<doublecomplex > >*, unsigned long, Ofts<Ofs<doublecomplex > > >(Ofts<Ofs<doublecomplex > >*, unsigned long, Ofts<Ofs<doublecomplex > > const&) [12]
+[11]     1.0    0.00    0.01      34         void std::_Construct<Ofts<Ofs<doublecomplex > >, Ofts<Ofs<doublecomplex > > >(Ofts<Ofs<doublecomplex > >*, Ofts<Ofs<doublecomplex > > const&) [11]
+                0.00    0.01      34/34          Ofts<Ofs<doublecomplex > >::Ofts(Ofts<Ofs<doublecomplex > > const&) [10]
+                0.00    0.00      34/34          operator new(unsigned long, void*) [2072]
+-----------------------------------------------
+                0.00    0.01       6/6           void std::uninitialized_fill_n<Ofts<Ofs<doublecomplex > >*, unsigned long, Ofts<Ofs<doublecomplex > > >(Ofts<Ofs<doublecomplex > >*, unsigned long, Ofts<Ofs<doublecomplex > > const&) [15]
+[12]     1.0    0.00    0.01       6         void std::__uninitialized_fill_n<false>::__uninit_fill_n<Ofts<Ofs<doublecomplex > >*, unsigned long, Ofts<Ofs<doublecomplex > > >(Ofts<Ofs<doublecomplex > >*, unsigned long, Ofts<Ofs<doublecomplex > > const&) [12]
+                0.00    0.01      34/34          void std::_Construct<Ofts<Ofs<doublecomplex > >, Ofts<Ofs<doublecomplex > > >(Ofts<Ofs<doublecomplex > >*, Ofts<Ofs<doublecomplex > > const&) [11]
+                0.00    0.00      34/68          Ofts<Ofs<doublecomplex > >* std::__addressof<Ofts<Ofs<doublecomplex > > >(Ofts<Ofs<doublecomplex > >&) [2068]
+-----------------------------------------------
+                0.00    0.01       6/6           std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >::vector(unsigned long, Ofts<Ofs<doublecomplex > > const&, std::allocator<Ofts<Ofs<doublecomplex > > > const&) [14]
+[13]     1.0    0.00    0.01       6         std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >::_M_fill_initialize(unsigned long, Ofts<Ofs<doublecomplex > > const&) [13]
+                0.00    0.01       6/6           void std::__uninitialized_fill_n_a<Ofts<Ofs<doublecomplex > >*, unsigned long, Ofts<Ofs<doublecomplex > >, Ofts<Ofs<doublecomplex > > >(Ofts<Ofs<doublecomplex > >*, unsigned long, Ofts<Ofs<doublecomplex > > const&, std::allocator<Ofts<Ofs<doublecomplex > > >&) [16]
+                0.00    0.00       6/12          std::_Vector_base<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >::_M_get_Tp_allocator() [2076]
+-----------------------------------------------
+                0.00    0.01       6/6           pmInt() [7]
+[14]     1.0    0.00    0.01       6         std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >::vector(unsigned long, Ofts<Ofs<doublecomplex > > const&, std::allocator<Ofts<Ofs<doublecomplex > > > const&) [14]
+                0.00    0.01       6/6           std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >::_M_fill_initialize(unsigned long, Ofts<Ofs<doublecomplex > > const&) [13]
+                0.00    0.00       6/6           std::_Vector_base<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >::_Vector_base(unsigned long, std::allocator<Ofts<Ofs<doublecomplex > > > const&) [2093]
+-----------------------------------------------
+                0.00    0.01       6/6           void std::__uninitialized_fill_n_a<Ofts<Ofs<doublecomplex > >*, unsigned long, Ofts<Ofs<doublecomplex > >, Ofts<Ofs<doublecomplex > > >(Ofts<Ofs<doublecomplex > >*, unsigned long, Ofts<Ofs<doublecomplex > > const&, std::allocator<Ofts<Ofs<doublecomplex > > >&) [16]
+[15]     1.0    0.00    0.01       6         void std::uninitialized_fill_n<Ofts<Ofs<doublecomplex > >*, unsigned long, Ofts<Ofs<doublecomplex > > >(Ofts<Ofs<doublecomplex > >*, unsigned long, Ofts<Ofs<doublecomplex > > const&) [15]
+                0.00    0.01       6/6           void std::__uninitialized_fill_n<false>::__uninit_fill_n<Ofts<Ofs<doublecomplex > >*, unsigned long, Ofts<Ofs<doublecomplex > > >(Ofts<Ofs<doublecomplex > >*, unsigned long, Ofts<Ofs<doublecomplex > > const&) [12]
+-----------------------------------------------
+                0.00    0.01       6/6           std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >::_M_fill_initialize(unsigned long, Ofts<Ofs<doublecomplex > > const&) [13]
+[16]     1.0    0.00    0.01       6         void std::__uninitialized_fill_n_a<Ofts<Ofs<doublecomplex > >*, unsigned long, Ofts<Ofs<doublecomplex > >, Ofts<Ofs<doublecomplex > > >(Ofts<Ofs<doublecomplex > >*, unsigned long, Ofts<Ofs<doublecomplex > > const&, std::allocator<Ofts<Ofs<doublecomplex > > >&) [16]
+                0.00    0.01       6/6           void std::uninitialized_fill_n<Ofts<Ofs<doublecomplex > >*, unsigned long, Ofts<Ofs<doublecomplex > > >(Ofts<Ofs<doublecomplex > >*, unsigned long, Ofts<Ofs<doublecomplex > > const&) [15]
+-----------------------------------------------
+                0.00    0.01    7140/7140        Ofts<Ofs<doublecomplex > >::Ofts(Ofts<Ofs<doublecomplex > > const&) [10]
+[17]     0.7    0.00    0.01    7140         Oftsh<Ofs<doublecomplex > >::getCoef(int) const [17]
+                0.01    0.00    7140/7140        Ofs<doublecomplex >::Ofs(Ofs<doublecomplex > const&) [22]
+                0.00    0.00    7140/5155332     FTDA::nmon(int, int) [9]
+-----------------------------------------------
+                0.01    0.00 2430722/2430722     void Oftsh<Ofs<doublecomplex > >::sevaluate<doublecomplex >(doublecomplex *, Ofs<doublecomplex >&) [2]
+[18]     0.7    0.01    0.00 2430722         FTDA::prxkt(int*, int) [18]
+-----------------------------------------------
+                0.00    0.00    8402/20376       Ofs<doublecomplex >::Ofs(int) [26]
+                0.01    0.00   11974/20376       void Ofts<Ofs<doublecomplex > >::evaluate<doublecomplex >(doublecomplex *, Ofs<doublecomplex >&, int const&) [1]
+[19]     0.7    0.01    0.00   20376         Ofs<doublecomplex >::zero() [19]
+-----------------------------------------------
+                0.00    0.00    1206/11974       OrbitPlot(doublecomplex  const*, std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >&, std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >&, std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >&, std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >&, Ofs<doublecomplex >&, double, gsl_odeiv2_driver_struct*, gsl_odeiv2_driver_struct*, gnuplot_ctrl*, gnuplot_ctrl*, gnuplot_ctrl*, gnuplot_ctrl*, double*, int, int, QBFBP&, int) [8]
+                0.01    0.00   10768/11974       qbfbp_fh(double, double const*, double*, void*) [4]
+[20]     0.7    0.01    0.00   11974         Ofs<doublecomplex >::evaluate(double const&) [20]
+-----------------------------------------------
+                0.01    0.00    8832/8832        evaluateCoef(double*, double, double, int, double*) [23]
+[21]     0.7    0.01    0.00    8832         evaluateOdd(double, double, int, double*, double*) [21]
+-----------------------------------------------
+                0.01    0.00    7140/7140        Oftsh<Ofs<doublecomplex > >::getCoef(int) const [17]
+[22]     0.7    0.01    0.00    7140         Ofs<doublecomplex >::Ofs(Ofs<doublecomplex > const&) [22]
+-----------------------------------------------
+                0.00    0.01    2944/2944        qbfbp_vfn_novar(double, double const*, double*, void*) [24]
+[23]     0.7    0.00    0.01    2944         evaluateCoef(double*, double, double, int, double*) [23]
+                0.01    0.00    8832/8832        evaluateOdd(double, double, int, double*, double*) [21]
+                0.00    0.00   14720/14720       evaluateEven(double, double, int, double*, double*) [2051]
+-----------------------------------------------
+                0.00    0.00       1/2944        gsl_odeiv2_evolve_apply [28]
+                0.00    0.00     200/2944        OrbitPlot(doublecomplex  const*, std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >&, std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >&, std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >&, std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >&, Ofs<doublecomplex >&, double, gsl_odeiv2_driver_struct*, gsl_odeiv2_driver_struct*, gnuplot_ctrl*, gnuplot_ctrl*, gnuplot_ctrl*, gnuplot_ctrl*, double*, int, int, QBFBP&, int) [8]
+                0.00    0.01    2743/2944        rk8pd_apply [3]
+[24]     0.7    0.00    0.01    2944         qbfbp_vfn_novar(double, double const*, double*, void*) [24]
+                0.00    0.01    2944/2944        evaluateCoef(double*, double, double, int, double*) [23]
+                0.00    0.00    2944/2944        evaluateCoefDerivatives(double*, double, double, int, double*, int) [2063]
+-----------------------------------------------
+                                                 <spontaneous>
+[25]     0.3    0.01    0.00                 FTDA::free() [25]
+-----------------------------------------------
+                0.00    0.00       2/8402        pmInt() [7]
+                0.00    0.00    1260/8402        Ofts<Ofs<doublecomplex > >::Ofts() [27]
+                0.00    0.00    7140/8402        Ofts<Ofs<doublecomplex > >::Ofts(Ofts<Ofs<doublecomplex > > const&) [10]
+[26]     0.3    0.00    0.00    8402         Ofs<doublecomplex >::Ofs(int) [26]
+                0.00    0.00    8402/20376       Ofs<doublecomplex >::zero() [19]
+-----------------------------------------------
+                0.00    0.00       6/6           pmInt() [7]
+[27]     0.0    0.00    0.00       6         Ofts<Ofs<doublecomplex > >::Ofts() [27]
+                0.00    0.00    1260/8402        Ofs<doublecomplex >::Ofs(int) [26]
+                0.00    0.00      42/280         Oftsh<Ofs<doublecomplex > >::linkCoefs(Ofs<doublecomplex >*) [31]
+                0.00    0.00      42/5155332     FTDA::nmon(int, int) [9]
+                0.00    0.00    1272/8480        binomial(unsigned long, unsigned long) [2057]
+                0.00    0.00    1260/15540       Ofs<doublecomplex >::operator=(Ofs<doublecomplex > const&) [2050]
+                0.00    0.00    1260/15542       Ofs<doublecomplex >::~Ofs() [2049]
+                0.00    0.00      42/280         Oftsh<Ofs<doublecomplex > >::Oftsh(int, int) [2064]
+-----------------------------------------------
+                                                 <spontaneous>
+[28]     0.0    0.00    0.00                 gsl_odeiv2_evolve_apply [28]
+                0.00    0.00       1/2692        qbfbp_fh(double, double const*, double*, void*) [4]
+                0.00    0.00       1/2944        qbfbp_vfn_novar(double, double const*, double*, void*) [24]
+-----------------------------------------------
+                0.00    0.00      34/34          readVOFTS(std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >&, std::string, int) [30]
+[29]     0.0    0.00    0.00      34         readOFTS(Ofts<Ofs<doublecomplex > >&, std::string, int) [29]
+                0.00    0.00    7378/5155332     FTDA::nmon(int, int) [9]
+                0.00    0.00    7140/7140        Ofts<Ofs<doublecomplex > >::getCoef(int const&, int const&) const [32]
+                0.00    0.00    7378/7378        Ofts<Ofs<doublecomplex > >::getNV() const [2058]
+                0.00    0.00    7140/7140        readOFS(Ofs<doublecomplex >&, std::basic_ifstream<char, std::char_traits<char> >&, int) [2059]
+                0.00    0.00     272/272         Ofts<Ofs<doublecomplex > >::getOrder() const [2066]
+-----------------------------------------------
+                0.00    0.00       6/6           pmInt() [7]
+[30]     0.0    0.00    0.00       6         readVOFTS(std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >&, std::string, int) [30]
+                0.00    0.00      34/34          readOFTS(Ofts<Ofs<doublecomplex > >&, std::string, int) [29]
+                0.00    0.00      68/102         std::basic_string<char, std::char_traits<char>, std::allocator<char> > std::operator+<char, std::char_traits<char>, std::allocator<char> >(std::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, char const*) [2067]
+                0.00    0.00      40/10808       std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >::size() const [2054]
+                0.00    0.00      34/60          std::basic_string<char, std::char_traits<char>, std::allocator<char> > std::operator+<char, std::char_traits<char>, std::allocator<char> >(std::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, std::basic_string<char, std::char_traits<char>, std::allocator<char> > const&) [2069]
+                0.00    0.00      34/12008       std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >::operator[](unsigned long) [2053]
+-----------------------------------------------
+                               12880             Oftsh<Ofs<doublecomplex > >::linkCoefs(Ofs<doublecomplex >*) [31]
+                0.00    0.00      42/280         Ofts<Ofs<doublecomplex > >::Ofts() [27]
+                0.00    0.00     238/280         Ofts<Ofs<doublecomplex > >::Ofts(Ofts<Ofs<doublecomplex > > const&) [10]
+[31]     0.0    0.00    0.00     280+12880   Oftsh<Ofs<doublecomplex > >::linkCoefs(Ofs<doublecomplex >*) [31]
+                0.00    0.00   12880/5155332     FTDA::nmon(int, int) [9]
+                               12880             Oftsh<Ofs<doublecomplex > >::linkCoefs(Ofs<doublecomplex >*) [31]
+-----------------------------------------------
+                0.00    0.00    7140/7140        readOFTS(Ofts<Ofs<doublecomplex > >&, std::string, int) [29]
+[32]     0.0    0.00    0.00    7140         Ofts<Ofs<doublecomplex > >::getCoef(int const&, int const&) const [32]
+                0.00    0.00    7140/5155332     FTDA::nmon(int, int) [9]
+                0.00    0.00    7140/7140        Oftsh<Ofs<doublecomplex > >::getCA() const [2060]
+-----------------------------------------------
+                0.00    0.00       4/34          gnuplot_set_xlabel [38]
+                0.00    0.00       4/34          gnuplot_set_ylabel [39]
+                0.00    0.00       4/34          gnuplot_plot_atmpfile [36]
+                0.00    0.00      10/34          OrbitPlot(doublecomplex  const*, std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >&, std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >&, std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >&, std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >&, Ofs<doublecomplex >&, double, gsl_odeiv2_driver_struct*, gsl_odeiv2_driver_struct*, gnuplot_ctrl*, gnuplot_ctrl*, gnuplot_ctrl*, gnuplot_ctrl*, double*, int, int, QBFBP&, int) [8]
+                0.00    0.00      12/34          pmInt() [7]
+[33]     0.0    0.00    0.00      34         gnuplot_cmd [33]
+-----------------------------------------------
+                0.00    0.00       4/4           pmInt() [7]
+[34]     0.0    0.00    0.00       4         gnuplot_close [34]
+-----------------------------------------------
+                0.00    0.00       4/4           pmInt() [7]
+[35]     0.0    0.00    0.00       4         gnuplot_init [35]
+                0.00    0.00       4/4           gnuplot_setstyle [41]
+                0.00    0.00       4/4           gnuplot_setcolor [40]
+-----------------------------------------------
+                0.00    0.00       4/4           gnuplot_plot_xy [37]
+[36]     0.0    0.00    0.00       4         gnuplot_plot_atmpfile [36]
+                0.00    0.00       4/34          gnuplot_cmd [33]
+-----------------------------------------------
+                0.00    0.00       4/4           OrbitPlot(doublecomplex  const*, std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >&, std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >&, std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >&, std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >&, Ofs<doublecomplex >&, double, gsl_odeiv2_driver_struct*, gsl_odeiv2_driver_struct*, gnuplot_ctrl*, gnuplot_ctrl*, gnuplot_ctrl*, gnuplot_ctrl*, double*, int, int, QBFBP&, int) [8]
+[37]     0.0    0.00    0.00       4         gnuplot_plot_xy [37]
+                0.00    0.00       4/4           gnuplot_tmpfile [42]
+                0.00    0.00       4/4           gnuplot_plot_atmpfile [36]
+-----------------------------------------------
+                0.00    0.00       4/4           OrbitPlot(doublecomplex  const*, std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >&, std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >&, std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >&, std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >&, Ofs<doublecomplex >&, double, gsl_odeiv2_driver_struct*, gsl_odeiv2_driver_struct*, gnuplot_ctrl*, gnuplot_ctrl*, gnuplot_ctrl*, gnuplot_ctrl*, double*, int, int, QBFBP&, int) [8]
+[38]     0.0    0.00    0.00       4         gnuplot_set_xlabel [38]
+                0.00    0.00       4/34          gnuplot_cmd [33]
+-----------------------------------------------
+                0.00    0.00       4/4           OrbitPlot(doublecomplex  const*, std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >&, std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >&, std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >&, std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >&, Ofs<doublecomplex >&, double, gsl_odeiv2_driver_struct*, gsl_odeiv2_driver_struct*, gnuplot_ctrl*, gnuplot_ctrl*, gnuplot_ctrl*, gnuplot_ctrl*, double*, int, int, QBFBP&, int) [8]
+[39]     0.0    0.00    0.00       4         gnuplot_set_ylabel [39]
+                0.00    0.00       4/34          gnuplot_cmd [33]
+-----------------------------------------------
+                0.00    0.00       4/4           gnuplot_init [35]
+[40]     0.0    0.00    0.00       4         gnuplot_setcolor [40]
+-----------------------------------------------
+                0.00    0.00       4/4           gnuplot_init [35]
+[41]     0.0    0.00    0.00       4         gnuplot_setstyle [41]
+-----------------------------------------------
+                0.00    0.00       4/4           gnuplot_plot_xy [37]
+[42]     0.0    0.00    0.00       4         gnuplot_tmpfile [42]
+-----------------------------------------------
+                0.00    0.00  435540/435540      readOFS(Ofs<doublecomplex >&, std::basic_ifstream<char, std::char_traits<char> >&, int) [2059]
+[2048]   0.0    0.00    0.00  435540         Ofs<doublecomplex >::setCoef(doublecomplex  const&, int const&) [2048]
+-----------------------------------------------
+                0.00    0.00       2/15542       pmInt() [7]
+                0.00    0.00    1260/15542       Ofts<Ofs<doublecomplex > >::Ofts() [27]
+                0.00    0.00   14280/15542       Ofts<Ofs<doublecomplex > >::Ofts(Ofts<Ofs<doublecomplex > > const&) [10]
+[2049]   0.0    0.00    0.00   15542         Ofs<doublecomplex >::~Ofs() [2049]
+-----------------------------------------------
+                0.00    0.00    1260/15540       Ofts<Ofs<doublecomplex > >::Ofts() [27]
+                0.00    0.00   14280/15540       Ofts<Ofs<doublecomplex > >::Ofts(Ofts<Ofs<doublecomplex > > const&) [10]
+[2050]   0.0    0.00    0.00   15540         Ofs<doublecomplex >::operator=(Ofs<doublecomplex > const&) [2050]
+-----------------------------------------------
+                0.00    0.00   14720/14720       evaluateCoef(double*, double, double, int, double*) [23]
+[2051]   0.0    0.00    0.00   14720         evaluateEven(double, double, int, double*, double*) [2051]
+-----------------------------------------------
+                0.00    0.00   12880/12880       Oftsh<Ofs<doublecomplex > >::Oftsh(int, int) [2064]
+[2052]   0.0    0.00    0.00   12880         Oftsh<Ofs<doublecomplex > >::lcopy(Oftsh<Ofs<doublecomplex > > const&) [2052]
+-----------------------------------------------
+                0.00    0.00      34/12008       readVOFTS(std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >&, std::string, int) [30]
+                0.00    0.00    1206/12008       OrbitPlot(doublecomplex  const*, std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >&, std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >&, std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >&, std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >&, Ofs<doublecomplex >&, double, gsl_odeiv2_driver_struct*, gsl_odeiv2_driver_struct*, gnuplot_ctrl*, gnuplot_ctrl*, gnuplot_ctrl*, gnuplot_ctrl*, double*, int, int, QBFBP&, int) [8]
+                0.00    0.00   10768/12008       std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >::at(unsigned long) [2056]
+[2053]   0.0    0.00    0.00   12008         std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >::operator[](unsigned long) [2053]
+-----------------------------------------------
+                0.00    0.00      40/10808       readVOFTS(std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >&, std::string, int) [30]
+                0.00    0.00   10768/10808       std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >::_M_range_check(unsigned long) const [2055]
+[2054]   0.0    0.00    0.00   10808         std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >::size() const [2054]
+-----------------------------------------------
+                0.00    0.00   10768/10768       std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >::at(unsigned long) [2056]
+[2055]   0.0    0.00    0.00   10768         std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >::_M_range_check(unsigned long) const [2055]
+                0.00    0.00   10768/10808       std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >::size() const [2054]
+-----------------------------------------------
+                0.00    0.00   10768/10768       qbfbp_fh(double, double const*, double*, void*) [4]
+[2056]   0.0    0.00    0.00   10768         std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >::at(unsigned long) [2056]
+                0.00    0.00   10768/10768       std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >::_M_range_check(unsigned long) const [2055]
+                0.00    0.00   10768/12008       std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >::operator[](unsigned long) [2053]
+-----------------------------------------------
+                0.00    0.00    1272/8480        Ofts<Ofs<doublecomplex > >::Ofts() [27]
+                0.00    0.00    7208/8480        Ofts<Ofs<doublecomplex > >::Ofts(Ofts<Ofs<doublecomplex > > const&) [10]
+[2057]   0.0    0.00    0.00    8480         binomial(unsigned long, unsigned long) [2057]
+-----------------------------------------------
+                0.00    0.00    7378/7378        readOFTS(Ofts<Ofs<doublecomplex > >&, std::string, int) [29]
+[2058]   0.0    0.00    0.00    7378         Ofts<Ofs<doublecomplex > >::getNV() const [2058]
+-----------------------------------------------
+                0.00    0.00    7140/7140        readOFTS(Ofts<Ofs<doublecomplex > >&, std::string, int) [29]
+[2059]   0.0    0.00    0.00    7140         readOFS(Ofs<doublecomplex >&, std::basic_ifstream<char, std::char_traits<char> >&, int) [2059]
+                0.00    0.00  435540/435540      Ofs<doublecomplex >::setCoef(doublecomplex  const&, int const&) [2048]
+-----------------------------------------------
+                0.00    0.00    7140/7140        Ofts<Ofs<doublecomplex > >::getCoef(int const&, int const&) const [32]
+[2060]   0.0    0.00    0.00    7140         Oftsh<Ofs<doublecomplex > >::getCA() const [2060]
+-----------------------------------------------
+                0.00    0.00    5888/5888        evaluateCoefDerivatives(double*, double, double, int, double*, int) [2063]
+[2061]   0.0    0.00    0.00    5888         evaluateEvenDerivative(double, double, int, double*, double*) [2061]
+-----------------------------------------------
+                0.00    0.00    2944/2944        evaluateCoefDerivatives(double*, double, double, int, double*, int) [2063]
+[2062]   0.0    0.00    0.00    2944         evaluateOddDerivative(double, double, int, double*, double*) [2062]
+-----------------------------------------------
+                0.00    0.00    2944/2944        qbfbp_vfn_novar(double, double const*, double*, void*) [24]
+[2063]   0.0    0.00    0.00    2944         evaluateCoefDerivatives(double*, double, double, int, double*, int) [2063]
+                0.00    0.00    5888/5888        evaluateEvenDerivative(double, double, int, double*, double*) [2061]
+                0.00    0.00    2944/2944        evaluateOddDerivative(double, double, int, double*, double*) [2062]
+-----------------------------------------------
+                               12880             Oftsh<Ofs<doublecomplex > >::Oftsh(int, int) [2064]
+                0.00    0.00      42/280         Ofts<Ofs<doublecomplex > >::Ofts() [27]
+                0.00    0.00     238/280         Ofts<Ofs<doublecomplex > >::Ofts(Ofts<Ofs<doublecomplex > > const&) [10]
+[2064]   0.0    0.00    0.00     280+12880   Oftsh<Ofs<doublecomplex > >::Oftsh(int, int) [2064]
+                0.00    0.00   12880/12880       Oftsh<Ofs<doublecomplex > >::lcopy(Oftsh<Ofs<doublecomplex > > const&) [2052]
+                               12880             Oftsh<Ofs<doublecomplex > >::Oftsh(int, int) [2064]
+-----------------------------------------------
+                                1120             Oftsh<Ofs<doublecomplex > >::~Oftsh() [2065]
+                0.00    0.00     280/280         Ofts<Ofs<doublecomplex > >::~Ofts() [2070]
+[2065]   0.0    0.00    0.00     280+1120    Oftsh<Ofs<doublecomplex > >::~Oftsh() [2065]
+                                1120             Oftsh<Ofs<doublecomplex > >::~Oftsh() [2065]
+-----------------------------------------------
+                0.00    0.00     272/272         readOFTS(Ofts<Ofs<doublecomplex > >&, std::string, int) [29]
+[2066]   0.0    0.00    0.00     272         Ofts<Ofs<doublecomplex > >::getOrder() const [2066]
+-----------------------------------------------
+                0.00    0.00       4/102         OrbitPlot(doublecomplex  const*, std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >&, std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >&, std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >&, std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >&, Ofs<doublecomplex >&, double, gsl_odeiv2_driver_struct*, gsl_odeiv2_driver_struct*, gnuplot_ctrl*, gnuplot_ctrl*, gnuplot_ctrl*, gnuplot_ctrl*, double*, int, int, QBFBP&, int) [8]
+                0.00    0.00      14/102         pmInt() [7]
+                0.00    0.00      16/102         coefRetrieving(std::string, double*, int, int) [2100]
+                0.00    0.00      68/102         readVOFTS(std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >&, std::string, int) [30]
+[2067]   0.0    0.00    0.00     102         std::basic_string<char, std::char_traits<char>, std::allocator<char> > std::operator+<char, std::char_traits<char>, std::allocator<char> >(std::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, char const*) [2067]
+-----------------------------------------------
+                0.00    0.00      34/68          void std::_Destroy_aux<false>::__destroy<Ofts<Ofs<doublecomplex > >*>(Ofts<Ofs<doublecomplex > >*, Ofts<Ofs<doublecomplex > >*) [2087]
+                0.00    0.00      34/68          void std::__uninitialized_fill_n<false>::__uninit_fill_n<Ofts<Ofs<doublecomplex > >*, unsigned long, Ofts<Ofs<doublecomplex > > >(Ofts<Ofs<doublecomplex > >*, unsigned long, Ofts<Ofs<doublecomplex > > const&) [12]
+[2068]   0.0    0.00    0.00      68         Ofts<Ofs<doublecomplex > >* std::__addressof<Ofts<Ofs<doublecomplex > > >(Ofts<Ofs<doublecomplex > >&) [2068]
+-----------------------------------------------
+                0.00    0.00      10/60          pmInt() [7]
+                0.00    0.00      16/60          coefRetrieving(std::string, double*, int, int) [2100]
+                0.00    0.00      34/60          readVOFTS(std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >&, std::string, int) [30]
+[2069]   0.0    0.00    0.00      60         std::basic_string<char, std::char_traits<char>, std::allocator<char> > std::operator+<char, std::char_traits<char>, std::allocator<char> >(std::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, std::basic_string<char, std::char_traits<char>, std::allocator<char> > const&) [2069]
+-----------------------------------------------
+                0.00    0.00       6/40          pmInt() [7]
+                0.00    0.00      34/40          void std::_Destroy<Ofts<Ofs<doublecomplex > > >(Ofts<Ofs<doublecomplex > >*) [2071]
+[2070]   0.0    0.00    0.00      40         Ofts<Ofs<doublecomplex > >::~Ofts() [2070]
+                0.00    0.00     280/280         Oftsh<Ofs<doublecomplex > >::~Oftsh() [2065]
+-----------------------------------------------
+                0.00    0.00      34/34          void std::_Destroy_aux<false>::__destroy<Ofts<Ofs<doublecomplex > >*>(Ofts<Ofs<doublecomplex > >*, Ofts<Ofs<doublecomplex > >*) [2087]
+[2071]   0.0    0.00    0.00      34         void std::_Destroy<Ofts<Ofs<doublecomplex > > >(Ofts<Ofs<doublecomplex > >*) [2071]
+                0.00    0.00      34/40          Ofts<Ofs<doublecomplex > >::~Ofts() [2070]
+-----------------------------------------------
+                0.00    0.00      34/34          void std::_Construct<Ofts<Ofs<doublecomplex > >, Ofts<Ofs<doublecomplex > > >(Ofts<Ofs<doublecomplex > >*, Ofts<Ofs<doublecomplex > > const&) [11]
+[2072]   0.0    0.00    0.00      34         operator new(unsigned long, void*) [2072]
+-----------------------------------------------
+                0.00    0.00      12/12          std::allocator<Ofts<Ofs<doublecomplex > > >::~allocator() [2074]
+[2073]   0.0    0.00    0.00      12         __gnu_cxx::new_allocator<Ofts<Ofs<doublecomplex > > >::~new_allocator() [2073]
+-----------------------------------------------
+                0.00    0.00       6/12          std::_Vector_base<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >::_Vector_impl::~_Vector_impl() [2090]
+                0.00    0.00       6/12          pmInt() [7]
+[2074]   0.0    0.00    0.00      12         std::allocator<Ofts<Ofs<doublecomplex > > >::~allocator() [2074]
+                0.00    0.00      12/12          __gnu_cxx::new_allocator<Ofts<Ofs<doublecomplex > > >::~new_allocator() [2073]
+-----------------------------------------------
+                0.00    0.00      12/12          std::basic_string<char, std::char_traits<char>, std::allocator<char> > std::operator+<char, std::char_traits<char>, std::allocator<char> >(char const*, std::basic_string<char, std::char_traits<char>, std::allocator<char> > const&) [2077]
+[2075]   0.0    0.00    0.00      12         std::char_traits<char>::length(char const*) [2075]
+-----------------------------------------------
+                0.00    0.00       6/12          std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >::~vector() [2095]
+                0.00    0.00       6/12          std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >::_M_fill_initialize(unsigned long, Ofts<Ofs<doublecomplex > > const&) [13]
+[2076]   0.0    0.00    0.00      12         std::_Vector_base<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >::_M_get_Tp_allocator() [2076]
+-----------------------------------------------
+                0.00    0.00       4/12          pmInt() [7]
+                0.00    0.00       8/12          OrbitPlot(doublecomplex  const*, std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >&, std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >&, std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >&, std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >&, Ofs<doublecomplex >&, double, gsl_odeiv2_driver_struct*, gsl_odeiv2_driver_struct*, gnuplot_ctrl*, gnuplot_ctrl*, gnuplot_ctrl*, gnuplot_ctrl*, double*, int, int, QBFBP&, int) [8]
+[2077]   0.0    0.00    0.00      12         std::basic_string<char, std::char_traits<char>, std::allocator<char> > std::operator+<char, std::char_traits<char>, std::allocator<char> >(char const*, std::basic_string<char, std::char_traits<char>, std::allocator<char> > const&) [2077]
+                0.00    0.00      12/12          std::char_traits<char>::length(char const*) [2075]
+-----------------------------------------------
+                0.00    0.00      10/10          init_libp(LibrationPoint*, CR3BP, int) [2079]
+[2078]   0.0    0.00    0.00      10         energy(double*, double) [2078]
+-----------------------------------------------
+                0.00    0.00      10/10          init_CR3BP(CR3BP*, int, int) [2099]
+[2079]   0.0    0.00    0.00      10         init_libp(LibrationPoint*, CR3BP, int) [2079]
+                0.00    0.00      10/10          energy(double*, double) [2078]
+-----------------------------------------------
+                0.00    0.00       6/6           std::_Vector_base<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >::_M_deallocate(Ofts<Ofs<doublecomplex > >*, unsigned long) [2091]
+[2080]   0.0    0.00    0.00       6         __gnu_cxx::new_allocator<Ofts<Ofs<doublecomplex > > >::deallocate(Ofts<Ofs<doublecomplex > >*, unsigned long) [2080]
+-----------------------------------------------
+                0.00    0.00       6/6           std::_Vector_base<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >::_M_allocate(unsigned long) [2088]
+[2081]   0.0    0.00    0.00       6         __gnu_cxx::new_allocator<Ofts<Ofs<doublecomplex > > >::allocate(unsigned long, void const*) [2081]
+                0.00    0.00       6/6           __gnu_cxx::new_allocator<Ofts<Ofs<doublecomplex > > >::max_size() const [2084]
+-----------------------------------------------
+                0.00    0.00       6/6           std::allocator<Ofts<Ofs<doublecomplex > > >::allocator(std::allocator<Ofts<Ofs<doublecomplex > > > const&) [2085]
+[2082]   0.0    0.00    0.00       6         __gnu_cxx::new_allocator<Ofts<Ofs<doublecomplex > > >::new_allocator(__gnu_cxx::new_allocator<Ofts<Ofs<doublecomplex > > > const&) [2082]
+-----------------------------------------------
+                0.00    0.00       6/6           std::allocator<Ofts<Ofs<doublecomplex > > >::allocator() [2086]
+[2083]   0.0    0.00    0.00       6         __gnu_cxx::new_allocator<Ofts<Ofs<doublecomplex > > >::new_allocator() [2083]
+-----------------------------------------------
+                0.00    0.00       6/6           __gnu_cxx::new_allocator<Ofts<Ofs<doublecomplex > > >::allocate(unsigned long, void const*) [2081]
+[2084]   0.0    0.00    0.00       6         __gnu_cxx::new_allocator<Ofts<Ofs<doublecomplex > > >::max_size() const [2084]
+-----------------------------------------------
+                0.00    0.00       6/6           std::_Vector_base<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >::_Vector_impl::_Vector_impl(std::allocator<Ofts<Ofs<doublecomplex > > > const&) [2089]
+[2085]   0.0    0.00    0.00       6         std::allocator<Ofts<Ofs<doublecomplex > > >::allocator(std::allocator<Ofts<Ofs<doublecomplex > > > const&) [2085]
+                0.00    0.00       6/6           __gnu_cxx::new_allocator<Ofts<Ofs<doublecomplex > > >::new_allocator(__gnu_cxx::new_allocator<Ofts<Ofs<doublecomplex > > > const&) [2082]
+-----------------------------------------------
+                0.00    0.00       6/6           pmInt() [7]
+[2086]   0.0    0.00    0.00       6         std::allocator<Ofts<Ofs<doublecomplex > > >::allocator() [2086]
+                0.00    0.00       6/6           __gnu_cxx::new_allocator<Ofts<Ofs<doublecomplex > > >::new_allocator() [2083]
+-----------------------------------------------
+                0.00    0.00       6/6           void std::_Destroy<Ofts<Ofs<doublecomplex > >*>(Ofts<Ofs<doublecomplex > >*, Ofts<Ofs<doublecomplex > >*) [2096]
+[2087]   0.0    0.00    0.00       6         void std::_Destroy_aux<false>::__destroy<Ofts<Ofs<doublecomplex > >*>(Ofts<Ofs<doublecomplex > >*, Ofts<Ofs<doublecomplex > >*) [2087]
+                0.00    0.00      34/34          void std::_Destroy<Ofts<Ofs<doublecomplex > > >(Ofts<Ofs<doublecomplex > >*) [2071]
+                0.00    0.00      34/68          Ofts<Ofs<doublecomplex > >* std::__addressof<Ofts<Ofs<doublecomplex > > >(Ofts<Ofs<doublecomplex > >&) [2068]
+-----------------------------------------------
+                0.00    0.00       6/6           std::_Vector_base<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >::_M_create_storage(unsigned long) [2092]
+[2088]   0.0    0.00    0.00       6         std::_Vector_base<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >::_M_allocate(unsigned long) [2088]
+                0.00    0.00       6/6           __gnu_cxx::new_allocator<Ofts<Ofs<doublecomplex > > >::allocate(unsigned long, void const*) [2081]
+-----------------------------------------------
+                0.00    0.00       6/6           std::_Vector_base<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >::_Vector_base(unsigned long, std::allocator<Ofts<Ofs<doublecomplex > > > const&) [2093]
+[2089]   0.0    0.00    0.00       6         std::_Vector_base<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >::_Vector_impl::_Vector_impl(std::allocator<Ofts<Ofs<doublecomplex > > > const&) [2089]
+                0.00    0.00       6/6           std::allocator<Ofts<Ofs<doublecomplex > > >::allocator(std::allocator<Ofts<Ofs<doublecomplex > > > const&) [2085]
+-----------------------------------------------
+                0.00    0.00       6/6           std::_Vector_base<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >::~_Vector_base() [2094]
+[2090]   0.0    0.00    0.00       6         std::_Vector_base<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >::_Vector_impl::~_Vector_impl() [2090]
+                0.00    0.00       6/12          std::allocator<Ofts<Ofs<doublecomplex > > >::~allocator() [2074]
+-----------------------------------------------
+                0.00    0.00       6/6           std::_Vector_base<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >::~_Vector_base() [2094]
+[2091]   0.0    0.00    0.00       6         std::_Vector_base<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >::_M_deallocate(Ofts<Ofs<doublecomplex > >*, unsigned long) [2091]
+                0.00    0.00       6/6           __gnu_cxx::new_allocator<Ofts<Ofs<doublecomplex > > >::deallocate(Ofts<Ofs<doublecomplex > >*, unsigned long) [2080]
+-----------------------------------------------
+                0.00    0.00       6/6           std::_Vector_base<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >::_Vector_base(unsigned long, std::allocator<Ofts<Ofs<doublecomplex > > > const&) [2093]
+[2092]   0.0    0.00    0.00       6         std::_Vector_base<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >::_M_create_storage(unsigned long) [2092]
+                0.00    0.00       6/6           std::_Vector_base<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >::_M_allocate(unsigned long) [2088]
+-----------------------------------------------
+                0.00    0.00       6/6           std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >::vector(unsigned long, Ofts<Ofs<doublecomplex > > const&, std::allocator<Ofts<Ofs<doublecomplex > > > const&) [14]
+[2093]   0.0    0.00    0.00       6         std::_Vector_base<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >::_Vector_base(unsigned long, std::allocator<Ofts<Ofs<doublecomplex > > > const&) [2093]
+                0.00    0.00       6/6           std::_Vector_base<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >::_Vector_impl::_Vector_impl(std::allocator<Ofts<Ofs<doublecomplex > > > const&) [2089]
+                0.00    0.00       6/6           std::_Vector_base<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >::_M_create_storage(unsigned long) [2092]
+-----------------------------------------------
+                0.00    0.00       6/6           std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >::~vector() [2095]
+[2094]   0.0    0.00    0.00       6         std::_Vector_base<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >::~_Vector_base() [2094]
+                0.00    0.00       6/6           std::_Vector_base<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >::_Vector_impl::~_Vector_impl() [2090]
+                0.00    0.00       6/6           std::_Vector_base<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >::_M_deallocate(Ofts<Ofs<doublecomplex > >*, unsigned long) [2091]
+-----------------------------------------------
+                0.00    0.00       6/6           pmInt() [7]
+[2095]   0.0    0.00    0.00       6         std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >::~vector() [2095]
+                0.00    0.00       6/12          std::_Vector_base<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >::_M_get_Tp_allocator() [2076]
+                0.00    0.00       6/6           void std::_Destroy<Ofts<Ofs<doublecomplex > >*, Ofts<Ofs<doublecomplex > > >(Ofts<Ofs<doublecomplex > >*, Ofts<Ofs<doublecomplex > >*, std::allocator<Ofts<Ofs<doublecomplex > > >&) [2097]
+                0.00    0.00       6/6           std::_Vector_base<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >::~_Vector_base() [2094]
+-----------------------------------------------
+                0.00    0.00       6/6           void std::_Destroy<Ofts<Ofs<doublecomplex > >*, Ofts<Ofs<doublecomplex > > >(Ofts<Ofs<doublecomplex > >*, Ofts<Ofs<doublecomplex > >*, std::allocator<Ofts<Ofs<doublecomplex > > >&) [2097]
+[2096]   0.0    0.00    0.00       6         void std::_Destroy<Ofts<Ofs<doublecomplex > >*>(Ofts<Ofs<doublecomplex > >*, Ofts<Ofs<doublecomplex > >*) [2096]
+                0.00    0.00       6/6           void std::_Destroy_aux<false>::__destroy<Ofts<Ofs<doublecomplex > >*>(Ofts<Ofs<doublecomplex > >*, Ofts<Ofs<doublecomplex > >*) [2087]
+-----------------------------------------------
+                0.00    0.00       6/6           std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >::~vector() [2095]
+[2097]   0.0    0.00    0.00       6         void std::_Destroy<Ofts<Ofs<doublecomplex > >*, Ofts<Ofs<doublecomplex > > >(Ofts<Ofs<doublecomplex > >*, Ofts<Ofs<doublecomplex > >*, std::allocator<Ofts<Ofs<doublecomplex > > >&) [2097]
+                0.00    0.00       6/6           void std::_Destroy<Ofts<Ofs<doublecomplex > >*>(Ofts<Ofs<doublecomplex > >*, Ofts<Ofs<doublecomplex > >*) [2096]
+-----------------------------------------------
+                0.00    0.00       4/4           init_CR3BP(CR3BP*, int, int) [2099]
+[2098]   0.0    0.00    0.00       4         init_body(Body*, int) [2098]
+-----------------------------------------------
+                0.00    0.00       2/2           init_QBFBP(QBFBP*, int, int, int) [2115]
+[2099]   0.0    0.00    0.00       2         init_CR3BP(CR3BP*, int, int) [2099]
+                0.00    0.00      10/10          init_libp(LibrationPoint*, CR3BP, int) [2079]
+                0.00    0.00       4/4           init_body(Body*, int) [2098]
+-----------------------------------------------
+                0.00    0.00       2/2           init_QBFBP(QBFBP_L*, QBFBP*, int, int, int) [2116]
+[2100]   0.0    0.00    0.00       2         coefRetrieving(std::string, double*, int, int) [2100]
+                0.00    0.00      16/60          std::basic_string<char, std::char_traits<char>, std::allocator<char> > std::operator+<char, std::char_traits<char>, std::allocator<char> >(std::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, std::basic_string<char, std::char_traits<char>, std::allocator<char> > const&) [2069]
+                0.00    0.00      16/102         std::basic_string<char, std::char_traits<char>, std::allocator<char> > std::operator+<char, std::char_traits<char>, std::allocator<char> >(std::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, char const*) [2067]
+-----------------------------------------------
+                0.00    0.00       1/1           __libc_csu_init [2923]
+[2101]   0.0    0.00    0.00       1         _GLOBAL__sub_I__Z10init_CR3BPP5CR3BPii [2101]
+                0.00    0.00       1/1           __static_initialization_and_destruction_0(int, int) [2120]
+-----------------------------------------------
+                0.00    0.00       1/1           __libc_csu_init [2923]
+[2102]   0.0    0.00    0.00       1         _GLOBAL__sub_I__Z10oftsh_testv [2102]
+                0.00    0.00       1/1           __static_initialization_and_destruction_0(int, int) [2131]
+-----------------------------------------------
+                0.00    0.00       1/1           __libc_csu_init [2923]
+[2103]   0.0    0.00    0.00       1         _GLOBAL__sub_I__Z14custom_odezeroPdS_dP20custom_ode_structure [2103]
+                0.00    0.00       1/1           __static_initialization_and_destruction_0(int, int) [2124]
+-----------------------------------------------
+                0.00    0.00       1/1           __libc_csu_init [2923]
+[2104]   0.0    0.00    0.00       1         _GLOBAL__sub_I__Z15oneVariableTestii [2104]
+                0.00    0.00       1/1           __static_initialization_and_destruction_0(int, int) [2128]
+-----------------------------------------------
+                0.00    0.00       1/1           __libc_csu_init [2923]
+[2105]   0.0    0.00    0.00       1         _GLOBAL__sub_I__Z4nfo2v [2105]
+                0.00    0.00       1/1           __static_initialization_and_destruction_0(int, int) [2123]
+-----------------------------------------------
+                0.00    0.00       1/1           __libc_csu_init [2923]
+[2106]   0.0    0.00    0.00       1         _GLOBAL__sub_I__Z5ENormPCdi [2106]
+                0.00    0.00       1/1           __static_initialization_and_destruction_0(int, int) [2125]
+-----------------------------------------------
+                0.00    0.00       1/1           __libc_csu_init [2923]
+[2107]   0.0    0.00    0.00       1         _GLOBAL__sub_I__Z5qbtbpi [2107]
+                0.00    0.00       1/1           __static_initialization_and_destruction_0(int, int) [2127]
+-----------------------------------------------
+                0.00    0.00       1/1           __libc_csu_init [2923]
+[2108]   0.0    0.00    0.00       1         _GLOBAL__sub_I__Z7odePlotPKddP24gsl_odeiv2_driver_structP12gnuplot_ctrlii [2108]
+                0.00    0.00       1/1           __static_initialization_and_destruction_0(int, int) [2121]
+-----------------------------------------------
+                0.00    0.00       1/1           __libc_csu_init [2923]
+[2109]   0.0    0.00    0.00       1         _GLOBAL__sub_I__Z7readCOCR3OfsICdESsiii [2109]
+                0.00    0.00       1/1           __static_initialization_and_destruction_0(int, int) [2119]
+-----------------------------------------------
+                0.00    0.00       1/1           __libc_csu_init [2923]
+[2110]   0.0    0.00    0.00       1         _GLOBAL__sub_I__Z8ofs_testv [2110]
+                0.00    0.00       1/1           __static_initialization_and_destruction_0(int, int) [2129]
+-----------------------------------------------
+                0.00    0.00       1/1           __libc_csu_init [2923]
+[2111]   0.0    0.00    0.00       1         _GLOBAL__sub_I__Z8qbfbp_vfdPKdPdPv [2111]
+                0.00    0.00       1/1           __static_initialization_and_destruction_0(int, int) [2126]
+-----------------------------------------------
+                0.00    0.00       1/1           __libc_csu_init [2923]
+[2112]   0.0    0.00    0.00       1         _GLOBAL__sub_I__Z9ofts_testv [2112]
+                0.00    0.00       1/1           __static_initialization_and_destruction_0(int, int) [2130]
+-----------------------------------------------
+                0.00    0.00       1/1           __libc_csu_init [2923]
+[2113]   0.0    0.00    0.00       1         _GLOBAL__sub_I__ZN4FTDA3norE [2113]
+                0.00    0.00       1/1           __static_initialization_and_destruction_0(int, int) [2122]
+-----------------------------------------------
+                0.00    0.00       1/1           __libc_csu_init [2923]
+[2114]   0.0    0.00    0.00       1         _GLOBAL__sub_I_main [2114]
+                0.00    0.00       1/1           __static_initialization_and_destruction_0(int, int) [2118]
+-----------------------------------------------
+                0.00    0.00       1/1           pmInt() [7]
+[2115]   0.0    0.00    0.00       1         init_QBFBP(QBFBP*, int, int, int) [2115]
+                0.00    0.00       2/2           init_CR3BP(CR3BP*, int, int) [2099]
+-----------------------------------------------
+                0.00    0.00       1/1           pmInt() [7]
+[2116]   0.0    0.00    0.00       1         init_QBFBP(QBFBP_L*, QBFBP*, int, int, int) [2116]
+                0.00    0.00       2/2           coefRetrieving(std::string, double*, int, int) [2100]
+                0.00    0.00       1/1           cn(QBFBP_L&, int) [2117]
+-----------------------------------------------
+                0.00    0.00       1/1           init_QBFBP(QBFBP_L*, QBFBP*, int, int, int) [2116]
+[2117]   0.0    0.00    0.00       1         cn(QBFBP_L&, int) [2117]
+-----------------------------------------------
+                0.00    0.00       1/1           _GLOBAL__sub_I_main [2114]
+[2118]   0.0    0.00    0.00       1         __static_initialization_and_destruction_0(int, int) [2118]
+-----------------------------------------------
+                0.00    0.00       1/1           _GLOBAL__sub_I__Z7readCOCR3OfsICdESsiii [2109]
+[2119]   0.0    0.00    0.00       1         __static_initialization_and_destruction_0(int, int) [2119]
+-----------------------------------------------
+                0.00    0.00       1/1           _GLOBAL__sub_I__Z10init_CR3BPP5CR3BPii [2101]
+[2120]   0.0    0.00    0.00       1         __static_initialization_and_destruction_0(int, int) [2120]
+-----------------------------------------------
+                0.00    0.00       1/1           _GLOBAL__sub_I__Z7odePlotPKddP24gsl_odeiv2_driver_structP12gnuplot_ctrlii [2108]
+[2121]   0.0    0.00    0.00       1         __static_initialization_and_destruction_0(int, int) [2121]
+-----------------------------------------------
+                0.00    0.00       1/1           _GLOBAL__sub_I__ZN4FTDA3norE [2113]
+[2122]   0.0    0.00    0.00       1         __static_initialization_and_destruction_0(int, int) [2122]
+-----------------------------------------------
+                0.00    0.00       1/1           _GLOBAL__sub_I__Z4nfo2v [2105]
+[2123]   0.0    0.00    0.00       1         __static_initialization_and_destruction_0(int, int) [2123]
+-----------------------------------------------
+                0.00    0.00       1/1           _GLOBAL__sub_I__Z14custom_odezeroPdS_dP20custom_ode_structure [2103]
+[2124]   0.0    0.00    0.00       1         __static_initialization_and_destruction_0(int, int) [2124]
+-----------------------------------------------
+                0.00    0.00       1/1           _GLOBAL__sub_I__Z5ENormPCdi [2106]
+[2125]   0.0    0.00    0.00       1         __static_initialization_and_destruction_0(int, int) [2125]
+-----------------------------------------------
+                0.00    0.00       1/1           _GLOBAL__sub_I__Z8qbfbp_vfdPKdPdPv [2111]
+[2126]   0.0    0.00    0.00       1         __static_initialization_and_destruction_0(int, int) [2126]
+-----------------------------------------------
+                0.00    0.00       1/1           _GLOBAL__sub_I__Z5qbtbpi [2107]
+[2127]   0.0    0.00    0.00       1         __static_initialization_and_destruction_0(int, int) [2127]
+-----------------------------------------------
+                0.00    0.00       1/1           _GLOBAL__sub_I__Z15oneVariableTestii [2104]
+[2128]   0.0    0.00    0.00       1         __static_initialization_and_destruction_0(int, int) [2128]
+-----------------------------------------------
+                0.00    0.00       1/1           _GLOBAL__sub_I__Z8ofs_testv [2110]
+[2129]   0.0    0.00    0.00       1         __static_initialization_and_destruction_0(int, int) [2129]
+-----------------------------------------------
+                0.00    0.00       1/1           _GLOBAL__sub_I__Z9ofts_testv [2112]
+[2130]   0.0    0.00    0.00       1         __static_initialization_and_destruction_0(int, int) [2130]
+-----------------------------------------------
+                0.00    0.00       1/1           _GLOBAL__sub_I__Z10oftsh_testv [2102]
+[2131]   0.0    0.00    0.00       1         __static_initialization_and_destruction_0(int, int) [2131]
+-----------------------------------------------
+                0.00    0.00       1/1           OrbitPlot(doublecomplex  const*, std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >&, std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >&, std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >&, std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >&, Ofs<doublecomplex >&, double, gsl_odeiv2_driver_struct*, gsl_odeiv2_driver_struct*, gnuplot_ctrl*, gnuplot_ctrl*, gnuplot_ctrl*, gnuplot_ctrl*, double*, int, int, QBFBP&, int) [8]
+[2132]   0.0    0.00    0.00       1         ENorm(doublecomplex *, int) [2132]
+-----------------------------------------------
+                0.00    0.00       1/1           main [6]
+[2133]   0.0    0.00    0.00       1         FTDA::init(int, int) [2133]
+-----------------------------------------------
+                0.00    0.00       1/1           std::showpos(std::ios_base&) [2877]
+[2134]   0.0    0.00    0.00       1         std::ios_base::setf(std::_Ios_Fmtflags) [2134]
+                0.00    0.00       1/1           std::operator|=(std::_Ios_Fmtflags&, std::_Ios_Fmtflags) [2138]
+-----------------------------------------------
+                0.00    0.00       1/1           pmInt() [7]
+[2135]   0.0    0.00    0.00       1         std::setiosflags(std::_Ios_Fmtflags) [2135]
+-----------------------------------------------
+                0.00    0.00       1/1           pmInt() [7]
+[2136]   0.0    0.00    0.00       1         std::setprecision(int) [2136]
+-----------------------------------------------
+                0.00    0.00       1/1           main [6]
+[2137]   0.0    0.00    0.00       1         int const& std::max<int>(int const&, int const&) [2137]
+-----------------------------------------------
+                0.00    0.00       1/1           std::ios_base::setf(std::_Ios_Fmtflags) [2134]
+[2138]   0.0    0.00    0.00       1         std::operator|=(std::_Ios_Fmtflags&, std::_Ios_Fmtflags) [2138]
+                0.00    0.00       1/1           std::operator|(std::_Ios_Fmtflags, std::_Ios_Fmtflags) [2139]
+-----------------------------------------------
+                0.00    0.00       1/1           std::operator|=(std::_Ios_Fmtflags&, std::_Ios_Fmtflags) [2138]
+[2139]   0.0    0.00    0.00       1         std::operator|(std::_Ios_Fmtflags, std::_Ios_Fmtflags) [2139]
+-----------------------------------------------
+
+ This table describes the call tree of the program, and was sorted by
+ the total amount of time spent in each function and its children.
+
+ Each entry in this table consists of several lines.  The line with the
+ index number at the left hand margin lists the current function.
+ The lines above it list the functions that called this function,
+ and the lines below it list the functions this one called.
+ This line lists:
+     index	A unique number given to each element of the table.
+		Index numbers are sorted numerically.
+		The index number is printed next to every function name so
+		it is easier to look up where the function is in the table.
+
+     % time	This is the percentage of the `total' time that was spent
+		in this function and its children.  Note that due to
+		different viewpoints, functions excluded by options, etc,
+		these numbers will NOT add up to 100%.
+
+     self	This is the total amount of time spent in this function.
+
+     children	This is the total amount of time propagated into this
+		function by its children.
+
+     called	This is the number of times the function was called.
+		If the function called itself recursively, the number
+		only includes non-recursive calls, and is followed by
+		a `+' and the number of recursive calls.
+
+     name	The name of the current function.  The index number is
+		printed after it.  If the function is a member of a
+		cycle, the cycle number is printed between the
+		function's name and the index number.
+
+
+ For the function's parents, the fields have the following meanings:
+
+     self	This is the amount of time that was propagated directly
+		from the function into this parent.
+
+     children	This is the amount of time that was propagated from
+		the function's children into this parent.
+
+     called	This is the number of times this parent called the
+		function `/' the total number of times the function
+		was called.  Recursive calls to the function are not
+		included in the number after the `/'.
+
+     name	This is the name of the parent.  The parent's index
+		number is printed after it.  If the parent is a
+		member of a cycle, the cycle number is printed between
+		the name and the index number.
+
+ If the parents of the function cannot be determined, the word
+ `<spontaneous>' is printed in the `name' field, and all the other
+ fields are blank.
+
+ For the function's children, the fields have the following meanings:
+
+     self	This is the amount of time that was propagated directly
+		from the child into the function.
+
+     children	This is the amount of time that was propagated from the
+		child's children to the function.
+
+     called	This is the number of times the function called
+		this child `/' the total number of times the child
+		was called.  Recursive calls by the child are not
+		listed in the number after the `/'.
+
+     name	This is the name of the child.  The child's index
+		number is printed after it.  If the child is a
+		member of a cycle, the cycle number is printed
+		between the name and the index number.
+
+ If there are any cycles (circles) in the call graph, there is an
+ entry for the cycle-as-a-whole.  This entry shows who called the
+ cycle (as parents) and the members of the cycle (as children.)
+ The `+' recursive calls entry shows the number of function calls that
+ were internal to the cycle, and the calls entry for each member shows,
+ for that member, how many times it was called from other members of
+ the cycle.
+
+
+Index by function name
+
+ [2101] _GLOBAL__sub_I__Z10init_CR3BPP5CR3BPii (define_env.cpp) [2057] binomial(unsigned long, unsigned long) [2075] std::char_traits<char>::length(char const*)
+ [2102] _GLOBAL__sub_I__Z10oftsh_testv (oftsh_test.cpp) [4] qbfbp_fh(double, double const*, double*, void*) [2087] void std::_Destroy_aux<false>::__destroy<Ofts<Ofs<doublecomplex > >*>(Ofts<Ofs<doublecomplex > >*, Ofts<Ofs<doublecomplex > >*)
+ [2103] _GLOBAL__sub_I__Z14custom_odezeroPdS_dP20custom_ode_structure (odezero.cpp) [29] readOFTS(Ofts<Ofs<doublecomplex > >&, std::string, int) [2088] std::_Vector_base<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >::_M_allocate(unsigned long)
+ [2104] _GLOBAL__sub_I__Z15oneVariableTestii (tests.cpp) [8] OrbitPlot(doublecomplex  const*, std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >&, std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >&, std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >&, std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >&, Ofs<doublecomplex >&, double, gsl_odeiv2_driver_struct*, gsl_odeiv2_driver_struct*, gnuplot_ctrl*, gnuplot_ctrl*, gnuplot_ctrl*, gnuplot_ctrl*, double*, int, int, QBFBP&, int) [2089] std::_Vector_base<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >::_Vector_impl::_Vector_impl(std::allocator<Ofts<Ofs<doublecomplex > > > const&)
+ [2105] _GLOBAL__sub_I__Z4nfo2v (nfo2.cpp) [2098] init_body(Body*, int) [2090] std::_Vector_base<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >::_Vector_impl::~_Vector_impl()
+ [2106] _GLOBAL__sub_I__Z5ENormPCdi (pm.cpp) [2079] init_libp(LibrationPoint*, CR3BP, int) [2091] std::_Vector_base<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >::_M_deallocate(Ofts<Ofs<doublecomplex > >*, unsigned long)
+ [2107] _GLOBAL__sub_I__Z5qbtbpi (qbtbp.cpp) [30] readVOFTS(std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >&, std::string, int) [2092] std::_Vector_base<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >::_M_create_storage(unsigned long)
+ [2108] _GLOBAL__sub_I__Z7odePlotPKddP24gsl_odeiv2_driver_structP12gnuplot_ctrlii (diffcorr.cpp) [19] Ofs<doublecomplex >::zero() [2076] std::_Vector_base<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >::_M_get_Tp_allocator()
+ [2109] _GLOBAL__sub_I__Z7readCOCR3OfsICdESsiii (coc.cpp) [2048] Ofs<doublecomplex >::setCoef(doublecomplex  const&, int const&) [2093] std::_Vector_base<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >::_Vector_base(unsigned long, std::allocator<Ofts<Ofs<doublecomplex > > > const&)
+ [2110] _GLOBAL__sub_I__Z8ofs_testv (ofs_test.cpp) [20] Ofs<doublecomplex >::evaluate(double const&) [2094] std::_Vector_base<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >::~_Vector_base()
+ [2111] _GLOBAL__sub_I__Z8qbfbp_vfdPKdPdPv (qbfbp.cpp) [5] Ofs<doublecomplex >::ofs_smult(Ofs<doublecomplex > const&, doublecomplex  const&) [12] void std::__uninitialized_fill_n<false>::__uninit_fill_n<Ofts<Ofs<doublecomplex > >*, unsigned long, Ofts<Ofs<doublecomplex > > >(Ofts<Ofs<doublecomplex > >*, unsigned long, Ofts<Ofs<doublecomplex > > const&)
+ [2112] _GLOBAL__sub_I__Z9ofts_testv (ofts_test.cpp) [22] Ofs<doublecomplex >::Ofs(Ofs<doublecomplex > const&) [13] std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >::_M_fill_initialize(unsigned long, Ofts<Ofs<doublecomplex > > const&)
+ [2113] _GLOBAL__sub_I__ZN4FTDA3norE (ftda.cpp) [26] Ofs<doublecomplex >::Ofs(int) [2056] std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >::at(unsigned long)
+ [2114] _GLOBAL__sub_I_main (main.cpp) [2049] Ofs<doublecomplex >::~Ofs() [14] std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >::vector(unsigned long, Ofts<Ofs<doublecomplex > > const&, std::allocator<Ofts<Ofs<doublecomplex > > > const&)
+ [2099] init_CR3BP(CR3BP*, int, int) [2050] Ofs<doublecomplex >::operator=(Ofs<doublecomplex > const&) [2095] std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >::~vector()
+ [2115] init_QBFBP(QBFBP*, int, int, int) [25] FTDA::free() [2053] std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >::operator[](unsigned long)
+ [2116] init_QBFBP(QBFBP_L*, QBFBP*, int, int, int) [2133] FTDA::init(int, int) [2134] std::ios_base::setf(std::_Ios_Fmtflags)
+  [21] evaluateOdd(double, double, int, double*, double*) [9] FTDA::nmon(int, int) [11] void std::_Construct<Ofts<Ofs<doublecomplex > >, Ofts<Ofs<doublecomplex > > >(Ofts<Ofs<doublecomplex > >*, Ofts<Ofs<doublecomplex > > const&)
+  [23] evaluateCoef(double*, double, double, int, double*) [18] FTDA::prxkt(int*, int) [2068] Ofts<Ofs<doublecomplex > >* std::__addressof<Ofts<Ofs<doublecomplex > > >(Ofts<Ofs<doublecomplex > >&)
+ [2051] evaluateEven(double, double, int, double*, double*) [1] void Ofts<Ofs<doublecomplex > >::evaluate<doublecomplex >(doublecomplex *, Ofs<doublecomplex >&, int const&) [2135] std::setiosflags(std::_Ios_Fmtflags)
+ [2100] coefRetrieving(std::string, double*, int, int) [10] Ofts<Ofs<doublecomplex > >::Ofts(Ofts<Ofs<doublecomplex > > const&) [2136] std::setprecision(int)
+  [24] qbfbp_vfn_novar(double, double const*, double*, void*) [27] Ofts<Ofs<doublecomplex > >::Ofts() [15] void std::uninitialized_fill_n<Ofts<Ofs<doublecomplex > >*, unsigned long, Ofts<Ofs<doublecomplex > > >(Ofts<Ofs<doublecomplex > >*, unsigned long, Ofts<Ofs<doublecomplex > > const&)
+ [2062] evaluateOddDerivative(double, double, int, double*, double*) [2070] Ofts<Ofs<doublecomplex > >::~Ofts() [16] void std::__uninitialized_fill_n_a<Ofts<Ofs<doublecomplex > >*, unsigned long, Ofts<Ofs<doublecomplex > >, Ofts<Ofs<doublecomplex > > >(Ofts<Ofs<doublecomplex > >*, unsigned long, Ofts<Ofs<doublecomplex > > const&, std::allocator<Ofts<Ofs<doublecomplex > > >&)
+ [2061] evaluateEvenDerivative(double, double, int, double*, double*) [2052] Oftsh<Ofs<doublecomplex > >::lcopy(Oftsh<Ofs<doublecomplex > > const&) [2137] int const& std::max<int>(int const&, int const&)
+ [2063] evaluateCoefDerivatives(double*, double, double, int, double*, int) [31] Oftsh<Ofs<doublecomplex > >::linkCoefs(Ofs<doublecomplex >*) [2071] void std::_Destroy<Ofts<Ofs<doublecomplex > > >(Ofts<Ofs<doublecomplex > >*)
+ [2117] cn(QBFBP_L&, int)      [2] void Oftsh<Ofs<doublecomplex > >::sevaluate<doublecomplex >(doublecomplex *, Ofs<doublecomplex >&) [2096] void std::_Destroy<Ofts<Ofs<doublecomplex > >*>(Ofts<Ofs<doublecomplex > >*, Ofts<Ofs<doublecomplex > >*)
+ [2118] __static_initialization_and_destruction_0(int, int) (main.cpp) [2064] Oftsh<Ofs<doublecomplex > >::Oftsh(int, int) [2097] void std::_Destroy<Ofts<Ofs<doublecomplex > >*, Ofts<Ofs<doublecomplex > > >(Ofts<Ofs<doublecomplex > >*, Ofts<Ofs<doublecomplex > >*, std::allocator<Ofts<Ofs<doublecomplex > > >&)
+ [2119] __static_initialization_and_destruction_0(int, int) (coc.cpp) [2065] Oftsh<Ofs<doublecomplex > >::~Oftsh() [2138] std::operator|=(std::_Ios_Fmtflags&, std::_Ios_Fmtflags)
+ [2120] __static_initialization_and_destruction_0(int, int) (define_env.cpp) [2080] __gnu_cxx::new_allocator<Ofts<Ofs<doublecomplex > > >::deallocate(Ofts<Ofs<doublecomplex > >*, unsigned long) [2139] std::operator|(std::_Ios_Fmtflags, std::_Ios_Fmtflags)
+ [2121] __static_initialization_and_destruction_0(int, int) (diffcorr.cpp) [2081] __gnu_cxx::new_allocator<Ofts<Ofs<doublecomplex > > >::allocate(unsigned long, void const*) [2077] std::basic_string<char, std::char_traits<char>, std::allocator<char> > std::operator+<char, std::char_traits<char>, std::allocator<char> >(char const*, std::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)
+ [2122] __static_initialization_and_destruction_0(int, int) (ftda.cpp) [2082] __gnu_cxx::new_allocator<Ofts<Ofs<doublecomplex > > >::new_allocator(__gnu_cxx::new_allocator<Ofts<Ofs<doublecomplex > > > const&) [2067] std::basic_string<char, std::char_traits<char>, std::allocator<char> > std::operator+<char, std::char_traits<char>, std::allocator<char> >(std::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, char const*)
+ [2123] __static_initialization_and_destruction_0(int, int) (nfo2.cpp) [2083] __gnu_cxx::new_allocator<Ofts<Ofs<doublecomplex > > >::new_allocator() [2069] std::basic_string<char, std::char_traits<char>, std::allocator<char> > std::operator+<char, std::char_traits<char>, std::allocator<char> >(std::basic_string<char, std::char_traits<char>, std::allocator<char> > const&, std::basic_string<char, std::char_traits<char>, std::allocator<char> > const&)
+ [2124] __static_initialization_and_destruction_0(int, int) (odezero.cpp) [2073] __gnu_cxx::new_allocator<Ofts<Ofs<doublecomplex > > >::~new_allocator() [2072] operator new(unsigned long, void*)
+ [2125] __static_initialization_and_destruction_0(int, int) (pm.cpp) [2058] Ofts<Ofs<doublecomplex > >::getNV() const [34] gnuplot_close
+ [2126] __static_initialization_and_destruction_0(int, int) (qbfbp.cpp) [32] Ofts<Ofs<doublecomplex > >::getCoef(int const&, int const&) const [33] gnuplot_cmd
+ [2127] __static_initialization_and_destruction_0(int, int) (qbtbp.cpp) [2066] Ofts<Ofs<doublecomplex > >::getOrder() const [35] gnuplot_init
+ [2128] __static_initialization_and_destruction_0(int, int) (tests.cpp) [2060] Oftsh<Ofs<doublecomplex > >::getCA() const [36] gnuplot_plot_atmpfile
+ [2129] __static_initialization_and_destruction_0(int, int) (ofs_test.cpp) [17] Oftsh<Ofs<doublecomplex > >::getCoef(int) const [37] gnuplot_plot_xy
+ [2130] __static_initialization_and_destruction_0(int, int) (ofts_test.cpp) [2084] __gnu_cxx::new_allocator<Ofts<Ofs<doublecomplex > > >::max_size() const [38] gnuplot_set_xlabel
+ [2131] __static_initialization_and_destruction_0(int, int) (oftsh_test.cpp) [2055] std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >::_M_range_check(unsigned long) const [39] gnuplot_set_ylabel
+ [2132] ENorm(doublecomplex *, int) [2054] std::vector<Ofts<Ofs<doublecomplex > >, std::allocator<Ofts<Ofs<doublecomplex > > > >::size() const [40] gnuplot_setcolor
+   [7] pmInt()              [2085] std::allocator<Ofts<Ofs<doublecomplex > > >::allocator(std::allocator<Ofts<Ofs<doublecomplex > > > const&) [41] gnuplot_setstyle
+ [2078] energy(double*, double) [2086] std::allocator<Ofts<Ofs<doublecomplex > > >::allocator() [42] gnuplot_tmpfile
+ [2059] readOFS(Ofs<doublecomplex >&, std::basic_ifstream<char, std::char_traits<char> >&, int) [2074] std::allocator<Ofts<Ofs<doublecomplex > > >::~allocator()
