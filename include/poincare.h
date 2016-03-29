@@ -49,6 +49,7 @@ struct Pmap
     double tf;           //final time
     double t0;           //init time
     double tt;           //test time
+    int projFreq;        //test projection frequency
     double T;            //period
     int max_events;      //maximum z=0 events allowed
     double threshold;    //the threshold above which a reset of z(t) is needed
@@ -197,6 +198,20 @@ void pmap_precision(Pmap &pmap, int append, bool isPar);
  *   that ensures H(0) = cst
  **/
 void pmap_invariance_error(Pmap &pmap, int append, bool isPar, double hzmax);
+
+/**
+ *   \brief Invariance error computation
+ *   \param pmap a reference to the Poincare maps parameters
+ *   \param hzmax the maximum energy value allowed.
+ *          Note that only positive dhz are selected
+ *
+ *    Requires initCM and initCOC
+ *
+ *   REMARK: may be good to "force" p36(t0= 0.0) (e.g. pmap.t0 =  +1.044814582930593 for L2) so that each IC begins on z = 0 plane
+ *   If so, the way H(0) = cst is guaranteed must be changed because we need also to ensure that s4 = 0.0 (which is not the case, since it is the variable
+ *   that ensures H(0) = cst
+ **/
+void pmap_invariance_error_random(Pmap &pmap, int append, bool isPar, double hzmax);
 
 /**
  *   \brief Test error computation
@@ -370,13 +385,7 @@ void orbit_pmap_fprint(Orbit *orbit, string filename, int append);
 void orbit_pmap_fprint_small(Orbit *orbit, string filename, int append);
 
 /**
- *   \brief Read the poincare map of and orbit in a txt file. Deprecated
- *   TO BE ENHANCED WITH R? (More robust to change of columns, etc)
- **/
-void orbit_pmap_fread(Orbit *orbit, string filename, int label);
-
-/**
-    \brief Print the porecision map of and orbit in a txt file
+    \brief Print the precision map of and orbit in a txt file
 **/
 void orbit_precision_fprint(Orbit *orbit, string filename, int append);
 
@@ -405,6 +414,10 @@ void orbit_energy_fprint(Orbit *orbit, string filename, double hzmax, int append
  **/
 void header_energy_fprint(string filename);
 
+/**
+    \brief Print the energy map of and orbit in a bin file
+**/
+void orbit_energy_fprint_bin(Orbit *orbit, string filename, int append);
 
 //--------------------------------------------------------------------------------------------------------------
 //

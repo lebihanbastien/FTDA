@@ -1,5 +1,7 @@
 #include "poincare.h"
 #include <omp.h>
+#include <gsl/gsl_rng.h>
+#include <gsl/gsl_qrng.h>
 
 /**
  * \file poincare.cpp
@@ -8,6 +10,15 @@
  * \date May 2015
  * \version 1.0
  */
+
+/**
+ *   \brief Writing the poincare map header in the txt file. Lighter version
+ **/
+void header_fprint_bin(string filename);
+/**
+ *   \brief Print the poincare map of and orbit in a txt file. Lighter version
+ **/
+void orbit_pmap_fprint_bin(Orbit *orbit, string filename, int append);
 
 //-----------------------------------------------------------------------------------------------------------------------------------------------------
 //
@@ -89,6 +100,65 @@ void init_ode_CCM(OdeStruct &ode_s_8, RVF &rvf, Ofsc &rvf_ofs, Pmap &pmap)
 //
 //-----------------------------------------------------------------------------------------------------------------------------------------------------
 /**
+ *  \brief Returns the filename associated with the current Pmap and method of computation.
+ **/
+string nameFile(Pmap &pmap, int method)
+{
+    string ssHv        = numTostring(pmap.dHv);
+    string ssorder     = numTostring(pmap.order);
+    string ssofs_order = numTostring(pmap.ofs_order);
+    string ssMaxEvents = numTostring(pmap.max_events);
+    string type, smethod;
+
+    //Get the type
+    type = pmap.t0 == 0? "Serv_pm_t0_":"Serv_pm_";
+
+    //Get the method
+    switch(method)
+    {
+    case DUAL_INT:
+        smethod = "_DUAL_INT";
+        break;
+
+    case DUAL_INT_NO_RESET:
+        smethod = "_DUAL_INT_NOT_RESET";
+        break;
+
+    case DUAL_INT_STEPPED:
+        smethod = "_DUAL_INT_STEPPED";
+        break;
+
+    case SINGLE_INT:
+        smethod = "_SINGLE_INT";
+        break;
+    }
+
+    //Frequency of projection per period
+    string ssProj = numTostring(pmap.projFreq);
+
+    //Get the PM style
+    string filename;
+    switch(SEML.pms)
+    {
+    case PMS_GRAPH:
+        filename = SEML.cs.F_PRINT+type; //default case, so no additionnal notations
+        break;
+    case PMS_NORMFORM:
+        filename = SEML.cs.F_PRINT+type+"NF_";//Normal form style
+        break;
+    case PMS_MIXED:
+        filename = SEML.cs.F_PRINT+type+"MX_";  //Normal form style
+        break;
+    }
+
+    //Final name
+    filename = filename+"Energy_"+ssHv+"_order_"+ssorder+"_ofs_"+ssofs_order+"_proj_"+ssProj+"_max_events_"+ssMaxEvents+smethod;
+
+    //Return
+    return filename;
+}
+
+/**
  *   \brief Computes a Poincare map
  *   \param pmap a reference to the Poincare map parameters
  *   \param isPlot if true, the Poincare map is plotted during the computation
@@ -114,23 +184,12 @@ void pmap_build(Pmap &pmap, int append, int method, bool isPlot, bool isPar)
     string F_PRINT = SEML.cs.F_PRINT;
 
     //------------------------------------------
-    //Plot variables
-    //------------------------------------------
-    gnuplot_ctrl  *h1, *h2;
-    h1  = gnuplot_init();
-    h2  = gnuplot_init();
-    char ch;
-
-    //------------------------------------------
     //Energy of Li (st0 = 0)
     //------------------------------------------
     //Null initial conditions in TF coordinates
     double st0[4];
     for(int i =0; i<4; i++) st0[i] = 0.0;
     pmap.H0 = orbit_ham(pmap, st0);
-    cout << "pmap.H0 =" << pmap.H0 << endl;
-
-    return;
 
     //------------------------------------------
     //Set the Hamiltonian to H0+dHv
@@ -141,58 +200,15 @@ void pmap_build(Pmap &pmap, int append, int method, bool isPlot, bool isPar)
     //Plot & Print
     //------------------------------------------
     //Filename to print
-    string ssHv        = numTostring(pmap.dHv);
-    string ssorder     = numTostring(pmap.order);
-    string ssofs_order = numTostring(pmap.ofs_order);
-    string type;
-
-    //Get the type
-    type = pmap.t0 == 0? "Serv_pm_t0_":"Serv_pm_";
-
-    string smethod;
-    switch(method)
-    {
-    case DUAL_INT:
-        smethod = "_DUAL_INT";
-        break;
-
-    case DUAL_INT_NO_RESET:
-        smethod = "_DUAL_INT_NOT_RESET";
-        break;
-
-    case DUAL_INT_STEPPED:
-        smethod = "_DUAL_INT_STEPPED";
-        break;
-
-    case SINGLE_INT:
-        smethod = "_SINGLE_INT";
-        break;
-    }
-
-    string filename;
-
-    //Get the PM style
-    switch(SEML.pms)
-    {
-    case PMS_GRAPH:
-        filename = F_PRINT+type; //default case, so no additionnal notations
-        break;
-    case PMS_NORMFORM:
-        filename = F_PRINT+type+"NF_";//Normal form style
-        break;
-    case PMS_MIXED:
-        filename = F_PRINT+type+"MX_";  //Normal form style
-        break;
-    }
-    //Final name
-    filename = filename+"Energy_"+ssHv+"_order_"+ssorder+"_ofs_"+ssofs_order+smethod;
+    string filename = nameFile(pmap, method);
 
     //------------------------------------------
     //If no appending, the right header is written in the txt file
     //------------------------------------------
     //if(!append) header_pmap_fprint(filename);
-    if(!append) header_pmap_fprint_small(filename);
+    //if(!append) header_pmap_fprint_small(filename);
     cout << "pmap_build. data saved in " << filename << endl;
+    if(!append) header_fprint_bin(filename);
 
     //------------------------------------------
     //Building the working grid
@@ -309,7 +325,8 @@ void pmap_build(Pmap &pmap, int append, int method, bool isPlot, bool isPar)
                         orbit.label = label++;
                         orbit.tf    = pmap.tf;
                         //orbit_pmap_fprint(&orbit, filename, 1);
-                        orbit_pmap_fprint_small(&orbit, filename, 1);
+                        //orbit_pmap_fprint_small(&orbit, filename, 1);
+                        orbit_pmap_fprint_bin(&orbit, filename, 1);
                     }
 
 
@@ -325,20 +342,6 @@ void pmap_build(Pmap &pmap, int append, int method, bool isPlot, bool isPar)
 
     //Memory release
     free_dvector(grid, 0,  pmap.gsize);
-
-    //Plot handling at the end
-    if(isPlot)
-    {
-        printf("Press ENTER to close the gnuplot window(s)\n");
-        scanf("%c",&ch);
-
-        //Save in EPS format
-        gnuplot_cmd(h1, "set terminal postscript eps solid color enhanced");
-        gnuplot_cmd(h1, "set output \"pmap.eps\"");
-        gnuplot_cmd(h1, "replot");
-    }
-    gnuplot_close(h1);
-    gnuplot_close(h2);
 }
 
 /**
@@ -377,9 +380,12 @@ void pmap_precision(Pmap &pmap, int append, bool isPar)
     //Plot & Print
     //------------------------------------------
     //Filename to print
-    string ssOrder, ssOfs;
-    ssOrder = numTostring(pmap.order);
-    ssOfs   = numTostring(pmap.ofs_order);
+    string ssOrder, ssOfs, ssEnergy;
+    ssOrder    = numTostring(pmap.order);
+    ssOfs      = numTostring(pmap.ofs_order);
+    ssEnergy   = numTostring(pmap.dHv);
+
+
     //------------------------------------------
     //Energy of Li (sti = 0)
     //------------------------------------------
@@ -410,21 +416,28 @@ void pmap_precision(Pmap &pmap, int append, bool isPar)
     //
     //------------------------------------------
     string filename;
-
+    string type = "s1eqs3";//s1eqs3fs2";
     switch(SEML.pms)
     {
     case PMS_GRAPH:
-        filename = F_PRINT+"eOm_planar0_ofs_"+ssOfs+"_order_"+ssOrder; //default case, so no additionnal notations
+        filename = F_PRINT+"eOm_"+type+"_ofs_"+ssOfs+"_order_"+ssOrder; //default case, so no additionnal notations
         break;
     case PMS_NORMFORM:
-        filename = F_PRINT+"eOm_NF_planar0_ofs_"+ssOfs+"_order_"+ssOrder; //Normal form style
+        filename = F_PRINT+"eOm_NF_"+type+"_ofs_"+ssOfs+"_order_"+ssOrder; //Normal form style
         break;
     case PMS_MIXED:
-        filename = F_PRINT+"eOm_MX_planar0_ofs_"+ssOfs+"_order_"+ssOrder; //Normal form style
+        filename = F_PRINT+"eOm_MX_"+type+"_ofs_"+ssOfs+"_order_"+ssOrder; //Normal form style
         break;
     }
+
+    //If the energy makes sense, put it in the filename
+    if(pmap.dHv > 0) filename +=+"_hmax_"+ssEnergy;
+
+
     if(!append) header_precision_fprint(filename);
     cout << "emap_build. data saved in " << filename << endl;
+
+
     //------------------------------------------
     //Loop
     //------------------------------------------
@@ -432,15 +445,6 @@ void pmap_precision(Pmap &pmap, int append, bool isPar)
     #pragma omp parallel for if(isPar) shared(label)
     for(int i = 0; i <= pmap.gsize; i++)
     {
-        /*#pragma omp parallel for if(isPar)
-        for(int j = 0; j <= pmap.gsize; j++)
-        {
-            #pragma omp parallel  for if(isPar)
-            for(int k = 0; k <= pmap.gsize; k++)
-            {
-                #pragma omp parallel  for if(isPar)
-                for(int l = 0; l <= pmap.gsize; l++)
-                {*/
         //-------------------------------------------------
         //Integration tools
         //-------------------------------------------------
@@ -489,13 +493,14 @@ void pmap_precision(Pmap &pmap, int append, bool isPar)
         init_orbit(&orbit, &CM, &CMh, &JCM, &Mcoc, &Vcoc, &val_par,
                    &fvalue, &ode_s_6, &ode_s_8, &ode_s_6_root, &ode_s_8_root,
                    &pmap, &SEML, &orbit_ofs, pmap.vdim, label);
+
         //------------------------------------------
         // Move on the grid
         //------------------------------------------
         double *sti = dvector(0, 3);
         sti[0] = grid_s1[i];
         sti[1] = 0.0;//grid_s1[i];
-        sti[2] = 0.0;//grid_s1[j];
+        sti[2] = grid_s1[i];
         sti[3] = 0.0;
 
         //------------------------------------------
@@ -535,9 +540,6 @@ void pmap_precision(Pmap &pmap, int append, bool isPar)
         //memory release
         free_orbit(&orbit);
         free_dvector(sti, 0, 3);
-        /*}
-        }*/
-        /*}*/
     }
 
     //Memory release
@@ -719,7 +721,7 @@ void pmap_invariance_error(Pmap &pmap, int append, bool isPar, double hzmax)
                 //------------------------------------------
                 // Computation
                 //------------------------------------------
-                //Evluating the vector field at z0 = W(s0, t0)
+                //Evaluating the vector field at z0 = W(s0, t0)
                 qbfbp_vfn_novar(orbit.pmap->t0, orbit.z0, fnc, orbit.qbcp_l);
 
                 //-------------------------------
@@ -784,6 +786,255 @@ void pmap_invariance_error(Pmap &pmap, int append, bool isPar, double hzmax)
         /*}*/
     }
 
+
+    //Memory release
+    free_dvector(grid_s1, 0,  pmap.gsize);
+    free_dvector(grid_s2, 0,  pmap.gsize);
+}
+
+/**
+ *   \brief Invariance error computation
+ *   \param pmap a reference to the Poincare maps parameters
+ *   \param hzmax the maximum energy value allowed.
+ *          Note that only positive dhz are selected
+ *
+ *    Requires initCM and initCOC
+ *
+ *   REMARK: may be good to "force" p36(t0= 0.0) (e.g. pmap.t0 =  +1.044814582930593 for L2) so that each IC begins on z = 0 plane
+ *   If so, the way H(0) = cst is guaranteed must be changed because we need also to ensure that s4 = 0.0 (which is not the case, since it is the variable
+ *   that ensures H(0) = cst
+ **/
+void pmap_invariance_error_random(Pmap &pmap, int append, bool isPar, double hzmax)
+{
+    cout << "---------------------------------------------------" << endl;
+    cout << "                                                   " << endl;
+    cout << "          Invariance error map computation         " << endl;
+    cout << "                                                   " << endl;
+    cout << "---------------------------------------------------" << endl;
+    cout << std::showpos << setiosflags(ios::scientific)  << setprecision(15);
+
+    //------------------------------------------
+    // Strings
+    //------------------------------------------
+    string F_GS    = SEML.cs.F_GS;
+    string F_PLOT  = SEML.cs.F_PLOT;
+    string F_COC   = SEML.cs.F_COC;
+    string F_PRINT = SEML.cs.F_PRINT;
+
+
+    //------------------------------------------
+    //Plot & Print
+    //------------------------------------------
+    //Filename to print
+    string ssOrder, ssOfs, ssEnergy;
+    ssOrder = numTostring(pmap.order);
+    ssOfs   = numTostring(pmap.ofs_order);
+    ssEnergy   = numTostring(hzmax);
+
+    //------------------------------------------
+    //Energy of Li (sti = 0)
+    //------------------------------------------
+    double st0[4];   //initial conditions in real TFC coordinates
+    for(int i =0; i<4; i++) st0[i] = 0.0;
+    pmap.H0 = orbit_ham(pmap, st0);
+
+    //------------------------------------------
+    //Set the Hamiltonian to H0+dHv
+    //------------------------------------------
+    pmap.Hv = pmap.H0+pmap.dHv;
+    cout << "pmap.Hv = " << pmap.Hv << endl;
+
+    //------------------------------------------
+    //Building the working grid
+    //------------------------------------------
+    double *grid_s1 = dvector(0,  pmap.gsize);
+    double *grid_s2 = dvector(0,  pmap.gsize);
+
+    init_grid(grid_s1, pmap.gmin,  pmap.gmax, pmap.gsize);
+    init_grid(grid_s2, pmap.gmin,  pmap.gmax, pmap.gsize);
+    double numberOfOrbits = pow(1.0+pmap.gsize, 2.0);
+
+    //------------------------------------------
+    //Header in txt file if no appending (reset the file!)
+    //------------------------------------------
+    string filename;
+    string type = "rand";
+    filename = F_PRINT+"eIm_"+type+"_ofs_"+ssOfs+"_order_"+ssOrder;
+    if(!append) header_fprint_bin(filename);
+    cout << "Data stored in " << filename << endl;
+
+    //------------------------------------------
+    //Generating the quasi-random sequence
+    //------------------------------------------
+    //Building objects
+    gsl_qrng * q = gsl_qrng_alloc (gsl_qrng_sobol, 4);
+    double **randseq = dmatrix(0, pmap.gsize, 0, 3);
+
+    //Storing sequence, all variables in [0, 1]
+    for(int i = 0; i <= pmap.gsize; i++) gsl_qrng_get (q, randseq[i]);
+
+    //Normalisation (only EML2 case for now)
+    for(int i = 0; i <= pmap.gsize; i++)
+    {
+        //s1 & s3
+        randseq[i][0] = pmap.gmin*(1-randseq[i][0]) + pmap.gmax*randseq[i][0];
+        randseq[i][2] = pmap.gmin*(1-randseq[i][2]) + pmap.gmax*randseq[i][2];
+        //s2 & s4
+        randseq[i][1] = 0.5*(pmap.gmin*(1-randseq[i][1]) + pmap.gmax*randseq[i][1]);
+        randseq[i][3] = 0.5*(pmap.gmin*(1-randseq[i][3]) + pmap.gmax*randseq[i][3]);
+    }
+
+    //@TODO
+    // 1. Get the name generator right (including initial time)
+    // 2. Binary files. What is to be stored?
+    // 3. Get a matlab routine to treat the data
+
+
+
+    //------------------------------------------
+    //Loop
+    //------------------------------------------
+    double percent;
+    int label = 1;
+    #pragma omp parallel for if(isPar)
+    for(int i = 0; i <= pmap.gsize; i++)
+    {
+        //-------------------------------------------------
+        //Integration tools
+        //-------------------------------------------------
+        //------------------
+        //For dot(z) = F(z)
+        //------------------
+        OdeStruct ode_s_6;
+        init_ode_NC(ode_s_6, pmap);
+        //For root finding
+        OdeStruct ode_s_6_root;
+        init_ode_NC(ode_s_6_root, pmap);
+
+        //------------------
+        //For dot(s) = fh(s)
+        //------------------
+        //Reduced vector field structure
+        RVF rvf;
+        OdeStruct ode_s_8;
+        Ofsc rvf_ofs(OFS_ORDER);
+        init_ode_CCM(ode_s_8, rvf, rvf_ofs, pmap);
+        //Reduced vector field structure for root finding
+        RVF rvf_root;
+        OdeStruct ode_s_8_root;
+        Ofsc rvf_ofs_root(OFS_ORDER);
+        init_ode_CCM(ode_s_8_root, rvf_root, rvf_ofs_root, pmap);
+
+
+        //------------------
+        //Event structures
+        //------------------
+        value_params val_par;
+        val_par.dim        = 2;                   //event on z component
+        val_par.direction  = 0;                   //all zeros are detected
+        val_par.max_events = pmap.max_events;     //maximum of events
+        val_par.value      = 0.0;                 //event when z = 0
+        value_function fvalue;
+        fvalue.val_par     = &val_par;
+        fvalue.value       = &linear_intersection;
+
+        //------------------
+        //Orbit structure
+        //------------------
+        int status;
+        Ofsc orbit_ofs(OFS_ORDER);
+        Orbit orbit;
+        init_orbit(&orbit, &CM, &CMh, &JCM, &Mcoc, &Vcoc, &val_par,
+                   &fvalue, &ode_s_6, &ode_s_8, &ode_s_6_root, &ode_s_8_root,
+                   &pmap, &SEML, &orbit_ofs, pmap.vdim, label);
+
+        //------------------------------------------
+        // Move on the grid
+        //------------------------------------------
+        double *sti = dvector(0, 3);
+        sti[0] = randseq[i][0];
+        sti[1] = randseq[i][1];
+        sti[2] = randseq[i][2];
+        sti[3] = randseq[i][3];
+
+        //Between the lines: if we do not want to correct the energy
+        //-------------------------//
+        status = GSL_SUCCESS;
+        orbit_update_ic(orbit, sti, orbit.pmap->t0);
+        orbit.int_method =  0;
+        //-------------------------//
+
+        //If the correction is successful, we can go on with the computation of the return map
+        if(status == GSL_SUCCESS)
+        {
+            double eI[6], fnc[6], eIm;
+            cdouble eId;
+            //------------------------------------------
+            // Computation
+            //------------------------------------------
+            //Evaluating the vector field at z0 = W(s0, t0)
+            qbfbp_vfn_novar(orbit.pmap->t0, orbit.z0, fnc, orbit.qbcp_l);
+
+            //-------------------------------
+            // eI:
+            // - F(W(s,t)) - DWf(s,t) - Wdot(s,t)
+            //------------------------------
+            for(int p = 1; p < NV; p++)
+            {
+                //The vector field was computed in fnc
+                eId = fnc[p]+0.0*I;
+                //Computing DW*Fh(s0, t0)
+                DWFh[p].evaluate(orbit.s0, *orbit.ofs, orbit.pmap->order, orbit.pmap->ofs_order);
+                eId -= orbit.ofs->evaluate(orbit.n*orbit.pmap->t0, orbit.pmap->ofs_order);
+
+                //Computing Wdot(s0, t0)
+                CMdot[p].evaluate(orbit.s0, *orbit.ofs, orbit.pmap->order, orbit.pmap->ofs_order);
+                eId -= orbit.ofs->evaluate(orbit.n*orbit.pmap->t0, orbit.pmap->ofs_order);
+                //Taking the error as the absolute value (norm)
+                eI[p] = cabs(eId);
+            }
+
+            //-------------------------------
+            //Taking the maximum (infinity norm)
+            //-------------------------------
+            eIm = eI[0];
+            for(int p = 1; p < NV; p++) if(eI[p] > eIm) eIm = eI[p];
+
+            //-------------------------------
+            // Set the error in orbit.eOm
+            //-------------------------------
+            orbit.eOm = eIm;
+
+            #pragma omp critical
+            {
+                //-------------------------------
+                // Displays the current state of the computation
+                //-------------------------------
+                cout << std::noshowpos << resetiosflags(ios::scientific)  << setprecision(4);
+                if(label%1000 == 0)
+                {
+                    percent = (double) label/numberOfOrbits*100;
+                    std::cout << "\r" << percent << "% completed: ";
+                    std::cout << std::string(floor(0.1*percent), '|') << endl;
+                    std::cout.flush();
+                }
+                cout << std::showpos << setiosflags(ios::scientific)  << setprecision(15);
+
+
+                //------------------------------------------
+                // Print in file
+                //------------------------------------------
+                orbit.label = ++label;
+                //orbit_energy_fprint(&orbit, filename, hzmax, 1);
+                orbit_energy_fprint_bin(&orbit, filename, 1);
+            }
+        }
+        else cout << "";
+
+        //memory release
+        free_orbit(&orbit);
+        free_dvector(sti, 0, 3);
+    }
 
     //Memory release
     free_dvector(grid_s1, 0,  pmap.gsize);
@@ -1265,6 +1516,8 @@ void tmap_build(Pmap &pmap, int append, int method, bool isPlot, bool isPar)
     string F_COC   = SEML.cs.F_COC;
     string F_PRINT = SEML.cs.F_PRINT;
 
+
+
     //------------------------------------------
     //Plot variables
     //------------------------------------------
@@ -1272,6 +1525,8 @@ void tmap_build(Pmap &pmap, int append, int method, bool isPlot, bool isPar)
     h1  = gnuplot_init();
     h2  = gnuplot_init();
     char ch;
+    int color;
+    if(isPlot) color = 1;
 
     //------------------------------------------
     //Energy of Li (st0 = 0)
@@ -1423,25 +1678,19 @@ void tmap_build(Pmap &pmap, int append, int method, bool isPlot, bool isPar)
             sti[3] = 0.0;
 
             //------------------------------------------
-            //Update the IC so that the energy matches the one the Pmap
+            // If the energy is in the good range, we go on
             //------------------------------------------
-            //status = orbit_init_pmap(orbit, sti);
-
-            //------------------------------------------
-            //Between the lines: if we do not want to correct the energy
-            //------------------------------------------
-            //-------------------------//
-            status = GSL_SUCCESS;
-            orbit_update_ic(orbit, sti, orbit.pmap->t0);
-            //-------------------------//
-
-            //------------------------------------------
-            //If the correction is succesful, we can go on with the computation of the return map
-            //------------------------------------------
-            //Additional condition on the initial state, if desired
-            bool additionalCondition = true; //fabs(SEML.cs_em.gamma*orbit.z0[0]) > 0.019 && fabs(SEML.cs_em.gamma*orbit.z0[1]) < 0.08;
-            if(status == GSL_SUCCESS && additionalCondition)
+            double hz = orbit_ham(pmap, sti);
+            if(hz - pmap.H0 < pmap.dHv)
             {
+
+                //------------------------------------------
+                //Between the lines: if we do not want to correct the energy
+                //------------------------------------------
+                status = GSL_SUCCESS;
+                orbit_update_ic(orbit, sti, orbit.pmap->t0);
+
+
                 //------------------------------------------
                 // Computation
                 //------------------------------------------
@@ -1465,6 +1714,10 @@ void tmap_build(Pmap &pmap, int append, int method, bool isPlot, bool isPar)
                     orbit.tf = pmap.tf;
                     orbit_pmap_fprint_small(&orbit, filename, 1);
 
+                    //------------------------------------------
+                    // Plot
+                    //------------------------------------------
+                    if(isPlot) orbit_poincare_plot(&orbit, h1, h2, color++);
                 }
             }
 
@@ -1494,12 +1747,15 @@ void tmap_build(Pmap &pmap, int append, int method, bool isPlot, bool isPar)
     gnuplot_close(h2);
 }
 
-
 //-----------------------------------------------------------------------------------------------------------------------------------------------------
 //
 //  Print & Read
 //
 //-----------------------------------------------------------------------------------------------------------------------------------------------------
+
+//-------------------------------------------------------------
+// Pmaps
+//-------------------------------------------------------------
 /**
  *   \brief Print the poincare map of and orbit in a txt file
  **/
@@ -1683,78 +1939,194 @@ void orbit_pmap_fprint_small(Orbit *orbit, string filename, int append)
 }
 
 /**
- *   \brief Read the poincare map of and orbit in a txt file. DEPRECATED
- *   TO BE ENHANCED WITH R? (More robust to change of columns, etc)
+ *   \brief Print the poincare map of and orbit in a txt file. Binary version. Only the points for which pz > 0 are kept.
  **/
-void orbit_pmap_fread(Orbit *orbit, string filename, int label)
+void orbit_pmap_fprint_bin(Orbit *orbit, string filename, int append)
 {
-    ifstream read;
-    string ss1;
-    double x1;      //garbage string
-    int i1, events;
-
-    //-----------------
-    //Open stream
-    //-----------------
-    read.open((filename+".txt").c_str());
-    //Line labels (first line)
-    getline(read, ss1);
-
-    //-----------------
-    //Search for the right label
-    //-----------------
-    do
+    if(orbit->int_method == -1)
     {
-        for(int k = 0; k <6; k++) read >> orbit->z0[k]   >> ss1;
-        for(int k = 0; k <6; k++) read >> orbit->zh0[k]  >> ss1;
-        for(int k = 0; k <4; k++) read >> orbit->si[k]   >> ss1;
-        read >> orbit->pmap->t0     >> ss1;
-        read >> x1                  >> ss1;
-        read >> x1                  >> ss1;
-        read >> x1                  >> ss1;
-        read >> orbit->pmap->H0     >> ss1;
-        read >> orbit->pmap->dHv    >> ss1;
-        read >> x1                  >> ss1;
-        read >> i1                  >> ss1;
-        read >> x1                  >> ss1;
-        read >> orbit->reset_number;
+        cout << "orbit_print. The orbit was not previously computed. No print." << endl;
     }
-    while(i1 != label && !read.eof());
-
-    //if the label is found
-    if(i1 == label)
+    else
     {
-        orbit->label = i1;
-        events = 0;
-        while(!read.eof() && events < orbit->pmap->max_events && i1 == label)
+        //ifstream readStream;
+        fstream myfile;
+        string ss1;
+        double zEM[6], hz;
+
+        //Open stream
+        if(append) myfile.open ((filename+".bin").c_str(), std::ios::app | std::ios::binary | ios::out); //for appending at the end of the file
+        else myfile.open ((filename+".bin").c_str(), std::ios::binary | ios::out);
+
+        //First line
+        NCtoSYS(orbit->pmap->t0, orbit->z0, zEM, (QBCP_L*) orbit->ode_s_6->d->sys->params);
+        hz = qbfbp_H(orbit->pmap->t0, zEM, orbit->ode_s_6->d->sys->params);
+
+        double res;
+
+        //1. label
+        res = orbit->label;
+        myfile.write((char*) &res, sizeof(double));
+
+        //2. NC
+        for(int k = 0; k < 6; k++)
         {
-            for(int k = 0; k <6; k++) read >> orbit->z0_mat[k][events]  >> ss1;
-            for(int k = 0; k <6; k++) read >> orbit->zh0_mat[k][events] >> ss1;
-            for(int k = 0; k <4; k++) read >> orbit->s0_mat[k][events]  >> ss1;
-            read >> orbit->te_mat[events]                >> ss1;
-            read >> x1                                   >> ss1;
-            orbit->hz[events] = x1 + orbit->pmap->H0;
-            read >> x1                                   >> ss1;
-            orbit->hw[events] = x1 + orbit->pmap->H0;
-            read >> x1                                   >> ss1;
-            read >> orbit->pmap->H0                      >> ss1;
-            read >> orbit->pmap->dHv                     >> ss1;
-            read >> orbit->ePm[events]                   >> ss1;
-            read >> i1                                   >> ss1;
-            read >> orbit->nevent[events]                >> ss1;
-            read >> orbit->reset_number;
-            events++;
+            res = creal(orbit->z0[k]);
+            myfile.write((char*) &res, sizeof(double));
+        }
+        //3. RCM
+        for(int k = 0; k < 4; k++)
+        {
+            res = creal(orbit->si[k]);
+            myfile.write((char*) &res, sizeof(double));
         }
 
-        read.close();
-        orbit->int_method = DUAL_INT;
-        orbit->last_indix = events-1;
-        orbit_update_ic(*orbit, orbit->si, orbit->pmap->t0);
-        orbit_pmap_fprint(orbit, "test" , 0); //printf for test
+        //4. time
+        res = creal(orbit->pmap->t0);
+        myfile.write((char*) &res, sizeof(double));
+
+        //5. dHz
+        res = creal(hz - orbit->pmap->H0);
+        myfile.write((char*) &res, sizeof(double));
+
+        //6. dHw
+        res = creal(hz - orbit->pmap->H0);
+        myfile.write((char*) &res, sizeof(double));
+
+        //7. dHz - dHw
+        res = creal(0.0);
+        myfile.write((char*) &res, sizeof(double));
+
+        //8. pmap.dHv
+        res = creal(orbit->pmap->dHv);
+        myfile.write((char*) &res, sizeof(double));
+
+        //9.ePm
+        res = creal(0.0);
+        myfile.write((char*) &res, sizeof(double));
+
+        //10. number
+        res = creal(0.0);
+        myfile.write((char*) &res, sizeof(double));
+
+
+        //Loop on all events
+        for(int i = 0; i <= orbit->last_indix; i++)
+        {
+            //if pz > 0, we save the point
+            if(orbit->z0_mat[5][i] > 0)
+            {
+                //1. label
+                res = orbit->label;
+                myfile.write((char*) &res, sizeof(double));
+                //2. NC
+                for(int k = 0; k < 6; k++)
+                {
+                    res = orbit->z0_mat[k][i];
+                    myfile.write((char*) &res, sizeof(double));
+                }
+                //3. RCM
+                for(int k = 0; k < 4; k++)
+                {
+                    res = orbit->s0_mat[k][i];
+                    myfile.write((char*) &res, sizeof(double));
+                }
+
+                //4. time
+                res = orbit->te_mat[i];
+                myfile.write((char*) &res, sizeof(double));
+
+                //5. dHz
+                res = orbit->hz[i] - orbit->pmap->H0;
+                myfile.write((char*) &res, sizeof(double));
+
+                //6. dHw
+                res = orbit->hw[i] - orbit->pmap->H0;
+                myfile.write((char*) &res, sizeof(double));
+
+                //7. dHz - dHw
+                res = orbit->hz[i] - orbit->hw[i];
+                myfile.write((char*) &res, sizeof(double));
+
+                //8. pmap.dHv
+                res = orbit->pmap->dHv;
+                myfile.write((char*) &res, sizeof(double));
+
+                //9.ePm
+                res = orbit->ePm[i];
+                myfile.write((char*) &res, sizeof(double));
+
+                //10. number
+                res = orbit->nevent[i];
+                myfile.write((char*) &res, sizeof(double));
+            }
+        }
+
+
+        myfile.close();
     }
-    else cout << "orbit_pmap_fread. The desired label was not found in file." << endl;
 }
 
+/**
+ *   \brief Writing the poincare map header in the txt file
+ **/
+void header_pmap_fprint(string filename)
+{
+    //ifstream readStream;
+    ofstream myfile;
+    string ss1;
+    //Open stream
+    myfile.open ((filename+".txt").c_str());
+    myfile << "  label,"
+           << "  order,"
+           << "  ofs_order,"
+           << "  x,   y,   z,   px,   py,   pz,"
+           << "  xt,   yt,   zt,   pxt,   pyt,   pzt,"
+           << "  xh,   yh,   zh,   pxh,   pyh,   pzh,"
+           << "  s1,   s2,   s3,   s4,"
+           << "  t,"
+           << "  dHz,"
+           << "  dHw,"
+           << "  dHz-dHw,"
+           << "  pmap.H0,"
+           << "  pmap.dHv,"
+           << "  ePm,"
+           << "  number,"
+           << "  reset" << endl;
+    myfile.close();
+}
+
+/**
+ *   \brief Writing the poincare map header in the txt file. Lighter version
+ **/
+void header_pmap_fprint_small(string filename)
+{
+    //ifstream readStream;
+    ofstream myfile;
+    string ss1;
+    //Open stream
+    myfile.open ((filename+".txt").c_str());
+    myfile << "  label,"
+           << "  order,"
+           << "  ofs_order,"
+           << "  x,   y,   z,   px,   py,   pz,"
+           << "  s1,   s2,   s3,   s4,"
+           << "  t,"
+           << "  dHz,"
+           << "  dHw,"
+           << "  dHz-dHw,"
+           << "  pmap.H0,"
+           << "  pmap.dHv,"
+           << "  ePm,"
+           << "  number,"
+           << "  reset" << endl;
+    myfile.close();
+}
+
+
+//-------------------------------------------------------------
+// Emaps
+//-------------------------------------------------------------
 /**
     \brief Print the porecision map of and orbit in a txt file
 **/
@@ -1841,62 +2213,9 @@ void header_precision_fprint(string filename)
     myfile.close();
 }
 
-/**
- *   \brief Writing the poincare map header in the txt file
- **/
-void header_pmap_fprint(string filename)
-{
-    //ifstream readStream;
-    ofstream myfile;
-    string ss1;
-    //Open stream
-    myfile.open ((filename+".txt").c_str());
-    myfile << "  label,"
-           << "  order,"
-           << "  ofs_order,"
-           << "  x,   y,   z,   px,   py,   pz,"
-           << "  xt,   yt,   zt,   pxt,   pyt,   pzt,"
-           << "  xh,   yh,   zh,   pxh,   pyh,   pzh,"
-           << "  s1,   s2,   s3,   s4,"
-           << "  t,"
-           << "  dHz,"
-           << "  dHw,"
-           << "  dHz-dHw,"
-           << "  pmap.H0,"
-           << "  pmap.dHv,"
-           << "  ePm,"
-           << "  number,"
-           << "  reset" << endl;
-    myfile.close();
-}
-
-/**
- *   \brief Writing the poincare map header in the txt file. Lighter version
- **/
-void header_pmap_fprint_small(string filename)
-{
-    //ifstream readStream;
-    ofstream myfile;
-    string ss1;
-    //Open stream
-    myfile.open ((filename+".txt").c_str());
-    myfile << "  label,"
-           << "  order,"
-           << "  ofs_order,"
-           << "  x,   y,   z,   px,   py,   pz,"
-           << "  s1,   s2,   s3,   s4,"
-           << "  t,"
-           << "  dHz,"
-           << "  dHw,"
-           << "  dHz-dHw,"
-           << "  pmap.H0,"
-           << "  pmap.dHv,"
-           << "  ePm,"
-           << "  number,"
-           << "  reset" << endl;
-    myfile.close();
-}
-
+//-------------------------------------------------------------
+// Imaps
+//-------------------------------------------------------------
 /**
     \brief Print the energy map of and orbit in a txt file
 **/
@@ -1983,6 +2302,86 @@ void header_energy_fprint(string filename)
            << "  pmap.dHv,"
            << "  ePm,"
            << "  eOm" << endl;
+    myfile.close();
+}
+
+/**
+    \brief Print the energy map of and orbit in a bin file
+**/
+void orbit_energy_fprint_bin(Orbit *orbit, string filename, int append)
+{
+    if(orbit->int_method == -1)
+    {
+        cout << "orbit_print. The orbit was not previously computed. No print." << endl;
+    }
+    else
+    {
+        //ifstream readStream;
+        ofstream myfile;
+        string ss1;
+        double zEM[6], hz;
+
+        //First line
+        NCtoSYS(orbit->pmap->t0, orbit->z0, zEM, (QBCP_L*) orbit->ode_s_6->d->sys->params);
+        hz = qbfbp_H(orbit->pmap->t0, zEM, orbit->ode_s_6->d->sys->params);
+
+        //Open stream
+        if(append) myfile.open ((filename+".bin").c_str(), std::ios::app | std::ios::binary | ios::out); //for appending at the end of the file
+        else myfile.open ((filename+".bin").c_str(), std::ios::binary | ios::out);
+
+        double res;
+
+        //1. label
+        res = orbit->label;
+        myfile.write((char*) &res, sizeof(double));
+
+        //2. NC
+        for(int k = 0; k < 6; k++)
+        {
+            res = creal(orbit->z0[k]);
+            myfile.write((char*) &res, sizeof(double));
+        }
+
+        //3. RCM
+        for(int k = 0; k < 4; k++)
+        {
+            res = creal(orbit->si[k]);
+            myfile.write((char*) &res, sizeof(double));
+        }
+
+        //4. time
+        res = creal(orbit->pmap->t0);
+        myfile.write((char*) &res, sizeof(double));
+
+        //5. dHz
+        res = creal(hz - orbit->pmap->H0);
+        myfile.write((char*) &res, sizeof(double));
+
+        //6. dHw
+        res = creal(hz - orbit->pmap->H0);
+        myfile.write((char*) &res, sizeof(double));
+
+        //7. eOm
+        res = creal(orbit->eOm);
+        myfile.write((char*) &res, sizeof(double));
+
+
+        myfile.close();
+    }
+
+}
+
+
+//-------------------------------------------------------------
+// Binary
+//-------------------------------------------------------------
+/**
+ *   \brief Writing the poincare map header in the txt file. Lighter version
+ **/
+void header_fprint_bin(string filename)
+{
+    fstream myfile;
+    myfile.open ((filename+".bin").c_str(), std::ios::binary | ios::out);
     myfile.close();
 }
 
@@ -2350,7 +2749,7 @@ int gslc_proj_step(Orbit *orbit,
             if(fabs(yvi[i] - yv[i]) > *ePm) *ePm = fabs(yvi[i] - yv[i]);
         }
 
-        if(*ePm > 1e-6)
+        if(*ePm > 5e-6)
         {
             cout << "Warning: Reset n° " << *nreset << ". ePm = " << *ePm << endl;
         }
@@ -2390,7 +2789,8 @@ int gslc_proj_evolve(Orbit *orbit,
     {
         status = gslc_proj_step(orbit, yv, t, t0, t1, ePm, nreset, omega1, omega3, isResetOn);
 
-    }while(fabs(*t)<fabs(t1));
+    }
+    while(fabs(*t)<fabs(t1));
 
     return status;
 }
@@ -2445,10 +2845,10 @@ int orbit_compute_pmap(Orbit *orbit, int method)
 
     case SINGLE_INT:
     {
-        //Reset @crossing (needs improvement)
+        //Reset @crossing
         //--------------------------------
-        //status = single_pmap(orbit);
-        status = single_pmap_proj(orbit);
+        if(orbit->pmap->projFreq == -1) status = single_pmap(orbit); //if the projection frequency is -1, it means no projection!
+        else status = single_pmap_proj(orbit);
         //status = single_pmap_plot(orbit);
         break;
     }
@@ -3251,6 +3651,7 @@ int single_pmap_proj(Orbit *orbit)
 
     return GSL_SUCCESS;
 }
+
 
 /**
  *   \brief Computes the poincare map of one given orbit, with a single method: only the Nc vector field is computed. The distance with respect to the

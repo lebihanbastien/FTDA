@@ -269,6 +269,8 @@ if [ $COMPTYPE == $COMPMAP ]; then
 		$TMAP) echo 'PMAP_TYPE = TMAP'
 		;;
 		$EMAP) echo 'PMAP_TYPE = EMAP'
+;;
+		$IMAP) echo 'PMAP_TYPE = IMAP'
 		;;
 		*)     echo "PMAP_TYPE = " $PMAP_TYPE ". Unknown type."
 	esac
@@ -358,6 +360,7 @@ if [ "$ans" == "y" ]; then
 	$PM) 
 		COEFFS=($OFTS_ORDER $OFS_ORDER $REDUCED_NV $COMPTYPE $MODEL $CS $ISNORM $LI_EM $LI_SEM $PMS $MANTYPE_EM $MANTYPE_SEM $STORAGE)
 		;;
+
 	$COC) 
 		COEFFS=($OFTS_ORDER $OFS_ORDER $REDUCED_NV $COMPTYPE $MODEL $CS $ISNORM $LI_EM $LI_SEM $PMS $MANTYPE_EM $MANTYPE_SEM $STORAGE)
 		;;

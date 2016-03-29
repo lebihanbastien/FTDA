@@ -862,7 +862,7 @@
 1430825092 source:/home/b.le-bihan/Dropbox/PhD/OOFTDA/src/pm.cpp
 	"pm.h"
 
-1456924239 source:/home/b.le-bihan/BackUpBox/PhD/OOFTDA/main.cpp
+1459253432 source:/home/b.le-bihan/BackUpBox/PhD/OOFTDA/main.cpp
 	<omp.h>
 	"ofs.h"
 	"ofts.h"
@@ -1280,16 +1280,18 @@
 1433492661 /home/b.le-bihan/BackUpBox/PhD/OOFTDA/include/ftsh.h
 	<complex.h>
 
-1456325076 /home/b.le-bihan/BackUpBox/PhD/OOFTDA/include/poincare.h
+1459254129 /home/b.le-bihan/BackUpBox/PhD/OOFTDA/include/poincare.h
 	"nrutil.h"
 	"multimin.h"
 	"pmode.h"
 	"config.h"
 	"parameters.h"
 
-1456924324 source:/home/b.le-bihan/BackUpBox/PhD/OOFTDA/src/poincare.cpp
+1458815534 source:/home/b.le-bihan/BackUpBox/PhD/OOFTDA/src/poincare.cpp
 	"poincare.h"
 	<omp.h>
+	<gsl/gsl_rng.h>
+	<gsl/gsl_qrng.h>
 
 1456230970 source:/home/b.le-bihan/BackUpBox/PhD/OOFTDA/src/nrutil.c
 	<complex.h>
@@ -1434,7 +1436,7 @@
 	"matrix.h"
 	"config.h"
 
-1457532566 source:/home/b.le-bihan/BackUpBox/PhD/OOFTDA/src/pmt.cpp
+1457972445 source:/home/b.le-bihan/BackUpBox/PhD/OOFTDA/src/pmt.cpp
 	"pmt.h"
 	<iostream>
 	<fstream>

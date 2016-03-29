@@ -38,7 +38,7 @@ ISNORM=$TRUE
 #------------------------------------
 # DEFAULT LIBRATION POINT FOR EM & SEM SYSTEM
 #------------------------------------
-LI_EM=1
+LI_EM=2
 LI_SEM=2
 
 #------------------------------------
@@ -96,6 +96,16 @@ PMAP_isPlot=0;
 PMAP_isPar=0;
 
 #------------------------------------
+# TYPE OF MANIFOLD
+# MAN_CENTER    = 0
+# MAN_CENTER_S  = 1
+# MAN_CENTER_U  = 2
+# MAN_CENTER_US = 3
+#------------------------------------
+MANTYPE_EM=$MAN_CENTER_U
+MANTYPE_SEM=$MAN_CENTER_U
+
+#------------------------------------
 # OpenMP settings
 #------------------------------------
 NUM_THREADS=2
@@ -106,13 +116,14 @@ NUM_THREADS=2
 PMAP_TF=5000	      #final integration time. needs to be big for PMAP
 PMAP_isQBCP=$MODEL    #isQBCP
 PMAP_order=10         #ORDER
-PMAP_ofs_order=0     #OFS ORDER
+PMAP_ofs_order=0      #OFS ORDER
 PMAP_max_events=1000  #Maximum number of events allowed (warning: all directions of crossing are considered!)
 PMAP_t0=0             #Initial time (-1 for inner computation in C routine)
 PMAP_dHv=0.01         #Energy
 PMAP_gsize=10         #Number of steps on the grid
 PMAP_gmin=-2.0        #left boundary
 PMAP_gmax=2.0         #right boundary
+PMAP_PROJ_FREQ=-1     #projection frequency on manifold. If -1, no projection
 
 #------------------------------------
 # Numerical constants for all computation

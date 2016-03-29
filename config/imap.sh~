@@ -46,22 +46,21 @@ LI_SEM=2
 PMS=$GRAPH
 
 #------------------------------------
+# TYPE OF MANIFOLD
+# MAN_CENTER    = 0
+# MAN_CENTER_S  = 1
+# MAN_CENTER_U  = 2
+# MAN_CENTER_US = 3
+#------------------------------------
+MANTYPE_EM=$MAN_CENTER
+MANTYPE_SEM=$MAN_CENTER
+
+
+#------------------------------------
 # STORAGE
 # FALSE = 0; TRUE = 1
 #------------------------------------
 STORAGE=$FALSE
-
-#------------------------------------
-# Order to test
-#------------------------------------
-ORDERS=(12)
-NORDERS=${#ORDERS[@]} 
-
-#------------------------------------
-# OFS Order to test
-#------------------------------------
-ORDERS_OFS=(30)
-NORDERS_OFS=${#ORDERS_OFS[@]} 
 
 #------------------------------------
 # PMAP TYPE
@@ -89,26 +88,40 @@ PMAP_isPar=0;
 NUM_THREADS=2
 
 #------------------------------------
-# PMAP PARAMETERS
-#------------------------------------
-PMAP_TF=10000	     #final integration time. needs to be big for PMAP
-PMAP_isQBCP=$MODEL   #isQBCP
-PMAP_order=12        #ORDER
-PMAP_ofs_order=30    #OFS ORDER
-PMAP_max_events=100  #Maximum number of events allowed (warning: all directions of crossing are considered!)
-PMAP_t0=0.0          #Initial time (-1 for inner computation in C routine)
-PMAP_dHv=0.1         #Energy
-PMAP_gsize=60        #Number of steps on the grid
-PMAP_gmin=-40.0      #left boundary
-PMAP_gmax=40.0       #right boundary
-
-#------------------------------------
 # Numerical constants for all computation
 #------------------------------------
 OFS_ORDER=30
-OFTS_ORDER=8
+OFTS_ORDER=15
 REDUCED_NV=4
 
+#------------------------------------
+# PMAP PARAMETERS
+#------------------------------------
+PMAP_order=$OFTS_ORDER       #ORDER
+PMAP_ofs_order=$OFS_ORDER    #OFS ORDER
+
+PMAP_TF=10000	     #final integration time. needs to be big for PMAP
+PMAP_isQBCP=$MODEL   #isQBCP
+PMAP_max_events=100  #Maximum number of events allowed (warning: all directions of crossing are considered!)
+PMAP_t0=0.0          #Initial time (-1 for inner computation in C routine)
+PMAP_dHv=0.1         #Energy
+PMAP_gsize=500       #Number of steps on the grid
+PMAP_gmin=0.0        #left boundary
+PMAP_gmax=20.0       #right boundary
+PMAP_PROJ_FREQ=-1    #projection frequency on manifold. If -1, no projection
+
+
+#------------------------------------
+# Order to test
+#------------------------------------
+ORDERS=($OFTS_ORDER)
+NORDERS=${#ORDERS[@]} 
+
+#------------------------------------
+# OFS Order to test
+#------------------------------------
+ORDERS_OFS=($OFS_ORDER)
+NORDERS_OFS=${#ORDERS_OFS[@]} 
 
 
 

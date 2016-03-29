@@ -248,6 +248,7 @@ int main(int argc, char *argv[])
         break;
     }
 
+
     //------------------------------------------------
     // Parameterization method
     //------------------------------------------------
@@ -390,7 +391,7 @@ int main(int argc, char *argv[])
             //------------------------
             pmap.pabs       =  1e-14;
             pmap.prel       =  1e-14;
-            pmap.proot      =  1e-10;   //smaller precision here
+            pmap.proot      =  1e-10;
             pmap.threshold  =  1e-6;
             pmap.tt         =  0.5*SEML.us.T;
             pmap.T          =  SEML.us.T;
@@ -402,6 +403,7 @@ int main(int argc, char *argv[])
         //------------------------
         //May evolve
         //------------------------
+        pmap.projFreq   =  toDigit(argv[index++]);
         pmap.type       =  toDigit(argv[index++]);
         pmap.tf         =     atof(argv[index++]); //needs to be a big number of Pmap, not for Tmap
 
@@ -428,7 +430,8 @@ int main(int argc, char *argv[])
 
         cout << "pmap.type       = "  << pmap.type << endl;
         cout << "pmap.tf         = "  << pmap.tf << endl;
-        cout << "pmap.isGS  = "  << pmap.isGS << endl;
+        cout << "pmap.projFreq   = "  << pmap.projFreq << endl;
+        cout << "pmap.isGS       = "  << pmap.isGS << endl;
         cout << "pmap.order      = "  << pmap.order << endl;
         cout << "pmap.ofs_order  = "  << pmap.ofs_order  << endl;
         cout << "pmap.max_events = "  << pmap.max_events << endl;
@@ -437,6 +440,7 @@ int main(int argc, char *argv[])
         cout << "pmap.gsize      = "  << pmap.gsize << endl;
         cout << "pmap.gmin       = "  << pmap.gmin << endl;
         cout << "pmap.gmax       = "  << pmap.gmax << endl;
+        cout << "---------------------------------------------------" << endl;
 
         //-----------------------
         // Additionnal map settings
@@ -446,28 +450,26 @@ int main(int argc, char *argv[])
         int isPar  = toDigit(argv[index++]);
         int method = toDigit(argv[index++]);
 
-        cout << "append       = "  << append << endl;
-        cout << "isPlot       = "  << isPlot << endl;
-        cout << "isPar        = "  << isPar << endl;
-        cout << "method       = "  << pmap.type << endl;
+        cout << "append          = "  << append << endl;
+        cout << "isPlot          = "  << isPlot << endl;
+        cout << "isPar           = "  << isPar << endl;
+        cout << "method          = "  << pmap.type << endl;
 
         //-----------------------
         // openMP settings
         //-----------------------
         int num_threads = toDigit(argv[index++]);
         omp_set_num_threads(num_threads);
-
-        cout << "num_threads       = "  << num_threads << endl;
+        cout << "num_threads     = "  << num_threads << endl;
 
         //------------------------------------------
         // Pmap computation
-        //
-        //  €€ TODO: HUGE PROBLEM IN THE COMPUTATION OF TRANSLATED POSITIONS OF THE EVENTS
         //------------------------------------------
         switch(pmap.type)
         {
         case PMAP:
         {
+            pmap.tt =  1.0/pmap.projFreq*SEML.us.T; //for pmaps, pmap.tt is the period of projection
             pmap_build(pmap, append, method, isPlot, isPar);
             break;
         }
@@ -476,6 +478,8 @@ int main(int argc, char *argv[])
             tmap_build(pmap, append, method, isPlot, isPar);
             break;
         }
+
+
         //-----------------------
         // Precision map
         // for various orders
@@ -506,7 +510,8 @@ int main(int argc, char *argv[])
             for(int i = 0; i < nkm; i++)
             {
                 pmap.order = km[i];
-                pmap_invariance_error(pmap, append, isPar, pmap.dHv);
+                //pmap_invariance_error(pmap, append, isPar, pmap.dHv);
+                pmap_invariance_error_random(pmap, append, isPar, pmap.dHv);
                 //pmap_test_error(pmap, append, isPar, pmap.dHv);
             }
             break;

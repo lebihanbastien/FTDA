@@ -270,6 +270,8 @@ if [ $COMPTYPE == $COMPMAP ]; then
 		;;
 		$EMAP) echo 'PMAP_TYPE = EMAP'
 		;;
+		$IMAP) echo 'PMAP_TYPE = IMAP'
+		;;
 		*)     echo "PMAP_TYPE = " $PMAP_TYPE ". Unknown type."
 	esac
 	echo
@@ -321,7 +323,11 @@ if [ $COMPTYPE == $COMPMAP ]; then
 	echo "NUM_THREADS =" $NUM_THREADS
 	echo
 
-	
+	echo "#------------------------------------------#"
+	echo "# Frequency of projection on the MAN:"
+	echo "#------------------------------------------#"
+	echo "PMAP_PROJ_FREQ =" $PMAP_PROJ_FREQ
+	echo	
 fi
 
 
@@ -371,7 +377,7 @@ if [ "$ans" == "y" ]; then
 
 	$COMPMAP) 
 		#Building the PMAP vector
-		PMAP=($PMAP_TYPE $PMAP_TF $PMAP_isQBCP $PMAP_order $PMAP_ofs_order)
+		PMAP=($PMAP_PROJ_FREQ $PMAP_TYPE $PMAP_TF $PMAP_isQBCP $PMAP_order $PMAP_ofs_order)
  	        PMAP=(${PMAP[*]} $PMAP_max_events $PMAP_t0 $PMAP_dHv $PMAP_gsize $PMAP_gmin $PMAP_gmax)
 		PMAP=(${PMAP[*]} $PMAP_append $PMAP_isPlot $PMAP_isPar $PMAP_method)
 		#Number of PMAP parameters 
@@ -408,7 +414,7 @@ if [ "$ans" == "y" ]; then
 				OUT='default.out'
 			fi
 			#Call software
-			nohup bin/Release/OOFTDA bin/Release/OOFTDA ${COEFFS[*]} > $OUT &
+			nohup bin/Release/OOFTDA ${COEFFS[*]} > $OUT &
 	else
 			bin/Release/OOFTDA ${COEFFS[*]}
 	fi
