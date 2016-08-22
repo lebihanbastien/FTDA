@@ -64,8 +64,8 @@ void eccFFT(Ofsc &xFFT, int fftN, int N, gsl_vector *dEv, int parity)
     //--------------------------------------------------------------
     //FFT tools
     //--------------------------------------------------------------
-    gsl_vector_complex *data_complex = gsl_vector_complex_alloc(N);
-    gsl_vector *data = gsl_vector_alloc(N);
+    gsl_vector_complex *data_complex = gsl_vector_complex_calloc(N);
+    gsl_vector *data = gsl_vector_calloc(N);
     gsl_fft_real_wavetable * wavetable = gsl_fft_real_wavetable_alloc (N);
     gsl_fft_real_workspace * workspace = gsl_fft_real_workspace_alloc (N);
 
@@ -198,7 +198,7 @@ void ertbp(int li_EM, int li_SEM, int fwrk)
     //Set E[M]-M in dEv, for M = [0, ..., 2pi]
     //-------------------------------------
     int N = 2*nf+1;
-    gsl_vector *dEv = gsl_vector_alloc(N);
+    gsl_vector *dEv = gsl_vector_calloc(N);
     //Set E[i] in dEv
     for(int k = 0; k < N; k++)
     {
@@ -227,8 +227,8 @@ void ertbp(int li_EM, int li_SEM, int fwrk)
     //-------------------------------------
     //Allocation
     int fftPlot = 100;
-    gsl_vector * xxL  = gsl_vector_alloc(fftPlot);
-    gsl_vector * xxL2 = gsl_vector_alloc(fftPlot);
+    gsl_vector * xxL  = gsl_vector_calloc(fftPlot);
+    gsl_vector * xxL2 = gsl_vector_calloc(fftPlot);
 
     //Test loop
     for(int i = 0; i < fftPlot; i++)
@@ -252,7 +252,7 @@ void ertbp(int li_EM, int li_SEM, int fwrk)
     //-------------------------------------
     //Set Phi(nu) in Phiv, for nu = [0, ..., 2pi]
     //-------------------------------------
-    gsl_vector *Phiv = gsl_vector_alloc(N);
+    gsl_vector *Phiv = gsl_vector_calloc(N);
     //Set E[i] in dEv
     for(int k = 0; k < N; k++)
     {

@@ -9,22 +9,23 @@ Li        = "L1"
 MODEL     = "QBCP"
 FWRK      = "EM"
 METHOD    = "_SINGLE_INT"
-Type      = "NF_s1eqms3" #s1, s1eqs3, s1eqms3, s3, s1eq2s2eqs3eq2s4
+Type      = "NF_s1s2s3s4"#"s1eqms3" #s1, s1eqs3, s1eqms3, s3, s1eq2s2eqs3eq2s4
 order     = "20"
 ofs_order = "30"
-Energy    = -10 #0.01 #0.01 #0.0025, 0.005, 0.0075
-vorders   = seq(6,16,2)
+Energy    = "0"#-10 #0.01 #0.01 #0.0025, 0.005, 0.0075
+vorders   = seq(6,10,4)
+
 
 #------------------------------------------------
 # Plotting parameters
 #------------------------------------------------
 pE_limits=TRUE
-pE_limits_x=c(0.0, 0.02)
-pE_limits_y=c(-8, -2)
+pE_limits_x=c(0.0, 0.03)
+pE_limits_y=c(NaN, 0)
 
 pX_limits=FALSE
 pX_breaks_x=FALSE
-pX_breaks_y=TRUE
+pX_breaks_y=FALSE
 pX_limits_x=c(-1.19, -1.1)
 pX_limits_y=c(-12, 0)
 pX_breaks_x_values = seq(-1.19,-1.10,0.01)

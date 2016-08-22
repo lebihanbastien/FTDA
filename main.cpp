@@ -10,8 +10,6 @@
 // Comment & test
 //-----------------------------------------------------
 //
-// trajectory.cpp
-//
 //
 // STILL a memory leak...
 //--------------------
@@ -26,8 +24,16 @@
 // otsh.tpp
 // multimin.c
 // multimin_test.cpp
+// trajectory.cpp
 //--------------------
 //
+//-----------------------------------------------------
+
+//-----------------------------------------------------
+// TODO:
+// CHECKUP COMPLET DES DATA.
+// TEST EACH CM/CU/CS
+// FIND A WAY TO ADD THE INFO ON THE CORRESPONDING FOLDERS (OTFS_ORDER, etc).
 //-----------------------------------------------------
 
 
@@ -187,6 +193,7 @@ int main(int argc, char *argv[])
     // PMAP    = 4
     //-------------------------------------------------------------------------------------------------------
     cout << "T = " << SEML.us_em.T << endl;
+    cout << "T_sem = " << SEML.us_sem.T << endl;
     switch(compType)
     {
     //-------------------------------------
@@ -238,12 +245,12 @@ int main(int argc, char *argv[])
         {
         case M_QBCP:
         case M_ERTBP:
-        case M_BCP:
             nfo2(SEML, storage);
             break;
-//        case M_BCP:
+        case M_BCP:
 //            nfo2_QBP(SEML, storage);
-//            break;
+            continuation(SEML, storage);
+            break;
         }
         break;
     }

@@ -11,7 +11,6 @@
 //------------------------------------------------------------------------------------------------------------
 //Differential correction
 //------------------------------------------------------------------------------------------------------------
-
 /**
  *  \brief Performs a differential correction procedure on ystart in order to get a periodic orbit of period t1.
  *         The algorithm assumes that the orbit is in the xy plane, is symmetric wrt to the x-axis, and has a period T = t1.
@@ -121,12 +120,16 @@ int differential_correction(double ystart[], double t1, double eps_diff, gsl_ode
  * \brief Differential correction with a fixed final time used in the continutation procedures from a model to another (e.g CRTBP to BCP).
  *        The state is 7-dimensional. The last component is deps, where eps is the continuation parameter. DEPRECATED.
  **/
-int differential_correction_deps(double ystart[], double t1, double eps_diff, gsl_odeiv2_driver *d, int N, int isPlotted)
+int differential_correction_deps_pac(double y0[], double nullvector[], double fvv[], double ds, double t1, double eps_diff, gsl_odeiv2_driver *d, int N, int isPlotted)
 {
+    //-------------------------------------------------------------------------------
     //Retrieve the model
+    //-------------------------------------------------------------------------------
     QBCP_I* qbpi =  (QBCP_I *) d->sys->params;
 
+    //-------------------------------------------------------------------------------
     //Init
+    //-------------------------------------------------------------------------------
     double y[N];
     int i;
     int iter = 0;
@@ -135,34 +138,46 @@ int differential_correction_deps(double ystart[], double t1, double eps_diff, gs
 
     double t;
     double dx;
+    double X0[3];
 
+    //-------------------------------------------------------------------------------
     //Gsl matrices and vectors
-    gsl_matrix *DP   = gsl_matrix_alloc(6,7);
-    gsl_matrix *Prod = gsl_matrix_alloc(6,6);
-    gsl_vector *P    = gsl_vector_alloc(6);
-    gsl_vector *P1   = gsl_vector_alloc(6);
-    gsl_vector *Pn   = gsl_vector_alloc(7);
+    //-------------------------------------------------------------------------------
+    gsl_matrix *DG   = gsl_matrix_calloc(3,3);
+    gsl_vector *P    = gsl_vector_calloc(3);
+    gsl_vector *Pn   = gsl_vector_calloc(3);
 
     //For GSL inversion
-    gsl_permutation * p = gsl_permutation_alloc (6);
+    gsl_permutation * p = gsl_permutation_alloc (3);
 
+    //-------------------------------------------------------------------------------
     //Optionnal plotting
+    //-------------------------------------------------------------------------------
     gnuplot_ctrl  *hc;
     hc = gnuplot_init();
     gnuplot_setstyle(hc, (char*)"lines");
     gnuplot_set_xlabel(hc, (char*)"x [-]");
     gnuplot_set_ylabel(hc, (char*)"y [-]");
 
+    //-------------------------------------------------------------------------------
     //Correction loop
+    //-------------------------------------------------------------------------------
     do
     {
+        //-------------------------------------------------------------------------------
         //Update the starting point (STM (0) = Id included)
-        for(i=0; i< N; i++) y[i] = ystart[i];
+        //-------------------------------------------------------------------------------
+        for(i=0; i< N; i++) y[i] = y0[i];
 
-        //Integration until t=t1 is reached
+        //Integration until t = t1 is reached
         t = 0.0;
         //Optionnal plotting
-        if(isPlotted) odePlotGen(y, N, t1, d, hc, 5000, "DiffCorr", "lines", "1", "2", 8);
+        if(isPlotted)
+        {
+            odePlotGen(y, N, t1, d, hc, 5000, "DiffCorr", "lines", "1", "2", 8);
+        }
+
+        //Integration
         gsl_odeiv2_driver_reset(d);
         status = gsl_odeiv2_driver_apply (d, &t , t1 , y);
 
@@ -172,34 +187,421 @@ int differential_correction_deps(double ystart[], double t1, double eps_diff, gs
             return GSL_FAILURE;
         }
 
+        //-------------------------------------------------------------------------------
+        //Build the free variables vector = [x0 py0 eps]^T
+        //-------------------------------------------------------------------------------
+        X0[0] = y0[0];
+        X0[1] = y0[4];
+        X0[2] = qbpi->epsilon;
+
+        //-------------------------------------------------------------------------------
+        // Update the Jacobian
+        //-------------------------------------------------------------------------------
+        //Update the matrix DP = DP(x^k), a 2x3 matrix
+        gsl_matrix_set(DG, 0, 0, y[5+7]);  //Phi21
+        gsl_matrix_set(DG, 0, 1, y[5+11]); //Phi25
+        gsl_matrix_set(DG, 1, 0, y[5+19]); //Phi41
+        gsl_matrix_set(DG, 1, 1, y[5+23]); //Phi45
+        gsl_matrix_set(DG, 0, 2, y[43]);   //dy/deps
+        gsl_matrix_set(DG, 1, 2, y[45]);   //dpx/deps
+        //The last row is equal to the null vector of the previous step
+        for(int i = 0; i < 3; i++) gsl_matrix_set(DG, 2, i, nullvector[i]);
+
+        //-------------------------------------------------------------------------------
+        //Build the error vector = [y px pseudo-arclength constraint]^T
+        //-------------------------------------------------------------------------------
+        //Update the first 2 rows of the error: P(x^k) = x^k(T)
+        gsl_vector_set(P, 0, y[1]);
+        gsl_vector_set(P, 1, y[3]);
+        //The last row is equal to: (X0 - fvv)^T * nullvector - ds
+        double res = 0;
+        for(int i = 0; i < 3; i++)
+        {
+            X0[i] -= fvv[i];
+            res += X0[i]*nullvector[i];
+        }
+        gsl_vector_set(P, 2, res - ds);
+
+        //-------------------------------------------------------------------------------
+        //Get the first-order correction
+        //-------------------------------------------------------------------------------
+        int s;
+        gsl_linalg_LU_decomp (DG, p , &s);
+        //P1 = DG^{-1}*P, 3x1 vector
+        gsl_linalg_LU_solve(DG, p, P, Pn);
+
+        //-------------------------------------------------------------------------------
+        //Update the state
+        //-------------------------------------------------------------------------------
+        y0[0]         -= gsl_vector_get(Pn, 0);
+        y0[4]         -= gsl_vector_get(Pn, 1);
+        qbpi->epsilon -= gsl_vector_get(Pn, 2);
+
+        //-------------------------------------------------------------------------------
+        //Norm of the correction
+        //-------------------------------------------------------------------------------
+        dx = gsl_blas_dnrm2(Pn);
+
+    }
+    while((fabs(dx)> eps_diff) && (++iter) < itermax);
+
+
+    //-------------------------------------------------------------------------------
+    //End the computation if there was no convergence
+    //-------------------------------------------------------------------------------
+    if(iter>=itermax)
+    {
+        printf("WARNING: number of iter max exceeded during differential correction. Final precision is around %+5.2e. Premature ending\n", fabs(dx));
+        return GSL_FAILURE;
+    }
+
+    //-------------------------------------------------------------------------------
+    //Compute the "good" vector of free variables
+    //-------------------------------------------------------------------------------
+    fvv[0] = y0[0];
+    fvv[1] = y0[4];
+    fvv[2] = qbpi->epsilon;
+
+    //-------------------------------------------------------------------------------
+    //Compute the null vector: QR decomposition of DP^T
+    //-------------------------------------------------------------------------------
+    //QR elements
+    gsl_vector *work  = gsl_vector_calloc(2);
+    gsl_matrix *Q     = gsl_matrix_calloc(3,3);
+    gsl_matrix *R     = gsl_matrix_calloc(3,2);
+    gsl_matrix *DPT   = gsl_matrix_calloc(3,2);
+
+    //Get the matrix DP as a submatrix of DG
+    gsl_matrix_view DP = gsl_matrix_submatrix(DG, 0, 0, 2, 3);
+
+    //DPT = transpose(DP)
+    gsl_matrix_transpose_memcpy(DPT, &DP.matrix);
+    //QR decomposition
+    gsl_linalg_QR_decomp (DPT, work);
+    gsl_linalg_QR_unpack (DPT, work, Q, R);
+
+    //Null vector is the last column of Q
+    double nv[3];
+    double dotNV = 0;
+    for(int i = 0; i < 3; i++)
+    {
+        nv[i] = gsl_matrix_get(Q, i, 2);
+        dotNV += nv[i]*nullvector[i];
+    }
+    int sign = gsl_matrix_get(Q, 2, 2) > 0? 1:-1;
+    //int sign = dotNV > 0? 1:-1;
+    for(int i = 0; i < 3; i++) nullvector[i] = sign*nv[i];
+
+    //-------------------------------------------------------------------------------
+    //Free memory
+    //-------------------------------------------------------------------------------
+    gsl_matrix_free(DG);
+    gsl_matrix_free(DPT);
+    gsl_matrix_free(Q);
+    gsl_matrix_free(R);
+    gsl_vector_free(Pn);
+    gsl_vector_free(P);
+    gsl_vector_free(work);
+    gnuplot_close(hc);
+    return GSL_SUCCESS;
+}
+
+/**
+ * \brief Differential correction with a fixed final time used in the continutation procedures from a model to another (e.g CRTBP to BCP).
+ *        The state is 7-dimensional. The last component is deps, where eps is the continuation parameter. DEPRECATED.
+ **/
+int differential_correction_deps_mns(double *ystart, double *nullvector, double *fvv, double t1, double eps_diff, gsl_odeiv2_driver *d, int N, int isPlotted, int isFirst)
+{
+    //-------------------------------------------------------------------------------
+    //Retrieve the model
+    //-------------------------------------------------------------------------------
+    QBCP_I* qbpi =  (QBCP_I *) d->sys->params;
+
+    //-------------------------------------------------------------------------------
+    //Init
+    //-------------------------------------------------------------------------------
+    double y[N];
+    int i;
+    int iter = 0;
+    int status;
+    int itermax = 70;
+
+    double t;
+    double dx;
+
+
+    //-------------------------------------------------------------------------------
+    //Gsl matrices and vectors
+    //-------------------------------------------------------------------------------
+    gsl_matrix *DP   = gsl_matrix_calloc(2,3);
+    gsl_matrix *Prod = gsl_matrix_calloc(2,2);
+    gsl_vector *P    = gsl_vector_calloc(2);
+    gsl_vector *P1   = gsl_vector_calloc(2);
+    gsl_vector *Pn   = gsl_vector_calloc(3);
+    //For GSL inversion
+    gsl_permutation * p = gsl_permutation_alloc (2);
+    int s;
+
+    //-------------------------------------------------------------------------------
+    //Optionnal plotting
+    //-------------------------------------------------------------------------------
+    gnuplot_ctrl  *hc;
+    hc = gnuplot_init();
+    gnuplot_setstyle(hc, (char*)"lines");
+    gnuplot_set_xlabel(hc, (char*)"x [-]");
+    gnuplot_set_ylabel(hc, (char*)"y [-]");
+
+    //-------------------------------------------------------------------------------
+    //Correction loop
+    //-------------------------------------------------------------------------------
+    do
+    {
+        //-------------------------------------------------------------------------------
+        //Update the starting point (STM (0) = Id included)
+        //-------------------------------------------------------------------------------
+        for(i=0; i< N; i++) y[i] = ystart[i];
+
+        //-------------------------------------------------------------------------------
+        //Integration until t=t1 is reached
+        //-------------------------------------------------------------------------------
+        t = 0.0;
+        //Optionnal plotting
+        if(isPlotted) odePlotGen(y, N, t1, d, hc, 5000, "DiffCorr", "lines", "1", "2", 8);
+        //Integration
+        gsl_odeiv2_driver_reset(d);
+        status = gsl_odeiv2_driver_apply (d, &t , t1 , y);
+
+        if(status != GSL_SUCCESS)
+        {
+            printf("WARNING: GSL driver failed to converge in differential_correction. Premature ending.\n");
+            return GSL_FAILURE;
+        }
+
+        //-------------------------------------------------------------------------------
+        // Update the Jacobian
+        //-------------------------------------------------------------------------------
+        //Update the matrix DP = DP(x^k), a 2x3 matrix
+        gsl_matrix_set(DP, 0, 0, y[5+7]);  //Phi21
+        gsl_matrix_set(DP, 0, 1, y[5+11]); //Phi25
+        gsl_matrix_set(DP, 1, 0, y[5+19]); //Phi41
+        gsl_matrix_set(DP, 1, 1, y[5+23]); //Phi45
+        gsl_matrix_set(DP, 0, 2, y[43]);   //dy/deps
+        gsl_matrix_set(DP, 1, 2, y[45]);   //dpx/deps
+
+        //-------------------------------------------------------------------------------
+        // Update the error vector = [y px]
+        //-------------------------------------------------------------------------------
+        gsl_vector_set(P, 0, y[1]);
+        gsl_vector_set(P, 1, y[3]);
+
+        //-------------------------------------------------------------------------------
+        //Minimum norm solution
+        //-------------------------------------------------------------------------------
+        //Update the matrix
+        //Compute Prod = DP(x^k)*DP(x^k)^T, a 2x2 matrix
+        gsl_blas_dgemm (CblasNoTrans, CblasTrans, 1.0, DP , DP, 0.0, Prod);
+        //Inverse and product
+        gsl_linalg_LU_decomp (Prod, p , &s);
+        //P1(x^k) = Prod^{-1}*P(x^k), a 2x1 vector
+        gsl_linalg_LU_solve(Prod, p, P, P1);
+        //Pn(x^k) = DP(x^k)^T*P1(x^k), a 3x1 vector
+        gsl_blas_dgemv (CblasTrans, 1.0, DP, P1, 0.0, Pn);
+
+        //-------------------------------------------------------------------------------
+        //Update the state
+        //-------------------------------------------------------------------------------
+        ystart[0]     -= gsl_vector_get(Pn, 0);
+        ystart[4]     -= gsl_vector_get(Pn, 1);
+        qbpi->epsilon -= gsl_vector_get(Pn, 2);
+
+        //-------------------------------------------------------------------------------
+        //Norm of the correction
+        //-------------------------------------------------------------------------------
+        dx = gsl_blas_dnrm2(Pn);
+    }
+    while((fabs(dx)> eps_diff) && (++iter) < itermax);
+
+
+    //-------------------------------------------------------------------------------
+    //End the computation if there was no convergence
+    //-------------------------------------------------------------------------------
+    if(iter>=itermax)
+    {
+        printf("WARNING: number of iter max exceeded during differential correction. Final precision is around %+5.2e. Premature ending\n", fabs(dx));
+        return GSL_FAILURE;
+    }
+
+    //-------------------------------------------------------------------------------
+    //Compute the "good" vector of free variables
+    //-------------------------------------------------------------------------------
+    fvv[0] = ystart[0];
+    fvv[1] = ystart[4];
+    fvv[2] = qbpi->epsilon;
+
+    //-------------------------------------------------------------------------------
+    //Compute the null vector: QR decomposition of DP^T
+    //-------------------------------------------------------------------------------
+    //QR elements
+    gsl_vector *work  = gsl_vector_calloc(2);
+    gsl_matrix *Q     = gsl_matrix_calloc(3,3);
+    gsl_matrix *R     = gsl_matrix_calloc(3,2);
+    gsl_matrix *DPT   = gsl_matrix_calloc(3,2);
+
+    //DPT = transpose(DP)
+    gsl_matrix_transpose_memcpy(DPT, DP);
+    //QR decomposition
+    gsl_linalg_QR_decomp (DPT, work);
+    gsl_linalg_QR_unpack (DPT, work, Q, R);
+
+    //Null vector is the last column of Q
+    double nv[3];
+    double dotNV = 0;
+    int sign = 1;
+
+    if(isFirst)
+    {
+        //Null vector is the last column of Q
+        sign = gsl_matrix_get(Q, 2, 2) > 0? 1:-1;
+        for(int i = 0; i < 3; i++) nullvector[i] = sign*gsl_matrix_get(Q, i, 2);
+    }
+    else
+    {
+        for(int i = 0; i < 3; i++)
+        {
+            nv[i] = gsl_matrix_get(Q, i, 2);
+            dotNV += nv[i]*nullvector[i];
+        }
+        sign = dotNV > 0? 1:-1;
+        for(int i = 0; i < 3; i++) nullvector[i] = sign*nv[i];
+
+    }
+
+
+    //-------------------------------------------------------------------------------
+    //Free memory
+    //-------------------------------------------------------------------------------
+    gsl_matrix_free(DP);
+    gsl_matrix_free(DPT);
+    gsl_matrix_free(Q);
+    gsl_matrix_free(R);
+    gsl_matrix_free(Prod);
+    gsl_vector_free(work);
+    gsl_vector_free(P);
+    gsl_vector_free(P1);
+    gsl_vector_free(Pn);
+    gnuplot_close(hc);
+
+
+    return GSL_SUCCESS;
+}
+
+/**
+ * \brief Differential correction with a fixed final time used in the continutation procedures from a model to another (e.g CRTBP to BCP).
+ *        The state is 7-dimensional. The last component is deps, where eps is the continuation parameter. DEPRECATED.
+ **/
+int differential_correction_deps(double ystart[], double t1, double eps_diff, gsl_odeiv2_driver *d, int N, int isPlotted)
+{
+    //-------------------------------------------------------------------------------
+    //Retrieve the model
+    //-------------------------------------------------------------------------------
+    QBCP_I* qbpi =  (QBCP_I *) d->sys->params;
+
+    //-------------------------------------------------------------------------------
+    //Init
+    //-------------------------------------------------------------------------------
+    double y[N];
+    int i;
+    int iter = 0;
+    int status;
+    int itermax = 70;
+
+    double t;
+    double dx;
+
+    //-------------------------------------------------------------------------------
+    //Gsl matrices and vectors
+    //-------------------------------------------------------------------------------
+    gsl_matrix *DP   = gsl_matrix_calloc(6,7);
+    gsl_matrix *Prod = gsl_matrix_calloc(6,6);
+    gsl_vector *P    = gsl_vector_calloc(6);
+    gsl_vector *P1   = gsl_vector_calloc(6);
+    gsl_vector *Pn   = gsl_vector_calloc(7);
+    //For GSL inversion
+    gsl_permutation * p = gsl_permutation_alloc (6);
+
+    //-------------------------------------------------------------------------------
+    //Optionnal plotting
+    //-------------------------------------------------------------------------------
+    gnuplot_ctrl  *hc;
+    hc = gnuplot_init();
+    gnuplot_setstyle(hc, (char*)"lines");
+    gnuplot_set_xlabel(hc, (char*)"x [-]");
+    gnuplot_set_ylabel(hc, (char*)"y [-]");
+
+    //-------------------------------------------------------------------------------
+    //Correction loop
+    //-------------------------------------------------------------------------------
+    do
+    {
+        //-------------------------------------------------------------------------------
+        //Update the starting point (STM (0) = Id included)
+        //-------------------------------------------------------------------------------
+        for(i=0; i< N; i++) y[i] = ystart[i];
+
+        //-------------------------------------------------------------------------------
+        //Integration until t=t1 is reached
+        //-------------------------------------------------------------------------------
+        t = 0.0;
+        //Optionnal plotting
+        if(isPlotted) odePlotGen(y, N, t1, d, hc, 5000, "DiffCorr", "lines", "1", "2", 8);
+        //Integration
+        gsl_odeiv2_driver_reset(d);
+        status = gsl_odeiv2_driver_apply (d, &t , t1 , y);
+
+        if(status != GSL_SUCCESS)
+        {
+            printf("WARNING: GSL driver failed to converge in differential_correction. Premature ending.\n");
+            return GSL_FAILURE;
+        }
+
+        //-------------------------------------------------------------------------------
+        // Update the Jacobian
+        //-------------------------------------------------------------------------------
         //Update the matrix DP = DP(x^k), a 6x7 matrix
         gslc_vectorToMatrix(DP, y, 6, 7, 6);
         //maybe need to subtract the identity here??
         //for(int i = 0; i < 6; i++) gsl_matrix_set(DP, i, i, gsl_matrix_get(DP, i, i)-1.0);
 
+        //-------------------------------------------------------------------------------
+        // Update the error vector
+        //-------------------------------------------------------------------------------
         //Update P(x^k) = x^k(T) - x^k(0) a 6x1 vector
         for(int i = 0; i < 6; i++) gsl_vector_set(P, i, y[i] - ystart[i]);
 
+
+        //-------------------------------------------------------------------------------
+        //Minimum norm solution
+        //-------------------------------------------------------------------------------
         //Compute Prod = DP(x^k)*DP(x^k)^T, a 6x6 matrix
         gsl_blas_dgemm (CblasNoTrans, CblasTrans, 1.0, DP , DP, 0.0, Prod);
-
         //Inverse and product
         int s;
         gsl_linalg_LU_decomp (Prod, p , &s);
         //P1(x^k) = Prod^{-1}*P(x^k), a 6x1 vector
         gsl_linalg_LU_solve(Prod, p, P, P1);
-
         //Pn(x^k) = DP(x^k)^T*P1(x^k), a 7x1 vector
         gsl_blas_dgemv (CblasTrans, 1.0, DP, P1, 0.0, Pn);
 
+        //-------------------------------------------------------------------------------
         //Update the state
+        //-------------------------------------------------------------------------------
         for(int i = 0; i < 6; i++) ystart[i] -= gsl_vector_get(Pn, i);
         qbpi->epsilon -= gsl_vector_get(Pn, 6);
 
+        //-------------------------------------------------------------------------------
         //Norm of the correction
+        //-------------------------------------------------------------------------------
         dx = gsl_blas_dnrm2(Pn);
-
-        cout << "Diffcorr: " << iter << "  dx = " << dx << endl;
     }
     while((fabs(dx)> eps_diff) && (++iter) < itermax);
 
@@ -232,17 +634,15 @@ int differential_correction_MN(double ystart[], double t1, double eps_diff, gsl_
     int iter = 0;
     int status;
     int itermax = 70;
-
-    double dyf[2];
     double t;
 
     //Gsl matrices
-    gsl_matrix *DP   = gsl_matrix_alloc(6,6);
-    gsl_matrix *id   = gsl_matrix_alloc(6,6);
+    gsl_matrix *DP   = gsl_matrix_calloc(6,6);
+    gsl_matrix *id   = gsl_matrix_calloc(6,6);
 
     //Gsl vector
-    gsl_vector *v0n  = gsl_vector_alloc(6);
-    gsl_vector *v1n  = gsl_vector_alloc(6);
+    gsl_vector *v0n  = gsl_vector_calloc(6);
+    gsl_vector *v1n  = gsl_vector_calloc(6);
 
     //For GSL inversion
     gsl_permutation * p = gsl_permutation_alloc (6);
@@ -300,7 +700,7 @@ int differential_correction_MN(double ystart[], double t1, double eps_diff, gsl_
 
     if(iter>=itermax)
     {
-        printf("WARNING: number of iter max exceeded during differential correction. Final precision is around %+5.2e. Premature ending\n", fabs(dyf[0]));
+        printf("WARNING: number of iter max exceeded during differential correction. Final precision is around %+5.2e. Premature ending\n", fabs(gsl_vector_max(v1n)));
         return GSL_FAILURE;
     }
 
@@ -519,7 +919,7 @@ int odePlot(const double y[], int N, double t1, gsl_odeiv2_driver *d, gnuplot_ct
 
     //Initial conditions
     double ys[N], ye[N];
-    for(int i=0; i<N;i++) ys[i] = y[i];
+    for(int i=0; i<N; i++) ys[i] = y[i];
     double ti = 0;
 
     //First point
@@ -545,7 +945,64 @@ int odePlot(const double y[], int N, double t1, gsl_odeiv2_driver *d, gnuplot_ct
     gnuplot_setstyle(h1, (char*)"lines");
     gnuplot_set_xlabel(h1, (char*)"x [-]");
     gnuplot_set_ylabel(h1, (char*)"y [-]");
-    gnuplot_plot_xy(h1, xEM, yEM, Npoints, (char*)"SYS coordinates", "lines", "1", "4", 4);
+    gnuplot_plot_xy(h1, xEM, yEM, Npoints, (char*)"", "lines", "1", "4", color);
+
+    return GSL_SUCCESS;
+
+}
+
+
+/**
+ *  \brief Integrate the state y[] up to t = t1 on a Npoints grid, in NC coordinates, and plot the corresponding result in SYS coordinates (e.g. EM or SEM coord.).
+ *         Then the results are plotted on a temporary gnuplot window via the handle *h1. Print in txt files is included
+ **/
+int odePlotprint(const double y[], int N, double t1, gsl_odeiv2_driver *d, gnuplot_ctrl  *h1, int Npoints, int color, string filename)
+{
+    gsl_odeiv2_driver_reset(d);
+
+    // EM state on a Npoints grid
+    double xEM[Npoints];
+    double yEM[Npoints];
+
+    //Retrieving the parameters
+    QBCP_L* qbp = (QBCP_L *) d->sys->params;
+
+    //Initial conditions
+    double ys[N], ye[N];
+    for(int i=0; i<N; i++) ys[i] = y[i];
+    double ti = 0;
+
+    //First point
+    NCtoSYS(0.0, ys, ye, qbp);
+    xEM[0] = ye[0];
+    yEM[0] = ye[1];
+
+    //Loop and integration
+    double t = 0.0;
+    if(t1 <0) d->h = -d->h;
+    for(int i =1; i<= Npoints; i++)
+    {
+        ti = i * t1 / Npoints;
+        gsl_odeiv2_driver_apply (d, &t, ti, ys);
+        //Update the SYS state
+        NCtoSYS(ti, ys, ye, qbp);
+        xEM[i] = ye[0];
+        yEM[i] = ye[1];
+    }
+    if(t1 <0) d->h = -d->h;
+
+    //------------------------------------------
+    //Plotting
+    //------------------------------------------
+    gnuplot_setstyle(h1, (char*)"lines");
+    gnuplot_set_xlabel(h1, (char*)"x [-]");
+    gnuplot_set_ylabel(h1, (char*)"y [-]");
+    gnuplot_plot_xy(h1, xEM, yEM, Npoints, (char*)"", "lines", "1", "4", color);
+
+    //------------------------------------------
+    //In txt files
+    //------------------------------------------
+    gnuplot_fplot_xy(xEM, yEM, Npoints, filename.c_str());   //orbit
 
     return GSL_SUCCESS;
 
@@ -603,17 +1060,17 @@ int odePlotGen(const double y[],
  *  \brief Same as odePlotGen, but the 3D result are also printed in a txt file, with the name (folder+"orbits/"+title+".txt").
  **/
 int odePrintGen(const double y[],
-               int N,
-               double t1,
-               gsl_odeiv2_driver *d,
-               gnuplot_ctrl  *h1,
-               int Npoints,
-               char const *title,
-               char const *ls,
-               char const *lt,
-               char const *lw,
-               int lc,
-               string folder)
+                int N,
+                double t1,
+                gsl_odeiv2_driver *d,
+                gnuplot_ctrl  *h1,
+                int Npoints,
+                char const *title,
+                char const *ls,
+                char const *lt,
+                char const *lw,
+                int lc,
+                string folder)
 {
     gsl_odeiv2_driver_reset(d);
 

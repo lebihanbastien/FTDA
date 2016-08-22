@@ -15,8 +15,8 @@ add       = "t0_" #"t0_projtenth_"
 order     = "30" #order 20 for 0.005 and 0.0025
 ofs_order = "30"
 fileext   = ".txt"
-fileprefix = "Serv_pm_t0_Energy_0.012_order_30_ofs_30_SINGLE_INT"
-fileprefixnodots  = "Serv_pm_t0_Energy_0012_order_30_ofs_30_SINGLE_INT"
+fileprefix = "Serv_pm_t0_Energy_0.011_order_30_ofs_30_SINGLE_INT"
+fileprefixnodots  = "Serv_pm_t0_Energy_0011_order_30_ofs_30_SINGLE_INT"
 
 #------------------------------------------------
 # Limits for plots

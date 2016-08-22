@@ -15,8 +15,8 @@
 // From C and Fortran
 extern "C"
 {
-    #include "gnuplot_i.h"
-    #include "nrutil.h"
+#include "gnuplot_i.h"
+#include "nrutil.h"
     void vepro_(double **DAT, int *M, double **VECS, int *NMX);
 }
 
@@ -146,18 +146,18 @@ void nfo2(QBCP_L &qbcp_l, int isStored)
     int M                       = 32;
     gsl_matrix_complex **DAT    = gslc_matrix_complex_product_alloc(6, 6, M);
     //MMc = MM = S*Dm*Sinv
-    gsl_matrix_complex *S       = gsl_matrix_complex_alloc(6, 6);
-    gsl_matrix_complex *MMc     = gsl_matrix_complex_alloc(6, 6);
-    gsl_matrix_complex *Dm      = gsl_matrix_complex_alloc(6, 6);
-    gsl_matrix* MM              = gsl_matrix_alloc(6, 6);
+    gsl_matrix_complex *S       = gsl_matrix_complex_calloc(6, 6);
+    gsl_matrix_complex *MMc     = gsl_matrix_complex_calloc(6, 6);
+    gsl_matrix_complex *Dm      = gsl_matrix_complex_calloc(6, 6);
+    gsl_matrix* MM              = gsl_matrix_calloc(6, 6);
     //B = S*DB*Sinv
-    gsl_matrix_complex *B       = gsl_matrix_complex_alloc(6, 6);
+    gsl_matrix_complex *B       = gsl_matrix_complex_calloc(6, 6);
     //DB = log(Dm)/T
-    gsl_matrix_complex *DB      = gsl_matrix_complex_alloc(6, 6);
+    gsl_matrix_complex *DB      = gsl_matrix_complex_calloc(6, 6);
     //Br = R*JB*Rinv
-    gsl_matrix* JB              = gsl_matrix_alloc(6, 6);
-    gsl_matrix* Br              = gsl_matrix_alloc(6, 6);
-    gsl_matrix* R               = gsl_matrix_alloc(6, 6);
+    gsl_matrix* JB              = gsl_matrix_calloc(6, 6);
+    gsl_matrix* Br              = gsl_matrix_calloc(6, 6);
+    gsl_matrix* R               = gsl_matrix_calloc(6, 6);
 
     //----------------------------------------------------------------------------------------------------------
     // 2 Decomposition of the Monodromy matrix through the use of custom routines from a monodromy matrix given as a product of matrices
@@ -234,7 +234,7 @@ void nfo2_QBP(QBCP_L &qbcp_l, int isStored)
     cout << "Compute the complete change of coordinates to:" << endl;
     cout << "- Get rid of order 1                          " << endl;
     cout << "- Get a normal form for the order 2           " << endl;
-    cout << "of the Hamiltonian of the QBCP               " << endl;
+    cout << "of the Hamiltonian of the QBCP                " << endl;
     cout << "Results are stored in the folder data/COC     " << endl;
     cout << "----------------------------------------------" << endl;
 
@@ -251,11 +251,12 @@ void nfo2_QBP(QBCP_L &qbcp_l, int isStored)
     QBCP_I model;
     QBCP_L model1, model2;
     init_QBCP_I(&model, &model1, &model2, SUN, EARTH, MOON, qbcp_l.isNormalized, SEML.li_EM, SEML.li_SEM, 0, M_QBCP, M_BCP, SEML.fwrk, SEML.pms);
+    //init_QBCP_I(&model, &model1, &model2, SUN, EARTH, MOON, qbcp_l.isNormalized, SEML.li_EM, SEML.li_SEM, 0, M_RTBP, M_BCP, SEML.fwrk, SEML.pms);
 
     //-------------------------------------------------
     //Plotting devices
     //-------------------------------------------------
-    char ch;            //Used to close the gnuplot windows at the very end of the program
+    char ch;                //Used to close the gnuplot windows at the very end of the program
     gnuplot_ctrl  *h1;
     h1 = gnuplot_init();
 
@@ -281,7 +282,7 @@ void nfo2_QBP(QBCP_L &qbcp_l, int isStored)
 
     double y0c[42+6];
     double y0[42];
-    lpdyneq_cont(d, loose_control, hard_control, y0c, h1);
+    lpdyneq_cont_2(d, loose_control, hard_control, y0c);
 
     //Plotting the refined solution
     int Npoints = 5000;
@@ -318,18 +319,18 @@ void nfo2_QBP(QBCP_L &qbcp_l, int isStored)
     int M                       = 20;
     gsl_matrix_complex **DAT    = gslc_matrix_complex_product_alloc(6, 6, M);
     //MMc = MM = S*Dm*Sinv
-    gsl_matrix_complex *S       = gsl_matrix_complex_alloc(6, 6);
-    gsl_matrix_complex *MMc     = gsl_matrix_complex_alloc(6, 6);
-    gsl_matrix_complex *Dm      = gsl_matrix_complex_alloc(6, 6);
-    gsl_matrix* MM              = gsl_matrix_alloc(6, 6);
+    gsl_matrix_complex *S       = gsl_matrix_complex_calloc(6, 6);
+    gsl_matrix_complex *MMc     = gsl_matrix_complex_calloc(6, 6);
+    gsl_matrix_complex *Dm      = gsl_matrix_complex_calloc(6, 6);
+    gsl_matrix* MM              = gsl_matrix_calloc(6, 6);
     //B = S*DB*Sinv
-    gsl_matrix_complex *B       = gsl_matrix_complex_alloc(6, 6);
+    gsl_matrix_complex *B       = gsl_matrix_complex_calloc(6, 6);
     //DB = log(Dm)/T
-    gsl_matrix_complex *DB      = gsl_matrix_complex_alloc(6, 6);
+    gsl_matrix_complex *DB      = gsl_matrix_complex_calloc(6, 6);
     //Br = R*JB*Rinv
-    gsl_matrix* JB              = gsl_matrix_alloc(6, 6);
-    gsl_matrix* Br              = gsl_matrix_alloc(6, 6);
-    gsl_matrix* R               = gsl_matrix_alloc(6, 6);
+    gsl_matrix* JB              = gsl_matrix_calloc(6, 6);
+    gsl_matrix* Br              = gsl_matrix_calloc(6, 6);
+    gsl_matrix* R               = gsl_matrix_calloc(6, 6);
 
     //----------------------------------------------------------------------------------------------------------
     //Decomposition of the Monodromy matrix through the use of custom routines from a monodromy matrix given as a product of matrices
@@ -355,6 +356,52 @@ void nfo2_QBP(QBCP_L &qbcp_l, int isStored)
     //----------------------------------------------------------------------------------------------------------
     nfo2coc(d2, y0, &qbcp_l, Br, R, JB, (int) pow(2,12), isStored);
 }
+
+
+/**
+ *  \brief Continuation routine
+ */
+void continuation(QBCP_L &qbcp_l, int isStored)
+{
+    //Model must be normalized.
+    if(!qbcp_l.isNormalized)
+    {
+        cout << "nfo2. Warning: selected model is not normalized. Premature ending." << endl;
+        return;
+    }
+
+    //-------------------------------------------------
+    //Structures for continuation
+    //-------------------------------------------------
+    QBCP_I model;
+    QBCP_L model1, model2;
+    //init_QBCP_I(&model, &model1, &model2, SUN, EARTH, MOON, qbcp_l.isNormalized, SEML.li_EM, SEML.li_SEM, 0, M_QBCP, M_BCP, SEML.fwrk, SEML.pms);
+    init_QBCP_I(&model, &model1, &model2, SUN, EARTH, MOON, qbcp_l.isNormalized, SEML.li_EM, SEML.li_SEM, 0, M_RTBP, M_QBCP, SEML.fwrk, SEML.pms);
+
+    //-------------------------------------------------
+    // Integration tools
+    // Initial vector field include nonlinear variationnal equations
+    // to get the periodic orbit
+    //-------------------------------------------------
+    //System
+    gsl_odeiv2_system sys;
+    sys.function      = qbfbp_vfn_cont;
+    sys.jacobian      = NULL;
+    sys.dimension     = 42+6;
+    sys.params        = &model;
+    //Stepper
+    const gsl_odeiv2_step_type *T = gsl_odeiv2_step_rk8pd;
+    //Driver
+    gsl_odeiv2_driver *d = gsl_odeiv2_driver_alloc_y_new (&sys, T, 1e-6, 1e-15, 1e-15);
+
+    //Differential correction to get the dynamical equivalent of the libration point (lpdyneq)
+    gsl_odeiv2_control * loose_control = gsl_odeiv2_control_y_new(1e-10 , 1e-10);
+    gsl_odeiv2_control *  hard_control = gsl_odeiv2_control_y_new(1e-16 , 1e-16);
+
+    double y0c[42+6];
+    lpdyneq_cont_2(d, loose_control, hard_control, y0c);
+}
+
 
 //-------------------------------------------------------------------------------------------------------
 // Monodromy and STM
@@ -422,7 +469,7 @@ void stmComplexMatrix(const double y[], gsl_odeiv2_driver *d, double t1, gsl_mat
 void stmSteppedComplexMatrix(const double y[], gsl_odeiv2_driver *d, double t1, int M, gsl_matrix_complex **DAT)
 {
     gsl_odeiv2_driver_reset(d);
-    gsl_matrix_complex *STM = gsl_matrix_complex_alloc(6,6);
+    gsl_matrix_complex *STM = gsl_matrix_complex_calloc(6,6);
     //CAREFUL: the matrix DAT is shifted of ONE & so that the storage is easier in vepro
     //SO the DAT has to be used from DAT[1] to DAT[M] and DAT[0] is USELESS.
 
@@ -464,7 +511,7 @@ void stmSteppedComplexMatrix(const double y[], gsl_odeiv2_driver *d, double t1, 
 void stmSteppedComplexMatrix_alt(const double y[], gsl_odeiv2_driver *d, double t1, int M, gsl_matrix_complex **DAT)
 {
     gsl_odeiv2_driver_reset(d);
-    gsl_matrix_complex *STM = gsl_matrix_complex_alloc(6,6);
+    gsl_matrix_complex *STM = gsl_matrix_complex_calloc(6,6);
     //CAREFUL: the matrix DAT is shifted of ONE & so that the storage is easier in vepro
     //SO the DAT has to be used from DAT[1] to DAT[M] and DAT[0] is USELESS.
 
@@ -560,7 +607,7 @@ void monoProd(gsl_matrix_complex* MMc, gsl_matrix_complex** DAT, int M)
     gsl_complex one_c  = gslc_complex(1.0, 0.0);
     gsl_complex zero_c = gslc_complex(0.0, 0.0);
     //Temporary matrix
-    gsl_matrix_complex *Mspare = gsl_matrix_complex_alloc(6, 6);
+    gsl_matrix_complex *Mspare = gsl_matrix_complex_calloc(6, 6);
     //MMc = DAT[1]
     gsl_matrix_complex_memcpy(MMc, DAT[1]);
     //Loop: MMc = DAT[i]*DAT[i-1]*...*DAT[1]
@@ -584,7 +631,7 @@ void monoDiag(gsl_matrix* MM, gsl_matrix_complex *evecd, gsl_vector_complex *eva
 {
     //Init
     gsl_eigen_nonsymmv_workspace * wr = gsl_eigen_nonsymmv_alloc(6);  //workspace for eigenspaces determination
-    gsl_matrix *AUX = gsl_matrix_alloc(6, 6);                         //auxiliary matrix
+    gsl_matrix *AUX = gsl_matrix_calloc(6, 6);                         //auxiliary matrix
     //Diagonalization
     gsl_matrix_memcpy(AUX, MM);
     gsl_eigen_nonsymmv (AUX, evald, evecd, wr);
@@ -617,10 +664,10 @@ void normS(gsl_matrix_complex *S)
     //---------------------------------------------------------------------------------
     // Initialization of GSL objects
     //---------------------------------------------------------------------------------
-    gsl_matrix_complex *ST   = gsl_matrix_complex_alloc(6, 6);  //Transpose (not hermitian inverse) of the matrix S
-    gsl_matrix_complex *J    = gsl_matrix_complex_alloc(6, 6);  //J default symplectic matrix
-    gsl_matrix_complex *AUX  = gsl_matrix_complex_alloc(6, 6);  //auxiliary matrix
-    gsl_matrix_complex *BUX  = gsl_matrix_complex_alloc(6, 6);  //auxiliary matrix
+    gsl_matrix_complex *ST   = gsl_matrix_complex_calloc(6, 6);  //Transpose (not hermitian inverse) of the matrix S
+    gsl_matrix_complex *J    = gsl_matrix_complex_calloc(6, 6);  //J default symplectic matrix
+    gsl_matrix_complex *AUX  = gsl_matrix_complex_calloc(6, 6);  //auxiliary matrix
+    gsl_matrix_complex *BUX  = gsl_matrix_complex_calloc(6, 6);  //auxiliary matrix
     gsl_complex one_c  = gslc_complex(1.0, 0.0);                //1.0
     gsl_complex zero_c = gslc_complex(0.0, 0.0);                //0.0
     gsl_vector_complex_view vecview;                            //Vector view for vector selection in matrix
@@ -778,8 +825,8 @@ void updateS(gsl_matrix_complex *S,
         keymap[4] = 2;
         keymap[5] = 5;
 
-       //Perform permutation
-       permutationS(S, Dm, evecr, evalr, eigenVu, eigenVs, eigenLu, eigenLs, keymap);
+        //Perform permutation
+        permutationS(S, Dm, evecr, evalr, eigenVu, eigenVs, eigenLu, eigenLs, keymap);
     }
 
     cout << "--------------------------------" << endl;
@@ -816,14 +863,14 @@ void updateS(gsl_matrix_complex *S,
  *
  */
 void permutationS(gsl_matrix_complex *S,
-                 gsl_matrix_complex *Dm,
-                 gsl_matrix_complex *evecr,
-                 gsl_vector_complex *evalr,
-                 gsl_vector_complex *eigenVu,
-                 gsl_vector_complex *eigenVs,
-                 gsl_complex eigenLu,
-                 gsl_complex eigenLs,
-                 int *keymap)
+                  gsl_matrix_complex *Dm,
+                  gsl_matrix_complex *evecr,
+                  gsl_vector_complex *evalr,
+                  gsl_vector_complex *eigenVu,
+                  gsl_vector_complex *eigenVs,
+                  gsl_complex eigenLu,
+                  gsl_complex eigenLs,
+                  int *keymap)
 {
     int A0, B0;
     gsl_complex evalA, evalB;
@@ -884,14 +931,14 @@ void permutationS(gsl_matrix_complex *S,
  **/
 void symplecticR(gsl_matrix_complex *S, gsl_matrix_complex *Dm, gsl_matrix *R)
 {
-    gsl_matrix *J     = gsl_matrix_alloc(6, 6);
-    gsl_matrix *RH    = gsl_matrix_alloc(6, 6);
-    gsl_matrix *AUX   = gsl_matrix_alloc(6, 6);
-    gsl_matrix *BUX   = gsl_matrix_alloc(6, 6);
+    gsl_matrix *J     = gsl_matrix_calloc(6, 6);
+    gsl_matrix *RH    = gsl_matrix_calloc(6, 6);
+    gsl_matrix *AUX   = gsl_matrix_calloc(6, 6);
+    gsl_matrix *BUX   = gsl_matrix_calloc(6, 6);
 
     gsl_vector_complex_view evecA, evecB;
     gsl_complex evalA, evalB;
-    gsl_vector_complex *AUXc  = gsl_vector_complex_alloc(6);  //auxiliary vector
+    gsl_vector_complex *AUXc  = gsl_vector_complex_calloc(6);  //auxiliary vector
 
     //---------------------------------------------------------------
     //  Update R from S columns
@@ -1036,15 +1083,15 @@ void monoDecomp(gsl_odeiv2_driver *d,           //driver for odeRK78
     // Initialization of GSL objects
     //---------------------------------------------------------------------------------
     //Hyperbolic directions
-    gsl_vector_complex* eigenVu = gsl_vector_complex_alloc(6);  //Unstable eigenvector
-    gsl_vector_complex* eigenVs = gsl_vector_complex_alloc(6);  //Stable eigenvector
+    gsl_vector_complex* eigenVu = gsl_vector_complex_calloc(6);  //Unstable eigenvector
+    gsl_vector_complex* eigenVs = gsl_vector_complex_calloc(6);  //Stable eigenvector
     gsl_complex eigenLu, eigenLs;                               //(Un)stable eigenvalues
 
     //Misc complex numbers
     gsl_complex one_c  = gslc_complex(1.0, 0.0); //1.0
 
     //Auxiliary objects
-    gsl_vector_complex *VEP  = gsl_vector_complex_alloc(6);     //auxiliary vector
+    gsl_vector_complex *VEP  = gsl_vector_complex_calloc(6);     //auxiliary vector
     gsl_complex VUX, VAPL;
     int ch;
 
@@ -1056,13 +1103,13 @@ void monoDecomp(gsl_odeiv2_driver *d,           //driver for odeRK78
     //Outputs
     //------------------------------------------------------------
     //eigenvectors/eigenvalues of MMc obtained via Wieland deflation
-    gsl_matrix_complex *evecr = gsl_matrix_complex_alloc(6, 6);
-    gsl_vector_complex *evalr = gsl_vector_complex_alloc(6);
-    gsl_matrix_complex *evmr  = gsl_matrix_complex_alloc(6, 6);
+    gsl_matrix_complex *evecr = gsl_matrix_complex_calloc(6, 6);
+    gsl_vector_complex *evalr = gsl_vector_complex_calloc(6);
+    gsl_matrix_complex *evmr  = gsl_matrix_complex_calloc(6, 6);
     //eigenvectors/eigenvalues of MMc obtained via direct diagonalization
-    gsl_matrix_complex *evecd = gsl_matrix_complex_alloc(6, 6);
-    gsl_matrix_complex *evmd  = gsl_matrix_complex_alloc(6, 6);
-    gsl_vector_complex *evald = gsl_vector_complex_alloc(6);
+    gsl_matrix_complex *evecd = gsl_matrix_complex_calloc(6, 6);
+    gsl_matrix_complex *evmd  = gsl_matrix_complex_calloc(6, 6);
+    gsl_vector_complex *evald = gsl_vector_complex_calloc(6);
 
     //------------------------------------------------------------
     // 0. Update of DAT: the Monodromy matrix obtained as a product of matrices.
@@ -1127,7 +1174,7 @@ void monoDecomp(gsl_odeiv2_driver *d,           //driver for odeRK78
     //----------------------------------------------------------------------------------------------------------
     //Shifted power method (direct on MMc, bad precision)
     //----------------------------------------------------------------------------------------------------------
-    //gsl_vector_complex* eigenV = gsl_vector_complex_alloc(6);
+    //gsl_vector_complex* eigenV = gsl_vector_complex_calloc(6);
     //gsl_complex eigenL;
     //shiftedPowerMethod(MMc, 1e-15, 6, gsl_vector_complex_get(DECSl, 0), eigenV, &eigenL);
 
@@ -1338,12 +1385,12 @@ void monoDecomp(gsl_odeiv2_driver *d,           //driver for odeRK78
     //------------------------------------------------------------
     for(int i = 0; i <6; i++)
     {
-          for(int j = 0; j <6; j++)
-          {
-              if(gsl_complex_abs(gsl_matrix_complex_get(evecr, i, j)) < 1e-14) gsl_matrix_complex_set(evecr, i, j, gslc_complex(0.0, 0.0));
-              if(gsl_complex_abs(gsl_vector_complex_get(eigenVu, j))  < 1e-14) gsl_vector_complex_set(eigenVu, j,  gslc_complex(0.0, 0.0));
-              if(gsl_complex_abs(gsl_vector_complex_get(eigenVs, j))  < 1e-14) gsl_vector_complex_set(eigenVs, j,  gslc_complex(0.0, 0.0));
-          }
+        for(int j = 0; j <6; j++)
+        {
+            if(gsl_complex_abs(gsl_matrix_complex_get(evecr, i, j)) < 1e-14) gsl_matrix_complex_set(evecr, i, j, gslc_complex(0.0, 0.0));
+            if(gsl_complex_abs(gsl_vector_complex_get(eigenVu, j))  < 1e-14) gsl_vector_complex_set(eigenVu, j,  gslc_complex(0.0, 0.0));
+            if(gsl_complex_abs(gsl_vector_complex_get(eigenVs, j))  < 1e-14) gsl_vector_complex_set(eigenVs, j,  gslc_complex(0.0, 0.0));
+        }
     }
 
     //------------------------------------------------------------
@@ -1369,9 +1416,9 @@ void monoDecomp(gsl_odeiv2_driver *d,           //driver for odeRK78
      //VECS(*,*,0) contains a 4*4 central subspace that contains no unstable component under DAT[M]*...*DAT[1].
      gsl_matrix_complex **VECS = gslc_matrix_complex_product_alloc(6, 6, M);
      eigenvectors/eigenvalues of the matrix DECS such that VECS[0]*DECS = VECS[M] in vepro
-     gsl_matrix_complex *DECSv = gsl_matrix_complex_alloc(6, 6);
-     gsl_matrix_complex *DECS  = gsl_matrix_complex_alloc(6, 6);
-     gsl_vector_complex *DECSl = gsl_vector_complex_alloc(6);
+     gsl_matrix_complex *DECSv = gsl_matrix_complex_calloc(6, 6);
+     gsl_matrix_complex *DECS  = gsl_matrix_complex_calloc(6, 6);
+     gsl_vector_complex *DECSl = gsl_vector_complex_calloc(6);
      vepro(DAT, M, VECS, DECS, DECSv, DECSl);
      */
 
@@ -1379,7 +1426,7 @@ void monoDecomp(gsl_odeiv2_driver *d,           //driver for odeRK78
     // Annex: Solving the system by hand. Not conclusive
     //----------------------------------------------------------------------------------------------------------
     /*
-    gsl_vector_complex* y  = gsl_vector_complex_alloc(6);
+    gsl_vector_complex* y  = gsl_vector_complex_calloc(6);
     cout << "Multimin for lambda = " << GSL_REAL(gsl_vector_complex_get(DECSl, 0)) << " " << GSL_IMAG(gsl_vector_complex_get(DECSl, 0)) << endl;
     cout << "The eigenvector approximation is taken from Wielandt's deflation procedure:" << endl;
     evec_i = gsl_matrix_complex_column (evecr, 5);
@@ -1547,7 +1594,7 @@ void monoDecomp(gsl_odeiv2_driver *d,           //driver for odeRK78
     //Test of the change of base - uncomment if needed
     //----------------------------------------------------------------------------------
     /*
-      gsl_matrix_complex *MMc_estimate  = gsl_matrix_complex_alloc(6, 6);
+      gsl_matrix_complex *MMc_estimate  = gsl_matrix_complex_calloc(6, 6);
       changeOfBase(MMc_estimate, Dm, DAT, S, INVERSE_GSL, M);
 
       cout << "---------------------------------------------" << endl;
@@ -1596,12 +1643,12 @@ void monoDecompLog(gsl_matrix_complex *S,       //The eigenvectors are stored on
     gsl_complex one_c  = gslc_complex(1.0, 0.0);
     gsl_complex zero_c = gslc_complex(0.0, 0.0);
     //Complex matrices
-    gsl_matrix_complex *Sinv = gsl_matrix_complex_alloc(6, 6);
-    gsl_matrix_complex *AUX  = gsl_matrix_complex_alloc(6, 6);
+    gsl_matrix_complex *Sinv = gsl_matrix_complex_calloc(6, 6);
+    gsl_matrix_complex *AUX  = gsl_matrix_complex_calloc(6, 6);
     //Real matrices
-    gsl_matrix *Rc   = gsl_matrix_alloc(6,6);
-    gsl_matrix *Rinv = gsl_matrix_alloc(6,6);
-    gsl_matrix *AUXr = gsl_matrix_alloc(6,6);
+    gsl_matrix *Rc   = gsl_matrix_calloc(6,6);
+    gsl_matrix *Rinv = gsl_matrix_calloc(6,6);
+    gsl_matrix *AUXr = gsl_matrix_calloc(6,6);
     //For GSL inversion
     gsl_permutation * p = gsl_permutation_alloc (6);
 
@@ -1724,11 +1771,11 @@ void powerMethod(gsl_matrix_complex *Minit, double prec, int sizeM, int version,
     cout << "-----------------------------------------" << endl;
     cout << "Power method" << endl;
     cout << "-----------------------------------------" << endl;
-    gsl_matrix_complex* M = gsl_matrix_complex_alloc (sizeM, sizeM);
+    gsl_matrix_complex* M = gsl_matrix_complex_calloc (sizeM, sizeM);
     gsl_matrix_complex_memcpy(M, Minit);
 
     //Initial guess of the eigenvector of the unstable direction
-    gsl_vector_complex *xm = gsl_vector_complex_alloc(sizeM);
+    gsl_vector_complex *xm = gsl_vector_complex_calloc(sizeM);
     gsl_complex ymnormc;
 
 
@@ -1747,11 +1794,11 @@ void powerMethod(gsl_matrix_complex *Minit, double prec, int sizeM, int version,
     }
 
     //Loop
-    gsl_vector_complex *ym = gsl_vector_complex_alloc(sizeM);
-    gsl_vector_complex *dxm = gsl_vector_complex_alloc(sizeM);
+    gsl_vector_complex *ym = gsl_vector_complex_calloc(sizeM);
+    gsl_vector_complex *dxm = gsl_vector_complex_calloc(sizeM);
     gsl_complex lm;
     double dx;
-    gsl_complex lm_prec;
+    gsl_complex lm_prec = gslc_complex(0.0, 0.0);
     double dl;
     int iter = 0;
     if(version == 0)
@@ -1817,7 +1864,7 @@ void powerMethod(gsl_matrix_complex *Minit, double prec, int sizeM, int version,
         // Infinity norm version
         //-------------------------------------
 
-        gsl_vector *ymabs = gsl_vector_alloc(sizeM);
+        gsl_vector *ymabs = gsl_vector_calloc(sizeM);
         int maxIndex = 0;
         do
         {
@@ -1890,7 +1937,7 @@ void inversePowerMethod(gsl_matrix_complex *Minit, double prec, int sizeM, int v
     cout << "-----------------------------------------" << endl;
     cout << "Inverse Power method" << endl;
     cout << "-----------------------------------------" << endl;
-    gsl_matrix_complex* MLU = gsl_matrix_complex_alloc (sizeM, sizeM);
+    gsl_matrix_complex* MLU = gsl_matrix_complex_calloc (sizeM, sizeM);
     gsl_matrix_complex_memcpy(MLU, Minit);
 
     int s;
@@ -1898,7 +1945,7 @@ void inversePowerMethod(gsl_matrix_complex *Minit, double prec, int sizeM, int v
     gsl_linalg_complex_LU_decomp (MLU, p, &s);
 
     //Initial guess of the eigenvector of the stable direction
-    gsl_vector_complex *xm = gsl_vector_complex_alloc(sizeM);
+    gsl_vector_complex *xm = gsl_vector_complex_calloc(sizeM);
     for(int i=0; i<sizeM; i++) gsl_vector_complex_set(xm, i, one_c);
     gsl_complex ymnormc;
     for(int i=0; i<sizeM; i++) gsl_vector_complex_set(xm, i, one_c);
@@ -1920,10 +1967,10 @@ void inversePowerMethod(gsl_matrix_complex *Minit, double prec, int sizeM, int v
 
 
     //Loop
-    gsl_vector_complex *ym = gsl_vector_complex_alloc(sizeM);
-    gsl_vector_complex *dxm = gsl_vector_complex_alloc(sizeM);
+    gsl_vector_complex *ym = gsl_vector_complex_calloc(sizeM);
+    gsl_vector_complex *dxm = gsl_vector_complex_calloc(sizeM);
     gsl_complex lm;
-    gsl_complex lm_prec;
+    gsl_complex lm_prec = gslc_complex(0.0, 0.0);
     double dx;
     double dl;
     int iter = 0;
@@ -1982,7 +2029,7 @@ void inversePowerMethod(gsl_matrix_complex *Minit, double prec, int sizeM, int v
         // Infinity norm version
         //-------------------------------------
 
-        gsl_vector *ymabs = gsl_vector_alloc(sizeM);
+        gsl_vector *ymabs = gsl_vector_calloc(sizeM);
         int maxIndex = 0;
         do
         {
@@ -2056,12 +2103,12 @@ void shiftedPowerMethod(gsl_matrix_complex *Minit, double prec, int sizeM, int v
     cout << "Shifted Power method" << endl;
     cout << "-----------------------------------------" << endl;
     //lI = lambda_i*Id
-    gsl_matrix_complex* lI = gsl_matrix_complex_alloc (sizeM, sizeM);
+    gsl_matrix_complex* lI = gsl_matrix_complex_calloc (sizeM, sizeM);
     gsl_matrix_complex_set_zero(lI);
     for(int i = 0; i<sizeM; i++) gsl_matrix_complex_set(lI, i, i, shift);
 
     //MLU = M;
-    gsl_matrix_complex* MLU = gsl_matrix_complex_alloc (sizeM, sizeM);
+    gsl_matrix_complex* MLU = gsl_matrix_complex_calloc (sizeM, sizeM);
     gsl_matrix_complex_memcpy(MLU, Minit);
 
     //MLU-= lI
@@ -2074,7 +2121,7 @@ void shiftedPowerMethod(gsl_matrix_complex *Minit, double prec, int sizeM, int v
 
 
     //Initial guess of the eigenvector of the stable direction
-    gsl_vector_complex *xm = gsl_vector_complex_alloc(sizeM);
+    gsl_vector_complex *xm = gsl_vector_complex_calloc(sizeM);
     gsl_complex ymnormc;
 
     gsl_vector_complex_set(xm, 0, one_c);
@@ -2083,8 +2130,8 @@ void shiftedPowerMethod(gsl_matrix_complex *Minit, double prec, int sizeM, int v
     gsl_vector_complex_scale (xm, ymnormc);
 
     //Loop
-    gsl_vector_complex *ym = gsl_vector_complex_alloc(sizeM);
-    gsl_vector_complex *dxm = gsl_vector_complex_alloc(sizeM);
+    gsl_vector_complex *ym = gsl_vector_complex_calloc(sizeM);
+    gsl_vector_complex *dxm = gsl_vector_complex_calloc(sizeM);
     gsl_complex lm;
     double dx;
     int iter = 0;
@@ -2142,7 +2189,7 @@ void shiftedPowerMethod(gsl_matrix_complex *Minit, double prec, int sizeM, int v
         // Infinity norm version
         //-------------------------------------
 
-        gsl_vector *ymabs = gsl_vector_alloc(sizeM);
+        gsl_vector *ymabs = gsl_vector_calloc(sizeM);
         int maxIndex = 0;
         do
         {
@@ -2220,18 +2267,18 @@ void shiftedPowerMethodEigenvalueUpdate(gsl_matrix_complex *Minit, double prec, 
     cout << "Shifted Power method" << endl;
     cout << "-----------------------------------------" << endl;
     //lI = lambda_i*Id
-    gsl_matrix_complex* lI = gsl_matrix_complex_alloc (sizeM, sizeM);
+    gsl_matrix_complex* lI = gsl_matrix_complex_calloc (sizeM, sizeM);
 
     //MLU = M;
-    gsl_matrix_complex* MLU = gsl_matrix_complex_alloc (sizeM, sizeM);
+    gsl_matrix_complex* MLU = gsl_matrix_complex_calloc (sizeM, sizeM);
 
     //LU decomposition
     int s;
     gsl_permutation * p = gsl_permutation_alloc (sizeM);
 
     //Initial guess of the eigenvector
-    gsl_vector_complex *xm = gsl_vector_complex_alloc(sizeM);
-    gsl_vector_complex *zm = gsl_vector_complex_alloc(sizeM);
+    gsl_vector_complex *xm = gsl_vector_complex_calloc(sizeM);
+    gsl_vector_complex *zm = gsl_vector_complex_calloc(sizeM);
     gsl_complex ymnormc;
 
     gsl_vector_complex_set(xm, 0, one_c);
@@ -2242,8 +2289,8 @@ void shiftedPowerMethodEigenvalueUpdate(gsl_matrix_complex *Minit, double prec, 
     gsl_complex lmr = shift;
 
     //Loop
-    gsl_vector_complex *ym = gsl_vector_complex_alloc(sizeM);
-    gsl_vector_complex *dxm = gsl_vector_complex_alloc(sizeM);
+    gsl_vector_complex *ym = gsl_vector_complex_calloc(sizeM);
+    gsl_vector_complex *dxm = gsl_vector_complex_calloc(sizeM);
     gsl_complex lm;
     int iter = 0;
     double dx;
@@ -2330,7 +2377,7 @@ void gslMonoDecomp(gsl_odeiv2_driver *d, const double y0[], double tend, gsl_mat
     //----------------------------------------------------------------------------------------------------------
     //Eigenvectors & values from GSL routines
     //----------------------------------------------------------------------------------------------------------
-    gsl_matrix* monodromy_copy = gsl_matrix_alloc (6, 6);
+    gsl_matrix* monodromy_copy = gsl_matrix_calloc (6, 6);
     gsl_matrix_memcpy(monodromy_copy, gsl_MM);
     gsl_eigen_nonsymmv_workspace * w = gsl_eigen_nonsymmv_alloc (6);
     gsl_eigen_nonsymmv (monodromy_copy, eval, evec, w);
@@ -2385,21 +2432,21 @@ void vepro(gsl_matrix_complex **DAT, int M, gsl_matrix_complex **VECS, gsl_matri
     //Hyperbolic eigenvalues
     gsl_complex VAP1, VAP2, VAPL1, VAPL2;
     //VEP1 = [1, 0, 0, ..., 0]
-    gsl_vector_complex *VEP1 = gsl_vector_complex_alloc(6);
+    gsl_vector_complex *VEP1 = gsl_vector_complex_calloc(6);
     gsl_vector_complex_set_zero(VEP1);
     gsl_vector_complex_set(VEP1, 0, one_c);
     //VEP2 = [0, 1, 0, ..., 0]
-    gsl_vector_complex *VEP2 = gsl_vector_complex_alloc(6);
+    gsl_vector_complex *VEP2 = gsl_vector_complex_calloc(6);
     gsl_vector_complex_set_zero(VEP2);
     gsl_vector_complex_set(VEP2, 1, one_c);
     //Matrices and vectors
-    gsl_matrix *DECSr         = gsl_matrix_alloc(6, 6);
-    gsl_matrix_complex *DECSm = gsl_matrix_complex_alloc(6, 6);
-    gsl_matrix_complex *AUX   = gsl_matrix_complex_alloc(6, 6);
-    gsl_vector_complex *BUX1  = gsl_vector_complex_alloc(6);
-    gsl_vector_complex *BUX2  = gsl_vector_complex_alloc(6);
-    gsl_vector_complex *CUX1  = gsl_vector_complex_alloc(6);
-    gsl_vector_complex *CUX2  = gsl_vector_complex_alloc(6);
+    gsl_matrix *DECSr         = gsl_matrix_calloc(6, 6);
+    gsl_matrix_complex *DECSm = gsl_matrix_complex_calloc(6, 6);
+    gsl_matrix_complex *AUX   = gsl_matrix_complex_calloc(6, 6);
+    gsl_vector_complex *BUX1  = gsl_vector_complex_calloc(6);
+    gsl_vector_complex *BUX2  = gsl_vector_complex_calloc(6);
+    gsl_vector_complex *CUX1  = gsl_vector_complex_calloc(6);
+    gsl_vector_complex *CUX2  = gsl_vector_complex_calloc(6);
     //Temporary variables
     double **DELTA = dmatrix(0, 1, 0, M);
     double VN1, VN2, DEL;
@@ -2722,12 +2769,12 @@ void dipowers(gsl_matrix_complex **DAT, int M, int N, gsl_vector_complex *VEP, g
     //----------------------------------------------------------------------------------------------------------
     // Specific gsl tools for the dipowers routine
     //----------------------------------------------------------------------------------------------------------
-    gsl_matrix_complex *AUX = gsl_matrix_complex_alloc(N,N);
-    gsl_vector_complex *BUX = gsl_vector_complex_alloc(N);
-    gsl_vector_complex *CUX = gsl_vector_complex_alloc(N);
+    gsl_matrix_complex *AUX = gsl_matrix_complex_calloc(N,N);
+    gsl_vector_complex *BUX = gsl_vector_complex_calloc(N);
+    gsl_vector_complex *CUX = gsl_vector_complex_calloc(N);
     double VN;
-    gsl_complex VNinvC; //Inverse and complexified version of VN
-    gsl_complex VAPV;
+    gsl_complex VNinvC = gslc_complex(0.0, 0.0); //Inverse and complexified version of VN
+    gsl_complex VAPV = gslc_complex(0.0, 0.0);
     double DVAP;
 
     //For inverse power method, may not be used
@@ -2865,18 +2912,18 @@ void dipowers(gsl_matrix_complex **DAT, int M, int N, gsl_vector_complex *VEP, g
  **/
 void diahip(gsl_matrix_complex **VECS, double **DELTA, gsl_matrix_complex *DECS, int M, int isSameBase)
 {
-    gsl_matrix_complex *AUX   = gsl_matrix_complex_alloc(6, 6);
-    gsl_matrix_complex *A4M   = gsl_matrix_complex_alloc(4, 4);
-    gsl_matrix_complex *B4M   = gsl_matrix_complex_alloc(4, 4);
-    gsl_matrix_complex *ACM   = gsl_matrix_complex_alloc(4, 4);
+    gsl_matrix_complex *AUX   = gsl_matrix_complex_calloc(6, 6);
+    gsl_matrix_complex *A4M   = gsl_matrix_complex_calloc(4, 4);
+    gsl_matrix_complex *B4M   = gsl_matrix_complex_calloc(4, 4);
+    gsl_matrix_complex *ACM   = gsl_matrix_complex_calloc(4, 4);
 
-    gsl_vector_complex *BUX1  = gsl_vector_complex_alloc(6);
-    gsl_vector_complex *ALF   = gsl_vector_complex_alloc(6);
-    gsl_vector_complex *BET   = gsl_vector_complex_alloc(6);
-    gsl_vector_complex *VA    = gsl_vector_complex_alloc(4);
-    gsl_vector_complex *VB    = gsl_vector_complex_alloc(4);
-    gsl_vector_complex *ALF4  = gsl_vector_complex_alloc(4);
-    gsl_vector_complex *BET4  = gsl_vector_complex_alloc(4);
+    gsl_vector_complex *BUX1  = gsl_vector_complex_calloc(6);
+    gsl_vector_complex *ALF   = gsl_vector_complex_calloc(6);
+    gsl_vector_complex *BET   = gsl_vector_complex_calloc(6);
+    gsl_vector_complex *VA    = gsl_vector_complex_calloc(4);
+    gsl_vector_complex *VB    = gsl_vector_complex_calloc(4);
+    gsl_vector_complex *ALF4  = gsl_vector_complex_calloc(4);
+    gsl_vector_complex *BET4  = gsl_vector_complex_calloc(4);
 
 
     gsl_vector_complex_view VECS_V;
@@ -3023,10 +3070,10 @@ void diahip(gsl_matrix_complex **VECS, double **DELTA, gsl_matrix_complex *DECS,
 
 
     //Diag(ACM)
-    gsl_matrix *ACMr = gsl_matrix_alloc(4, 4);
+    gsl_matrix *ACMr = gsl_matrix_calloc(4, 4);
     gsl_eigen_nonsymmv_workspace * wr = gsl_eigen_nonsymmv_alloc(4);
-    gsl_matrix_complex *ACMv   = gsl_matrix_complex_alloc(4, 4);
-    gsl_vector_complex *ACMl   = gsl_vector_complex_alloc(4);
+    gsl_matrix_complex *ACMv   = gsl_matrix_complex_calloc(4, 4);
+    gsl_vector_complex *ACMl   = gsl_vector_complex_calloc(4);
     for(int i=0; i<4; i++) for(int j=0; j<4; j++) gsl_matrix_set(ACMr, i, j,  GSL_REAL(gsl_matrix_complex_get(ACM, i, j)));
     gsl_matrix_complex_set_zero(ACMv);
     gsl_eigen_nonsymmv (ACMr, ACMl, ACMv, wr);
@@ -3041,7 +3088,7 @@ void diahip(gsl_matrix_complex **VECS, double **DELTA, gsl_matrix_complex *DECS,
  **/
 void ortho(gsl_matrix_complex **VECS, int IK, int M)
 {
-    gsl_vector_complex *B = gsl_vector_complex_alloc(6);
+    gsl_vector_complex *B = gsl_vector_complex_calloc(6);
     gsl_vector_complex_view VECS_V;
     gsl_complex C = gslc_complex(0.0,0.0);
     gsl_complex temp1, temp2;
@@ -3121,35 +3168,35 @@ void diagcp(gsl_matrix_complex **DAT, gsl_matrix_complex *VECS_0, gsl_vector_com
     gsl_complex one_c  = gslc_complex(1.0, 0.0);
     gsl_complex zero_c = gslc_complex(0.0, 0.0);
     gsl_vector_complex_view VECS_V;
-    gsl_vector_complex *v1 = gsl_vector_complex_alloc(6);
-    gsl_vector_complex *v2 = gsl_vector_complex_alloc(6);
-    gsl_vector_complex *vu = gsl_vector_complex_alloc(6);
-    gsl_vector_complex *vs = gsl_vector_complex_alloc(6);
-    gsl_vector_complex *h1 = gsl_vector_complex_alloc(6);
-    gsl_vector_complex *h2 = gsl_vector_complex_alloc(6);
+    gsl_vector_complex *v1 = gsl_vector_complex_calloc(6);
+    gsl_vector_complex *v2 = gsl_vector_complex_calloc(6);
+    gsl_vector_complex *vu = gsl_vector_complex_calloc(6);
+    gsl_vector_complex *vs = gsl_vector_complex_calloc(6);
+    gsl_vector_complex *h1 = gsl_vector_complex_calloc(6);
+    gsl_vector_complex *h2 = gsl_vector_complex_calloc(6);
     int d1, d2;
     gsl_complex l1 , l1b, factor;
     int isItZCenter;
 
     //Result vector
-    gsl_vector_complex *V64     = gsl_vector_complex_alloc(4*6);
+    gsl_vector_complex *V64     = gsl_vector_complex_calloc(4*6);
     gsl_vector_complex_view V1  = gsl_vector_complex_subvector (V64 , 0  , 6);
     gsl_vector_complex_view V2  = gsl_vector_complex_subvector (V64 , 6  , 6);
     gsl_vector_complex_view V3  = gsl_vector_complex_subvector (V64 , 12 , 6);
     gsl_vector_complex_view V4  = gsl_vector_complex_subvector (V64 , 18 , 6);
-    gsl_vector_complex *H64     = gsl_vector_complex_alloc(4*6);
+    gsl_vector_complex *H64     = gsl_vector_complex_calloc(4*6);
     gsl_vector_complex_view H1  = gsl_vector_complex_subvector (H64 , 0  , 6);
     gsl_vector_complex_view H2  = gsl_vector_complex_subvector (H64 , 6  , 6);
     gsl_vector_complex_view H3  = gsl_vector_complex_subvector (H64 , 12 , 6);
     gsl_vector_complex_view H4  = gsl_vector_complex_subvector (H64 , 18 , 6);
     //Result matrix
-    gsl_matrix_complex *Mdiag   = gsl_matrix_complex_alloc(6, 6);
-    gsl_matrix_complex *Ldiag   = gsl_matrix_complex_alloc(6, 6);
+    gsl_matrix_complex *Mdiag   = gsl_matrix_complex_calloc(6, 6);
+    gsl_matrix_complex *Ldiag   = gsl_matrix_complex_calloc(6, 6);
     //M64 and M64i
-    gsl_matrix_complex *M64   = gsl_matrix_complex_alloc(4*6, 4*6);  //matrix M64
-    gsl_matrix_complex *M64i  = gsl_matrix_complex_alloc(4*6, 4*6);  //its inverse
-    gsl_matrix_complex *M64M64i = gsl_matrix_complex_alloc(4*6, 4*6);
-    gsl_matrix_complex *Id64 = gsl_matrix_complex_alloc(4*6, 4*6);
+    gsl_matrix_complex *M64   = gsl_matrix_complex_calloc(4*6, 4*6);  //matrix M64
+    gsl_matrix_complex *M64i  = gsl_matrix_complex_calloc(4*6, 4*6);  //its inverse
+    gsl_matrix_complex *M64M64i = gsl_matrix_complex_calloc(4*6, 4*6);
+    gsl_matrix_complex *Id64 = gsl_matrix_complex_calloc(4*6, 4*6);
 
     //------------------------------------------------------------------------------------------------------------------------
     // Set the hyperbolic directions in Mdiag/Ldiag
@@ -3266,9 +3313,9 @@ void diagcp(gsl_matrix_complex **DAT, gsl_matrix_complex *VECS_0, gsl_vector_com
 
 
         if(isItZCenter)
-        cout << "Z  center. |Id - M64*M64i|_inf = " << gslc_matrix_complex_infinity_norm(Id64) << endl;
+            cout << "Z  center. |Id - M64*M64i|_inf = " << gslc_matrix_complex_infinity_norm(Id64) << endl;
         else
-        cout << "XY center. |Id - M64*M64i|_inf = " << gslc_matrix_complex_infinity_norm(Id64) << endl;
+            cout << "XY center. |Id - M64*M64i|_inf = " << gslc_matrix_complex_infinity_norm(Id64) << endl;
 
 
         //--------------------------------------------------------------------------------------------------
@@ -3653,18 +3700,18 @@ void nfo2Int(gsl_odeiv2_driver *d,
     double n =  qbcp_l->us.n;
 
     //Allocation
-    gsl_matrix* Pb   = gsl_matrix_alloc (6, 6);
-    gsl_matrix* Pc   = gsl_matrix_alloc (6, 6);
+    gsl_matrix* Pb   = gsl_matrix_calloc (6, 6);
+    gsl_matrix* Pc   = gsl_matrix_calloc (6, 6);
     gsl_permutation * p6 = gsl_permutation_alloc (6);
 
-    gsl_matrix* Q1 = gsl_matrix_alloc (3, 3);
-    gsl_matrix* Q2 = gsl_matrix_alloc (3, 3);
-    gsl_matrix* Q3 = gsl_matrix_alloc (3, 3);
+    gsl_matrix* Q1 = gsl_matrix_calloc (3, 3);
+    gsl_matrix* Q2 = gsl_matrix_calloc (3, 3);
+    gsl_matrix* Q3 = gsl_matrix_calloc (3, 3);
 
-    gsl_matrix* AUX = gsl_matrix_alloc (3, 3);
-    gsl_matrix* BUX = gsl_matrix_alloc (3, 3);
-    gsl_matrix* CUX = gsl_matrix_alloc (3, 3);
-    gsl_matrix* DUX = gsl_matrix_alloc (6, 6);
+    gsl_matrix* AUX = gsl_matrix_calloc (3, 3);
+    gsl_matrix* BUX = gsl_matrix_calloc (3, 3);
+    gsl_matrix* CUX = gsl_matrix_calloc (3, 3);
+    gsl_matrix* DUX = gsl_matrix_calloc (6, 6);
 
     //--------------------------------------------------------------------------------------------------
     //Matrix views
@@ -4271,8 +4318,8 @@ void gslFFT_real(Ofsc &xFFT, int fftN, int N, gsl_vector *dEv, int parity)
     //--------------------------------------------------------------
     //FFT tools
     //--------------------------------------------------------------
-    gsl_vector_complex *data_complex = gsl_vector_complex_alloc(N);
-    gsl_vector *data = gsl_vector_alloc(N);
+    gsl_vector_complex *data_complex = gsl_vector_complex_calloc(N);
+    gsl_vector *data = gsl_vector_calloc(N);
     gsl_fft_real_wavetable * wavetable = gsl_fft_real_wavetable_alloc (N);
     gsl_fft_real_workspace * workspace = gsl_fft_real_workspace_alloc (N);
 
@@ -4424,7 +4471,7 @@ void nfo2FFT(Ofsc& xFFT, QBCP_L *qbcp_l, gsl_matrix** P, gsl_matrix** Pt,  int N
     // Init
     //-----------------------------------------
     //Storage vector
-    gsl_vector *dEv = gsl_vector_alloc(N);
+    gsl_vector *dEv = gsl_vector_calloc(N);
 
     //Storage tools (print in txt files)
     ofstream curentStream;
@@ -4487,7 +4534,7 @@ void nfo2FFT(Ofsc& xFFT, QBCP_L *qbcp_l, gsl_matrix** P, gsl_matrix** Pt,  int N
 void nfo2Test(Ofsc& xFFT, QBCP_L *qbcp_l, gsl_matrix** P, int fftPlot, int i0, int j0)
 {
     //Allocation
-    gsl_vector * xxL2 = gsl_vector_alloc(fftPlot);
+    gsl_vector * xxL2 = gsl_vector_calloc(fftPlot);
     double n =  qbcp_l->us.n;
     double t1 = qbcp_l->us.T;
     double ti = 0.0;
@@ -4515,9 +4562,9 @@ void nfo2Test(Ofsc& xFFT, QBCP_L *qbcp_l, gsl_matrix** P, int fftPlot, int i0, i
 void nfo2SympTest(gsl_odeiv2_driver *d, const double y0[], double t1, QBCP_L *qbcp_l, gsl_matrix* R)
 {
     //Allocation
-    gsl_matrix* Pb = gsl_matrix_alloc (6, 6);
-    gsl_matrix* Pi = gsl_matrix_alloc (6, 6);
-    gsl_matrix* Pf = gsl_matrix_alloc (6, 6);
+    gsl_matrix* Pb = gsl_matrix_calloc (6, 6);
+    gsl_matrix* Pi = gsl_matrix_calloc (6, 6);
+    gsl_matrix* Pf = gsl_matrix_calloc (6, 6);
 
     //Reset the driver
     gsl_odeiv2_driver_reset(d);
@@ -4564,9 +4611,9 @@ void nfo2SympTest(gsl_odeiv2_driver *d, const double y0[], double t1, QBCP_L *qb
 void nfo2PerTest(gsl_odeiv2_driver *d, const double y0[], QBCP_L *qbcp_l, gsl_matrix* R)
 {
     //Allocation
-    gsl_matrix* Pb = gsl_matrix_alloc (6, 6);
-    gsl_matrix* Pi = gsl_matrix_alloc (6, 6);
-    gsl_matrix* Pf = gsl_matrix_alloc (6, 6);
+    gsl_matrix* Pb = gsl_matrix_calloc (6, 6);
+    gsl_matrix* Pi = gsl_matrix_calloc (6, 6);
+    gsl_matrix* Pf = gsl_matrix_calloc (6, 6);
 
     //Reset the driver
     gsl_odeiv2_driver_reset(d);
@@ -4616,10 +4663,10 @@ void nfo2PerTest(gsl_odeiv2_driver *d, const double y0[], QBCP_L *qbcp_l, gsl_ma
 void nfo2SymTest(gsl_odeiv2_driver *d, const double y0[], QBCP_L *qbcp_l, gsl_matrix* R, int p, int N)
 {
     //Allocation
-    gsl_matrix* Pb  = gsl_matrix_alloc (6, 6);
-    gsl_matrix* Pi  = gsl_matrix_alloc (6, 6);
-    gsl_matrix* Pf  = gsl_matrix_alloc (6, 6);
-    gsl_matrix* Pfm = gsl_matrix_alloc (6, 6);
+    gsl_matrix* Pb  = gsl_matrix_calloc (6, 6);
+    gsl_matrix* Pi  = gsl_matrix_calloc (6, 6);
+    gsl_matrix* Pf  = gsl_matrix_calloc (6, 6);
+    gsl_matrix* Pfm = gsl_matrix_calloc (6, 6);
 
     //Reset the driver
     gsl_odeiv2_driver_reset(d);
@@ -4683,11 +4730,11 @@ void symplecticMatrixTest(const gsl_matrix_complex *M, int INVERSE_TYPE)
     gsl_complex one_c  = gslc_complex(1.0, 0.0);
     gsl_complex zero_c = gslc_complex(0.0, 0.0);
 
-    gsl_matrix_complex *J     = gsl_matrix_complex_alloc(2*n, 2*n);
-    gsl_matrix_complex *MH    = gsl_matrix_complex_alloc(2*n, 2*n);
-    gsl_matrix_complex *AUX   = gsl_matrix_complex_alloc(2*n, 2*n);
-    gsl_matrix_complex *BUX   = gsl_matrix_complex_alloc(2*n, 2*n);
-    gsl_matrix_complex *Mcopy = gsl_matrix_complex_alloc (2*n, 2*n);
+    gsl_matrix_complex *J     = gsl_matrix_complex_calloc(2*n, 2*n);
+    gsl_matrix_complex *MH    = gsl_matrix_complex_calloc(2*n, 2*n);
+    gsl_matrix_complex *AUX   = gsl_matrix_complex_calloc(2*n, 2*n);
+    gsl_matrix_complex *BUX   = gsl_matrix_complex_calloc(2*n, 2*n);
+    gsl_matrix_complex *Mcopy = gsl_matrix_complex_calloc (2*n, 2*n);
 
 
     //Transpose only
@@ -4778,11 +4825,11 @@ void realSymplecticMatrixTest(const gsl_matrix *M, int INVERSE_TYPE)
 
     int n = M->size1/2;
 
-    gsl_matrix *J     = gsl_matrix_alloc(2*n, 2*n);
-    gsl_matrix *MH    = gsl_matrix_alloc(2*n, 2*n);
-    gsl_matrix *AUX   = gsl_matrix_alloc(2*n, 2*n);
-    gsl_matrix *BUX   = gsl_matrix_alloc(2*n, 2*n);
-    gsl_matrix *Mcopy = gsl_matrix_alloc(2*n, 2*n);
+    gsl_matrix *J     = gsl_matrix_calloc(2*n, 2*n);
+    gsl_matrix *MH    = gsl_matrix_calloc(2*n, 2*n);
+    gsl_matrix *AUX   = gsl_matrix_calloc(2*n, 2*n);
+    gsl_matrix *BUX   = gsl_matrix_calloc(2*n, 2*n);
+    gsl_matrix *Mcopy = gsl_matrix_calloc(2*n, 2*n);
 
 
     //Transpose only
@@ -4860,8 +4907,8 @@ void eigenSystemTest(gsl_matrix_complex *Dm, gsl_matrix_complex *S, gsl_matrix_c
 {
     gsl_vector_complex_view evec_i;
     gsl_complex eval_i;
-    gsl_vector_complex *x = gsl_vector_complex_alloc(6);
-    gsl_matrix_complex *MMc = gsl_matrix_complex_alloc(6, 6);
+    gsl_vector_complex *x = gsl_vector_complex_calloc(6);
+    gsl_matrix_complex *MMc = gsl_matrix_complex_calloc(6, 6);
     //MMc = monodromy matrix from DAT
     monoProd(MMc, DAT, M);
 
@@ -4931,12 +4978,12 @@ void changeOfBase(gsl_matrix_complex *MMc_estimate, gsl_matrix_complex *Dm, gsl_
     gsl_complex one_c  = gslc_complex(1.0, 0.0);
     gsl_complex zero_c = gslc_complex(0.0, 0.0);
 
-    gsl_matrix_complex *AUX = gsl_matrix_complex_alloc(2*n, 2*n);
-    gsl_matrix_complex *BUX = gsl_matrix_complex_alloc(2*n, 2*n);
-    gsl_matrix_complex *Sinv = gsl_matrix_complex_alloc(2*n, 2*n);
-    gsl_matrix_complex *SLU = gsl_matrix_complex_alloc (2*n, 2*n);
+    gsl_matrix_complex *AUX = gsl_matrix_complex_calloc(2*n, 2*n);
+    gsl_matrix_complex *BUX = gsl_matrix_complex_calloc(2*n, 2*n);
+    gsl_matrix_complex *Sinv = gsl_matrix_complex_calloc(2*n, 2*n);
+    gsl_matrix_complex *SLU = gsl_matrix_complex_calloc (2*n, 2*n);
     gsl_vector_complex_view evec_i;
-    gsl_vector_complex *x = gsl_vector_complex_alloc(6);
+    gsl_vector_complex *x = gsl_vector_complex_calloc(6);
 
     //Inverse
     int s;
@@ -4979,7 +5026,7 @@ void changeOfBase(gsl_matrix_complex *MMc_estimate, gsl_matrix_complex *Dm, gsl_
     gslc_matrix_complex_printf_real(BUX);
 
 
-    gsl_matrix_complex *SDm  = gsl_matrix_complex_alloc(6, 6);
+    gsl_matrix_complex *SDm  = gsl_matrix_complex_calloc(6, 6);
     gsl_blas_zgemm (CblasNoTrans, CblasNoTrans, one_c , S, Dm , zero_c , SDm);
     gsl_blas_zgemm (CblasNoTrans, CblasNoTrans, one_c , SDm , Sinv, zero_c , MMc_estimate);
     cout << "---------------------------------------------" << endl;
@@ -5006,10 +5053,10 @@ void changeOfBaseSingleMatrix(gsl_matrix_complex *Dm, gsl_matrix_complex *M, gsl
     gsl_complex zero_c = gslc_complex(0.0, 0.0);
 
 
-    gsl_matrix_complex *AUX = gsl_matrix_complex_alloc(n, n);
-    gsl_matrix_complex *BUX = gsl_matrix_complex_alloc(n, n);
-    gsl_matrix_complex *Sinv = gsl_matrix_complex_alloc(n, n);
-    gsl_matrix_complex *SLU = gsl_matrix_complex_alloc (n, n);
+    gsl_matrix_complex *AUX = gsl_matrix_complex_calloc(n, n);
+    gsl_matrix_complex *BUX = gsl_matrix_complex_calloc(n, n);
+    gsl_matrix_complex *Sinv = gsl_matrix_complex_calloc(n, n);
+    gsl_matrix_complex *SLU = gsl_matrix_complex_calloc (n, n);
 
     //Inverse
     int s;
@@ -5083,11 +5130,11 @@ void wielandt_deflation(gsl_matrix_complex *MMc,
                         gsl_vector_complex *evalr)
 {
     gsl_eigen_nonsymmv_workspace * wr = gsl_eigen_nonsymmv_alloc(6);     //workspace for eigenspaces determination
-    gsl_matrix_complex *AUX   = gsl_matrix_complex_alloc(6, 6);          //auxiliary matrix
-    gsl_matrix_complex *BUX   = gsl_matrix_complex_alloc(6, 6);          //auxiliary matrix
-    gsl_matrix *Breal         = gsl_matrix_alloc(6, 6);                  //auxiliary matrix
-    gsl_vector_complex *vux   = gsl_vector_complex_alloc(6);             //auxiliary vector
-    gsl_vector* eigenVabs     = gsl_vector_alloc(6);                     //abs(eigenVu)
+    gsl_matrix_complex *AUX   = gsl_matrix_complex_calloc(6, 6);          //auxiliary matrix
+    gsl_matrix_complex *BUX   = gsl_matrix_complex_calloc(6, 6);          //auxiliary matrix
+    gsl_matrix *Breal         = gsl_matrix_calloc(6, 6);                  //auxiliary matrix
+    gsl_vector_complex *vux   = gsl_vector_complex_calloc(6);             //auxiliary vector
+    gsl_vector* eigenVabs     = gsl_vector_calloc(6);                     //abs(eigenVu)
     int maxIndex;
     gsl_complex lambda;
 
@@ -5140,8 +5187,8 @@ double eigenfunk(double p[], double b[], double c, void * params)
 {
     gsl_complex one_c  = gslc_complex(1.0, 0.0);
     gsl_complex zero_c = gslc_complex(0.0, 0.0);
-    gsl_vector_complex *x = gsl_vector_complex_alloc(6);
-    gsl_vector_complex *y = gsl_vector_complex_alloc(6);
+    gsl_vector_complex *x = gsl_vector_complex_calloc(6);
+    gsl_vector_complex *y = gsl_vector_complex_calloc(6);
 
     //Monodromy matrix is in params
     gsl_matrix_complex *Mc = (gsl_matrix_complex *) params;
@@ -5180,10 +5227,10 @@ void deigenfunk(double p[], double df[], double b[], double c, void *params )
     gsl_complex one_c  = gslc_complex(1.0, 0.0);
     gsl_complex zero_c = gslc_complex(0.0, 0.0);
     gsl_complex temp;
-    gsl_vector_complex *x    = gsl_vector_complex_alloc(6);
-    gsl_vector_complex *y    = gsl_vector_complex_alloc(6);
-    gsl_vector_complex *dfg   = gsl_vector_complex_alloc(6);
-    gsl_matrix_complex *dydx = gsl_matrix_complex_alloc(6, 6);
+    gsl_vector_complex *x    = gsl_vector_complex_calloc(6);
+    gsl_vector_complex *y    = gsl_vector_complex_calloc(6);
+    gsl_vector_complex *dfg   = gsl_vector_complex_calloc(6);
+    gsl_matrix_complex *dydx = gsl_matrix_complex_calloc(6, 6);
 
     //Monodromy matrix is in params
     gsl_matrix_complex *Mc = (gsl_matrix_complex *) params;

@@ -114,7 +114,7 @@ void gslc_matrix_printf(const gsl_matrix *M)
 
     for(int i = 0; i < im ; i++)
     {
-        for(int j=0; j <jm; j++) printf("%+5.5e ", gsl_matrix_get(M, i, j));
+        for(int j=0; j <jm; j++) printf("%+5.15e ", gsl_matrix_get(M, i, j));
         printf("\n");
     }
 }
@@ -328,6 +328,18 @@ void gslc_vector_complex_printf(const gsl_vector_complex *V)
 }
 
 //---------------------------------------------------------------------------------------
+// Printing a vector
+//---------------------------------------------------------------------------------------
+/**
+ * \brief Print a real vector.
+ **/
+void gslc_vector_printf(const gsl_vector *V)
+{
+    int im = V->size;
+    for(int i = 0; i < im ; i++) printf("%+5.15e \n", gsl_vector_get(V, i));
+}
+
+//---------------------------------------------------------------------------------------
 // Printing an eigensystem
 //---------------------------------------------------------------------------------------
 /**
@@ -507,7 +519,7 @@ double gslc_matrix_complex_infinity_norm(gsl_matrix_complex *M)
     int irow = M->size1;
     int icol = M->size2;
     //Mr = |M|
-    gsl_matrix *Mr = gsl_matrix_alloc(irow, icol);
+    gsl_matrix *Mr = gsl_matrix_calloc(irow, icol);
     for(int i = 0; i < irow; i++)
     for(int j = 0; j < icol; j++) gsl_matrix_set(Mr, i, j, gsl_complex_abs(gsl_matrix_complex_get(M, i, j)));
     //maxr = max (Mr)
@@ -569,7 +581,7 @@ gsl_matrix_complex * gslc_matrix_complex_deleteRC(gsl_matrix_complex *M, int k)
     else
     {
         int im = (int)M->size1;
-        gsl_matrix_complex *result = gsl_matrix_complex_alloc(im-1, im-1);
+        gsl_matrix_complex *result = gsl_matrix_complex_calloc(im-1, im-1);
 
         if(k == 0)
         {
@@ -614,7 +626,7 @@ void gslc_wielandt_inv_trans(gsl_vector_complex *w, gsl_complex vw, gsl_vector_c
 {
     gsl_complex lm;
     gsl_complex lm2;
-    gsl_vector_complex *xc = gsl_vector_complex_alloc(x->size);
+    gsl_vector_complex *xc = gsl_vector_complex_calloc(x->size);
 
     //lm2 = vx/(vw-vx)
     lm2 = gsl_complex_sub(vw, vx);
@@ -650,7 +662,7 @@ void gslc_matrix_complex_symplectic_inverse(const gsl_matrix_complex *S0, gsl_ma
 
     gsl_complex minus_one_c = gslc_complex(-1.0, 0.0);
 
-    gsl_matrix_complex *S = gsl_matrix_complex_alloc (2*n, 2*n);
+    gsl_matrix_complex *S = gsl_matrix_complex_calloc (2*n, 2*n);
     gsl_matrix_complex_memcpy(S, S0);
 
     //--------------------------------------------------------------------------------------------------
@@ -674,7 +686,7 @@ void gslc_matrix_complex_symplectic_inverse(const gsl_matrix_complex *S0, gsl_ma
     // Storage
     //--------------------------------------------------------------------------------------------------
     //Sij_m = -S12
-    gsl_matrix_complex *Sij_m = gsl_matrix_complex_alloc (n, n);
+    gsl_matrix_complex *Sij_m = gsl_matrix_complex_calloc (n, n);
     gsl_matrix_complex_memcpy(Sij_m, &S12.matrix);
     gsl_matrix_complex_scale(Sij_m, minus_one_c);
     //Sinv12 = -S12^T = Sij_m^T
@@ -705,7 +717,7 @@ void gslc_matrix_complex_symplectic_inverse(const gsl_matrix_complex *S0, gsl_ma
 void gslc_matrix_symplectic_inverse(const gsl_matrix *S0, gsl_matrix *Sinv)
 {
     int n = S0->size1/2;
-    gsl_matrix *S = gsl_matrix_alloc (2*n, 2*n);
+    gsl_matrix *S = gsl_matrix_calloc (2*n, 2*n);
     gsl_matrix_memcpy(S, S0);
 
     //--------------------------------------------------------------------------------------------------
@@ -729,7 +741,7 @@ void gslc_matrix_symplectic_inverse(const gsl_matrix *S0, gsl_matrix *Sinv)
     // Storage
     //--------------------------------------------------------------------------------------------------
     //Sij_m = -S12
-    gsl_matrix *Sij_m = gsl_matrix_alloc (n, n);
+    gsl_matrix *Sij_m = gsl_matrix_calloc (n, n);
     gsl_matrix_memcpy(Sij_m, &S12.matrix);
     gsl_matrix_scale(Sij_m, -1.0);
     //Sinv12 = -S12^T = Sij_m^T
@@ -845,8 +857,8 @@ void gslc_matrix_vector_product(gsl_matrix_complex **DAT, const gsl_vector_compl
     gsl_complex one_c  = gslc_complex(1.0, 0.0);
     gsl_complex zero_c = gslc_complex(0.0, 0.0);
 
-    gsl_vector_complex *ym1 = gsl_vector_complex_alloc(6);
-    gsl_vector_complex *ym2 = gsl_vector_complex_alloc(6);
+    gsl_vector_complex *ym1 = gsl_vector_complex_calloc(6);
+    gsl_vector_complex *ym2 = gsl_vector_complex_calloc(6);
 
     //ym1 = xm
     gsl_vector_complex_memcpy(ym1, xm);
@@ -876,8 +888,8 @@ void gslc_matrix_matrix_product(gsl_matrix_complex **DAT, const gsl_matrix_compl
     gsl_complex one_c  = gslc_complex(1.0, 0.0);
     gsl_complex zero_c = gslc_complex(0.0, 0.0);
 
-    gsl_matrix_complex *ym1 = gsl_matrix_complex_alloc(6,6);
-    gsl_matrix_complex *ym2 = gsl_matrix_complex_alloc(6,6);
+    gsl_matrix_complex *ym1 = gsl_matrix_complex_calloc(6,6);
+    gsl_matrix_complex *ym2 = gsl_matrix_complex_calloc(6,6);
 
     //ym1 = xm
     gsl_matrix_complex_memcpy(ym1, xm);
@@ -906,9 +918,9 @@ void gslc_matrix_vector_invproduct(gsl_matrix_complex **DAT,  const gsl_vector_c
 {
     int s;
     gsl_permutation * p = gsl_permutation_alloc (6);
-    gsl_matrix_complex *AUX = gsl_matrix_complex_alloc(6,6);
-    gsl_vector_complex *ym1 = gsl_vector_complex_alloc(6);
-    gsl_vector_complex *ym2 = gsl_vector_complex_alloc(6);
+    gsl_matrix_complex *AUX = gsl_matrix_complex_calloc(6,6);
+    gsl_vector_complex *ym1 = gsl_vector_complex_calloc(6);
+    gsl_vector_complex *ym2 = gsl_vector_complex_calloc(6);
 
     //ym1 = xm
     gsl_vector_complex_memcpy(ym1, xm);
@@ -943,7 +955,7 @@ gsl_matrix_complex ** gslc_matrix_complex_product_alloc(int size1, int size2, in
 
     for(int i = 0; i<= M; i++)
     {
-        DAT[i] = gsl_matrix_complex_alloc(size1,size2);
+        DAT[i] = gsl_matrix_complex_calloc(size1,size2);
         gsl_matrix_complex_set_zero(DAT[i]);
     }
 
@@ -971,7 +983,7 @@ gsl_matrix ** gslc_matrix_array_alloc(int size1, int size2, int M)
 
     for(int i = 0; i< M; i++)
     {
-        DAT[i] = gsl_matrix_alloc(size1,size2);
+        DAT[i] = gsl_matrix_calloc(size1,size2);
         gsl_matrix_set_zero(DAT[i]);
     }
 

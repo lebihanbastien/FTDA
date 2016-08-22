@@ -190,7 +190,7 @@ void tfts_initCOC(matrix<Ofsc> &P,
         //Check symplectic nature of P
         //--------------------
         /*
-        gsl_matrix *Ps = gsl_matrix_alloc(6,6);
+        gsl_matrix *Ps = gsl_matrix_calloc(6,6);
         for(int i = 0; i <6; i++)
         {
             for(int j = 0; j <6; j++)
@@ -206,8 +206,8 @@ void tfts_initCOC(matrix<Ofsc> &P,
         //Q = inv(P) (gsl lib)
         //--------------------
         int s;
-        gsl_matrix* Pc   = gsl_matrix_alloc (NV, NV);
-        gsl_matrix* Qc   = gsl_matrix_alloc (NV, NV);
+        gsl_matrix* Pc   = gsl_matrix_calloc (NV, NV);
+        gsl_matrix* Qc   = gsl_matrix_calloc (NV, NV);
         gsl_permutation * p6 = gsl_permutation_alloc (NV);
 
         //Init Pc
@@ -493,7 +493,7 @@ void initCOC(matrix<Ofsc> &P,
         //Check symplectic nature of P
         //--------------------
         /*
-        gsl_matrix *Ps = gsl_matrix_alloc(6,6);
+        gsl_matrix *Ps = gsl_matrix_calloc(6,6);
         for(int i = 0; i <6; i++)
         {
             for(int j = 0; j <6; j++)
@@ -509,8 +509,8 @@ void initCOC(matrix<Ofsc> &P,
         //Q = inv(P) (gsl lib)
         //--------------------
         int s;
-        gsl_matrix* Pc   = gsl_matrix_alloc (NV, NV);
-        gsl_matrix* Qc   = gsl_matrix_alloc (NV, NV);
+        gsl_matrix* Pc   = gsl_matrix_calloc (NV, NV);
+        gsl_matrix* Qc   = gsl_matrix_calloc (NV, NV);
         gsl_permutation * p6 = gsl_permutation_alloc (NV);
 
         //Init Pc
@@ -1000,8 +1000,8 @@ void initCOC_OFS(matrix<Ofsc> &P,
         //Q = inv(P) (gsl lib)
         //--------------------
         int s;
-        gsl_matrix* Pc   = gsl_matrix_alloc (NV, NV);
-        gsl_matrix* Qc   = gsl_matrix_alloc (NV, NV);
+        gsl_matrix* Pc   = gsl_matrix_calloc (NV, NV);
+        gsl_matrix* Qc   = gsl_matrix_calloc (NV, NV);
         gsl_permutation * p6 = gsl_permutation_alloc (NV);
 
         //Init Pc

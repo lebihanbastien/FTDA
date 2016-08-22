@@ -29,7 +29,7 @@ const std::string SEPR = "---------------------------------------------------";
  **/
 void coutmp()
 {
-    cout <<  setw(5) << setprecision(5) << std::showpos  <<  setiosflags(ios::scientific);
+    cout <<  setprecision(5) << std::showpos  <<  setiosflags(ios::scientific);
 }
 
 /**
@@ -37,7 +37,7 @@ void coutmp()
  **/
 void coutlp()
 {
-    cout <<  setw(5) << setprecision(15) << std::showpos  <<  setiosflags(ios::scientific);
+    cout <<   setprecision(15) << std::showpos  <<  setiosflags(ios::scientific);
 }
 
 /**
@@ -45,7 +45,7 @@ void coutlp()
  **/
 void coutsp()
 {
-    cout <<  setw(5) << setprecision(3) << resetiosflags(ios::scientific);
+    cout <<   setprecision(3) << resetiosflags(ios::scientific);
 }
 
 //------------------------------------------------------------------------------------

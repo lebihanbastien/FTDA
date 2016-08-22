@@ -20,9 +20,9 @@ library(grid)
 #------------------------------------------------
 # Load Source files
 #------------------------------------------------
-source("source/source_folder.R")
-source("source/source_plot.R")
-source("source/source_routines.R")
+source("source/folder.R")
+source("source/plot.R")
+source("source/routines.R")
 
 #------------------------------------------------
 # Select Models & libration point
@@ -107,11 +107,16 @@ for (i in vorders)  #loop on the orders
 # new columns
 #--------------------
 # From NC to EM units
+tmdf = NCtoSYS(tmdf, gamma, c1)
+# From NC to C units
 tmdf = NCtoC(tmdf, gamma)
-# From EM to physical units
+# From C to physical units
 tmdf = CtoPH(tmdf, L)
+# From SYS to physical units
+tmdf = SYStoPH(tmdf, L)
 # Radii from Li
 tmdf$rNC = sqrt(tmdf$x^2+tmdf$y^2+tmdf$z^2)
+tmdf$rC = sqrt(tmdf$xC^2+tmdf$yC^2+tmdf$zC^2)
 tmdf$rPH = sqrt(tmdf$xPH^2+tmdf$yPH^2+tmdf$zPH^2)
 #Parity of event
 tmdf$parity = tmdf$number%%2

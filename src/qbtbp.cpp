@@ -1515,10 +1515,10 @@ void qbtbp_ofs_storage(   Ofts< Ofsd > &zr_ofts,     //zr_ofts = normalized Eart
 void qbtbp_ofs_fft_unpack(gsl_vector *xGSL0, string filename, int nf, int N, int flag)
 {
     //Copy of xGSL0 into temp vector
-    gsl_vector *xGSL = gsl_vector_alloc(N);
+    gsl_vector *xGSL = gsl_vector_calloc(N);
     gsl_vector_memcpy(xGSL, xGSL0);
 
-    gsl_vector_complex *data_complex = gsl_vector_complex_alloc(N);
+    gsl_vector_complex *data_complex = gsl_vector_complex_calloc(N);
     gsl_fft_real_wavetable * wavetable = gsl_fft_real_wavetable_alloc (N);
     gsl_fft_real_workspace * workspace = gsl_fft_real_workspace_alloc (N);
     Ofsc xFFT(nf);
@@ -1668,43 +1668,47 @@ void qbtbp_ofs_fft_alpha( Ofts< Ofsd > &zt,     //zt = normalized Earth-Moon mot
     //--------------------------
     // GSL objects
     //--------------------------
-    gsl_vector *gsl_alpha1  = gsl_vector_alloc(N);
-    gsl_vector *gsl_alpha2  = gsl_vector_alloc(N);
-    gsl_vector *gsl_alpha3  = gsl_vector_alloc(N);
-    gsl_vector *gsl_alpha4  = gsl_vector_alloc(N);
-    gsl_vector *gsl_alpha5  = gsl_vector_alloc(N);
-    gsl_vector *gsl_alpha6  = gsl_vector_alloc(N);
-    gsl_vector *gsl_alpha7  = gsl_vector_alloc(N);
-    gsl_vector *gsl_alpha8  = gsl_vector_alloc(N);
-    gsl_vector *gsl_alpha9  = gsl_vector_alloc(N);
-    gsl_vector *gsl_alpha10 = gsl_vector_alloc(N);
-    gsl_vector *gsl_alpha11 = gsl_vector_alloc(N);
-    gsl_vector *gsl_alpha12 = gsl_vector_alloc(N);
-    gsl_vector *gsl_alpha13 = gsl_vector_alloc(N);
-    gsl_vector *gsl_alpha14 = gsl_vector_alloc(N);
+    gsl_vector *gsl_alpha1  = gsl_vector_calloc(N);
+    gsl_vector *gsl_alpha2  = gsl_vector_calloc(N);
+    gsl_vector *gsl_alpha3  = gsl_vector_calloc(N);
+    gsl_vector *gsl_alpha4  = gsl_vector_calloc(N);
+    gsl_vector *gsl_alpha5  = gsl_vector_calloc(N);
+    gsl_vector *gsl_alpha6  = gsl_vector_calloc(N);
+    gsl_vector *gsl_alpha7  = gsl_vector_calloc(N);
+    gsl_vector *gsl_alpha8  = gsl_vector_calloc(N);
+    gsl_vector *gsl_alpha9  = gsl_vector_calloc(N);
+    gsl_vector *gsl_alpha10 = gsl_vector_calloc(N);
+    gsl_vector *gsl_alpha11 = gsl_vector_calloc(N);
+    gsl_vector *gsl_alpha12 = gsl_vector_calloc(N);
+    gsl_vector *gsl_alpha13 = gsl_vector_calloc(N);
+    gsl_vector *gsl_alpha14 = gsl_vector_calloc(N);
+    //rq: alpha15 is let equal to zero because of BCP vector field
+    gsl_vector *gsl_alpha16 = gsl_vector_calloc(N);
+    gsl_vector *gsl_alpha17 = gsl_vector_calloc(N);
+    gsl_vector *gsl_alpha18 = gsl_vector_calloc(N);
 
     //Redundancy for the positions of the primaries
-    gsl_vector *gsl_Xe = gsl_vector_alloc(N);
-    gsl_vector *gsl_Ye = gsl_vector_alloc(N);
-    gsl_vector *gsl_Ze = gsl_vector_alloc(N);
-    gsl_vector *gsl_Xm = gsl_vector_alloc(N);
-    gsl_vector *gsl_Ym = gsl_vector_alloc(N);
-    gsl_vector *gsl_Zm = gsl_vector_alloc(N);
-    gsl_vector *gsl_Xs = gsl_vector_alloc(N);
-    gsl_vector *gsl_Ys = gsl_vector_alloc(N);
-    gsl_vector *gsl_Zs = gsl_vector_alloc(N);
+    gsl_vector *gsl_Xe = gsl_vector_calloc(N);
+    gsl_vector *gsl_Ye = gsl_vector_calloc(N);
+    gsl_vector *gsl_Ze = gsl_vector_calloc(N);
+    gsl_vector *gsl_Xm = gsl_vector_calloc(N);
+    gsl_vector *gsl_Ym = gsl_vector_calloc(N);
+    gsl_vector *gsl_Zm = gsl_vector_calloc(N);
+    gsl_vector *gsl_Xs = gsl_vector_calloc(N);
+    gsl_vector *gsl_Ys = gsl_vector_calloc(N);
+    gsl_vector *gsl_Zs = gsl_vector_calloc(N);
 
 
     //Positions of the primaries in NC coordinates
-    gsl_vector *gsl_xe = gsl_vector_alloc(N);
-    gsl_vector *gsl_ye = gsl_vector_alloc(N);
-    gsl_vector *gsl_ze = gsl_vector_alloc(N);
-    gsl_vector *gsl_xm = gsl_vector_alloc(N);
-    gsl_vector *gsl_ym = gsl_vector_alloc(N);
-    gsl_vector *gsl_zm = gsl_vector_alloc(N);
-    gsl_vector *gsl_xs = gsl_vector_alloc(N);
-    gsl_vector *gsl_ys = gsl_vector_alloc(N);
-    gsl_vector *gsl_zs = gsl_vector_alloc(N);
+    gsl_vector *gsl_xe = gsl_vector_calloc(N);
+    gsl_vector *gsl_ye = gsl_vector_calloc(N);
+    gsl_vector *gsl_ze = gsl_vector_calloc(N);
+    gsl_vector *gsl_xm = gsl_vector_calloc(N);
+    gsl_vector *gsl_ym = gsl_vector_calloc(N);
+    gsl_vector *gsl_zm = gsl_vector_calloc(N);
+    gsl_vector *gsl_xs = gsl_vector_calloc(N);
+    gsl_vector *gsl_ys = gsl_vector_calloc(N);
+    gsl_vector *gsl_zs = gsl_vector_calloc(N);
 
     //--------------------------
     //Inner double variables
@@ -1724,6 +1728,10 @@ void qbtbp_ofs_fft_alpha( Ofts< Ofsd > &zt,     //zt = normalized Earth-Moon mot
     double alpha12i;
     double alpha13i;
     double alpha14i;
+    //rq: alpha15 is let equal to zero because of BCP vector field
+    double alpha16i;
+    double alpha17i;
+    double alpha18i;
 
     double Ze[3], Zm[3], Zs[3];
     double ze[3], zm[3], zs[3];
@@ -1789,6 +1797,12 @@ void qbtbp_ofs_fft_alpha( Ofts< Ofsd > &zt,     //zt = normalized Earth-Moon mot
         alpha13i = -(alphati*alphati*(alpha2doti*alpha1i - alpha1doti*alpha2i)+ alphati*(alpha2i*alpha2i+alpha3i*alpha3i))*c1 + alpha4i/gamma;
         alpha14i =   alphati*alphati*(alpha3doti*alpha1i - alpha1doti*alpha3i)*c1 + alpha5i/gamma;
 
+        //Alpha16i
+        alpha16i = alpha2doti - alpha2i*alpha1doti/alpha1i + alpha2i*alpha2i + alpha3i*alpha3i;
+        //Alpha17i
+        alpha17i = alpha3doti - alpha3i*alpha1doti/alpha1i;
+        //Alpha18i
+        alpha18i = alpha1doti/alpha1i;
 
         //---------------
         // The primaries, again
@@ -1829,6 +1843,10 @@ void qbtbp_ofs_fft_alpha( Ofts< Ofsd > &zt,     //zt = normalized Earth-Moon mot
         gsl_vector_set(gsl_alpha12, i, alpha12i);
         gsl_vector_set(gsl_alpha13, i, alpha13i);
         gsl_vector_set(gsl_alpha14, i, alpha14i);
+
+        gsl_vector_set(gsl_alpha16, i, alpha16i);
+        gsl_vector_set(gsl_alpha17, i, alpha17i);
+        gsl_vector_set(gsl_alpha18, i, alpha18i);
 
         //---------------
         //Primary, EM coordinates
@@ -1883,6 +1901,11 @@ void qbtbp_ofs_fft_alpha( Ofts< Ofsd > &zt,     //zt = normalized Earth-Moon mot
     //NC additional coef
     qbtbp_ofs_fft_unpack(gsl_alpha13, qbcp_l.cs_em.F_COEF+"alpha13",  nf, N, 1);
     qbtbp_ofs_fft_unpack(gsl_alpha14, qbcp_l.cs_em.F_COEF+"alpha14",  nf, N, 0);
+    //VF with velocity additional coef
+    qbtbp_ofs_fft_unpack(gsl_alpha16, qbcp_l.cs_em.F_COEF+"alpha16",  nf, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_alpha17, qbcp_l.cs_em.F_COEF+"alpha17",  nf, N, 0);
+    qbtbp_ofs_fft_unpack(gsl_alpha18, qbcp_l.cs_em.F_COEF+"alpha18",  nf, N, 0);
+
 
     //---------------
     //Primary, EM coordinates
@@ -1937,6 +1960,9 @@ void qbtbp_ofs_fft_alpha( Ofts< Ofsd > &zt,     //zt = normalized Earth-Moon mot
     gsl_vector_free(gsl_alpha12);
     gsl_vector_free(gsl_alpha13);
     gsl_vector_free(gsl_alpha14);
+    gsl_vector_free(gsl_alpha16);
+    gsl_vector_free(gsl_alpha17);
+    gsl_vector_free(gsl_alpha18);
     gsl_vector_free(gsl_Xe);
     gsl_vector_free(gsl_Ye);
     gsl_vector_free(gsl_Ze);
@@ -2040,44 +2066,48 @@ void qbtbp_ofs_fft_delta(Ofts< Ofsd > &zt,     //zt = normalized Earth-Moon moti
     //--------------------------
     // GSL objects
     //--------------------------
-    gsl_vector *gsl_delta1  = gsl_vector_alloc(N);
-    gsl_vector *gsl_delta2  = gsl_vector_alloc(N);
-    gsl_vector *gsl_delta3  = gsl_vector_alloc(N);
-    gsl_vector *gsl_delta4  = gsl_vector_alloc(N);
-    gsl_vector *gsl_delta5  = gsl_vector_alloc(N);
-    gsl_vector *gsl_delta6  = gsl_vector_alloc(N);
-    gsl_vector *gsl_delta7  = gsl_vector_alloc(N);
-    gsl_vector *gsl_delta8  = gsl_vector_alloc(N);
-    gsl_vector *gsl_delta9  = gsl_vector_alloc(N);
-    gsl_vector *gsl_delta10 = gsl_vector_alloc(N);
-    gsl_vector *gsl_delta11 = gsl_vector_alloc(N);
-    gsl_vector *gsl_delta12 = gsl_vector_alloc(N);
-    gsl_vector *gsl_delta13 = gsl_vector_alloc(N);
-    gsl_vector *gsl_delta14 = gsl_vector_alloc(N);
+    gsl_vector *gsl_delta1  = gsl_vector_calloc(N);
+    gsl_vector *gsl_delta2  = gsl_vector_calloc(N);
+    gsl_vector *gsl_delta3  = gsl_vector_calloc(N);
+    gsl_vector *gsl_delta4  = gsl_vector_calloc(N);
+    gsl_vector *gsl_delta5  = gsl_vector_calloc(N);
+    gsl_vector *gsl_delta6  = gsl_vector_calloc(N);
+    gsl_vector *gsl_delta7  = gsl_vector_calloc(N);
+    gsl_vector *gsl_delta8  = gsl_vector_calloc(N);
+    gsl_vector *gsl_delta9  = gsl_vector_calloc(N);
+    gsl_vector *gsl_delta10 = gsl_vector_calloc(N);
+    gsl_vector *gsl_delta11 = gsl_vector_calloc(N);
+    gsl_vector *gsl_delta12 = gsl_vector_calloc(N);
+    gsl_vector *gsl_delta13 = gsl_vector_calloc(N);
+    gsl_vector *gsl_delta14 = gsl_vector_calloc(N);
+    //rq: delta15 is let equal to zero because of BCP vector field
+    gsl_vector *gsl_delta16 = gsl_vector_calloc(N);
+    gsl_vector *gsl_delta17 = gsl_vector_calloc(N);
+    gsl_vector *gsl_delta18 = gsl_vector_calloc(N);
 
 
     //Redundancy for the positions of the primaries
-    gsl_vector *gsl_Xe = gsl_vector_alloc(N);
-    gsl_vector *gsl_Ye = gsl_vector_alloc(N);
-    gsl_vector *gsl_Ze = gsl_vector_alloc(N);
-    gsl_vector *gsl_Xm = gsl_vector_alloc(N);
-    gsl_vector *gsl_Ym = gsl_vector_alloc(N);
-    gsl_vector *gsl_Zm = gsl_vector_alloc(N);
-    gsl_vector *gsl_Xs = gsl_vector_alloc(N);
-    gsl_vector *gsl_Ys = gsl_vector_alloc(N);
-    gsl_vector *gsl_Zs = gsl_vector_alloc(N);
+    gsl_vector *gsl_Xe = gsl_vector_calloc(N);
+    gsl_vector *gsl_Ye = gsl_vector_calloc(N);
+    gsl_vector *gsl_Ze = gsl_vector_calloc(N);
+    gsl_vector *gsl_Xm = gsl_vector_calloc(N);
+    gsl_vector *gsl_Ym = gsl_vector_calloc(N);
+    gsl_vector *gsl_Zm = gsl_vector_calloc(N);
+    gsl_vector *gsl_Xs = gsl_vector_calloc(N);
+    gsl_vector *gsl_Ys = gsl_vector_calloc(N);
+    gsl_vector *gsl_Zs = gsl_vector_calloc(N);
 
 
     //Positions of the primaries in NC coordinates
-    gsl_vector *gsl_xe = gsl_vector_alloc(N);
-    gsl_vector *gsl_ye = gsl_vector_alloc(N);
-    gsl_vector *gsl_ze = gsl_vector_alloc(N);
-    gsl_vector *gsl_xm = gsl_vector_alloc(N);
-    gsl_vector *gsl_ym = gsl_vector_alloc(N);
-    gsl_vector *gsl_zm = gsl_vector_alloc(N);
-    gsl_vector *gsl_xs = gsl_vector_alloc(N);
-    gsl_vector *gsl_ys = gsl_vector_alloc(N);
-    gsl_vector *gsl_zs = gsl_vector_alloc(N);
+    gsl_vector *gsl_xe = gsl_vector_calloc(N);
+    gsl_vector *gsl_ye = gsl_vector_calloc(N);
+    gsl_vector *gsl_ze = gsl_vector_calloc(N);
+    gsl_vector *gsl_xm = gsl_vector_calloc(N);
+    gsl_vector *gsl_ym = gsl_vector_calloc(N);
+    gsl_vector *gsl_zm = gsl_vector_calloc(N);
+    gsl_vector *gsl_xs = gsl_vector_calloc(N);
+    gsl_vector *gsl_ys = gsl_vector_calloc(N);
+    gsl_vector *gsl_zs = gsl_vector_calloc(N);
 
 
     //--------------------------
@@ -2097,6 +2127,10 @@ void qbtbp_ofs_fft_delta(Ofts< Ofsd > &zt,     //zt = normalized Earth-Moon moti
     double delta12i;
     double delta13i;
     double delta14i;
+    //rq: delta15 is let equal to zero because of BCP vector field
+    double delta16i;
+    double delta17i;
+    double delta18i;
 
     double Ze[3], Zm[3], Zs[3];
     double ze[3], zm[3], zs[3];
@@ -2167,6 +2201,13 @@ void qbtbp_ofs_fft_delta(Ofts< Ofsd > &zt,     //zt = normalized Earth-Moon moti
         delta13i = -(deltati*deltati*(delta2doti*delta1i - delta1doti*delta2i)+ deltati*(delta2i*delta2i+delta3i*delta3i))*c1 + delta4i/gamma;
         delta14i =   deltati*deltati*(delta3doti*delta1i - delta1doti*delta3i)*c1 + delta5i/gamma;
 
+        //Delta16i
+        delta16i = delta2doti - delta2i*delta1doti/delta1i + delta2i*delta2i + delta3i*delta3i;
+        //Delta17i
+        delta17i = delta3doti - delta3i*delta1doti/delta1i;
+        //Delta18i
+        delta18i = delta1doti/delta1i;
+
         //---------------
         // The primaries, again
         //---------------
@@ -2206,6 +2247,10 @@ void qbtbp_ofs_fft_delta(Ofts< Ofsd > &zt,     //zt = normalized Earth-Moon moti
         gsl_vector_set(gsl_delta12, i, delta12i);
         gsl_vector_set(gsl_delta13, i, delta13i);
         gsl_vector_set(gsl_delta14, i, delta14i);
+
+        gsl_vector_set(gsl_delta16, i, delta16i);
+        gsl_vector_set(gsl_delta17, i, delta17i);
+        gsl_vector_set(gsl_delta18, i, delta18i);
 
         //---------------
         //Primary, EM coordinates
@@ -2260,6 +2305,10 @@ void qbtbp_ofs_fft_delta(Ofts< Ofsd > &zt,     //zt = normalized Earth-Moon moti
     //NC additional coef
     qbtbp_ofs_fft_unpack(gsl_delta13, qbcp_l.cs_sem.F_COEF+"alpha13",  nf, N, 1);
     qbtbp_ofs_fft_unpack(gsl_delta14, qbcp_l.cs_sem.F_COEF+"alpha14",  nf, N, 0);
+    //VF with velocity additionnal coef
+    qbtbp_ofs_fft_unpack(gsl_delta16, qbcp_l.cs_sem.F_COEF+"alpha16",  nf, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_delta17, qbcp_l.cs_sem.F_COEF+"alpha17",  nf, N, 0);
+    qbtbp_ofs_fft_unpack(gsl_delta18, qbcp_l.cs_sem.F_COEF+"alpha18",  nf, N, 0);
 
     //---------------
     //Primary, EM coordinates
@@ -2314,6 +2363,9 @@ void qbtbp_ofs_fft_delta(Ofts< Ofsd > &zt,     //zt = normalized Earth-Moon moti
     gsl_vector_free(gsl_delta12);
     gsl_vector_free(gsl_delta13);
     gsl_vector_free(gsl_delta14);
+    gsl_vector_free(gsl_delta16);
+    gsl_vector_free(gsl_delta17);
+    gsl_vector_free(gsl_delta18);
     gsl_vector_free(gsl_Xe);
     gsl_vector_free(gsl_Ye);
     gsl_vector_free(gsl_Ze);
@@ -2938,8 +2990,15 @@ void evaluateCoef(double *alpha, double t, double omega, int order, double *para
 
     for(int i = 1; i< order; i++)
     {
+        //From trigo formulae (fastest)
         cR[i] =  cR[i-1]*cR[0] - sR[i-1]*sR[0];
         sR[i] =  sR[i-1]*cR[0] + cR[i-1]*sR[0];
+        //From GSL
+        //cR[i] =  gsl_sf_cos((i+1)*omega*t);
+        //sR[i] =  gsl_sf_sin((i+1)*omega*t);
+        //Native C
+        //cR[i] =  cos((i+1)*omega*t);
+        //sR[i] =  sin((i+1)*omega*t);
     }
 
     for(l = 0, header = params; l < number ; l++, header+=(order+1))

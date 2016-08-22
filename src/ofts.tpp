@@ -1990,6 +1990,18 @@ template<typename T> int Ofts<T>::nsd(int const& m, int odmax, double sdmax)
 // Text format, write
 //----------------------------------------------
 /**
+ * \brief Writes a given object W of type \c Ofts<Ofsc >  in a txt files of the form "filename".
+ **/
+inline void  writeOFTS_txt(Ofts<Ofsc > &W, string filename)
+{
+    ofstream myfile;
+    myfile.open ((filename).c_str(), ios::out);
+    myfile << W << endl;
+    myfile.close();
+}
+
+
+/**
  * \brief Writes a given vector W of type \c Ofts<Ofsc >  in a txt files of the form "filename+i.txt", with i = 0, length(W)-1.
  **/
 inline void  writeVOFTS_txt(vector<Ofts<Ofsc > > &W, string filename)

@@ -547,6 +547,21 @@ inline void tfs_to_ofs_inline(vector< Ofts< Ofsc > >& a)
     }
 }
 
+/**
+ *  \brief  Inline from time domain to frequency domain, for matrix< Ofts< Ofsc > > object.
+ */
+inline void tfs_to_ofs_inline(matrix< Ofts< Ofsc > >& a)
+{
+    for(int i =0; i < a.getSize(1) ; i++)
+    {
+        for(int j =0; j < a.getSize(2); j++)
+        {
+            a.getCA(i,j)->tfs_to_ofs_inline();
+        }
+    }
+}
+
+
 //---------------------------------------------------------------------------
 //Functions used with T = Ofts< Ofsc >, to use only in tests
 //---------------------------------------------------------------------------
@@ -718,6 +733,65 @@ template <typename U> void vvsub_u(vector< Ofs<U> >& a, vector<U> const& vIn, ve
 // Read & Write
 //---------------------------------------------------------------------------
 /**
+ * \brief Writes a given matrix W of type \c Ofts<Ofsc >  in a binary files of the form "filename+i+j.bin", with i = 0, size1(W)-1
+ *        and j = 0, size2(W)-1.
+ **/
+inline void writeMOFTS_bin(matrix<Ofts<Ofsc > > &W, string filename)
+{
+    string ss1, ss2;
+    //Loop on all coefficients
+    for(int i = 0; i < W.getSize(1); i++)
+    {
+        for(int j = 0; j < W.getSize(2); j++)
+        {
+            ss1 = static_cast<ostringstream*>( &(ostringstream() << i) )->str();
+            ss2 = static_cast<ostringstream*>( &(ostringstream() << j) )->str();
+            writeOFTS_bin(*W.getCA(i,j), (filename+"["+ss1+"]"+"["+ss2+"].bin"));
+        }
+    }
+}
+
+/**
+ * \brief Reads a given matrix W of type \c Ofts<Ofsc >  in a binary files of the form "filename+i+j.bin", with i = 0, size1(W)-1
+ *        and j = 0, size2(W)-1.
+ **/
+inline void readMOFTS_bin(matrix<Ofts<Ofsc > > &W, string filename, int fftN)
+{
+    string ss1, ss2;
+    //Loop on all coefficients
+    for(int i = 0; i < W.getSize(1); i++)
+    {
+        for(int j = 0; j < W.getSize(2); j++)
+        {
+            ss1 = static_cast<ostringstream*>( &(ostringstream() << i) )->str();
+            ss2 = static_cast<ostringstream*>( &(ostringstream() << j) )->str();
+            readOFTS_bin(*W.getCA(i,j), (filename+"["+ss1+"]["+ss2+"].bin"), fftN);
+        }
+    }
+}
+
+/**
+ *  \brief writes a matrix of Ofts objects from files. DEPRECATED.
+ **/
+inline void writeMOFTS_txt(matrix<Ofts<Ofsc > > &W, string filename)
+{
+    ifstream readStream;
+    ofstream myfile;
+    string ss1, ss2;
+    //Loop on all coefficients
+
+    for(int i = 0; i < W.getSize(1); i++)
+    {
+        for(int j = 0; j < W.getSize(2); j++)
+        {
+            ss1 = static_cast<ostringstream*>( &(ostringstream() << i) )->str();
+            ss2 = static_cast<ostringstream*>( &(ostringstream() << j) )->str();
+            writeOFTS_txt(*W.getCA(i,j), (filename+"["+ss1+"]["+ss2+"].txt"));
+        }
+    }
+}
+
+/**
  *  \brief read a matrix of Ofts objects from files. DEPRECATED.
  **/
 inline void readMOFTS(matrix<Ofts<Ofsc > > &W, string filename, int fftN)
@@ -733,8 +807,10 @@ inline void readMOFTS(matrix<Ofts<Ofsc > > &W, string filename, int fftN)
         {
             ss1 = static_cast<ostringstream*>( &(ostringstream() << i) )->str();
             ss2 = static_cast<ostringstream*>( &(ostringstream() << j) )->str();
-            readOFTS_txt(W[i], (filename+"["+ss1+"]["+ss2+"].txt"), fftN);
+            readOFTS_txt(*W.getCA(i,j), (filename+"["+ss1+"]["+ss2+"].txt"), fftN);
         }
     }
-
 }
+
+
+

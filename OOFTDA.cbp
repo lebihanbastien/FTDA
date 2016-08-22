@@ -42,13 +42,14 @@
 			<Add directory="src" />
 			<Add directory="include" />
 			<Add directory="test" />
-			<Add directory="/home/b.le-bihan/BackUpBox/PhD/OOFTDA/" />
+			<Add directory="../OOFTDA" />
 			<Add directory="/usr/local/include/gsl" />
 			<Add directory="fortran" />
 		</Compiler>
 		<Linker>
 			<Add option="fortran/routines0.o -lgfortran" />
 			<Add option="fortran/foun.o -lgfortran" />
+			<Add option="-fopenmp" />
 			<Add directory="fortran" />
 			<Add directory="/home/b.le-bihan/BackUpBox/PhD/OOFTDA/" />
 		</Linker>

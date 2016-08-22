@@ -45,6 +45,17 @@ int differential_correction(double ystart[], double t1, double eps_diff, gsl_ode
  *        The state is 7-dimensional. The last component is deps, where eps is the continuation parameter. DEPRECATED.
  **/
 int differential_correction_deps(double ystart[], double t1, double eps_diff, gsl_odeiv2_driver *d, int N, int isPlotted);
+/**
+ * \brief Differential correction with a fixed final time used in the continutation procedures from a model to another (e.g CRTBP to BCP).
+ *        The state is 7-dimensional. The last component is deps, where eps is the continuation parameter. DEPRECATED.
+ **/
+int differential_correction_deps_mns(double ystart[], double nullvector[], double fvv[], double t1, double eps_diff, gsl_odeiv2_driver *d, int N, int isPlotted, int isFirst);
+
+/**
+ * \brief Differential correction with a fixed final time used in the continutation procedures from a model to another (e.g CRTBP to BCP).
+ *        The state is 7-dimensional. The last component is deps, where eps is the continuation parameter. DEPRECATED.
+ **/
+int differential_correction_deps_pac(double y0[], double nullvector[], double fvv[], double ds, double t1, double eps_diff, gsl_odeiv2_driver *d, int N, int isPlotted);
 
 /*
   Differential correction - Minimum norm in all 6 dimensions
@@ -69,6 +80,13 @@ int differential_correction_x0_fixed(double ystart[], double yhalf[], double *tc
  *         Then the results are plotted on a temporary gnuplot window via the handle *h1.
  **/
 int odePlot(const double y[], int N, double t1, gsl_odeiv2_driver *d, gnuplot_ctrl  *h1, int Npoints, int color);
+
+/**
+ *  \brief Integrate the state y[] up to t = t1 on a Npoints grid, in NC coordinates, and plot the corresponding result in SYS coordinates (e.g. EM or SEM coord.).
+ *         Then the results are plotted on a temporary gnuplot window via the handle *h1. Print in txt files is included
+ **/
+int odePlotprint(const double y[], int N, double t1, gsl_odeiv2_driver *d, gnuplot_ctrl  *h1, int Npoints, int color, string filename);
+
 /**
  *  \brief Same as odePlot, but with more flexibility on the parameters: can choose the title, the line style, the line type and the line color.
  **/

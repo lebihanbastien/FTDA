@@ -56,10 +56,6 @@ int qbfbp_vfn_novar(double t, const double y[], double f[], void *params_void)
     double pm[3];
     evaluateCoef(pm, t, n, qbp->nf, qbp->cs.pm, 3);
 
-//    cout << "ps = " << ps[0] << "  " << ps[1] << "  " << ps[2] << endl;
-//    cout << "pm = " << pm[0] << "  " << pm[1] << "  " << pm[2] << endl;
-//    cout << "pe = " << pe[0] << "  " << pe[1] << "  " << pe[2] << endl;
-
     //-------------------------------------------------------------------------------
     // Distances to 2nd power
     //-------------------------------------------------------------------------------
@@ -83,9 +79,9 @@ int qbfbp_vfn_varnonlin(double t, const double y[], double f[], void *params_voi
     //-------------------------------------------------------------------------------
     // Memory allocation
     //-------------------------------------------------------------------------------
-    gsl_matrix *STM  = gsl_matrix_alloc(6,6);
-    gsl_matrix *STMd = gsl_matrix_alloc(6,6);
-    gsl_matrix *Q    = gsl_matrix_alloc(6,6);
+    gsl_matrix *STM  = gsl_matrix_calloc(6,6);
+    gsl_matrix *STMd = gsl_matrix_calloc(6,6);
+    gsl_matrix *Q    = gsl_matrix_calloc(6,6);
 
     //-------------------------------------------------------------------------------
     // Misc parameters
@@ -162,9 +158,9 @@ int qbfbp_vf(double t, const double y[], double f[], void *params_void)
     //-------------------------------------------------------------------------------
     // Memory allocation
     //-------------------------------------------------------------------------------
-    gsl_matrix *STM  = gsl_matrix_alloc(6,6);
-    gsl_matrix *STMd = gsl_matrix_alloc(6,6);
-    gsl_matrix *B    = gsl_matrix_alloc(6,6);
+    gsl_matrix *STM  = gsl_matrix_calloc(6,6);
+    gsl_matrix *STMd = gsl_matrix_calloc(6,6);
+    gsl_matrix *B    = gsl_matrix_calloc(6,6);
 
     //-------------------------------------------------------------------------------
     // Misc parameters
@@ -239,9 +235,9 @@ int qbfbp_vfn_varlin_trans(double t, const double y[], double f[], void *params_
     //-------------------------------------------------------------------------------
     // Memory allocation
     //-------------------------------------------------------------------------------
-    gsl_matrix *STM = gsl_matrix_alloc(6,6);
-    gsl_matrix *STMd = gsl_matrix_alloc(6,6);
-    gsl_matrix *Q = gsl_matrix_alloc(6,6);
+    gsl_matrix *STM  = gsl_matrix_calloc(6,6);
+    gsl_matrix *STMd = gsl_matrix_calloc(6,6);
+    gsl_matrix *Q    = gsl_matrix_calloc(6,6);
 
     //-------------------------------------------------------------------------------
     // Misc parameters
@@ -873,7 +869,7 @@ int qbfbp_vf_cont(double t, const double y[], double f[], void *params_void)
 //
 //--------------------------------------------------------------------------------------------------------------------------------------------
 /**
- *  \brief Hamiltonian of the QBCP with EM units and EM coordinates
+ *  \brief Hamiltonian of the QBCP with SYS units and SYS coordinates
  **/
 double qbfbp_H(double t, const double y[], void *params_void)
 {
@@ -882,7 +878,7 @@ double qbfbp_H(double t, const double y[], void *params_void)
     //-------------------------------------------------------------------------------
     //Retrieving the parameters
     QBCP_L* qbp = (QBCP_L *) params_void;
-    int noc      = qbp->numberOfCoefs;
+    int noc   = qbp->numberOfCoefs;
     double ms = qbp->us.ms;
     double me = qbp->us.me;
     double mm = qbp->us.mm;
@@ -999,10 +995,10 @@ int qbfbp_vfn_varlin_trans_P(double t, const double y[], double f[], void *param
     //-------------------------------------------------------------------------------
     // Memory allocation
     //-------------------------------------------------------------------------------
-    gsl_matrix *P    = gsl_matrix_alloc(6,6);
-    gsl_matrix *Pd   = gsl_matrix_alloc(6,6);
-    gsl_matrix *Q    = gsl_matrix_alloc(6,6);
-    gsl_matrix *B    = gsl_matrix_alloc(6,6);
+    gsl_matrix *P    = gsl_matrix_calloc(6,6);
+    gsl_matrix *Pd   = gsl_matrix_calloc(6,6);
+    gsl_matrix *Q    = gsl_matrix_calloc(6,6);
+    gsl_matrix *B    = gsl_matrix_calloc(6,6);
 
     //-------------------------------------------------------------------------------
     // Misc parameters
@@ -1093,7 +1089,7 @@ int qbfbp_Q(double t, const double y[], gsl_matrix *Q1, gsl_matrix *Q2, gsl_matr
     //-------------------------------------------------------------------------------
     // Memory allocation
     //-------------------------------------------------------------------------------
-    gsl_matrix *Q = gsl_matrix_alloc(6,6);
+    gsl_matrix *Q = gsl_matrix_calloc(6,6);
 
     //-------------------------------------------------------------------------------
     // Misc parameters
@@ -1266,7 +1262,6 @@ void NCtoSYS(double t, const double yNC[], double yEM[], QBCP_L *qbp)
     double n     =  qbp->us.n;
     double gamma =  qbp->cs.gamma;
     double c1    =  qbp->cs.c1;
-
     //-------------------------------------------------------------------------------
     //Evaluate the alphas and their derivatives @ t
     //1, 3, 4, 6, 7 even
@@ -1928,7 +1923,7 @@ void dynTest_SEMtoEM()
     SEMtoNC(0.0, ySEMm, ySNC, &SEML);
 
     //Identity matrix eye(6)
-    gsl_matrix *Id = gsl_matrix_alloc(6,6);
+    gsl_matrix *Id = gsl_matrix_calloc(6,6);
     gsl_matrix_set_identity (Id);
     //Storing eye(6) into the initial vector
     gslc_matrixToVector(ySNC, Id, 6, 6, 6);
@@ -2008,7 +2003,7 @@ void dynTest_EMtoSEM()
     init_CR3BP(&EM, EARTH, MOON);
 
     //Identity matrix eye(6)
-    gsl_matrix *Id = gsl_matrix_alloc(6,6);
+    gsl_matrix *Id = gsl_matrix_calloc(6,6);
     gsl_matrix_set_identity (Id);
 
     //-------------------------------------------------

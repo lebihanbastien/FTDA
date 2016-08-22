@@ -21,13 +21,13 @@ COMPTYPE=$PM
 # MODEL
 # RTBP = 0; QBCP = 1; BCP = 2
 #------------------------------------
-MODEL=$RTBP  
+MODEL=$QBCP  
 
 #------------------------------------
 # COORDINATE SYSTEM
 # EM = 0; SEM = 1; SE = 2 (deprecated)
 #------------------------------------
-CS=$EM  
+CS=$SEM  
 
 #------------------------------------
 # Normalization
@@ -61,12 +61,12 @@ PMS=$GRAPH
 # STORAGE
 # FALSE = 0; TRUE = 1
 #------------------------------------
-STORAGE=$FALSE
+STORAGE=$TRUE
 
 #------------------------------------
 # Numerical constants for all computation
 #------------------------------------
-OFTS_ORDER=2
+OFTS_ORDER=16
 
 
 

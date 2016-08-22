@@ -160,7 +160,7 @@ void pm(int OutputEachOrder, int Output)
     //DB = | 0   0    0   -iw1  0   0   |
     //     | 0   0    0    0   -w2  0   |
     //     | 0   0    0    0    0  -iw3 |
-    gsl_matrix_complex *DB = gsl_matrix_complex_alloc(6, 6);
+    gsl_matrix_complex *DB = gsl_matrix_complex_calloc(6, 6);
     if(SEML.model == M_QBCP || SEML.model == M_BCP)
     {
         //Reading an OFS from a text file
@@ -221,14 +221,14 @@ void pm(int OutputEachOrder, int Output)
     // to compute the central-stable and central-unstable manifold
     //
     //------------------------------------------
-    gsl_matrix_complex *H     = gsl_matrix_complex_alloc(6, 6);
-    gsl_matrix_complex *Hinv  = gsl_matrix_complex_alloc(6, 6);
-    gsl_matrix_complex *La    = gsl_matrix_complex_alloc(6, 6);
-    gsl_matrix_complex *LaL   = gsl_matrix_complex_alloc(4, 4);
-    gsl_matrix_complex *LaN   = gsl_matrix_complex_alloc(2, 2);
+    gsl_matrix_complex *H     = gsl_matrix_complex_calloc(6, 6);
+    gsl_matrix_complex *Hinv  = gsl_matrix_complex_calloc(6, 6);
+    gsl_matrix_complex *La    = gsl_matrix_complex_calloc(6, 6);
+    gsl_matrix_complex *LaL   = gsl_matrix_complex_calloc(4, 4);
+    gsl_matrix_complex *LaN   = gsl_matrix_complex_calloc(2, 2);
     //H = (L N)
-    gsl_matrix_complex *L    = gsl_matrix_complex_alloc(6, 4);
-    gsl_matrix_complex *N    = gsl_matrix_complex_alloc(6, 2);
+    gsl_matrix_complex *L    = gsl_matrix_complex_calloc(6, 4);
+    gsl_matrix_complex *N    = gsl_matrix_complex_calloc(6, 2);
 
     //------------------------------------------
     //    |  iw1 0    0    0    0   0  |
@@ -337,7 +337,7 @@ void pm(int OutputEachOrder, int Output)
     //Lambda = Hinv*DB*H = | 0  LaN  | with T = 0 in this context
     //
     //------------------------------------------
-    gsl_matrix_complex *AUX = gsl_matrix_complex_alloc(6, 6);
+    gsl_matrix_complex *AUX = gsl_matrix_complex_calloc(6, 6);
     //AUX = DB*H
     gsl_blas_zgemm (CblasNoTrans , CblasNoTrans , one_c , DB , H , zero_c , AUX );
     //B = Hinv*AUX
@@ -965,7 +965,7 @@ void pmTested()
     //------------------------------------------
     // Getting DB from files
     //------------------------------------------
-    gsl_matrix_complex *DB = gsl_matrix_complex_alloc(6, 6);
+    gsl_matrix_complex *DB = gsl_matrix_complex_calloc(6, 6);
     if(SEML.model == M_QBCP || SEML.model == M_BCP)
     {
         //Reading an OFS from a text file
@@ -1037,14 +1037,14 @@ void pmTested()
     // to compute the central-stable and central-unstable manifold
     //
     //------------------------------------------
-    gsl_matrix_complex *H     = gsl_matrix_complex_alloc(6, 6);
-    gsl_matrix_complex *Hinv  = gsl_matrix_complex_alloc(6, 6);
-    gsl_matrix_complex *La    = gsl_matrix_complex_alloc(6, 6);
-    gsl_matrix_complex *LaL   = gsl_matrix_complex_alloc(4, 4);
-    gsl_matrix_complex *LaN   = gsl_matrix_complex_alloc(2, 2);
+    gsl_matrix_complex *H     = gsl_matrix_complex_calloc(6, 6);
+    gsl_matrix_complex *Hinv  = gsl_matrix_complex_calloc(6, 6);
+    gsl_matrix_complex *La    = gsl_matrix_complex_calloc(6, 6);
+    gsl_matrix_complex *LaL   = gsl_matrix_complex_calloc(4, 4);
+    gsl_matrix_complex *LaN   = gsl_matrix_complex_calloc(2, 2);
     //H = (L N)
-    gsl_matrix_complex *L    = gsl_matrix_complex_alloc(6, 4);
-    gsl_matrix_complex *N    = gsl_matrix_complex_alloc(6, 2);
+    gsl_matrix_complex *L    = gsl_matrix_complex_calloc(6, 4);
+    gsl_matrix_complex *N    = gsl_matrix_complex_calloc(6, 2);
 
     //------------------------------------------
     //    |  iw1 0    0    0    0   0  |
@@ -1165,7 +1165,7 @@ void pmTested()
     //Lambda = Hinv*DB*H = | 0  LaN  | with T = 0 in this context
     //
     //------------------------------------------
-    gsl_matrix_complex *AUX = gsl_matrix_complex_alloc(6, 6);
+    gsl_matrix_complex *AUX = gsl_matrix_complex_calloc(6, 6);
     //AUX = DB*H
     gsl_blas_zgemm (CblasNoTrans , CblasNoTrans , one_c , DB , H , zero_c , AUX );
     //B = Hinv*AUX
@@ -1944,7 +1944,7 @@ void pm_normalform(int OutputEachOrder, int Output)
     //DB = | 0   0    0   -iw1  0   0   |
     //     | 0   0    0    0   -w2  0   |
     //     | 0   0    0    0    0  -iw3 |
-    gsl_matrix_complex *DB = gsl_matrix_complex_alloc(6, 6);
+    gsl_matrix_complex *DB = gsl_matrix_complex_calloc(6, 6);
     if(SEML.model == M_QBCP || SEML.model == M_BCP)
     {
         //Reading an OFS from a text file
@@ -2004,14 +2004,14 @@ void pm_normalform(int OutputEachOrder, int Output)
     // to compute the central-stable and central-unstable manifold
     //
     //------------------------------------------
-    gsl_matrix_complex *H     = gsl_matrix_complex_alloc(6, 6);
-    gsl_matrix_complex *Hinv  = gsl_matrix_complex_alloc(6, 6);
-    gsl_matrix_complex *La    = gsl_matrix_complex_alloc(6, 6);
-    gsl_matrix_complex *LaL   = gsl_matrix_complex_alloc(4, 4);
-    gsl_matrix_complex *LaN   = gsl_matrix_complex_alloc(2, 2);
+    gsl_matrix_complex *H     = gsl_matrix_complex_calloc(6, 6);
+    gsl_matrix_complex *Hinv  = gsl_matrix_complex_calloc(6, 6);
+    gsl_matrix_complex *La    = gsl_matrix_complex_calloc(6, 6);
+    gsl_matrix_complex *LaL   = gsl_matrix_complex_calloc(4, 4);
+    gsl_matrix_complex *LaN   = gsl_matrix_complex_calloc(2, 2);
     //H = (L N)
-    gsl_matrix_complex *L    = gsl_matrix_complex_alloc(6, 4);
-    gsl_matrix_complex *N    = gsl_matrix_complex_alloc(6, 2);
+    gsl_matrix_complex *L    = gsl_matrix_complex_calloc(6, 4);
+    gsl_matrix_complex *N    = gsl_matrix_complex_calloc(6, 2);
 
     //------------------------------------------
     //    |  iw1 0    0    0    0   0  |
@@ -2120,7 +2120,7 @@ void pm_normalform(int OutputEachOrder, int Output)
     //Lambda = Hinv*DB*H = | 0  LaN  | with T = 0 in this context
     //
     //------------------------------------------
-    gsl_matrix_complex *AUX = gsl_matrix_complex_alloc(6, 6);
+    gsl_matrix_complex *AUX = gsl_matrix_complex_calloc(6, 6);
     //AUX = DB*H
     gsl_blas_zgemm (CblasNoTrans , CblasNoTrans , one_c , DB , H , zero_c , AUX );
     //B = Hinv*AUX
@@ -2806,7 +2806,7 @@ void pm_mixedstyle(int OutputEachOrder, int Output)
     //DB = | 0   0    0   -iw1  0   0   |
     //     | 0   0    0    0   -w2  0   |
     //     | 0   0    0    0    0  -iw3 |
-    gsl_matrix_complex *DB = gsl_matrix_complex_alloc(6, 6);
+    gsl_matrix_complex *DB = gsl_matrix_complex_calloc(6, 6);
     if(SEML.model == M_QBCP || SEML.model == M_BCP)
     {
         //Reading an OFS from a text file
@@ -2871,12 +2871,12 @@ void pm_mixedstyle(int OutputEachOrder, int Output)
     // to compute the central-stable and central-unstable manifold
     //
     //------------------------------------------
-    gsl_matrix_complex *H     = gsl_matrix_complex_alloc(6, 6);
-    gsl_matrix_complex *Hinv  = gsl_matrix_complex_alloc(6, 6);
-    gsl_matrix_complex *La    = gsl_matrix_complex_alloc(6, 6);
-    gsl_matrix_complex *LaL   = gsl_matrix_complex_alloc(6, 6);
+    gsl_matrix_complex *H     = gsl_matrix_complex_calloc(6, 6);
+    gsl_matrix_complex *Hinv  = gsl_matrix_complex_calloc(6, 6);
+    gsl_matrix_complex *La    = gsl_matrix_complex_calloc(6, 6);
+    gsl_matrix_complex *LaL   = gsl_matrix_complex_calloc(6, 6);
     //H = (L N), with N null, H = L
-    gsl_matrix_complex *L    = gsl_matrix_complex_alloc(6, 6);
+    gsl_matrix_complex *L    = gsl_matrix_complex_calloc(6, 6);
 
     //------------------------------------------
     //    |  iw1 0    0    0    0   0  |
@@ -2972,7 +2972,7 @@ void pm_mixedstyle(int OutputEachOrder, int Output)
     //Lambda = Hinv*DB*H = | 0  LaN  | with T = 0 in this context
     //
     //------------------------------------------
-    gsl_matrix_complex *AUX = gsl_matrix_complex_alloc(6, 6);
+    gsl_matrix_complex *AUX = gsl_matrix_complex_calloc(6, 6);
     //AUX = DB*H
     gsl_blas_zgemm (CblasNoTrans , CblasNoTrans , one_c , DB , H , zero_c , AUX );
     //B = Hinv*AUX

@@ -1,6 +1,50 @@
 #--------------------------------------------------------------------------#
 # Misc routines on CRTBP/QBCP/BCP
 #--------------------------------------------------------------------------#
+ggplot2tikz <- function(plot, width0, height0, file)
+{
+  #Create a .tex file that will contain the plot
+  tikz(file, 
+       width = width0, 
+       height = height0, 
+       standAlone=TRUE, 
+       documentDeclaration="\\documentclass{standalone}\n",
+       packages = c("\\usepackage[utf8]{inputenc}",
+                    "\\usepackage[T1]{fontenc}",
+                    "\\usepackage{tikz}", 
+                    "\\usepackage{pgf}", 
+                    "\\usetikzlibrary{calc}", 
+                    "\\usepackage{amssymb}", 
+                    "\\usepackage{amsfonts}\n"))
+  
+  #Plot porb in a trash document
+  #plottrash = plot
+  #Print it to feed dev
+  print(plot)
+  #Necessary to close or the tikxDevice .tex file will not be written
+  dev.off()
+  #return(plottrash)
+}
+
+#--------------------------------------------------------------------------#
+# Potential
+#--------------------------------------------------------------------------#
+cr3bpot <- function(x, y, mu)
+{
+  r1  = sqrt((x-mu)^2 + y^2);
+  r2  = sqrt((x-mu+1)^2 + y^2);
+  pot = -0.5*(x^2 + y^2) - (1-mu)/r1 - mu/r2 - 1/2*(1-mu)*mu;
+  return (pot)
+}
+
+cr3bpot_EM <- function(z)
+{
+  mu = 0.0121505816234336;
+  r1  = sqrt((z[1]-mu)^2 + z[2]^2);
+  r2  = sqrt((z[1]-mu+1)^2 + z[2]^2);
+  pot = -0.5*(z[1]^2 + z[2]^2) - (1-mu)/r1 - mu/r2 - 1/2*(1-mu)*mu;
+  return (pot)
+}
 
 #--------------------------------------------------------------------------#
 # Return the mass ratio
@@ -90,18 +134,52 @@ Ldist <- function(FWRK)
 }
 
 #--------------------------------------------------------------------------#
+# Return the value T of the period associated with the two primaries
+#--------------------------------------------------------------------------#
+Tcrtbp <- function(FWRK)
+{
+  if (FWRK == "SEM")
+  {
+    T = 3.155814950400000e+07;
+  }else{
+    T = 2.360584684800000e+06;
+  }
+  return(T)
+}
+
+#--------------------------------------------------------------------------#
+# Return the value of the SEM period in the FWRK, in normalized units
+#--------------------------------------------------------------------------#
+SEMperiod <- function(FWRK)
+{
+  if (FWRK == "SEM")
+  {
+    T = 5.080085647283307e-01;
+  }else{
+    T = 6.791193871907917e+00;
+  }
+  return(T)
+}
+
+#--------------------------------------------------------------------------#
+# From NC coordinates to C coordinates (Earth-Moon coordinates)
 # From NC coordinates to C coordinates (Earth-Moon coordinates, 
 # but still centered at Li)
 #--------------------------------------------------------------------------#
-NCtoC <- function(df, gamma, c1)
+NCtoC <- function(df, gamma)
 {
-  if(missing(c1))
-  {
-    df$xEM <- -gamma * (df$x);#+6.8859163415402);
-  }else
-  {
-    df$xEM <- -gamma * (df$x-c1);
-  }
+  df$xC <- -gamma * (df$x);#+6.8859163415402);
+  df$yC <- -gamma * (df$y);
+  df$zC <- +gamma * (df$z);
+  return(df)
+}
+
+#--------------------------------------------------------------------------#
+# From NC coordinates to SYS coordinates
+#--------------------------------------------------------------------------#
+NCtoSYS <- function(df, gamma, c1)
+{
+  df$xEM <- -gamma * (df$x-c1);
   df$yEM <- -gamma * (df$y);
   df$zEM <- +gamma * (df$z);
   return(df)
@@ -110,6 +188,24 @@ NCtoC <- function(df, gamma, c1)
 
 # From EM (or C) to physical units
 CtoPH <- function(df, L)
+{
+  df$xCPH = L * df$xC
+  df$yCPH = L * df$yC
+  df$zCPH = L * df$zC
+  return(df)
+}
+
+# From EM to physical units
+EMtoPH <- function(df, L)
+{
+  df$xPH = L * df$xEM
+  df$yPH = L * df$yEM
+  df$zPH = L * df$zEM
+  return(df)
+}
+
+# From SYS to physical units
+SYStoPH <- function(df, L)
 {
   df$xPH = L * df$xEM
   df$yPH = L * df$yEM

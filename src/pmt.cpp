@@ -188,10 +188,10 @@ void pmt(int OutputEachOrder, int Output, int pms, int manType)
     //Hinv2 = Hinv in matrix<Ofsc> format
     */
     //------------------------------------------
-    gsl_matrix_complex *DB    = gsl_matrix_complex_alloc(6, 6);
-    gsl_matrix_complex *H     = gsl_matrix_complex_alloc(6, 6);
-    gsl_matrix_complex *Hinv  = gsl_matrix_complex_alloc(6, 6);
-    gsl_matrix_complex *La    = gsl_matrix_complex_alloc(6, 6);
+    gsl_matrix_complex *DB    = gsl_matrix_complex_calloc(6, 6);
+    gsl_matrix_complex *H     = gsl_matrix_complex_calloc(6, 6);
+    gsl_matrix_complex *Hinv  = gsl_matrix_complex_calloc(6, 6);
+    gsl_matrix_complex *La    = gsl_matrix_complex_calloc(6, 6);
     matrix<Ofsc> DF0(6, 6);
     matrix<Ofsc> H2(6, 6);
     matrix<Ofsc> Hinv2(6, 6);
@@ -397,6 +397,7 @@ void pmt(int OutputEachOrder, int Output, int pms, int manType)
     tfs_to_ofs_inline(Wh);
     tfs_to_ofs_inline(fh);
     tfs_to_ofs_inline(DWf);
+    tfs_to_ofs_inline(DWhc);
     cout << "  pm. End of TFS formating" <<  " in " << toc() << " s. " << endl;
 
     //------------------------------------------
@@ -416,20 +417,25 @@ void pmt(int OutputEachOrder, int Output, int pms, int manType)
         //------------------------------------------
         // Binary
         //------------------------------------------
+        //Vectors
         writeVOFTS_bin(W,    F_PMS+"W/W");
         writeVOFTS_bin(Wh,   F_PMS+"W/Wh");
         writeVOFTS_bin(fh,   F_PMS+"rvf/fh");
         writeVOFTS_bin(Wdot, F_PMS+"Wdot/C_Wdot");
         writeVOFTS_bin(DWf,  F_PMS+"DWf/C_DWf");
         writeVOFTS_bin(FW,   F_PMS+"FW/C_FW");
+
+        //Matrices: Jacobian
+        writeMOFTS_bin(DWhc, F_PMS+"DWf/DWhc");
         cout << "  pm. End of printing" <<  " in " << toc() << " s. " << endl;
 
         //------------------------------------------
         // Txt
         //------------------------------------------
+        //writeMOFTS_txt(DWhc, F_PMS+"DWf/DWhc");
+        //writeVOFTS_txt(Wh,   F_PMS+"W/Wh");
         //print W & FWc
         //writeVOFTS_txt(W,     F_PMS+"W/W");
-        //writeVOFTS_txt(Wh,    F_PMS+"W/Wh");
         //writeVOFTS_txt(E,    F_PMS+"W/E");
         //vector_fprinf(fh, F_PMS+"rvf/fh");
     }
@@ -788,7 +794,7 @@ void tfts_initOrderOne(gsl_matrix_complex *DB,
     //Lambda = Hinv*DB*H = | 0  LaN  | with T = 0 in this context
     //
     //------------------------------------------
-    gsl_matrix_complex *AUX = gsl_matrix_complex_alloc(6, 6);
+    gsl_matrix_complex *AUX = gsl_matrix_complex_calloc(6, 6);
     //AUX = DB*H
     gsl_blas_zgemm (CblasNoTrans , CblasNoTrans , one_c , DB , H , zero_c , AUX );
     //B = Hinv*AUX

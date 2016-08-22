@@ -147,6 +147,14 @@ void gslc_vector_complex_fprintf(const gsl_vector_complex *V, char* fileName);
 void gslc_vector_complex_printf(const gsl_vector_complex *V);
 
 //---------------------------------------------------------------------------------------
+// Printing a vector
+//---------------------------------------------------------------------------------------
+/**
+ * \brief Print a real vector.
+ **/
+void gslc_vector_printf(const gsl_vector *V);
+
+//---------------------------------------------------------------------------------------
 // Printing an eigensystem
 //---------------------------------------------------------------------------------------
 /**

@@ -66,21 +66,24 @@ isOrigin = ttm_all$s1 == 0 &
   ttm_all$s2 == 0 & ttm_all$s3 == 0 & ttm_all$s4 == 0
 ttm_all = ttm_all[which(!isOrigin),]
 # From NC to EM units
-ttm_all = NCtoC(ttm_all, gamma, c1)
-# From EM to physical units
+ttm_all = NCtoSYS(ttm_all, gamma, c1)
+# From NC to C units
+ttm_all = NCtoC(ttm_all, gamma)
+# From C to physical units
 ttm_all = CtoPH(ttm_all, L)
 # Radii from Li
 ttm_all$rNC = sqrt(ttm_all$x^2+ttm_all$y^2+ttm_all$z^2)
 ttm_all$rEM = sqrt(ttm_all$xEM^2+ttm_all$yEM^2+ttm_all$zEM^2)
-ttm_all$rPH = sqrt(ttm_all$xPH^2+ttm_all$yPH^2+ttm_all$zPH^2)
+ttm_all$rCPH = sqrt(ttm_all$xCPH^2+ttm_all$yCPH^2+ttm_all$zCPH^2)
 
 #--------------------
 # Select only positive s1/s3
 #--------------------
+ttm_mid = ttm_all;
 if(Type == "s3"){
-  ttm_mid = ttm_all[which(ttm_all$s3 <=0),]
+  #ttm_mid = ttm_all[which(ttm_all$s3 <=0),]
 }else{
-  ttm_mid = ttm_all[which(ttm_all$s1 >=0),]
+  #ttm_mid = ttm_all[which(ttm_all$s1 >=0),]
 }
 
 #ttm_all = ttm_mid
@@ -97,10 +100,10 @@ ylabel = TeX("$log_{10}(e_O^1)$")
 #------------------------------------------------------------------------------------
 # Plot
 #------------------------------------------------------------------------------------
-#Plot the precision as a function of rPH
+#Plot the precision as a function of rCPH
 #------------------------------------------------
 xlabel  = paste0("Distance from ", Li, " [km]");
-pPH = plotdf_line(ttm_mid, "rPH", "log10eOm", xlabel, ylabel, "order", "Order", 1)+legend_inside_theme
+pPH = plotdf_line(ttm_mid, "rCPH", "log10eOm", xlabel, ylabel, "order", "Order", 1)+legend_inside_theme
 pPH
 
 
@@ -148,8 +151,6 @@ if(pE_limits)
   pE = pE + scale_y_continuous(limits = pE_limits_y, breaks = seq(-10,0,2))
 }
 pE = pE + big_font_theme
-if(Li == "L1") pE = pE + scale_x_continuous(breaks = seq(0, 0.1, 0.01))
-if(Li == "L2") pE = pE + scale_x_continuous(breaks = seq(0, 0.1, 0.001))
 pE = pE + theme(axis.title.x=element_text(vjust=0.01))
 
 
@@ -186,23 +187,24 @@ pX = pX + legend_inside_theme
 #------------------------------------------------
 xlabel  = "\n y [-]";
 pY = plotdf_line(ttm_all, "yEM", "log10eOm", xlabel, ylabel, "order", "Order", 1)
+if(pY_limits)
+{
+  pY = pY + scale_x_continuous(limits = pY_limits_x)
+  pY = pY + scale_y_continuous(limits = pY_limits_y)
+}
 if(pY_limits && pY_breaks_x && pY_breaks_y)
 {
   pY = pY + scale_x_continuous(limits = pY_limits_x, breaks = pY_breaks_x_values)
   pY = pY + scale_y_continuous(limits = pY_limits_y, breaks = pY_breaks_y_values)
 }
-
 if(pY_breaks_x)
 {
   pY = pY + scale_x_continuous(breaks = pY_breaks_x_values)
 }
-
 if(pY_breaks_y)
 {
   pY = pY + scale_y_continuous(breaks = pY_breaks_y_values)
 }
-
-
 pY
 
 #------------------------------------------------
@@ -226,8 +228,15 @@ plotdf_line(ttm_all, "xPH", "yPH", "xPH", "yPH", "order", "Order", 1)
 pXZ = plotdf_line(ttm_all, "xEM", "zEM", "xEM", "zEM", "order", "Order", 1)
 pS1S2 = plotdf_line(ttm_all, "s1", "s2", "s1", "s2", "order", "Order", 1)
 
-pXY = plotdf_point(ttm_all, "xEM", "yEM", "xEM", "yEM", "order", "Order", 1)
+#------------------------------------------------
+# pXYCPH
+#------------------------------------------------
+pXYCPH = plotdf_point(ttm_all, "xCPH", "yCPH", "X", "Y", "order", "Order", 1)
 
+#------------------------------------------------
+# pXY
+#------------------------------------------------
+pXY = plotdf_point(ttm_all, "xEM", "yEM", "xEM", "yEM", "order", "Order", 1)
 if(Li == "L2")
 {
   #------------------------------------------------
@@ -253,7 +262,7 @@ if(Li == "L2")
 #Save in eps file
 #------------------------------------------------
 ggsave(pS1, width = xSize, height = ySize,  file=paste0(currentfolder, "R_eOm_", "ofs_" , ofs_order, "_", vorders[1], "_", Type, "_RCM.eps"))
-ggsave(pX, width = 12.3, height = 8.92,   file=paste0(currentfolder, "R_eOm_", "ofs_" , ofs_order, "_", vorders[1], "_", Type, "_EM.eps"))
+ggsave(pX, width = 12.3, height = 8.92,     file=paste0(currentfolder, "R_eOm_", "ofs_" , ofs_order, "_", vorders[1], "_", Type, "_EM.eps"))
 ggsave(pPH, width = xSize, height = ySize,  file=paste0(currentfolder, "R_eOm_", "ofs_" , ofs_order, "_", vorders[1], "_", Type, "_NC.eps"))
 ggsave(pE, width = xSize, height = ySize,   file=paste0(currentfolder, "R_eOm_", "ofs_" , ofs_order,  "_", Type, "_Energy.eps"))
 

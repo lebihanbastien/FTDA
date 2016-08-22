@@ -80,11 +80,16 @@ if (file.exists(filename))
 # new columns
 #--------------------
 # From NC to EM units
+tmdf = NCtoSYS(tmdf, gamma, c1)
+# From NC to C units
 tmdf = NCtoC(tmdf, gamma)
-# From EM to physical units
+# From C to physical units
 tmdf = CtoPH(tmdf, L)
+# From SYS to physical units
+tmdf = SYStoPH(tmdf, L)
 # Radii from Li
 tmdf$rNC = sqrt(tmdf$x^2+tmdf$y^2+tmdf$z^2)
+tmdf$rC = sqrt(tmdf$xC^2+tmdf$yC^2+tmdf$zC^2)
 tmdf$rPH = sqrt(tmdf$xPH^2+tmdf$yPH^2+tmdf$zPH^2)
 #Parity of event
 tmdf$parity = tmdf$number%%2
@@ -134,9 +139,10 @@ ggsave(pLab, width = 18, height = 18, file=paste0(currentfolder, "PlanarStrobMap
 #--------------------------
 # Computation standard deviation & mean
 #--------------------------
-tmdfe_sum = ddply(tmdf_lab_prec_strict, .(label, order), summarize, rPH = mean(rPH), dHw.sdpc = sd(dHw)/mean(dHw), dHw.sd = sd(dHw), dHw.mean = mean(dHw), maxT = max(t), maxN = max(number))
+tmdfe_sum = ddply(tmdf_lab_prec_strict, .(label, order), summarize, rPH = mean(rPH), rC = mean(rC), rNC = mean(rNC), dHw.sdpc = sd(dHw)/mean(dHw), dHw.sd = sd(dHw), dHw.mean = mean(dHw), maxT = max(t), maxN = max(number))
 tmdfe_sum = tmdfe_sum[which(tmdfe_sum$dHw.mean < 0.02),]
 
+#Mean energy
 pSd = plotdf_point(tmdfe_sum , "dHw.mean", "dHw.sd", TeX('$\\mu(\\delta H)$'), TeX('$\\sigma(\\delta H)$'), pointSize = 3)
 pSd = pSd + scale_y_continuous(limits = c(0, 8e-4))
 pSd = pSd + scale_x_continuous(limits = c(0, 0.011), breaks = seq(0, 0.125, 0.0025))
@@ -144,9 +150,16 @@ pSd
 ggsave(pSd, width = xSize, height = ySize, file=paste0(currentfolder, "PlanarStrobMap_sd_vs_mean_order_", order, ".eps")) #Save
 
 #Radius
-pPH = plotdf_point(tmdfe_sum , "dHw.mean", "rPH", TeX('$\\mu(\\delta H)$'), TeX('$\\sigma(\\delta H)$'), pointSize = 3)
-pPH = pPH + scale_y_continuous(breaks = seq(0,50000,1000))
+pPH = plotdf_point(tmdfe_sum , "dHw.mean", "rNC", TeX('$\\mu(\\delta H)$'), TeX('$\\sigma(\\delta H)$'), pointSize = 3)
+pPH = pPH + scale_x_continuous(limits = c(0, 0.011), breaks = seq(0, 0.125, 0.0025))
 pPH
+
+#Relative mean energy
+pSdr = plotdf_point(tmdfe_sum , "dHw.mean", "dHw.sdpc", TeX('$\\mu(\\delta H)$'), TeX('$\\sigma(\\delta H)$'), pointSize = 3)
+pSdr = pSdr + scale_x_continuous(limits = c(0, 0.011), breaks = seq(0, 0.125, 0.0025))
+pSdr
+
+
 stop();
 
 

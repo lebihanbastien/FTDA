@@ -39,11 +39,11 @@ ySize = 7.66
 #Fontsize
 fontsize = list(title = 20,    #fontsize for title
                 label = 20,
+                legend = 18,
                 big   = 30)   #fontsize for labels   
 
 #Linesize
-linesize = list( line = 1, point = 2)
-
+linesize = list(line = 1, point = 2)
 
 #--------------------------------------------------------------------------#
 #Themes
@@ -51,13 +51,13 @@ linesize = list( line = 1, point = 2)
 #Base custom theme
 custom_theme = theme(
   #Axes
-  axis.text.x  = element_text(colour="grey20", size=fontsize[["label"]],angle=0,hjust=.5,vjust=.5),
-  axis.text.y  = element_text(colour="grey20", size=fontsize[["label"]]),
-  axis.title.x = element_text(colour="grey20", size=fontsize[["label"]], vjust = 0.5),
-  axis.title.y = element_text(colour="grey20", size=fontsize[["label"]], vjust = 0.5),
+  axis.text.x  = element_text(colour="grey20", size=fontsize[["label"]], angle=0, hjust = 0.5, vjust=  0.5, margin = margin(10,1,1,1)),
+  axis.text.y  = element_text(colour="grey20", size=fontsize[["label"]], angle=0, hjust = 1,   vjust=  0.5, margin = margin(1,5,1,1)),
+  axis.title.x = element_text(colour="grey20", size=fontsize[["label"]], vjust =  0.5, margin = margin(20,1,1,1)),
+  axis.title.y = element_text(colour="grey20", size=fontsize[["label"]], vjust =  0.5, margin = margin(1,15,1,1)),
   #Legend
-  legend.text  = element_text(colour="grey20", size=fontsize[["label"]]),
-  legend.title = element_text(colour="grey20", size=fontsize[["title"]]),
+  legend.text  = element_text(colour="grey20", size=fontsize[["legend"]], hjust = 0.0),
+  legend.title = element_text(colour="grey20", size=fontsize[["legend"]]),
   legend.title.align   = 0.5,
   legend.key.size      = unit(1, 'cm'),
   legend.key.width     = unit(2, 'cm')
@@ -66,12 +66,12 @@ custom_theme = theme(
 #Big fong
 big_font_theme = theme(
   #Axes
-  axis.text.x  = element_text(colour="grey20", size=fontsize[["big"]],angle=0,hjust=.5,vjust=.5),
-  axis.text.y  = element_text(colour="grey20", size=fontsize[["big"]]),
-  axis.title.x = element_text(colour="grey20", size=fontsize[["big"]], vjust = 0.5),
-  axis.title.y = element_text(colour="grey20", size=fontsize[["big"]], vjust = 0.5),
+  axis.text.x  = element_text(colour="grey20", size=fontsize[["big"]] , angle=0, hjust = 0.5, vjust=  0.5, margin = margin(10,1,1,1)),
+  axis.text.y  = element_text(colour="grey20", size=fontsize[["big"]] , angle=0, hjust = 1,   vjust=  0.5, margin = margin(1,5,1,1)),
+  axis.title.x = element_text(colour="grey20", size=fontsize[["big"]] , vjust = 0.5, margin = margin(20,1,1,1)),
+  axis.title.y = element_text(colour="grey20", size=fontsize[["big"]] , vjust = 0.5, margin = margin(1,20,1,1)),
   #Legend
-  legend.text  = element_text(colour="grey20", size=fontsize[["big"]]),
+  legend.text  = element_text(colour="grey20", size=fontsize[["big"]], hjust = 0.0),
   legend.title = element_text(colour="grey20", size=fontsize[["big"]]),
   legend.title.align   = 0.5,
   legend.key.size      = unit(1, 'cm'),
@@ -83,6 +83,13 @@ legend_inside_theme = custom_theme + theme(
   legend.justification = c(1,0),         #legend inside plot
   legend.position      = c(1,0)          #legend inside plot
 )
+
+#With legend inside the plot
+legend_left_theme = custom_theme + theme(
+  legend.justification = c(0,0),         #legend inside plot
+  legend.position      = c(0,0)          #legend inside plot
+)
+
 
 #Blank theme (for insets, for ex)
 blank_theme = theme(
@@ -225,6 +232,156 @@ plotdf_line<- function(ttm,              #dataframe
     px = px + geom_line(data = ttm, 
                         aes(x = temp1, y = temp2), 
                         size = lSize)
+  }
+  
+  
+  #Labels
+  #--------------------------------------
+  if(!missing(xlabel)) xlabeli = xlabel
+  else xlabeli = colx
+  
+  if(!missing(ylabel)) ylabeli = ylabel
+  else ylabeli = coly
+  
+  px = px + labs(x = xlabeli, y = ylabeli)
+  
+  
+  #Theme
+  #--------------------------------------
+  px= px + custom_theme 
+  
+  
+  #Return the plot handle
+  #--------------------------------------
+  return(px)
+}
+
+#--------------------------------------------------------------------------#
+# Plot function for smooth plots
+#--------------------------------------------------------------------------#
+plotdf_smooth<- function(ttm,              #dataframe
+                       colx,             #x
+                       coly,             #y
+                       xlabel,           #xlabel
+                       ylabel,           #ylabel
+                       colorCol,         #column for color scaling
+                       colorLabel,       #associated label
+                       isColorFac,       #is color factorized
+                       lineTypeCol,      #column for line type
+                       lineTypeLabel,    #associated label
+                       lineSize,         #size of the lines
+                       lineType)         #type of the lines
+{
+  
+  
+  #Ggplot init
+  #--------------------------------------
+  px = ggplot()
+  
+  #Changing temporarily the names of the desired columns (x & y)
+  #--------------------------------------
+  i1 = which(colnames(ttm) == colx)
+  i2 = which(colnames(ttm) == coly)
+  colnames(ttm)[i1] = "temp1"
+  colnames(ttm)[i2] = "temp2"
+  
+  #LineType & LineSize
+  #--------------------------------------
+  if(!missing(lineSize)) 
+  {
+    lSize = lineSize
+  }else{
+    lSize = linesize[["line"]]
+  }
+  
+  #LineType & LineSize
+  #--------------------------------------
+  if(!missing(lineType)) 
+  {
+    lType = lineType
+  }else{
+    lType = "solid"
+  }
+  
+  
+  #Plot
+  #--------------------------------------
+  if(!missing(colorCol)) #if a color scheme is provided
+  {
+    #Changing temporarily the names of the desired columns (colorCol)
+    i1 = which(colnames(ttm) == colorCol)
+    colnames(ttm)[i1] = "colorCol"
+    
+    if(!missing(lineTypeCol)) #if a linetype scheme is provided
+    {
+      #If there is no troubleshooting between lineTypeCol & colorCol
+      if(colorCol != lineTypeCol)
+      {
+        #Changing temporarily the names of the desired columns (lineTypeCol)
+        i2 = which(colnames(ttm) == lineTypeCol)
+        colnames(ttm)[i2] = "lineTypeCol"
+        
+        if(!missing(isColorFac) & isColorFac == 0)   #if the boolean isColorFac is provided and is false, continuous color scale
+          px = px + geom_smooth(data = ttm, 
+                              aes(x = temp1, y = temp2, color = colorCol, linetype = factor(lineTypeCol)),
+                              size = lSize, se = FALSE)
+        else  #discrete color scale otherwise
+          px = px + geom_smooth(data = ttm, 
+                              aes(x = temp1, y = temp2, color = factor(colorCol), linetype = factor(lineTypeCol)), 
+                              size = lSize, se = FALSE)
+      }else #otherwise, use colorCol for both!
+      {
+        if(!missing(isColorFac) & isColorFac == 0)   #if the boolean isColorFac is provided and is false, continuous color scale
+          px = px + geom_smooth(data = ttm, 
+                              aes(x = temp1, y = temp2, color = colorCol, linetype = factor(colorCol)), 
+                              size = lSize, se = FALSE)
+        else  #discrete color scale otherwise
+          px = px + geom_smooth(data = ttm, 
+                              aes(x = temp1, y = temp2, color = factor(colorCol), linetype = factor(colorCol)), 
+                              size = lSize, se = FALSE)
+      }
+      
+      #Linetype label if necessary
+      if(!missing(lineTypeLabel)) 
+      {
+        px = px + scale_linetype_discrete(name=lineTypeLabel)
+      } else
+      { 
+        px = px + scale_linetype_discrete(name="Francis", guide = F)
+      }
+      
+    }
+    else #no linetype scheme
+    {
+      if(!missing(isColorFac) & isColorFac == 0)   #if the boolean isColorFac is provided and is false, continuous color scale
+        px = px + geom_smooth(data = ttm, 
+                            aes(x = temp1, y = temp2, color = colorCol), 
+                            linetype = lType,
+                            size = lSize, se = FALSE)
+      else  #discrete color scale otherwise
+        px = px + geom_smooth(data = ttm, 
+                            aes(x = temp1, y = temp2, color = factor(colorCol)), 
+                            linetype = lType,
+                            size = lSize, se = FALSE)
+    }
+    
+    #Colour label if necessary
+    if(!missing(colorLabel))
+    {
+      if(!missing(isColorFac) & isColorFac == 0)
+        px = px + scale_color_continuous(name=colorLabel)
+      else 
+      {
+        px = px + scale_color_discrete(name=colorLabel)
+      }
+    }
+    
+  }
+  else #no colour scheme
+  {
+    px = px + geom_smooth(data = ttm, 
+                        aes(x = temp1, y = temp2), 
+                        size = lSize, se = FALSE)
   }
   
   
@@ -456,7 +613,6 @@ plotdf_path<- function(ttm,              #dataframe
     
     if(!missing(lineTypeCol)) #if a linetype scheme is provided
     {
-      
       #If there is no troubleshooting between lineTypeCol & colorCol
       if(colorCol != lineTypeCol)
       {
@@ -478,9 +634,9 @@ plotdf_path<- function(ttm,              #dataframe
         
       }else #otherwise, use colorCol for both!
       {
-        if(!missing(isColorFac) & isColorFac == 0)   #if the boolean isColorFac is provided and is false, continuous color scale
+        if(!missing(isColorFac) & isColorFac == FALSE)   #if the boolean isColorFac is provided and is false, continuous color scale
           px = px + geom_path(data = ttm, 
-                              aes(x = temp1, y = temp2, color = colorCol, linetype = factor(colorCol)), 
+                              aes(x = temp1, y = temp2, color = colorCol, linetype = colorCol), 
                               size = lSize)
         else  #discrete color scale otherwise
           px = px + geom_path(data = ttm, 

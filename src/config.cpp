@@ -233,8 +233,8 @@ void initCOC(matrix<Ofsc> &P,
         //Q = inv(P) (gsl lib)
         //--------------------
         int s;
-        gsl_matrix* Pc   = gsl_matrix_alloc (NV, NV);
-        gsl_matrix* Qc   = gsl_matrix_alloc (NV, NV);
+        gsl_matrix* Pc   = gsl_matrix_calloc (NV, NV);
+        gsl_matrix* Qc   = gsl_matrix_calloc (NV, NV);
         gsl_permutation * p6 = gsl_permutation_alloc (NV);
 
         //Init Pc

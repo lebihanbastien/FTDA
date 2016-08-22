@@ -365,7 +365,7 @@ template <typename T> void Ofs<T>::tfs_to_ofs(Ofs<T> const& a)
     // FFT structures
     //---------------------
     int N = 2*a.getOrder()+1;
-    gsl_vector_complex *data_fft          = gsl_vector_complex_alloc(N);
+    gsl_vector_complex *data_fft          = gsl_vector_complex_calloc(N);
     gsl_fft_complex_wavetable *wavetable  = gsl_fft_complex_wavetable_alloc (N);
     gsl_fft_complex_workspace *workspace  = gsl_fft_complex_workspace_alloc (N);
 
@@ -417,7 +417,7 @@ template <typename T> void Ofs<T>::tfs_to_ofs_inline()
     // FFT structures
     //---------------------
     int N = 2*order+1;
-    gsl_vector_complex *data_fft          = gsl_vector_complex_alloc(N);
+    gsl_vector_complex *data_fft          = gsl_vector_complex_calloc(N);
     gsl_fft_complex_wavetable *wavetable  = gsl_fft_complex_wavetable_alloc (N);
     gsl_fft_complex_workspace *workspace  = gsl_fft_complex_workspace_alloc (N);
 

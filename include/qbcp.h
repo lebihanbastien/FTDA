@@ -313,6 +313,9 @@ void invMat22(double A[2][2], double invA[2][2]);
  *  \brief Computation of lpdyneq with continuation between two models. WORK IN PROGRESS.
  **/
 void lpdyneq_cont(gsl_odeiv2_driver *d, gsl_odeiv2_control * loose_control, gsl_odeiv2_control * hard_control, double y0[], gnuplot_ctrl *h1);
-
+/**
+ *  \brief Computation of lpdyneq with continuation between two models. WORK IN PROGRESS.
+ **/
+void lpdyneq_cont_2(gsl_odeiv2_driver *d, gsl_odeiv2_control * loose_control, gsl_odeiv2_control * hard_control, double y0[]);
 
 #endif // QBCP_H_INCLUDED

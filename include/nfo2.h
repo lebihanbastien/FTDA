@@ -46,6 +46,11 @@ void nfo2(QBCP_L &qbcp_l, int isStored);
  */
 void nfo2_QBP(QBCP_L &qbcp_l, int isStored);
 
+/**
+ *  \brief Continuation routine
+ */
+void continuation(QBCP_L &qbcp_l, int isStored);
+
 //-------------------------------------------------------------------------------------------------------
 //Compute the STM/Monodromy Matrix
 //-------------------------------------------------------------------------------------------------------

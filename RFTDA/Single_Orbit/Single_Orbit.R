@@ -11,23 +11,23 @@ library(reshape2)
 library(scales)
 library(grid)
 library(png)
-library(grImport)
+#library(grImport)
 
 #------------------------------------------------
 # Load Source files
 #------------------------------------------------
-source("source/source_folder.R")
-source("source/source_plot.R")
-source("source/source_routines.R")
+source("source/folder.R")
+source("source/plot.R")
+source("source/routines.R")
 
 #------------------------------------------------
 # Select Models & libration point
 #------------------------------------------------
 Li    = "L2"
 MODEL = "QBCP"
-FWRK  = "SEM"
-currentfolder = paste0(printfolder(MODEL, FWRK, Li), "orbits/")
-size = "30_s1s2" #1.5 7.5 15 30 45
+FWRK  = "EM"
+currentfolder = paste0(plotfolder(MODEL, FWRK, Li), "orbits/")
+size = "0_test" #1.5 7.5 15 30 45
 Period = ifelse(MODEL=="QBCP", 6.79119387190792, 2*pi)
 maxPrec = 1e-6
 
@@ -51,7 +51,7 @@ if(MODEL == "QBCP")
 fplot_path = plotdf_path;
 
 # Orders
-if(MODEL == "QBCP") dfindex = c(10,15,20) else dfindex = c(2,5,20)
+if(MODEL == "QBCP") dfindex = c(10) else dfindex = c(2,5,20)
 dfnumber = 1:length(dfindex)
 maxOrder = max(dfindex)
 

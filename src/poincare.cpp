@@ -880,16 +880,14 @@ void pmap_invariance_error_random(Pmap &pmap, int append, bool isPar, double hzm
         randseq[i][0] = pmap.gmin*(1-randseq[i][0]) + pmap.gmax*randseq[i][0];
         randseq[i][2] = pmap.gmin*(1-randseq[i][2]) + pmap.gmax*randseq[i][2];
         //s2 & s4
-        randseq[i][1] = 0.5*(pmap.gmin*(1-randseq[i][1]) + pmap.gmax*randseq[i][1]);
-        randseq[i][3] = 0.5*(pmap.gmin*(1-randseq[i][3]) + pmap.gmax*randseq[i][3]);
+        randseq[i][1] = 1e-1*(pmap.gmin*(1-randseq[i][1]) + pmap.gmax*randseq[i][1]);
+        randseq[i][3] = 1e-1*(pmap.gmin*(1-randseq[i][3]) + pmap.gmax*randseq[i][3]);
     }
 
     //@TODO
     // 1. Get the name generator right (including initial time)
     // 2. Binary files. What is to be stored?
     // 3. Get a matlab routine to treat the data
-
-
 
     //------------------------------------------
     //Loop
@@ -2342,22 +2340,25 @@ void orbit_energy_fprint_bin(Orbit *orbit, string filename, int append)
             myfile.write((char*) &res, sizeof(double));
         }
 
-        //3. RCM
+        //3. EM
+        for(int k = 0; k < 6; k++)
+        {
+            res = creal(zEM[k]);
+            myfile.write((char*) &res, sizeof(double));
+        }
+
+        //4. RCM
         for(int k = 0; k < 4; k++)
         {
             res = creal(orbit->si[k]);
             myfile.write((char*) &res, sizeof(double));
         }
 
-        //4. time
+        //5. time
         res = creal(orbit->pmap->t0);
         myfile.write((char*) &res, sizeof(double));
 
-        //5. dHz
-        res = creal(hz - orbit->pmap->H0);
-        myfile.write((char*) &res, sizeof(double));
-
-        //6. dHw
+        //6. dHz
         res = creal(hz - orbit->pmap->H0);
         myfile.write((char*) &res, sizeof(double));
 

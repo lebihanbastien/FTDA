@@ -929,6 +929,7 @@ inline void  writeOFTS_bin(Ofts<Ofsc > &W, string filename);
  **/
 inline void  writeVOFTS_bin(vector<Ofts<Ofsc > > &W, string filename);
 
+
 //----------------------------------------------
 // Binary format, read
 //----------------------------------------------

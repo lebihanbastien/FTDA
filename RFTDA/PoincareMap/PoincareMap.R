@@ -54,23 +54,10 @@ if (file.exists(filename))
     pmdf  = read.csv(filename, header = T, sep = ",")
   }else if (fileext == ".bin")
   {
-    #Read the data in binary form
-    newdata = file(filename, "rb")
-    datavals = readBin(newdata, double(), n = 18 * 100000)
-    close(newdata)
-    #Columns names
-    dimnames <- list(
-      row = seq(1,length(datavals) / 18),
-      name = c(
-        "label", "x", "y", "z", "px", "py", "pz",
-        "s1", "s2", "s3", "s4", "t", "dHz", "dHw",
-        "dHz.dHw", "pmap.dHv", "ePm", "number"
-      )
-    )
-    #Create matrix from array
-    matavals = matrix(datavals, ncol = 18, byrow = TRUE, dimnames = dimnames)
-    #Create data.frame from matrix
-    pmdf = data.frame(matavals)
+    names = c("label", "x", "y", "z", "px", "py", "pz",
+      "s1", "s2", "s3", "s4", "t", "dHz", "dHw",
+      "dHz.dHw", "pmap.dHv", "ePm", "number")
+    pmdf = dffbinary(filename, 18, names);
   }else{
     #Send an error if the file extension is unknown
     stop('The file extension is unknown (not .txt nor .bin)')
@@ -92,9 +79,9 @@ filename = paste0(currentfolder, "Serv/", fileprefix, "/", fileprefixnodots)
 # new columns
 #--------------------
 # From NC to EM units
-pmdf = NCtoC(pmdf, gamma, c1)
+pmdf = NCtoSYS(pmdf, gamma, c1)
 # From EM to physical units
-pmdf = CtoPH(pmdf, L)
+pmdf = SYStoPH(pmdf, L)
 # Radii from Li
 pmdf$rNC = sqrt(pmdf$x ^ 2 + pmdf$y ^ 2 + pmdf$z ^ 2)
 pmdf$rPH = sqrt(pmdf$xPH ^ 2 + pmdf$yPH ^ 2 + pmdf$zPH ^ 2)
@@ -107,6 +94,26 @@ pmdf$log10ePm = log10(pmdf$ePm)
 #Starting points
 #--------------------
 pmdf0 = pmdf[which(pmdf$number == 0),]
+
+#--------------------
+#Find the halo orbits
+#--------------------
+if(Li == "L1")
+{
+  pmdfhaloindices = pmdf[which(abs(pmdf$yEM) > 0.06),]
+}else{
+  pmdfhaloindices = pmdf[which(abs(pmdf$yEM) > 0.09),]
+}
+
+#Halo orbit isolated
+pmdfhalo   = pmdf[which(pmdf$label %in% pmdfhaloindices$label),]
+
+#Initial conditions
+pmdfhalo0   = pmdfhalo[which(pmdfhalo$number ==0),]
+
+#Just the first one
+#pmdfhalo1  = pmdfhalo[which(pmdfhalo$label == min(pmdfhalo$label)),]
+plotdf_point(pmdfhalo, "xEM", "yEM", "X [-]", "Y [-]", "label", "label", 1, pointSize = 2)
 
 #--------------------
 # Selecting only values
@@ -135,41 +142,30 @@ pmdf1 = pmdf[which(pmdf$number == maxnumber),]
 #--------------------
 #Select some labels to "lighten" the plot
 #--------------------
-pmdfback = pmdf
+#pmdf = pmdf
 
-#--------------------
-#Find the halo orbits
-#--------------------
-if(Li == "L1")
-{
-  pmdfhaloindices = pmdfback[which(abs(pmdfback$yEM) > 0.057),]
-}else{
-  pmdfhaloindices = pmdfback[which(abs(pmdfback$yEM) > 0.07),]
-}
 
-#pmdfhalo   = pmdfback[which(pmdfback$label %in% pmdfhaloindices$label),]
-#pmdfhalo_0 = pmdfhalo[which(pmdfhalo$number == 0),]
 
 #--------------------
 #Get rid of unwanted divergences
 #--------------------
 if(Li == "L2")
 {
-  pmdfdiv = pmdfback[which(pmdfback$xEM > -1.1),]
+  pmdfdiv = pmdf[which(pmdf$xEM > -1.1),]
 }
 
 #--------------------
 #Given condition
 #--------------------
-#condition = (pmdfback$label%%2 == 1 | pmdfback$label %in% pmdfhaloindices$label)
+#condition = (pmdf$label%%2 == 1 | pmdf$label %in% pmdfhaloindices$label)
 if(Li == "L2")
 {
-  condition = (pmdfback$label %% 2 == 1  | pmdfback$label %% 2 == 0 | pmdfback$label %in% pmdfhaloindices$label) & !(pmdfback$label %in% pmdfdiv$label)
-  #condition = pmdfback$label %in% pmdfhaloindices$label
+  condition = (pmdf$label %% 2 == 0  | pmdf$label %in% pmdfhaloindices$label) & !(pmdf$label %in% pmdfdiv$label)
+  #condition = pmdf$label %in% pmdfhaloindices$label
 }else{
-  condition = (pmdfback$label %% 2 == 1 | pmdfback$label %% 2 == 0 | pmdfback$label %in% pmdfhaloindices$label)
+  condition = (pmdf$label %% 2 == 0  | pmdf$label %in% pmdfhaloindices$label)
 }
-pmdf = pmdfback[which(condition),]
+pmdf = pmdf[which(condition),]
 
 #--------------------
 # Only a certain range of precision:
@@ -198,50 +194,64 @@ pmdf_lab$precFlag = precFlag
 #--------------------------
 #Lab: vs ePm
 #--------------------------
-pEM = plotdf_point(pmdf_lab, "xEM", "yEM", "x [-]", "y [-]", "precFlag", expression(e[P](t) < 10 ^{-6}),1, pointSize = 2)
+pEM = plotdf_point(pmdf_lab, "xEM", "yEM", "X [-]", "Y [-]", "precFlag", expression(e[P](t) < 10 ^{-6}),1, pointSize = 0.3)
 #Colors
 pEM = pEM + scale_colour_manual(values = c("#000000", "#279B61"), guide = FALSE);#, "#CC6666", "#9999CC"), guide = FALSE) #to get the proper order!
 #Theme
-pEM = pEM + big_font_theme
+pEM = pEM + custom_theme
 #Limits if necessary
 if (pEM_limits)
 {
   pEM = pEM + scale_x_continuous(limits = pEM_limits_x)
   pEM = pEM + scale_y_continuous(limits = pEM_limits_y)
 }
+#Change font
+pEM = pEM+theme(text=element_text(family="Times"))
 #Display
 pEM
 #Save
-ggsave(
-  pEM, width = plotW, height = plotH, file = paste0(filename, "_EM.eps")
-) #Save
+ggsave(pEM, width = xSize, height = xSize, file = paste0(filename, "_EM.png")) #Save in png
+ggsave(pEM, width = xSize, height = xSize, file = paste0(filename, "_EM.pdf")) #Save in pdf
 
 
 
 #--------------------------
 # EM with prescribed precision
 #--------------------------
-pEMprec = plotdf_point(pmdf_lab, "xEM", "yEM", "x [-]", "y [-]", pointSize = 2)
+pEMprec = plotdf_point(pmdf_lab, "xEM", "yEM", "X [-]", "Y [-]", pointSize = 1)
 #Theme
-pEMprec = pEMprec + big_font_theme
+pEMprec = pEMprec +big_font_theme
 #Display
 pEMprec
 
 #--------------------------
 #Lab: labels
 #--------------------------
-pLab = plotdf_point(pmdf_lab, "xEM", "yEM", "x [-]", "y [-]", "label", "label", 1, pointSize = 2)
+pLab = plotdf_point(pmdf_lab, "xEM", "yEM", "X [-]", "Y [-]", "label", "label", 1, pointSize = 0.3)
 #Colors
 pLab = pLab + scale_colour_discrete(guide = FALSE)
 #Theme
-pLab = pLab + big_font_theme
+pLab = pLab + custom_theme
+#Change font
+pLab = pLab+theme(text=element_text(family="Times"))
 #Display
 pLab
 #Save
-ggsave(
-  pLab, width = plotW, height = plotH, file = paste0(filename, "_Labels.eps")
-) #Save
+ggsave(pLab, width = xSize, height = xSize, file = paste0(filename, "_Labels.png")) #Save png
+ggsave(pLab, width = xSize, height = xSize, file = paste0(filename, "_Labels.pdf")) #Save in pdf
 
+#--------------------------
+#Lab: labels (tex version)
+#--------------------------
+pTeX = plotdf_point(pmdf_lab, "xEM", "yEM", "$X$ $[$-$]$", "$Y$ $[$-$]$", "label", "label", 1, pointSize = 1)
+#Colors
+pTeX = pTeX + scale_colour_discrete(guide = FALSE)
+#Theme
+pTeX = pTeX + custom_theme#big_font_theme
+#Display
+pTeX
+#Save
+#ggplot2tikz(pTeX, width = xSize, height = ySize, file = paste0(filename, "_tex.tex")) #Save in tex
 
 #--------------------------
 #Time between each projection

@@ -126,6 +126,7 @@ inline void tfs_from_ofs_inline(matrix< Ofsc >& a);
 inline void tfs_to_ofs_inline(matrix< Ofsc >& a);
 inline void tfs_from_ofs_inline(vector< Ofts< Ofsc > >& a, int m);
 inline void tfs_to_ofs_inline(vector< Ofts< Ofsc > >& a, int m);
+inline void tfs_to_ofs_inline(matrix< Ofts< Ofsc > >& a);
 
 //---------------------------------------------------------------------------
 //Functions used with T = Ofts< Ofsc >, to use only in tests
@@ -153,7 +154,22 @@ template <typename U> void smtmprod_u(matrix< Ofs<U> > const& a, matrix< Ofs<U> 
 //---------------------------------------------------------------------------
 // Read & Write
 //---------------------------------------------------------------------------
+/**
+ * \brief Writes a given matrix W of type \c Ofts<Ofsc >  in a binary files of the form "filename+i+j.bin", with i = 0, size1(W)-1
+ *        and j = 0, size2(W)-1.
+ **/
+void writeMOFTS_bin(matrix<Ofts<Ofsc > > &W, string filename);
+
+/**
+ * \brief Reads a given matrix W of type \c Ofts<Ofsc >  in a binary files of the form "filename+i+j.bin", with i = 0, size1(W)-1
+ *        and j = 0, size2(W)-1.
+ **/
+inline void readMOFTS_bin(matrix<Ofts<Ofsc > > &W, string filename, int fftN);
+
+//DEPRECATED
 void readMOFTS(matrix<Ofts<Ofsc > > &W, string filename, int fftN);
+void writeMOFTS_txt(matrix<Ofts<Ofsc > > &W, string filename, int fftN);
+
 
 //---------------------------------------------------------------------------
 //Include the implementation .tpp

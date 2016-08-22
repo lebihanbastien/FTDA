@@ -844,7 +844,7 @@ int errorPlot(const double st0[],      //RCM initial conditions
         //------------------------------------------
         ti = (double) i * t1 / Npoints;
         gsl_odeiv2_driver_apply (dnc, &t, ti, z1ncr);
-        gsl_odeiv2_driver_apply (drvf, &t2, ti, s1ccm8);
+        gsl_odeiv2_driver_apply(drvf, &t2, ti, s1ccm8);
 
         //------------------------------------------
         // Comparison
