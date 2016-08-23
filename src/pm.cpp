@@ -5122,7 +5122,7 @@ template <typename T> void  vector_fprinf(T& W, string filename)
     ofstream myfile;
     string ss1;
     //Loop on all coefficients
-    for(int i = 0; i < W.size(); i++)
+    for(int i = 0; i < (int) W.size(); i++)
     {
         ss1 = static_cast<ostringstream*>( &(ostringstream() << i) )->str();
         myfile.open ((filename+"["+ss1+"].txt").c_str());

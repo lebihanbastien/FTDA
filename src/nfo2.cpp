@@ -15,9 +15,9 @@
 // From C and Fortran
 extern "C"
 {
-#include "gnuplot_i.h"
-#include "nrutil.h"
-    void vepro_(double **DAT, int *M, double **VECS, int *NMX);
+    #include "gnuplot_i.h"
+    #include "nrutil.h"
+    //void vepro_(double **DAT, int *M, double **VECS, int *NMX);
 }
 
 
@@ -2683,8 +2683,8 @@ void vepro(gsl_matrix_complex **DAT, int M, gsl_matrix_complex **VECS, gsl_matri
         }
     }
 
-    //Fortran vepro
-    vepro_((double**)datf, &M, (double**)vecsf, &M);
+    //Fortran vepro (does not work on server)
+    //vepro_((double**)datf, &M, (double**)vecsf, &M);
 
     //Set vecsf in VECS_FORTRAN
     for(int k = 0; k <= M; k++)
@@ -4405,10 +4405,9 @@ void fortranFFT_real(Ofsc &xFFT, int fftN, int N, gsl_vector *dEv, int parity)
     for(int i = 0; i < N; i++) F[i]  = gsl_vector_get(dEv, i);
 
     //--------------------------------------------------------------
-    //FFT
+    //FFT (fortran, does not work on server)
     //--------------------------------------------------------------
-    foun_(F, &N, &M, CSF, SIF);
-
+    //foun_(F, &N, &M, CSF, SIF);
 
     //--------------------------------------------------------------
     //Order 0

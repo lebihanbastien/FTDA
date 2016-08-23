@@ -265,7 +265,7 @@ template <typename T>  void smvprod_t(matrix<T> const& a, vector<T> const& vIn, 
  **/
 template <typename T>  void smvprod_t(matrix<T> const& a, vector<T> const& vIn, vector<T>& vOut, int const &m)
 {
-    if( a.getSize(2) != (int) vIn.size() || a.getSize(1) != vOut.size() )
+    if( a.getSize(2) != (int) vIn.size() || a.getSize(1) != (int) vOut.size() )
     {
         cout << "Error in mvprod (matrix.tpp): lengths do not match. Nothing is done." << endl;
     }
@@ -389,7 +389,7 @@ template <typename T , typename U> void tfts_smvprod_u(matrix<U> const& a, vecto
  **/
 template <typename T>  void tfts_smvprod_t(matrix<T> const& a, vector<T> const& vIn, vector<T>& vOut, int const &m)
 {
-    if( a.getSize(2) != (int) vIn.size() || a.getSize(1) != vOut.size() )
+    if( a.getSize(2) != (int) vIn.size() || a.getSize(1) != (int) vOut.size() )
     {
         cout << "Error in mvprod (matrix.tpp): lengths do not match. Nothing is done." << endl;
     }
