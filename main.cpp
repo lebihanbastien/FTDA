@@ -1,19 +1,21 @@
 /**
  * \file main.cpp
- * \brief Main file for the computation of the neighborhood of the points \f$L_{1,2} \f$ of the Quasi-Bicircular Four-Body Problem (QBCP).
+ * \brief Main file (exec) for the computation of the dynamics about the neighborhood of the points \f$ EML_{1,2} \f$ and \f$ SEML_{1,2} \f$.
+ *
+ * The following models of the Sun-Earth-Moon system are available:
+ *   - Quasi-Bicircular Four-Body Problem (QBCP).
+ *   - Coupled Circular Restricted Three-Body Problem (CRTBP).
+ * The following models of the Sun-Earth-Moon system may be available in the future:
+ *   - Bircicular Four-Body Problem (BCP) (work in progress. the real issue being: no clear dynamical equivalent for \f$ EML_{2} \f$.
+ *   - Coupled Elliptic Restricted Three-Body Problem (CRTBP) (far from being completed).
  * \author BLB.
- * \date May 2015
- * \version 1.0
  */
 
-//-----------------------------------------------------
+//----------------------------------------------------------------------------------------
 // Comment & test
-//-----------------------------------------------------
-//
-//
+//----------------------------------------------------------------------------------------
 // STILL a memory leak...
 //--------------------
-//
 // oftsh.tpp
 // ofts.tpp
 //
@@ -27,20 +29,20 @@
 // trajectory.cpp
 //--------------------
 //
-//-----------------------------------------------------
+//----------------------------------------------------------------------------------------
 
-//-----------------------------------------------------
+//----------------------------------------------------------------------------------------
 // TODO:
 // CHECKUP COMPLET DES DATA.
 // TEST EACH CM/CU/CS
-// FIND A WAY TO ADD THE INFO ON THE CORRESPONDING FOLDERS (OTFS_ORDER, etc).
-//-----------------------------------------------------
+//----------------------------------------------------------------------------------------
 
 
 
-//-----------------------------------------------------
+//----------------------------------------------------------------------------------------
 // Include
-//-----------------------------------------------------
+//----------------------------------------------------------------------------------------
+//Parallel computing
 #include <omp.h>
 //Custom
 #include "ofs.h"
@@ -62,41 +64,18 @@ extern "C" {
     void matvec_(int *n, double **A, double *x, double *y, int *lda);
 }
 
-//-----------------------------------------------------
+//----------------------------------------------------------------------------------------
 // Namespaces
-//-----------------------------------------------------
+//----------------------------------------------------------------------------------------
 using namespace std;
 
 
-// Choice of coefficient type
-// for Fourier-Taylor series
-//---------------------------
-typedef Ofs<cdouble> Ofsc;
-typedef Ots<cdouble> Otsc;
-typedef Ofts< Ofs<cdouble> > Oftsc;
-
-
-//-----------------------------------------------------
-// Inner routines
-//-----------------------------------------------------
-/**
-    \brief From *char to int using istringstream
-**/
-double toDigit(char *c)
-{
-    int res;
-    istringstream ss;
-    ss.str(c);
-    ss >> res;
-    return res;
-}
-
-//-----------------------------------------------------
+//----------------------------------------------------------------------------------------
 // Main
-//-----------------------------------------------------
+//----------------------------------------------------------------------------------------
 /**
  *  \fn int main()
- *  \brief Main routine.
+ *  \brief Main routine. It makes of several arguments via argv (see code for details).
  */
 int main(int argc, char *argv[])
 {
@@ -106,31 +85,40 @@ int main(int argc, char *argv[])
     cout << "                                                   " << endl;
     cout << "---------------------------------------------------" << endl;
 
-    //-------------------------------------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------
     // Initialization of static FTDA objects. Mandatory.
-    // Note that, for now, the default order of the OFS and OFTS objects are set at compilation
-    //-------------------------------------------------------------------------------------------------------
+    // Note that, for now, the default order of the OFS and OFTS objects are set at
+    // compilation
+    //------------------------------------------------------------------------------------
     int OFS_ORDER_0  = 30;
     int OFTS_ORDER_0 = 30;
     int nr = max(2*OFS_ORDER_0, OFTS_ORDER_0);
     int nv = NV;
     FTDA::init(nv, nr);
 
-    //-------------------------------------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------
+    // The variable index contains the index of the current argument of the main routine
+    // first index is 1 because index 0 is the application path
+    //------------------------------------------------------------------------------------
+    int index    = 1;
+
+    //------------------------------------------------------------------------------------
     // Get the current orders
-    //-------------------------------------------------------------------------------------------------------
-    int index    = 1; //first index is 1 because index 0 is the application path
-    OFTS_ORDER   = toDigit(argv[index++]);
-    OFS_ORDER    = toDigit(argv[index++]);
-    REDUCED_NV   = toDigit(argv[index++]);
+    //------------------------------------------------------------------------------------
+    OFTS_ORDER   = atoi(argv[index++]);
+    OFS_ORDER    = atoi(argv[index++]);
+    REDUCED_NV   = atoi(argv[index++]);
     OTS_ORDER    = 10;
 
-    cout << "OFTS_ORDER = " << OFTS_ORDER << endl;
-    cout << "OFS_ORDER  = " << OFS_ORDER  << endl;
-    cout << "OTS_ORDER  = " << OTS_ORDER  << endl;
-    cout << "REDUCED_NV = " << REDUCED_NV << endl;
+    //To check consistency with the desired values
+    cout << "Current orders:" << endl;
+    cout << "OFTS_ORDER = "   << OFTS_ORDER << endl;
+    cout << "OFS_ORDER  = "   << OFS_ORDER  << endl;
+    cout << "OTS_ORDER  = "   << OTS_ORDER  << endl;
+    cout << "REDUCED_NV = "   << REDUCED_NV << endl;
+    cout << "---------------------------------------------------" << endl;
 
-    //-------------------------------------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------
     // Retrieving the parameters, in this order:
     // 1. Type of computation (QBTBP, NFO2, PM...)
     // 2. Type of model (QBCP, RTBP...)
@@ -138,27 +126,26 @@ int main(int argc, char *argv[])
     // 4. Boolean for normalization (or not) of the equations of motion
     // 5. Default libration point (EM system)
     // 6. Default libration point (SEM system)
-    // 7. PM style (only used in some computations)
-    // 8. boolean for storage (in txt files) of the results, for ALL computations !
-    //-------------------------------------------------------------------------------------------------------
-    int compType  = toDigit(argv[index++]);
-    int model     = toDigit(argv[index++]);
-    int dcs       = toDigit(argv[index++]);
-    int isNorm    = toDigit(argv[index++]);
-    int li_EM     = toDigit(argv[index++]);
-    int li_SEM    = toDigit(argv[index++]);
-    int pms       = toDigit(argv[index++]);
-    int mType_EM  = toDigit(argv[index++]);
-    int mType_SEM = toDigit(argv[index++]);
-    int storage   = toDigit(argv[index++]);
-
+    // 7. Parameterization (PM) style (only used in some computations)
+    // 8. boolean for storage (in txt/bin files) of the results
+    //------------------------------------------------------------------------------------
+    int compType  = atoi(argv[index++]);
+    int model     = atoi(argv[index++]);
+    int coordsys  = atoi(argv[index++]);
+    int isNorm    = atoi(argv[index++]);
+    int li_EM     = atoi(argv[index++]);
+    int li_SEM    = atoi(argv[index++]);
+    int pms       = atoi(argv[index++]);
+    int mType_EM  = atoi(argv[index++]);
+    int mType_SEM = atoi(argv[index++]);
+    int storage   = atoi(argv[index++]);
 
     //Check
     cout << "Current parameters:" << endl;
     cout << "--------------------" << endl;
     cout << "compType  = "   << compType << endl;
     cout << "model     = "   << model << endl;
-    cout << "dcs       = "   << dcs << endl;
+    cout << "coordsys  = "   << coordsys << endl;
     cout << "isNorm    = "   << isNorm << endl;
     cout << "li_EM     = "   << li_EM << endl;
     cout << "li_SEM    = "   << li_SEM << endl;
@@ -173,31 +160,29 @@ int main(int argc, char *argv[])
     //------------------------------------------
     MODEL_TYPE = model;
 
-    //------------------------------------------
+    //------------------------------------------------------------------------------------
     // Initialization of the environnement
     // Mandatory to perform any computation except qbtbp(int)
-    //------------------------------------------
-    init_env(li_EM, li_SEM, isNorm, model, dcs, pms, mType_EM, mType_SEM);
+    //------------------------------------------------------------------------------------
+    init_env(li_EM, li_SEM, isNorm, model, pms, mType_EM, mType_SEM);
 
     //------------------------------------------
     // Which default CS?
     //------------------------------------------
-    changeDCS(SEML, dcs);
+    changeCOORDSYS(SEML, coordsys);
 
-    //-------------------------------------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------
     // Master switch on the type of computation required by the user
     // QBTBP   = 0
     // NFO2    = 1
     // PM      = 2
     // PM_TEST = 3
     // PMAP    = 4
-    //-------------------------------------------------------------------------------------------------------
-    cout << "T = " << SEML.us_em.T << endl;
-    cout << "T_sem = " << SEML.us_sem.T << endl;
+    //------------------------------------------------------------------------------------
     switch(compType)
     {
     //-------------------------------------
-    // QBTBP resolution up to OFS_ORDER.
+    // Sun-Earth-Moon three-body motion resolution up to OFS_ORDER.
     //-------------------------------------
     case 0:
     {
@@ -210,7 +195,7 @@ int main(int argc, char *argv[])
             // one full period
             //-------------------------------------
         case M_QBCP:
-            qbtbp(li_EM, li_SEM, true, dcs);
+            qbtbp(li_EM, li_SEM, true, coordsys);
             break;
 
             //-------------------------------------
@@ -218,14 +203,15 @@ int main(int argc, char *argv[])
             // Storage in txt file.
             //-------------------------------------
         case M_BCP:
-            bcp(li_EM, li_SEM, dcs);
+            bcp(li_EM, li_SEM, coordsys);
             break;
+
             //-------------------------------------
             // ERTBP resolution in OFS format.
             // Storage in txt file.
             //-------------------------------------
         case M_ERTBP:
-            ertbp(li_EM, li_SEM, dcs);
+            ertbp(li_EM, li_SEM, coordsys);
             break;
 
         }
@@ -248,8 +234,10 @@ int main(int argc, char *argv[])
             nfo2(SEML, storage);
             break;
         case M_BCP:
-//            nfo2_QBP(SEML, storage);
-            continuation(SEML, storage);
+            nfo2_QBP(SEML, storage); //€€TODO WORK IN PROGRESS
+            break;
+        case M_RTBP:
+            nfo2_RTBP(SEML, storage);
             break;
         }
         break;
@@ -278,11 +266,11 @@ int main(int argc, char *argv[])
         for(int i = 0; i < REDUCED_NV; i++) si[i] = atof(argv[index++]);
 
         //2. Array of orders to test
-        int nkm = toDigit(argv[index]);
+        int nkm = atoi(argv[index]);
         int km[nkm];
         for(int i = 0; i<nkm; i++)
         {
-            km[i] = toDigit(argv[index+1+i]);
+            km[i] = atoi(argv[index+1+i]);
             if(km[i] > OFTS_ORDER)
             {
                 cout << "Warning: a required order is greater than OFTS_ORDER: the computation will be stopped before this value." << endl;
@@ -338,11 +326,11 @@ int main(int argc, char *argv[])
         // Additionnal parameters in bash
         //------------------------------------------
         //1. Array of orders to test
-        int nkm = toDigit(argv[index++]);
+        int nkm = atoi(argv[index++]);
         int km[nkm];
         for(int i = 0; i<nkm; i++)
         {
-            km[i] = toDigit(argv[index++]);
+            km[i] = atoi(argv[index++]);
             if(km[i] > OFTS_ORDER)
             {
                 cout << "Warning: a required order is greater than OFTS_ORDER: return." << endl;
@@ -351,11 +339,11 @@ int main(int argc, char *argv[])
         }
 
         //2. Array of OFS order.
-        int nkofs = toDigit(argv[index++]);
+        int nkofs = atoi(argv[index++]);
         int kofs[nkofs];
         for(int i = 0; i<nkofs; i++)
         {
-            kofs[i] = toDigit(argv[index++]);
+            kofs[i] = atoi(argv[index++]);
             if(kofs[i] > OFS_ORDER)
             {
                 cout << "Warning: a required order is greater than OFS_ORDER: return." << endl;
@@ -364,7 +352,7 @@ int main(int argc, char *argv[])
         }
 
         //3. PMAP parameters
-        int  argpmapc  = toDigit(argv[index++]);
+        int  argpmapc  = atoi(argv[index++]);
         cout << "Number of PMAP parameters & settings is " << argpmapc << endl;
 
         //------------------------------------------
@@ -410,28 +398,29 @@ int main(int argc, char *argv[])
         //------------------------
         //May evolve
         //------------------------
-        pmap.projFreq   =  toDigit(argv[index++]);
-        pmap.type       =  toDigit(argv[index++]);
-        pmap.tf         =     atof(argv[index++]); //needs to be a big number of Pmap, not for Tmap
+        pmap.projFreq   =  atoi(argv[index++]);
+        pmap.projFreq   =  atoi(argv[index++]);
+        pmap.type       =  atoi(argv[index++]);
+        pmap.tf         =  atof(argv[index++]); //needs to be a big number of Pmap, not for Tmap
 
         //isGS and graph style?
         //helps enhance computation
-        int isGS     =  toDigit(argv[index++]);
+        int isGS     =  atoi(argv[index++]);
         if(isGS == 1 && SEML.pms == PMS_GRAPH) pmap.isGS = 1;
         else pmap.isGS = 0;
 
-        pmap.order      =  toDigit(argv[index++]);
-        pmap.ofs_order  =  toDigit(argv[index++]);
-        pmap.max_events =  toDigit(argv[index++]);
+        pmap.order      =  atoi(argv[index++]);
+        pmap.ofs_order  =  atoi(argv[index++]);
+        pmap.max_events =  atoi(argv[index++]);
 
         //Specific case of the initial time, that
         //may be initialized as a root of a coefficient
         //of the COC matrix
-        pmap.t0         =  toDigit(argv[index++]);
+        pmap.t0         =  atoi(argv[index++]);
         if(pmap.t0 == -1) pmap.t0 = pij(2, 5); //root of p36 is input is -1
 
         pmap.dHv        =  atof(argv[index++]);
-        pmap.gsize      =  toDigit(argv[index++]);
+        pmap.gsize      =  atoi(argv[index++]);
         pmap.gmin       =  atof(argv[index++]);
         pmap.gmax       =  atof(argv[index++]);
 
@@ -452,10 +441,10 @@ int main(int argc, char *argv[])
         //-----------------------
         // Additionnal map settings
         //-----------------------
-        int append = toDigit(argv[index++]);
-        int isPlot = toDigit(argv[index++]);
-        int isPar  = toDigit(argv[index++]);
-        int method = toDigit(argv[index++]);
+        int append = atoi(argv[index++]);
+        int isPlot = atoi(argv[index++]);
+        int isPar  = atoi(argv[index++]);
+        int method = atoi(argv[index++]);
 
         cout << "append          = "  << append << endl;
         cout << "isPlot          = "  << isPlot << endl;
@@ -465,7 +454,7 @@ int main(int argc, char *argv[])
         //-----------------------
         // openMP settings
         //-----------------------
-        int num_threads = toDigit(argv[index++]);
+        int num_threads = atoi(argv[index++]);
         omp_set_num_threads(num_threads);
         cout << "num_threads     = "  << num_threads << endl;
 
@@ -555,157 +544,68 @@ int main(int argc, char *argv[])
         //testCOC();
         //testDotCOC();
         //testIntCOC();
-          oftsh_test();
+        //oftsh_test();
 
         break;
     }
 
     //------------------------------------------------
-    // Single trajectories
+    // Compute the dynamical equivalent of the libration point, and other resonant orbits
     //------------------------------------------------
     case 6:
     {
-        //------------------------------------------
-        // Additionnal parameters in bash
-        //------------------------------------------
-        //3. PMAP parameters
-        int  argpmapc  = toDigit(argv[index++]);
-        cout << "Number of PMAP parameters & settings is " << argpmapc << endl;
+        //-----------------------------
+        // Direction computation of the lpdyneq. Works for:
+        // - EML1, EML2 in QBCP
+        // - SEML1, SEML2 in QBCP
+        //-----------------------------
+        compute_dyn_eq_lib_point(SEML, storage);
 
-        //------------------------------------------
-        // Initialisation of the central manifold
-        //------------------------------------------
-        initCM(SEML);
-        initCOC(SEML);
+        //-----------------------------
+        // Continuation procedures for the computation of the lpdyneq
+        // Works for:
+        // - EML1 in BCP.
+        // - Seems to work for SEML1,2 of the BCP, but equations of motion need to be checked.
+        //-----------------------------
+        //continuation_dyn_eq_lib_point(SEML, M_RTBP, M_BCP, storage);
 
-        //------------------------------------------
-        // Pmap init
-        // Bash line for parallel computation: export OMP_SET_NUM_THREADS=5
-        //------------------------------------------
-        Pmap pmap;
-        if(MODEL_TYPE == M_RTBP)
-        {
-            //Quite stable parameters
-            //------------------------
-            pmap.pabs       =  1e-14;
-            pmap.prel       =  1e-14;
-            pmap.proot      =  1e-13;
-            pmap.threshold  =  1e-6;
-            pmap.tt         =  M_PI;
-            pmap.T          =  SEML.us.T;;
-            pmap.vdim       =  2;
-            pmap.maxRad     =  5.0;
-        }
-        else
-        {
-            //Quite stable parameters
-            //------------------------
-            pmap.pabs       =  1e-14;
-            pmap.prel       =  1e-14;
-            pmap.proot      =  1e-13;
-            pmap.threshold  =  1e-6;
-            pmap.T          =  SEML.us.T;
-            pmap.vdim       =  2;
-            pmap.maxRad     =  5.0;
-        }
-
-        //May evolve
-        //------------------------
-        pmap.type       =  toDigit(argv[index++]);
-        pmap.tf         =  atof(argv[index++]); //needs to be a big number of Pmap, not for Tmap
-        pmap.tt         =  atof(argv[index++])*SEML.us.T;
-
-
-        //isGS and graph style?
-        //helps enhance computation
-        int isGS     =  toDigit(argv[index++]);
-        pmap.isGS = 0;
-        if(isGS == 1)
-        {
-            switch(SEML.cs.manType)
-            {
-            case MAN_CENTER:
-                //if MAN_CENTER, we use
-                if(SEML.pms == PMS_GRAPH) pmap.isGS = 1;
-                break;
-            case MAN_CENTER_S:
-            case MAN_CENTER_U:
-                pmap.isGS = 1;
-                break;
-            }
-        }
-        pmap.order      =  OFTS_ORDER;
-        pmap.ofs_order  =  OFS_ORDER;
-        pmap.max_events =  toDigit(argv[index++]);
-
-        //Specific case of the initial time, that
-        //may be initialized as a root of a coefficient
-        //of the COC matrix
-        pmap.t0         =  atof(argv[index++]);
-        if(pmap.t0 == -1) pmap.t0 = pij(2, 5); //root of p36 is input is -1
-        pmap.dHv        =  atof(argv[index++]);
-
-        cout << "pmap.type       = "  << pmap.type << endl;
-        cout << "pmap.tf         = "  << pmap.tf << endl;
-        cout << "pmap.isGS  = "  << pmap.isGS << endl;
-        cout << "pmap.order      = "  << pmap.order << endl;
-        cout << "pmap.ofs_order  = "  << pmap.ofs_order  << endl;
-        cout << "pmap.max_events = "  << pmap.max_events << endl;
-        cout << "pmap.t0         = "  << pmap.t0  << endl;
-        cout << "pmap.dHv        = "  << pmap.dHv   << endl;
-
-        //-----------------------
-        // openMP settings
-        //-----------------------
-        int num_threads = toDigit(argv[index++]);
-        omp_set_num_threads(num_threads);
-        cout << "num_threads       = "  << num_threads << endl;
-
-        //------------------------------------------
-        // Initial conditions
-        //------------------------------------------
-        double si[REDUCED_NV];
-        for(int i = 0; i < REDUCED_NV; i++)
-        {
-            si[i] = atof(argv[index++]);
-        }
-
-
-        //------------------------------------------
-        // Trajectory computation
-        //------------------------------------------
-        trajectory_CU(si, pmap, 1, false);
-
-        break; //and of case 6: trajectories
+        //-----------------------------
+        // Continuation procedures for the computation of other resonant orbits
+        // Work for:
+        // - A 2T/5-resonant orbit at EML1
+        // - A T/2-resonant orbit at EML2
+        //-----------------------------
+        //continuation_res_orbit(SEML, M_RTBP, M_QBCP, storage);
     }
+
 
     }
     return 0;
 
 
-    //-------------------------------------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------
     // MULTIMIN_TEST
-    //-------------------------------------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------
     //test_frprmn();
 
-    //-------------------------------------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------
     // Tests
-    //-------------------------------------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------
     //testLegendreRecurrence_OFS();
     //testCOC();
     //testDotCOC();
     //testIntCOC();
 
-    //-------------------------------------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------
     // Unitary tests of routines
-    //-------------------------------------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------
     //ofs_test();
     //oftsh_test();
     //ofts_test();
 
-    //-------------------------------------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------
     // Retrieving the Hamiltonian from the VF (not working)
-    //-------------------------------------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------
     /*
     vector_fprinf_0(Fh, SEML.cs.F_NF+"fh");
 
@@ -786,45 +686,6 @@ int main(int argc, char *argv[])
     vector_fprinf_0(Fh, SEML.cs.F_NF+"Fh");
     vector_fprinf_0(Ham, SEML.cs.F_NF+"Ham");
     */
-
-
-    //----------------------------------------------------------------------------------------------------------
-    //Continuation methods (backup)
-    //----------------------------------------------------------------------------------------------------------
-    /*
-    char ch;            //Used to close the gnuplot windows at the very end of the program
-    gnuplot_ctrl  *h1;
-    h1 = gnuplot_init();
-
-    //Integration tools
-    //-------------------------------------------------
-    //System
-    gsl_odeiv2_system sys;
-    if(model.model1.isNormalized)
-        sys.function = qbfbp_vfn_cont;
-    else
-        sys.function = qbfbp_vf_cont;
-    sys.jacobian      = NULL;
-    sys.dimension     = 42;
-    sys.params        = &model;
-    //Stepper
-    const gsl_odeiv2_step_type *T = gsl_odeiv2_step_rk8pd;
-    //Driver
-    gsl_odeiv2_driver *d = gsl_odeiv2_driver_alloc_y_new (&sys, T, 1e-6, 1e-16, 1e-16);
-
-    //Differential correction to get the dynamical equivalent of the libration point (lpdyneq)
-    double y0[42];
-    lpdyneq_cont(d, y0, h1);
-
-    //Plotting the refined solution
-    int Npoints = 5000;
-    odePlot(y0,  model.model2.qbcp.T*0.5, d, h1, Npoints, 8);
-    odePlot(y0, -model.model2.qbcp.T*0.5, d, h1, Npoints, 8);
-
-
-    gnuplot_close(h1);
-    */
-
 }
 
 

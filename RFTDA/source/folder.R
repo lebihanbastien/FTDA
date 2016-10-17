@@ -1,11 +1,12 @@
 #--------------------------------------------------------------------------#
 # Folders
 #--------------------------------------------------------------------------#
-homefolder = "~/BackUpBox/PhD/OOFTDA/"
+ooftdafolder = "~/BackUpBox/PhD/OOFTDA/"
+ftincppdafolder = "~/BackUpBox/PhD/FourierTaylorInCpp/"
 
 folder = list(
-  plot   = paste0(homefolder,"plot/"),
-  fprint = paste0(homefolder,"fprint/")
+  plot   = paste0(ooftdafolder,"plot/"),
+  fprint = paste0(ooftdafolder,"fprint/")
 )
 
 #--------------------------------------------------------------------------#

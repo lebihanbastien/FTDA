@@ -147,7 +147,7 @@ void pmErrorvsOrderTest(int nkm, int km[], double si[])
     // Maximum time
     //------------------------------------------
     double tmax = (SEML.model == M_RTBP)? 2*M_PI: SEML.us.T;
-    tmax *= (SEML.fwrk == F_SEM && SEML.model != M_RTBP)? 10.0: 1.0;
+    tmax *= (SEML.coordsys == F_SEM && SEML.model != M_RTBP)? 10.0: 1.0;
     switch(SEML.cs.manType)
     {
         case MAN_CENTER_S:

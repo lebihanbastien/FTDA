@@ -207,6 +207,9 @@ long int pdk(int nv, int n)
 //-----------------------------------------------------------------------
 //Binomial coefficients
 //-----------------------------------------------------------------------
+/**
+ * \brief Computes the binomial coefficient (x y).
+ **/
 unsigned long gcd_ui(unsigned long x, unsigned long y)
 {
     unsigned long t;
@@ -225,6 +228,9 @@ unsigned long gcd_ui(unsigned long x, unsigned long y)
     return x;
 }
 
+/**
+ * \brief Computes the binomial coefficient (n k). DEPRECATED.
+ **/
 unsigned long binomial(unsigned long n, unsigned long k)
 {
     unsigned long d, g, r = 1;

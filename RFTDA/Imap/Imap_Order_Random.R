@@ -9,13 +9,13 @@ source("source/init.R")
 #------------------------------------------------
 # Select Models & libration point
 #------------------------------------------------
-Li    = "L2"
-MODEL = "QBCP"
-FWRK  = "EM"
-Type  = "MX_CU_rand" #"rand" #selection or global
+Li     = "L2"
+MODEL  = "QBCP"
+FWRK   = "EM"
+Type   = "rand" #rand or NF_rand
 Energy = 0
 OFS_ORDER = 30
-vorders = c(5, 10, 15, 20);
+vorders = c(5, 10, 15, 20, 25, 30);
 currentfolder = paste0(printfolder(MODEL, FWRK, Li))
 pS = 2
 
@@ -112,7 +112,7 @@ imapr = imapr[order(imapr$order),]
 # Only a given precision
 #---------------------
 # Version without background
-pplc = plotdf_point(imapr, "xEM", "yEM", "$X$ $[$-$]$", "$Y$ $[$-$]$", pointSize = pS, colorCol = "order", colorLabel = "Order", isColorFac = TRUE)
+pplc = plotdf_point(imapr, "xEM", "yEM", "$X$", "$Y$", pointSize = pS, colorCol = "order", colorLabel = "Order", isColorFac = TRUE)
 
 #Version with background (at constant energy)
 # pplc = ggplot() + geom_point(data = imap, aes(x = xEM, y = yEM), color = "grey", size = pS, alpha = 0.01)
@@ -120,11 +120,19 @@ pplc = plotdf_point(imapr, "xEM", "yEM", "$X$ $[$-$]$", "$Y$ $[$-$]$", pointSize
 # pplc = pplc + geom_point(data = imapr, aes(x = xEM, y = yEM, color = factor(order)))+ scale_color_discrete(name="Order")
 # pplc
 
-
+#---------------------
 #Add m2
+#---------------------
 primaryPos  =  -(1-muR)  #Add m2
-moon = data.frame(xEM = primaryPos, yEM = 0)
-pplc = pplc + geom_point(data = moon, aes(xEM, yEM), size = 4, colour = "black", fill = "black", pch = 21)
+# moon = data.frame(xEM = primaryPos, yEM = 0)
+# pplc = pplc + geom_point(data = moon, aes(xEM, yEM), size = 4, colour = "black", fill = "black", pch = 21)
+#Add m2 with true apparen radius
+moon = circleFun(center = c(primaryPos, 0), diameter = primaryR/L, npoints = 100, start = 0, end = 2, filled = TRUE)
+pplc = pplc + geom_polygon(data=moon, aes(x,y), color="black", fill="black")
+
+#---------------------
+#Ratio and limits
+#---------------------
 pplc = pplc + coord_fixed(ratio=1)
 if(Li == "L2")
 {
@@ -153,7 +161,7 @@ if(Li == "L2")
 }else{
   eml1_res = read.table("Single_Orbit/EML1_resonant_orbit.txt", header = F)
   names(eml1_res) = c("x", "y")
-  #pplc = pplc + geom_path(data=eml1_res, aes(x=x, y=y), size=1, linetype= "dashed")
+  pplc = pplc + geom_path(data=eml1_res, aes(x=x, y=y), size=1, linetype= "dashed")
 }
 
 #---------------------
@@ -252,9 +260,14 @@ if(Energy > 0)
 # s1-s3 maps
 #---------------------
 ppls1s3 = plotdf_point(imapr, "s1", "s3", "$s_1$", "$s_3$", pointSize = pS, colorCol = "order", colorLabel = "Order", isColorFac = TRUE)
-ppls1s3 = ppls1s3 + scale_x_continuous(breaks = seq(-50,50,4)) + scale_y_continuous(breaks = seq(-50,50,4))
+if(Li == "L2")
+{
+  ppls1s3 = ppls1s3 + scale_x_continuous(breaks = seq(-50,50,4)) + scale_y_continuous(breaks = seq(-50,50,4))
+}else{
+  ppls1s3 = ppls1s3 + scale_x_continuous(breaks = seq(-2,2,0.5)) + scale_y_continuous(breaks = seq(-2,2,0.5))
+}
 ppls1s3
 
 #Save in tikz
 #--------------------------------------------------------------------------------------------------------------------------
-ggplot2tikz(pplc, xSize, ySize, file = paste0(currentfolder, "EIm_", Type, "_ofs_", toString(OFS_ORDER),"_order_",toString(i), "_planar.tex"))
+ggplot2tikz(pplc, xSize, ySize+2, file = paste0(currentfolder, "EIm_", Type, "_ofs_", toString(OFS_ORDER),"_order_",toString(i), "_planar_resonant.tex"))

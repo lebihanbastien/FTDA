@@ -66,7 +66,7 @@ STORAGE=$TRUE
 #------------------------------------
 # Numerical constants for all computation
 #------------------------------------
-OFTS_ORDER=15
+OFTS_ORDER=20
 
 
 

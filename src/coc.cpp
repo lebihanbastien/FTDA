@@ -224,7 +224,7 @@ void tfts_initCOC(matrix<Ofsc> &P,
 
 
         double gamma = qbcp_l.cs.gamma;
-        switch(qbcp_l.fwrk)
+        switch(qbcp_l.coordsys)
         {
         case F_EM:
             //Sun does not exist
@@ -527,7 +527,7 @@ void initCOC(matrix<Ofsc> &P,
 
 
         double gamma = qbcp_l.cs.gamma;
-        switch(qbcp_l.fwrk)
+        switch(qbcp_l.coordsys)
         {
         case F_EM:
             //Sun does not exist
@@ -1068,71 +1068,6 @@ void applyCOC_OFS(matrix<Ofsc> &PC,
     for(int i = 0; i < (int) zOut.size(); i++) zOut[i] += V[i];
 }
 
-
-///**
-// *  \brief Apply the change of variables in zIN/zOut (OFS version).
-// *       The change of variables is of the form: zOut = (P*C) zIN + V
-// *
-// *   This routine shows that using P as it is, without computing PC in the preprocess,
-// *   requires to use a lot of side variables (see the use of AUX, BUX, CUX, DUX in the src code).
-// **/
-//void applyCOC_OFS(matrix<Ofsc> &P, vector<Ofsc> &V, vector<Ofsc> &zIn, vector<Ofsc> &zOut)
-//{
-//    //-----------------------------------------
-//    //Temporary variables
-//    //-----------------------------------------
-//    Ofsc AUX(OFS_ORDER);
-//    Ofsc BUX(OFS_ORDER);
-//    Ofsc CUX(OFS_ORDER);
-//    Ofsc DUX(OFS_ORDER);
-//    //-----------------------------------------
-//
-//    //Loop on the components of zOut
-//    for(int i = 0; i < NV ; i ++)
-//    {
-//        if(i== 2 || i == 5) //z variables are decoupled from the others (beware of the C++ shift!)
-//        {
-//            //-----------------------------------------
-//            //Z variables
-//            //-----------------------------------------
-//            //AUX = 1/sqrt(2)*(pi3 + pi6*I)
-//            AUX.ofs_fsum(P(i,2), 1.0/sqrt(2)+0.0*I, P(i,5), I*1.0/sqrt(2));
-//            //CUX = 1/sqrt(2)*(I*pi3 + pi6)
-//            CUX.ofs_fsum(P(i,2), I*1.0/sqrt(2), P(i,5), 1.0/sqrt(2)+0.0*I);
-//
-//            //zOut[i] =   1/sqrt(2)*(pi3 + pi6*I)*x3
-//            //          + 1/sqrt(2)*(I*pi3 + pi6)*y3
-//            zOut[i].ofs_prod(AUX, zIn[2]);
-//            zOut[i].ofs_sprod(CUX, zIn[5]);
-//        }
-//        else
-//        {
-//            //-----------------------------------------
-//            //X, Y variables
-//            //-----------------------------------------
-//            //AUX = 1/sqrt(2)*(pi1 + pi4*I)
-//            AUX.ofs_fsum(P(i,0), 1.0/sqrt(2)+0.0*I, P(i,3), I*1.0/sqrt(2));
-//            //BUX = pi2
-//            BUX.ccopy(P(i,1));
-//            //CUX = 1/sqrt(2)*(I*pi1 + pi4)
-//            CUX.ofs_fsum(P(i,0), I*1.0/sqrt(2), P(i,3), 1.0/sqrt(2)+0.0*I);
-//            //DUX = pi5
-//            DUX.ccopy(P(i,4));
-//
-//            //zOut[i] =   1/sqrt(2)*(p11 + p14*I)*x1
-//            //          + p12*x2
-//            //          + 1/sqrt(2)*(I*p11 + p14)*y1
-//            //          + Vi
-//            //Vi is added!!!
-//            zOut[i].ofs_prod(zIn[0], AUX);
-//            zOut[i].ofs_sprod(zIn[1], BUX);
-//            zOut[i].ofs_sprod(zIn[3], CUX);
-//            zOut[i].ofs_sprod(zIn[4], DUX);
-//            zOut[i] += V[i];
-//
-//        }
-//    }
-//}
 
 /**
  *  \brief Apply the change of variables (without the order zero) in zIN/zOut (OFS version).

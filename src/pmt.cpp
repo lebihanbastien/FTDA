@@ -75,6 +75,7 @@ void pmt(int OutputEachOrder, int Output, int pms, int manType)
     //---------------------
     matrix<Oftsc> DWhc(6,REDUCED_NV);  //TFC, contribution of order < k to k
     matrix<Oftsc> DW(6,REDUCED_NV);    //NC,  contribution of order <=k to k
+
     //---------------------
     // Complete VF
     //---------------------
@@ -279,10 +280,10 @@ void pmt(int OutputEachOrder, int Output, int pms, int manType)
     //--------------------------------------------------------------------------
     // 7. Computing at orders >= 2
     //--------------------------------------------------------------------------
+    tic();
     for(int m = 2; m <= OFTS_ORDER; m++)
     {
         cout << "pm. start of order " << m << endl;
-        tic();
         //------------------------------------------
         //The potential Un is updated.
         //What is updated: contributions of order < m to order m
@@ -388,6 +389,8 @@ void pmt(int OutputEachOrder, int Output, int pms, int manType)
         applyVF(alpha, W, FW, Un, m);
 
     }
+    double tt = toc();
+    cout << "  pm. End of computation" <<  " in " << tt << " s (" << tt/60 << " mn)." << endl;
 
     //--------------------------------------------------------------------------
     // 8. Back to TFS format at the very end.
@@ -414,10 +417,13 @@ void pmt(int OutputEachOrder, int Output, int pms, int manType)
     if(Output && !OutputEachOrder)
     {
         tic();
-        //------------------------------------------
+        //--------------------------------------------------------------------------------
         // Binary
+        //--------------------------------------------------------------------------------
+
         //------------------------------------------
         //Vectors
+        //------------------------------------------
         writeVOFTS_bin(W,    F_PMS+"W/W");
         writeVOFTS_bin(Wh,   F_PMS+"W/Wh");
         writeVOFTS_bin(fh,   F_PMS+"rvf/fh");
@@ -425,19 +431,47 @@ void pmt(int OutputEachOrder, int Output, int pms, int manType)
         writeVOFTS_bin(DWf,  F_PMS+"DWf/C_DWf");
         writeVOFTS_bin(FW,   F_PMS+"FW/C_FW");
 
+        //------------------------------------------
         //Matrices: Jacobian
+        //------------------------------------------
         writeMOFTS_bin(DWhc, F_PMS+"DWf/DWhc");
-        cout << "  pm. End of printing" <<  " in " << toc() << " s. " << endl;
 
         //------------------------------------------
-        // Txt
+        //If the manifold is CS or CU and the graph style is used,
+        //certain directions of the parameterization (0 and 3) can be stored in one-dim
+        //series. Moreover, the Jacobian is computed and stored.
         //------------------------------------------
+        if(manType == MAN_CENTER_S || manType == MAN_CENTER_U)
+        {
+            //Init
+            Oftsc W1(1, OFTS_ORDER, OFS_NV, OFS_ORDER);
+            Oftsc DW1(1, OFTS_ORDER, OFS_NV, OFS_ORDER);
+
+            //Read and store
+            fromVOFTStoVOFTS_bin(Wh, W1, DW1, F_PMS+"W/Wh", F_PMS+"W/F");
+        }
+
+        //--------------------------------------------------------------------------------
+        // Txt
+        //--------------------------------------------------------------------------------
         //writeMOFTS_txt(DWhc, F_PMS+"DWf/DWhc");
         //writeVOFTS_txt(Wh,   F_PMS+"W/Wh");
         //print W & FWc
         //writeVOFTS_txt(W,     F_PMS+"W/W");
         //writeVOFTS_txt(E,    F_PMS+"W/E");
         //vector_fprinf(fh, F_PMS+"rvf/fh");
+
+        //--------------------------------------------------------------------------------
+        // Info
+        //--------------------------------------------------------------------------------
+        ofstream myfile;
+        string nfile = F_PMS+"INFO.txt";
+        myfile.open (nfile.c_str());
+        myfile << "OFTS_ORDER = " << OFTS_ORDER << endl;
+        myfile << "OFS_ORDER = " << OFS_ORDER << endl;
+        myfile.close();
+
+        cout << "  pm. End of printing" <<  " in " << toc() << " s. " << endl;
     }
 
     //--------------------------------------------------------------------------

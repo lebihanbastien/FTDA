@@ -6,6 +6,7 @@
  * \version 1.0
  */
 #include "qbtbp.h"
+
 //-----------------------------------------------------------------------------
 // Main routine: computation of the QBTBP
 //-----------------------------------------------------------------------------
@@ -17,7 +18,7 @@
  *                   - a comparison between the coefficients obtained with FFT and the ones obtained via algebraic manipulations on Ofs objects.
  *                   - a test of the results in Earth-Moon/Inertial/Sun-Earth frameworks.
  */
-void qbtbp(int li_EM, int li_SEM, int isTestOn, int fwrk)
+void qbtbp(int li_EM, int li_SEM, int isTestOn, int coordsys)
 {
     cout << "---------------------------------------------------" << endl;
     cout << "                                                   " << endl;
@@ -27,6 +28,7 @@ void qbtbp(int li_EM, int li_SEM, int isTestOn, int fwrk)
     cout << "---------------------------------------------------" << endl;
     cout << std::showpos << setiosflags(ios::scientific)  << setprecision(15);
     cout << " qbtbp. The qbtbp will be computed up to order " << OFS_ORDER << endl;
+
     //-------------------------------------
     //Initialization the integration tools
     //-------------------------------------
@@ -36,7 +38,7 @@ void qbtbp(int li_EM, int li_SEM, int isTestOn, int fwrk)
 
     //Init the qbcp focused on one libration point
     QBCP_L qbcp_l;
-    init_QBCP_L(&qbcp_l, &qbcp, true, li_EM, li_SEM, true, M_QBCP, fwrk, PMS_GRAPH, MAN_CENTER, MAN_CENTER); //note PM style is not used
+    init_QBCP_L(&qbcp_l, &qbcp, true, li_EM, li_SEM, true, M_QBCP, coordsys, PMS_GRAPH, MAN_CENTER, MAN_CENTER); //note PM style and type are not used
 
     //Init of the internal/external motions
     Ofts<Ofsd> ofts_z(1,OFS_ORDER,2,OFS_ORDER);
@@ -48,7 +50,7 @@ void qbtbp(int li_EM, int li_SEM, int isTestOn, int fwrk)
     //Computation of the QBTBP
     //-------------------------------------
     tic();
-    qbtbp_ofs(ofts_z, ofts_Z, qbcp_l, fwrk);
+    qbtbp_ofs(ofts_z, ofts_Z, qbcp_l, coordsys);
     cout << " qbtbp. end of computation in: " << toc() << "s." << endl;
 
     //If the user wants to test the results
@@ -77,6 +79,8 @@ void qbtbp(int li_EM, int li_SEM, int isTestOn, int fwrk)
         Ofsd cj(OFS_ORDER);
         Ofsc bjc(OFS_ORDER);
         Ofsc cjc(OFS_ORDER);
+
+        //The epsilon paramater
         double eps = 1.0/qbcp_l.us_em.as;  //note that the qbtbp is computed in EM framework
 
         //From ots to ofs
@@ -108,43 +112,17 @@ void qbtbp(int li_EM, int li_SEM, int isTestOn, int fwrk)
 //-----------------------------------------------------------------------------
 // Main routine: computation of the BCP
 //-----------------------------------------------------------------------------
-/**
- *  \brief Main routine to compute the Bicircular Three-Body Problem in Ofs format.
- */
-void bcp(int li_EM, int li_SEM, int fwrk)
+void bcp_alpha(QBCP_L &qbcp_l)
 {
-
     //--------------------------------------------------------------------
-    // 1. Init
-    //--------------------------------------------------------------------
-    //Init the fbp
-    QBCP fbp;
-    init_QBCP(&fbp, SUN, EARTH, MOON, M_BCP);
-
-    //Init the fbp focused on one libration point
-    QBCP_L qbcp_l;
-    init_QBCP_L(&qbcp_l, &fbp, 1, li_EM, li_SEM, true, M_BCP, fwrk, PMS_GRAPH, MAN_CENTER, MAN_CENTER);  //Note: PM style is NOT used
-
     //Parameters for one specific libration point
+    //--------------------------------------------------------------------
     double mu_EM = qbcp_l.us_em.mu_EM;
-    double gamma = qbcp_l.cs.gamma;
+    double gamma = qbcp_l.cs_em.gamma;
     double c1    = qbcp_l.cs_em.c1;
-    double ms    = qbcp_l.us.ms;
-    double as    = qbcp_l.us.as;
+    double ms    = qbcp_l.us_em.ms;
+    double as    = qbcp_l.us_em.as;
     int nf       = qbcp_l.nf;
-
-    //--------------------------------------------------------------------
-    // 2. Splash
-    //--------------------------------------------------------------------
-    cout << "---------------------------------------------------" << endl;
-    cout << "                                                   " << endl;
-    cout << "              Storage of the                       " << endl;
-    cout << "    Bicircular Three-Body Problem (BCP)            " << endl;
-    cout << "                                                   " << endl;
-    cout << "      save in " << qbcp_l.cs_em.F_COEF               << endl;
-    cout << "---------------------------------------------------" << endl;
-    cout << std::showpos << setiosflags(ios::scientific)  << setprecision(15);
-
 
     //--------------------------------------------------------------------
     // 3. Set all alpha functions
@@ -308,6 +286,427 @@ void bcp(int li_EM, int li_SEM, int fwrk)
     ofs_sst(ze, qbcp_l.cs_em.F_COEF+"pe3", 1, "_fft");
 }
 
+void bcp_delta(QBCP_L &qbcp_l)
+{
+    //--------------------------------------------------------------------
+    //Parameters for one specific libration point
+    //--------------------------------------------------------------------
+    double mu_SE  = qbcp_l.us_sem.mu_SEM;
+    double gamma  = qbcp_l.cs_sem.gamma;
+    double c1     = qbcp_l.cs_sem.c1;
+    //double mm     = qbcp_l.us_sem.mm;
+    double am     = qbcp_l.us_sem.ai;
+    int nf        = qbcp_l.nf;
+
+    //--------------------------------------------------------------------
+    // 3. Set all delta functions
+    //--------------------------------------------------------------------
+    Ofs<cdouble > delta1c(nf);
+    Ofs<cdouble > delta2c(nf);
+    Ofs<cdouble > delta3c(nf);
+    Ofs<cdouble > delta4c(nf);
+    Ofs<cdouble > delta5c(nf);
+    Ofs<cdouble > delta6c(nf);
+    Ofs<cdouble > delta7c(nf);
+    Ofs<cdouble > delta8c(nf);
+    Ofs<cdouble > delta9c(nf);
+    Ofs<cdouble > delta10c(nf);
+    Ofs<cdouble > delta11c(nf);
+    Ofs<cdouble > delta12c(nf);
+    Ofs<cdouble > delta13c(nf);
+    Ofs<cdouble > delta14c(nf);
+
+    //Redundancy for the positions of the primaries
+    Ofs<cdouble > Xe(nf);
+    Ofs<cdouble > Ye(nf);
+    Ofs<cdouble > Ze(nf);
+    Ofs<cdouble > Xm(nf);
+    Ofs<cdouble > Ym(nf);
+    Ofs<cdouble > Zm(nf);
+    Ofs<cdouble > Xs(nf);
+    Ofs<cdouble > Ys(nf);
+    Ofs<cdouble > Zs(nf);
+
+    //Positions of the primaries in NC coordinates
+    Ofs<cdouble > xe(nf);
+    Ofs<cdouble > ye(nf);
+    Ofs<cdouble > ze(nf);
+    Ofs<cdouble > xm(nf);
+    Ofs<cdouble > ym(nf);
+    Ofs<cdouble > zm(nf);
+    Ofs<cdouble > xs(nf);
+    Ofs<cdouble > ys(nf);
+    Ofs<cdouble > zs(nf);
+
+    //-------------------------
+    // The deltas
+    //-------------------------
+    //delta1 = 1
+    delta1c.setCoef(1.0+0.0*I, 0);
+    //delta2 = 0
+    //delta3 = 1
+    delta3c.setCoef(1.0+0.0*I, 0);
+    //delta4 = -mm/am^2*cos(theta) = -mm/(2*am^2)*(exp(itheta) + exp(-itheta))
+    //delta4c.setCoef(-0.5*mm/(am*am)+0.0*I, -1);
+    //delta4c.setCoef(-0.5*mm/(am*am)+0.0*I, +1);
+    //delta5 = -mm/am^2*sin(theta) = +I*mm/(2*am^2)*(exp(itheta) - exp(-itheta))
+    //delta5c.setCoef(-0.5*mm/(am*am)*I, -1);
+    //delta5c.setCoef(+0.5*mm/(am*am)*I, +1);
+    //delta6 = 1
+    delta6c.setCoef(1.0+0.0*I, 0);
+    //delta13 = delta4/gamma-c1
+    delta13c.ofs_mult(delta4c, 1.0/gamma+0.0*I);
+    delta13c.addCoef(-c1+0.0*I, 0);
+    //delta14 = delta5/gamma
+    delta14c.ofs_mult(delta5c, 1.0/gamma+0.0*I);
+
+    //-------------------------
+    // Primaries
+    //-------------------------
+    //Earth
+    delta9c.setCoef(+mu_SE-1.0+0.0*I, 0);
+    //Sun
+    delta7c.setCoef(+mu_SE+0.0*I, 0);
+    //Moon
+    //delta11 = -am*cos(theta) + mu_SE-1.0 = -am/2*(exp(itheta) + exp(-itheta)) + mu_SE-1.0
+    delta11c.setCoef(mu_SE-1.0 +0.0*I, 0);
+    delta11c.setCoef(-0.5*am+0.0*I, -1);
+    delta11c.setCoef(-0.5*am+0.0*I, +1);
+    //delta12 = -am*sin(theta) = +I*am/2*(exp(itheta) - exp(-itheta))
+    delta12c.setCoef(-0.5*am*I, -1);
+    delta12c.setCoef(+0.5*am*I, +1);
+
+    //-------------------------
+    // The primaries, again
+    //-------------------------
+    //Earth, EM coordinates
+    Xe.setCoef(mu_SE-1.0+0.0*I, 0);
+    //Earth, NC coordinates
+    xe.setCoef(c1 - (mu_SE-1.0)/gamma + 0.0*I, 0);
+    //Sun, EM coordinates
+    Xs.setCoef(+mu_SE+0.0*I, 0);
+    //Sun, NC coordinates
+    xs.setCoef(c1 - mu_SE/gamma + 0.0*I, 0);
+
+    //Moon, EM coordinates
+    //---------------
+    //Xm = -am*cos(theta) + mu_SE - 1 = am/2*(exp(itheta) + exp(-itheta)) + mu_SE - 1
+    Xm.setCoef(mu_SE-1.0 +0.0*I, 0);
+    Xm.setCoef(-0.5*am+0.0*I, -1);
+    Xm.setCoef(-0.5*am+0.0*I, +1);
+    //Ym = -am*sin(theta) = +I*am/2*(exp(itheta) - exp(-itheta))
+    Ym.setCoef(-0.5*am*I, -1);
+    Ym.setCoef(+0.5*am*I, +1);
+    //Moon, NC coordinates;
+    //---------------
+    xm.ofs_smult(Xm, -1.0/gamma);
+    xm.addCoef(c1, 0);
+    ym.ofs_smult(Ym, -1.0/gamma);
+
+    //--------------------------
+    //Put in data file
+    //--------------------------
+    cout << "bcp. storage in txt files. " << endl;
+    ofs_sst(delta1c, qbcp_l.cs_sem.F_COEF+"alpha1", 1, "_fft");
+    ofs_sst(delta2c, qbcp_l.cs_sem.F_COEF+"alpha2", 0, "_fft");
+    ofs_sst(delta3c, qbcp_l.cs_sem.F_COEF+"alpha3", 1, "_fft");
+    ofs_sst(delta4c, qbcp_l.cs_sem.F_COEF+"alpha4", 1, "_fft");
+    ofs_sst(delta5c, qbcp_l.cs_sem.F_COEF+"alpha5", 0, "_fft");
+    ofs_sst(delta6c, qbcp_l.cs_sem.F_COEF+"alpha6", 1, "_fft");
+     //Sun
+    ofs_sst(delta7c, qbcp_l.cs_sem.F_COEF+"alpha7", 1, "_fft");
+    ofs_sst(delta8c, qbcp_l.cs_sem.F_COEF+"alpha8", 0, "_fft");
+    //Earth
+    ofs_sst(delta9c,  qbcp_l.cs_sem.F_COEF+"alpha9",  1, "_fft");
+    ofs_sst(delta10c, qbcp_l.cs_sem.F_COEF+"alpha10", 0, "_fft");
+    //Moon
+    ofs_sst(delta11c, qbcp_l.cs_sem.F_COEF+"alpha11", 1, "_fft");
+    ofs_sst(delta12c, qbcp_l.cs_sem.F_COEF+"alpha12", 0, "_fft");
+    //NC additional coeffs
+    ofs_sst(delta13c, qbcp_l.cs_sem.F_COEF+"alpha13", 1, "_fft");
+    ofs_sst(delta14c, qbcp_l.cs_sem.F_COEF+"alpha14", 0, "_fft");
+
+    //---------------
+    //Primary, EM coordinates
+    //Note that, at this step, the vertical motion of the primaries is undefined,
+    //so we can put either Even or Odd in the ofs_sst option of gsl_Zc without much difference
+    //---------------
+    ofs_sst(Xs, qbcp_l.cs_sem.F_COEF+"Ps1", 1, "_fft");
+    ofs_sst(Ys, qbcp_l.cs_sem.F_COEF+"Ps2", 0, "_fft");
+    ofs_sst(Zs, qbcp_l.cs_sem.F_COEF+"Ps3", 1, "_fft");
+
+    ofs_sst(Xm, qbcp_l.cs_sem.F_COEF+"Pm1", 1, "_fft");
+    ofs_sst(Ym, qbcp_l.cs_sem.F_COEF+"Pm2", 0, "_fft");
+    ofs_sst(Zm, qbcp_l.cs_sem.F_COEF+"Pm3", 1, "_fft");
+
+    ofs_sst(Xe, qbcp_l.cs_sem.F_COEF+"Pe1", 1, "_fft");
+    ofs_sst(Ye, qbcp_l.cs_sem.F_COEF+"Pe2", 0, "_fft");
+    ofs_sst(Ze, qbcp_l.cs_sem.F_COEF+"Pe3", 1, "_fft");
+
+
+    //---------------
+    //Primary, NC coordinates
+    //Note that, at this step, the vertical motion of the primaries is undefined,
+    //so we can put either Even or Odd in the ofs_sst option of gsl_zc without much difference
+    //---------------
+    ofs_sst(xs, qbcp_l.cs_sem.F_COEF+"ps1", 1, "_fft");
+    ofs_sst(ys, qbcp_l.cs_sem.F_COEF+"ps2", 0, "_fft");
+    ofs_sst(zs, qbcp_l.cs_sem.F_COEF+"ps3", 1, "_fft");
+
+    ofs_sst(xm, qbcp_l.cs_sem.F_COEF+"pm1", 1, "_fft");
+    ofs_sst(ym, qbcp_l.cs_sem.F_COEF+"pm2", 0, "_fft");
+    ofs_sst(zm, qbcp_l.cs_sem.F_COEF+"pm3", 1, "_fft");
+
+    ofs_sst(xe, qbcp_l.cs_sem.F_COEF+"pe1", 1, "_fft");
+    ofs_sst(ye, qbcp_l.cs_sem.F_COEF+"pe2", 0, "_fft");
+    ofs_sst(ze, qbcp_l.cs_sem.F_COEF+"pe3", 1, "_fft");
+}
+
+void bcp_delta_2(QBCP_L &qbcp_l)
+{
+    //--------------------------------------------------------------------
+    //Parameters for one specific libration point
+    //--------------------------------------------------------------------
+    double mu_EM  = qbcp_l.us_sem.mu_EM;
+    double mu_SE  = qbcp_l.us_sem.mu_SEM;
+    double gamma  = qbcp_l.cs_sem.gamma;
+    double c1     = qbcp_l.cs_sem.c1;
+    //double mm     = qbcp_l.us_sem.mm;
+    //double me     = qbcp_l.us_sem.me;
+    double ai     = qbcp_l.us_sem.ai;
+    int nf        = qbcp_l.nf;
+    //Distance of Earth & Moon from their barycenter
+    double am = (1- mu_EM)*ai;
+    double ae = mu_EM*ai;
+    //Factor that appears in the definition of the deltas.
+    //double fem = mm/(am*am) - me/(ae*ae);
+
+    //--------------------------------------------------------------------
+    // 3. Set all delta functions
+    //--------------------------------------------------------------------
+    Ofs<cdouble > delta1c(nf);
+    Ofs<cdouble > delta2c(nf);
+    Ofs<cdouble > delta3c(nf);
+    Ofs<cdouble > delta4c(nf);
+    Ofs<cdouble > delta5c(nf);
+    Ofs<cdouble > delta6c(nf);
+    Ofs<cdouble > delta7c(nf);
+    Ofs<cdouble > delta8c(nf);
+    Ofs<cdouble > delta9c(nf);
+    Ofs<cdouble > delta10c(nf);
+    Ofs<cdouble > delta11c(nf);
+    Ofs<cdouble > delta12c(nf);
+    Ofs<cdouble > delta13c(nf);
+    Ofs<cdouble > delta14c(nf);
+
+    //Redundancy for the positions of the primaries
+    Ofs<cdouble > Xe(nf);
+    Ofs<cdouble > Ye(nf);
+    Ofs<cdouble > Ze(nf);
+    Ofs<cdouble > Xm(nf);
+    Ofs<cdouble > Ym(nf);
+    Ofs<cdouble > Zm(nf);
+    Ofs<cdouble > Xs(nf);
+    Ofs<cdouble > Ys(nf);
+    Ofs<cdouble > Zs(nf);
+
+    //Positions of the primaries in NC coordinates
+    Ofs<cdouble > xe(nf);
+    Ofs<cdouble > ye(nf);
+    Ofs<cdouble > ze(nf);
+    Ofs<cdouble > xm(nf);
+    Ofs<cdouble > ym(nf);
+    Ofs<cdouble > zm(nf);
+    Ofs<cdouble > xs(nf);
+    Ofs<cdouble > ys(nf);
+    Ofs<cdouble > zs(nf);
+
+    //-------------------------
+    // The deltas
+    //-------------------------
+    //delta1 = 1
+    delta1c.setCoef(1.0+0.0*I, 0);
+    //delta2 = 0
+    //delta3 = 1
+    delta3c.setCoef(1.0+0.0*I, 0);
+    //delta4 = 0; // OR -fem*cos(theta) = -0.5*fem*(exp(itheta) + exp(-itheta))
+    //delta4c.setCoef(-0.5*fem+0.0*I, -1);
+    //delta4c.setCoef(-0.5*fem+0.0*I, +1);
+    //delta5 = 0; // OR -fem*sin(theta) = +I*0.5*fem*(exp(itheta) - exp(-itheta))
+    //delta5c.setCoef(-0.5*fem*I, -1);
+    //delta5c.setCoef(+0.5*fem*I, +1);
+    //delta6 = 1
+    delta6c.setCoef(1.0+0.0*I, 0);
+    //delta13 = delta4/gamma-c1
+    delta13c.ofs_mult(delta4c, 1.0/gamma+0.0*I);
+    delta13c.addCoef(-c1+0.0*I, 0);
+    //delta14 = delta5/gamma
+    delta14c.ofs_mult(delta5c, 1.0/gamma+0.0*I);
+
+    //-------------------------
+    // Primaries
+    //-------------------------
+    //Earth
+    //delta9 = +ae*cos(theta) + mu_SE-1.0  = ae/2*(exp(itheta) + exp(-itheta)) + mu_SE-1.0
+    delta9c.setCoef(mu_SE-1.0 +0.0*I, 0);
+    delta9c.setCoef(0.5*ae+0.0*I, -1);
+    delta9c.setCoef(0.5*ae+0.0*I, +1);
+    //delta10 = +ae*sin(theta) = -I*ae/2*(exp(itheta) - exp(-itheta))
+    delta10c.setCoef(+0.5*ae*I, -1);
+    delta10c.setCoef(-0.5*ae*I, +1);
+
+    //Sun
+    delta7c.setCoef(+mu_SE+0.0*I, 0);
+
+    //Moon
+    //delta11 = -am*cos(theta) + mu_SE-1.0  = -am/2*(exp(itheta) + exp(-itheta)) + mu_SE-1.0
+    delta11c.setCoef(mu_SE-1.0 +0.0*I, 0);
+    delta11c.setCoef(-0.5*am+0.0*I, -1);
+    delta11c.setCoef(-0.5*am+0.0*I, +1);
+    //delta12 = -am*sin(theta) = +I*am/2*(exp(itheta) - exp(-itheta))
+    delta12c.setCoef(-0.5*am*I, -1);
+    delta12c.setCoef(+0.5*am*I, +1);
+
+    //-------------------------
+    // The primaries, again
+    //-------------------------
+    //Earth, EM coordinates
+    //---------------
+    //Xe = +ae*cos(theta) + mu_SE-1.0  = ae/2*(exp(itheta) + exp(-itheta)) + mu_SE-1.0
+    Xe.setCoef(mu_SE-1.0 +0.0*I, 0);
+    Xe.setCoef(0.5*ae+0.0*I, -1);
+    Xe.setCoef(0.5*ae+0.0*I, +1);
+    //Ye = +ae*sin(theta) = -I*ae/2*(exp(itheta) - exp(-itheta))
+    Ye.setCoef(+0.5*ae*I, -1);
+    Ye.setCoef(-0.5*ae*I, +1);
+    //Earth, NC coordinates;
+    //---------------
+    xe.ofs_smult(Xe, -1.0/gamma);
+    xe.addCoef(c1, 0);
+    ye.ofs_smult(Ye, -1.0/gamma);
+
+    //Sun, EM coordinates
+    Xs.setCoef(+mu_SE+0.0*I, 0);
+    //Sun, NC coordinates
+    xs.setCoef(c1 - mu_SE/gamma + 0.0*I, 0);
+
+    //Moon, EM coordinates
+    //---------------
+    //Xm = -am*cos(theta) + mu_SE-1.0  = am/2*(exp(itheta) + exp(-itheta)) + mu_SE-1.0
+    Xm.setCoef(mu_SE-1.0 +0.0*I, 0);
+    Xm.setCoef(-0.5*am+0.0*I, -1);
+    Xm.setCoef(-0.5*am+0.0*I, +1);
+    //Ym = -am*sin(theta) = +I*am/2*(exp(itheta) - exp(-itheta))
+    Ym.setCoef(-0.5*am*I, -1);
+    Ym.setCoef(+0.5*am*I, +1);
+    //Moon, NC coordinates;
+    //---------------
+    xm.ofs_smult(Xm, -1.0/gamma);
+    xm.addCoef(c1, 0);
+    ym.ofs_smult(Ym, -1.0/gamma);
+
+    //--------------------------
+    //Put in data file
+    //--------------------------
+    cout << "bcp. storage in txt files. " << endl;
+    ofs_sst(delta1c, qbcp_l.cs_sem.F_COEF+"alpha1", 1, "_fft");
+    ofs_sst(delta2c, qbcp_l.cs_sem.F_COEF+"alpha2", 0, "_fft");
+    ofs_sst(delta3c, qbcp_l.cs_sem.F_COEF+"alpha3", 1, "_fft");
+    ofs_sst(delta4c, qbcp_l.cs_sem.F_COEF+"alpha4", 1, "_fft");
+    ofs_sst(delta5c, qbcp_l.cs_sem.F_COEF+"alpha5", 0, "_fft");
+    ofs_sst(delta6c, qbcp_l.cs_sem.F_COEF+"alpha6", 1, "_fft");
+     //Sun
+    ofs_sst(delta7c, qbcp_l.cs_sem.F_COEF+"alpha7", 1, "_fft");
+    ofs_sst(delta8c, qbcp_l.cs_sem.F_COEF+"alpha8", 0, "_fft");
+    //Earth
+    ofs_sst(delta9c,  qbcp_l.cs_sem.F_COEF+"alpha9",  1, "_fft");
+    ofs_sst(delta10c, qbcp_l.cs_sem.F_COEF+"alpha10", 0, "_fft");
+    //Moon
+    ofs_sst(delta11c, qbcp_l.cs_sem.F_COEF+"alpha11", 1, "_fft");
+    ofs_sst(delta12c, qbcp_l.cs_sem.F_COEF+"alpha12", 0, "_fft");
+    //NC additional coeffs
+    ofs_sst(delta13c, qbcp_l.cs_sem.F_COEF+"alpha13", 1, "_fft");
+    ofs_sst(delta14c, qbcp_l.cs_sem.F_COEF+"alpha14", 0, "_fft");
+
+    //---------------
+    //Primary, EM coordinates
+    //Note that, at this step, the vertical motion of the primaries is undefined,
+    //so we can put either Even or Odd in the ofs_sst option of gsl_Zc without much difference
+    //---------------
+    ofs_sst(Xs, qbcp_l.cs_sem.F_COEF+"Ps1", 1, "_fft");
+    ofs_sst(Ys, qbcp_l.cs_sem.F_COEF+"Ps2", 0, "_fft");
+    ofs_sst(Zs, qbcp_l.cs_sem.F_COEF+"Ps3", 1, "_fft");
+
+    ofs_sst(Xm, qbcp_l.cs_sem.F_COEF+"Pm1", 1, "_fft");
+    ofs_sst(Ym, qbcp_l.cs_sem.F_COEF+"Pm2", 0, "_fft");
+    ofs_sst(Zm, qbcp_l.cs_sem.F_COEF+"Pm3", 1, "_fft");
+
+    ofs_sst(Xe, qbcp_l.cs_sem.F_COEF+"Pe1", 1, "_fft");
+    ofs_sst(Ye, qbcp_l.cs_sem.F_COEF+"Pe2", 0, "_fft");
+    ofs_sst(Ze, qbcp_l.cs_sem.F_COEF+"Pe3", 1, "_fft");
+
+
+    //---------------
+    //Primary, NC coordinates
+    //Note that, at this step, the vertical motion of the primaries is undefined,
+    //so we can put either Even or Odd in the ofs_sst option of gsl_zc without much difference
+    //---------------
+    ofs_sst(xs, qbcp_l.cs_sem.F_COEF+"ps1", 1, "_fft");
+    ofs_sst(ys, qbcp_l.cs_sem.F_COEF+"ps2", 0, "_fft");
+    ofs_sst(zs, qbcp_l.cs_sem.F_COEF+"ps3", 1, "_fft");
+
+    ofs_sst(xm, qbcp_l.cs_sem.F_COEF+"pm1", 1, "_fft");
+    ofs_sst(ym, qbcp_l.cs_sem.F_COEF+"pm2", 0, "_fft");
+    ofs_sst(zm, qbcp_l.cs_sem.F_COEF+"pm3", 1, "_fft");
+
+    ofs_sst(xe, qbcp_l.cs_sem.F_COEF+"pe1", 1, "_fft");
+    ofs_sst(ye, qbcp_l.cs_sem.F_COEF+"pe2", 0, "_fft");
+    ofs_sst(ze, qbcp_l.cs_sem.F_COEF+"pe3", 1, "_fft");
+}
+
+
+/**
+ *  \brief Main routine to compute the Bicircular Three-Body Problem in Ofs format.
+ */
+void bcp(int li_EM, int li_SEM, int coordsys)
+{
+
+    //--------------------------------------------------------------------
+    // 1. Init
+    //--------------------------------------------------------------------
+    //Init the fbp
+    QBCP fbp;
+    init_QBCP(&fbp, SUN, EARTH, MOON, M_BCP);
+
+    //Init the fbp focused on one libration point
+    QBCP_L qbcp_l;
+    init_QBCP_L(&qbcp_l, &fbp, 1, li_EM, li_SEM, true, M_BCP, coordsys, PMS_GRAPH, MAN_CENTER, MAN_CENTER);  //Note: PM style is NOT used
+
+    //--------------------------------------------------------------------
+    // 2. Splash
+    //--------------------------------------------------------------------
+    cout << "---------------------------------------------------" << endl;
+    cout << "                                                   " << endl;
+    cout << "              Storage of the                       " << endl;
+    cout << "    Bicircular Three-Body Problem (BCP)            " << endl;
+    cout << "                                                   " << endl;
+    cout << "      save in " << qbcp_l.cs_em.F_COEF               << endl;
+    cout << "      save in " << qbcp_l.cs_sem.F_COEF              << endl;
+    cout << "---------------------------------------------------" << endl;
+    cout << std::showpos << setiosflags(ios::scientific)  << setprecision(15);
+
+    //--------------------------------------------------------------------
+    // 3. Alphas
+    //--------------------------------------------------------------------
+    bcp_alpha(qbcp_l);
+
+    //--------------------------------------------------------------------
+    // 4. Deltas
+    //--------------------------------------------------------------------
+    //bcp_delta(qbcp_l); //libration point on the Earth-Sun line
+    bcp_delta_2(qbcp_l); //libration points on the Sun-Bem line
+}
+
 //-----------------------------------------------------------------------------
 // Computing the QBTBP
 //-----------------------------------------------------------------------------
@@ -318,7 +717,7 @@ void bcp(int li_EM, int li_SEM, int fwrk)
  *   \f$ \beta_i \f$ (from the Sun-(Earth+Moon) p.o.v) are computed in stored in txt files.
  *   These functions are computed both through operations on Fourier series and FFT of the integrated motion.
  */
-void qbtbp_ofs (Ofts< Ofsd > &zr_ofts, Ofts< Ofsd > &Zr_ofts, QBCP_L& qbcp_l, int fwrk)
+void qbtbp_ofs (Ofts< Ofsd > &zr_ofts, Ofts< Ofsd > &Zr_ofts, QBCP_L& qbcp_l, int coordsys)
 {
     //---------------------------------------------------------
     //Parameters
@@ -384,7 +783,6 @@ void qbtbp_ofs (Ofts< Ofsd > &zr_ofts, Ofts< Ofsd > &Zr_ofts, QBCP_L& qbcp_l, in
     //epsilon = Ofts with just 1.0 at order 1
     Ofts< Ofsd > epsilon(nv, order, cnv, nf);
     epsilon.setCoef0(1.0, 1, 0);
-
 
     //---------------------------------------------------------
     //Order 0 of zr and Zr
@@ -459,7 +857,893 @@ void qbtbp_ofs (Ofts< Ofsd > &zr_ofts, Ofts< Ofsd > &Zr_ofts, QBCP_L& qbcp_l, in
     cout << "   qbtbp_ofs. end of the computation of the alphas and betas" << endl;
 }
 
+//-----------------------------------------------------------------------------
+// Storing the results.
+//-----------------------------------------------------------------------------
+/**
+ *  \brief Computes one specific FFT and stores it txt file.
+ *  \param xGSL0: a GSL vector of size N which contains the discrete evaluations of the function f on which to perform the FFT.
+ *  \param filename: a string. The final result is stored in the file filename+"_fft.txt"
+ *  \param nf: an integer. The order of the Fourier series obtained after FFT.
+ *  \param flag: a boolean. If true, the function f is supposed even (sum of cosinus). If false, f is supposed odd (sum of sinus).
+ */
+void qbtbp_ofs_fft_unpack(gsl_vector *xGSL0, string filename, int nf, int N, int flag)
+{
+    //Copy of xGSL0 into temp vector
+    gsl_vector *xGSL = gsl_vector_calloc(N);
+    gsl_vector_memcpy(xGSL, xGSL0);
 
+    gsl_vector_complex *data_complex = gsl_vector_complex_calloc(N);
+    gsl_fft_real_wavetable * wavetable = gsl_fft_real_wavetable_alloc (N);
+    gsl_fft_real_workspace * workspace = gsl_fft_real_workspace_alloc (N);
+    Ofsc xFFT(nf);
+    ofstream curentStream;
+
+    gsl_fft_real_transform (xGSL->data, 1, N, wavetable, workspace);
+    gsl_fft_halfcomplex_unpack(xGSL->data , data_complex->data ,  xGSL->stride ,xGSL->size);
+    //Order 0
+    if(flag) //even case
+        xFFT.setCoef(+GSL_REAL(gsl_vector_complex_get(data_complex, 0))/N+I*GSL_IMAG(gsl_vector_complex_get(data_complex, 0))/N,  0);
+    else //odd case
+        xFFT.setCoef(0.0,  0);
+
+    //Order n
+    for(int i = 1; i<= nf; i++)
+    {
+        if(flag) //even case
+        {
+            //Negative frequencies
+            xFFT.setCoef(+GSL_REAL(gsl_vector_complex_get(data_complex, N-i))/N, -i);
+            //Positive frequencies
+            xFFT.setCoef(+GSL_REAL(gsl_vector_complex_get(data_complex, i))/N,  i);
+        }
+        else //odd case
+        {
+            //Negative frequencies
+            xFFT.setCoef(I*GSL_IMAG(gsl_vector_complex_get(data_complex, N-i))/N, -i);
+            //Positive frequencies
+            xFFT.setCoef(I*GSL_IMAG(gsl_vector_complex_get(data_complex, i))/N,  i);
+        }
+
+    }
+
+    //Storage in txt file
+    curentStream.open((filename+"_fft.txt").c_str());
+    curentStream <<  xFFT << endl;
+    curentStream.close();
+
+
+    if(flag) //even case
+    {
+        //Cosinus expansion version
+        curentStream.open((filename+"c_fft.txt").c_str());
+        curentStream << 0 << " " << creal(xFFT.ofs_getCoef(0)) << endl;
+        for(int l = 1; l<=nf; l++) curentStream << l << " " << creal(xFFT.ofs_getCoef(-l) + xFFT.ofs_getCoef(l))  <<  endl;
+        curentStream.close();
+    }
+    else //odd case
+    {
+        //Sinus expansion version
+        curentStream.open((filename+"c_fft.txt").c_str());
+        for(int l = 0; l<=nf; l++)
+            curentStream << l << " " <<  cimag(xFFT.ofs_getCoef(-l) - xFFT.ofs_getCoef(l)) << endl;
+        curentStream.close();
+    }
+
+
+    gsl_vector_complex_free(data_complex);
+    gsl_vector_free(xGSL);
+    gsl_fft_real_wavetable_free(wavetable);
+    gsl_fft_real_workspace_free(workspace);
+}
+
+
+
+/**
+ *  \brief FFT and Storage in txt files of OFS objects alpha_i in qbtbp_ofs. Makes use of FFT routines via qbtbp_ofs_fft_unpack.
+ *         The following coefficients are computed and stored:
+ *              - The alpha (1 to 14).
+ *              - The position of the primaries in EM coordinates system (redundant with alpha7-12): Xe, Ye, Ze
+ *              - The position of the primaries in NC coordinates system: xe, ye, ze
+ */
+void qbtbp_ofs_fft_alpha( Ofts< Ofsd > &zt,     //zt = normalized Earth-Moon motion
+                          Ofts< Ofsd > &Zt,     //Zt = normalized Sun-(Earth+Moon) motion
+                          int nf,               //order of the Fourier expansions
+                          QBCP_L& qbcp_l)       //QBCP
+{
+    //--------------------------
+    //Physical params specific to the QBCP_L
+    //--------------------------
+    double c1    = qbcp_l.cs_em.c1;
+    double gamma = qbcp_l.cs_em.gamma;
+
+    //--------------------------
+    //Mass ratio
+    //--------------------------
+    double mu_EM = qbcp_l.us_em.mu_EM;
+
+    //--------------------------
+    //Physical params in EM units
+    //--------------------------
+    double ns = qbcp_l.us_em.ns;  //Sun-(Earth+Moon) mean angular motion
+    double ni = qbcp_l.us_em.ni;  //Earth-Moon mean angular motion
+    double n  = qbcp_l.us_em.n;   //n = ni - ns
+    double as = qbcp_l.us_em.as;  //Sun-(Earth+Moon) mean distance
+    double ai = qbcp_l.us_em.ai;  //Earth-Moon mean distance
+    double ms = qbcp_l.us_em.ms;  //Sun mass
+
+    //--------------------------
+    //FFT params
+    //--------------------------
+    int N      = pow(2,12);
+    double tf  = 2*M_PI/n;
+    double t   = 0;
+    double eps = 1.0/as;
+
+    //--------------------------
+    //QBTBP init
+    //--------------------------
+    Ofsd bj(nf);
+    Ofsd cj(nf);
+    Ofsc ztc(nf);
+    Ofsc Ztc(nf);
+
+    //--------------------------
+    //Building z(t) and Z(t)
+    //--------------------------
+    //From ots to ofs
+    fts2fs(&bj, zt, eps);
+    fts2fs(&cj, Zt, eps);
+
+    //From double to cdouble in ztc and Ztc
+    doubleToComplex(bj, ztc);
+    doubleToComplex(cj, Ztc);
+
+    //Derivatives
+    Ofsc ztcdot(ztc);
+    Ofsc Ztcdot(Ztc);
+    //Derivation
+    ztcdot.dot(n);
+    Ztcdot.dot(n);
+
+    //Double derivatives
+    Ofsc ztcddot(ztcdot);
+    Ofsc Ztcddot(Ztcdot);
+    //Derivation
+    ztcddot.dot(n);
+    Ztcddot.dot(n);
+
+    //z(t) and Z(t)
+    cdouble zi;
+    cdouble Zi;
+    cdouble zidot;
+    cdouble ziddot;
+    cdouble Ziddot;
+
+    //--------------------------
+    // GSL objects
+    //--------------------------
+    gsl_vector *gsl_alpha1  = gsl_vector_calloc(N);
+    gsl_vector *gsl_alpha2  = gsl_vector_calloc(N);
+    gsl_vector *gsl_alpha3  = gsl_vector_calloc(N);
+    gsl_vector *gsl_alpha4  = gsl_vector_calloc(N);
+    gsl_vector *gsl_alpha5  = gsl_vector_calloc(N);
+    gsl_vector *gsl_alpha6  = gsl_vector_calloc(N);
+    gsl_vector *gsl_alpha7  = gsl_vector_calloc(N);
+    gsl_vector *gsl_alpha8  = gsl_vector_calloc(N);
+    gsl_vector *gsl_alpha9  = gsl_vector_calloc(N);
+    gsl_vector *gsl_alpha10 = gsl_vector_calloc(N);
+    gsl_vector *gsl_alpha11 = gsl_vector_calloc(N);
+    gsl_vector *gsl_alpha12 = gsl_vector_calloc(N);
+    gsl_vector *gsl_alpha13 = gsl_vector_calloc(N);
+    gsl_vector *gsl_alpha14 = gsl_vector_calloc(N);
+    //rq: alpha15 is let equal to zero because of ERTBP vector field
+    gsl_vector *gsl_alpha16 = gsl_vector_calloc(N);
+    gsl_vector *gsl_alpha17 = gsl_vector_calloc(N);
+    gsl_vector *gsl_alpha18 = gsl_vector_calloc(N);
+
+    //Redundancy for the positions of the primaries
+    gsl_vector *gsl_Xe = gsl_vector_calloc(N);
+    gsl_vector *gsl_Ye = gsl_vector_calloc(N);
+    gsl_vector *gsl_Ze = gsl_vector_calloc(N);
+    gsl_vector *gsl_Xm = gsl_vector_calloc(N);
+    gsl_vector *gsl_Ym = gsl_vector_calloc(N);
+    gsl_vector *gsl_Zm = gsl_vector_calloc(N);
+    gsl_vector *gsl_Xs = gsl_vector_calloc(N);
+    gsl_vector *gsl_Ys = gsl_vector_calloc(N);
+    gsl_vector *gsl_Zs = gsl_vector_calloc(N);
+
+
+    //Positions of the primaries in NC coordinates
+    gsl_vector *gsl_xe = gsl_vector_calloc(N);
+    gsl_vector *gsl_ye = gsl_vector_calloc(N);
+    gsl_vector *gsl_ze = gsl_vector_calloc(N);
+    gsl_vector *gsl_xm = gsl_vector_calloc(N);
+    gsl_vector *gsl_ym = gsl_vector_calloc(N);
+    gsl_vector *gsl_zm = gsl_vector_calloc(N);
+    gsl_vector *gsl_xs = gsl_vector_calloc(N);
+    gsl_vector *gsl_ys = gsl_vector_calloc(N);
+    gsl_vector *gsl_zs = gsl_vector_calloc(N);
+
+    //--------------------------
+    //Inner double variables
+    //--------------------------
+    double rv2;
+    double alpha1i;
+    double alpha2i;
+    double alpha3i;
+    double alpha4i;
+    double alpha5i;
+    double alpha6i;
+    double alpha7i;
+    double alpha8i;
+    double alpha9i;
+    double alpha10i;
+    double alpha11i;
+    double alpha12i;
+    double alpha13i;
+    double alpha14i;
+    //rq: alpha15 is let equal to zero because of ERTBP vector field
+    double alpha16i;
+    double alpha17i;
+    double alpha18i;
+
+    double Ze[3], Zm[3], Zs[3];
+    double ze[3], zm[3], zs[3];
+
+    //Temp
+    double alphati;
+
+    //Derivatives
+    double alpha1doti;
+    double alpha2doti;
+    double alpha3doti;
+
+    //--------------------------
+    //Time loop to prepare the FFT
+    //--------------------------
+    for(int i = 0 ; i < N; i++)
+    {
+        //---------------
+        //update the time
+        //---------------
+        t = tf*i/N;
+
+        //---------------
+        //z(t), zdot(t), Z(t) and Zdot(t)
+        //---------------
+        zi     =  evz(ztc, t, n, ni, ai);
+        Zi     =  evz(Ztc, t, n, ns, as);
+        zidot  =  evzdot(ztc, ztcdot, t, n, ni, ai);
+        ziddot =  evzddot(ztc, ztcdot, ztcddot, t, n, ni, ai);
+        Ziddot =  evzddot(Ztc, Ztcdot, Ztcddot, t, n, ns, as);
+        //rv2= 1/(z*zb)
+        rv2    =  creal(1.0/(zi*conj(zi)));
+
+        //---------------
+        // The alphas
+        //---------------
+        alpha1i  = +rv2;
+        alpha2i  = -rv2*creal(zidot*conj(zi));
+        alpha3i  = +rv2*cimag(zidot*conj(zi));
+        alpha4i  = -ms/(1.0+ms)*creal(Ziddot*conj(zi));
+        alpha5i  = -ms/(1.0+ms)*cimag(Ziddot*conj(zi));
+        alpha6i  = +creal(cpow(zi*conj(zi), -1.0/2+0.0*I));
+        //Sun
+        alpha7i  = +rv2*creal(Zi*conj(zi));
+        alpha8i  = +rv2*cimag(Zi*conj(zi));
+        //Earth
+        alpha9i  = +mu_EM;
+        alpha10i = +0.0;
+        //Moon
+        alpha11i = +mu_EM-1.0;
+        alpha12i = +0.0;
+        //Temp
+        alphati = +creal(zi*conj(zi));
+
+        //Derivatives of alpha1,2,3
+        alpha1doti = creal(+0.0*I-( zidot*conj(zi)+zi*conj(zidot) ) / cpow(zi*conj(zi), 2.0+0.0*I));
+        alpha2doti = creal(+0.0*I-( creal(ziddot*conj(zi) + zidot*conj(zidot))*zi*conj(zi)
+                                    - (zidot*conj(zi)+zi*conj(zidot))*creal(zidot*conj(zi)) ) / cpow(zi*conj(zi), 2.0+0.0*I));
+        alpha3doti = creal(+0.0*I+( cimag(ziddot*conj(zi) + zidot*conj(zidot))*zi*conj(zi)
+                                    - (zidot*conj(zi)+zi*conj(zidot))*cimag(zidot*conj(zi)) ) / cpow(zi*conj(zi), 2.0+0.0*I));
+
+        //Alpha13 and 14, for NC computation
+        alpha13i = -(alphati*alphati*(alpha2doti*alpha1i - alpha1doti*alpha2i)+ alphati*(alpha2i*alpha2i+alpha3i*alpha3i))*c1 + alpha4i/gamma;
+        alpha14i =   alphati*alphati*(alpha3doti*alpha1i - alpha1doti*alpha3i)*c1 + alpha5i/gamma;
+
+        //Alpha16i
+        alpha16i = alpha2doti - alpha2i*alpha1doti/alpha1i + alpha2i*alpha2i + alpha3i*alpha3i;
+        //Alpha17i
+        alpha17i = alpha3doti - alpha3i*alpha1doti/alpha1i;
+        //Alpha18i
+        alpha18i = alpha1doti/alpha1i;
+
+        //---------------
+        // The primaries, again
+        //---------------
+        //Sun, EM coordinates
+        Zs[0] = alpha7i;
+        Zs[1] = alpha8i;
+        Zs[2] = 0.0;
+        //Sun, NC coordinates
+        SYStoNC_prim(Zs, zs, c1, gamma);
+        //Earth, EM coordinates
+        Ze[0] = alpha9i;
+        Ze[1] = alpha10i;
+        Ze[2] = 0.0;
+        //Earth, NC coordinates
+        SYStoNC_prim(Ze, ze, c1, gamma);
+        //Moon, EM coordinates
+        Zm[0] = alpha11i;
+        Zm[1] = alpha12i;
+        Zm[2] = 0.0;
+        //Moon, NC coordinates
+        SYStoNC_prim(Zm, zm, c1, gamma);
+
+        //---------------
+        //Storage in GSL objects at each time
+        //---------------
+        gsl_vector_set(gsl_alpha1,  i, alpha1i);
+        gsl_vector_set(gsl_alpha2,  i, alpha2i);
+        gsl_vector_set(gsl_alpha3,  i, alpha3i);
+        gsl_vector_set(gsl_alpha4,  i, alpha4i);
+        gsl_vector_set(gsl_alpha5,  i, alpha5i);
+        gsl_vector_set(gsl_alpha6,  i, alpha6i);
+        gsl_vector_set(gsl_alpha7,  i, alpha7i);
+        gsl_vector_set(gsl_alpha8,  i, alpha8i);
+        gsl_vector_set(gsl_alpha9,  i, alpha9i);
+        gsl_vector_set(gsl_alpha10, i, alpha10i);
+        gsl_vector_set(gsl_alpha11, i, alpha11i);
+        gsl_vector_set(gsl_alpha12, i, alpha12i);
+        gsl_vector_set(gsl_alpha13, i, alpha13i);
+        gsl_vector_set(gsl_alpha14, i, alpha14i);
+
+        gsl_vector_set(gsl_alpha16, i, alpha16i);
+        gsl_vector_set(gsl_alpha17, i, alpha17i);
+        gsl_vector_set(gsl_alpha18, i, alpha18i);
+
+        //---------------
+        //Primary, EM coordinates
+        //---------------
+        gsl_vector_set(gsl_Xs,  i, Zs[0]);
+        gsl_vector_set(gsl_Ys,  i, Zs[1]);
+        gsl_vector_set(gsl_Zs,  i, Zs[2]);
+
+        gsl_vector_set(gsl_Xe,  i, Ze[0]);
+        gsl_vector_set(gsl_Ye,  i, Ze[1]);
+        gsl_vector_set(gsl_Ze,  i, Ze[2]);
+
+        gsl_vector_set(gsl_Xm,  i, Zm[0]);
+        gsl_vector_set(gsl_Ym,  i, Zm[1]);
+        gsl_vector_set(gsl_Zm,  i, Zm[2]);
+
+        //---------------
+        //Primary, NC coordinates
+        //---------------
+        gsl_vector_set(gsl_xs,  i, zs[0]);
+        gsl_vector_set(gsl_ys,  i, zs[1]);
+        gsl_vector_set(gsl_zs,  i, zs[2]);
+
+        gsl_vector_set(gsl_xe,  i, ze[0]);
+        gsl_vector_set(gsl_ye,  i, ze[1]);
+        gsl_vector_set(gsl_ze,  i, ze[2]);
+
+        gsl_vector_set(gsl_xm,  i, zm[0]);
+        gsl_vector_set(gsl_ym,  i, zm[1]);
+        gsl_vector_set(gsl_zm,  i, zm[2]);
+
+    }
+
+    //--------------------------
+    //Unpack the FFT and put in data file
+    //--------------------------
+    qbtbp_ofs_fft_unpack(gsl_alpha1, qbcp_l.cs_em.F_COEF+"alpha1", nf, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_alpha2, qbcp_l.cs_em.F_COEF+"alpha2", nf, N, 0);
+    qbtbp_ofs_fft_unpack(gsl_alpha3, qbcp_l.cs_em.F_COEF+"alpha3", nf, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_alpha4, qbcp_l.cs_em.F_COEF+"alpha4", nf, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_alpha5, qbcp_l.cs_em.F_COEF+"alpha5", nf, N, 0);
+    qbtbp_ofs_fft_unpack(gsl_alpha6, qbcp_l.cs_em.F_COEF+"alpha6", nf, N, 1);
+    //Sun
+    qbtbp_ofs_fft_unpack(gsl_alpha7, qbcp_l.cs_em.F_COEF+"alpha7", nf, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_alpha8, qbcp_l.cs_em.F_COEF+"alpha8", nf, N, 0);
+    //Earth
+    qbtbp_ofs_fft_unpack(gsl_alpha9,  qbcp_l.cs_em.F_COEF+"alpha9",  nf, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_alpha10, qbcp_l.cs_em.F_COEF+"alpha10", nf, N, 0);
+    //Moon
+    qbtbp_ofs_fft_unpack(gsl_alpha11, qbcp_l.cs_em.F_COEF+"alpha11", nf, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_alpha12, qbcp_l.cs_em.F_COEF+"alpha12", nf, N, 0);
+    //NC additional coef
+    qbtbp_ofs_fft_unpack(gsl_alpha13, qbcp_l.cs_em.F_COEF+"alpha13",  nf, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_alpha14, qbcp_l.cs_em.F_COEF+"alpha14",  nf, N, 0);
+    //VF with velocity additional coef
+    qbtbp_ofs_fft_unpack(gsl_alpha16, qbcp_l.cs_em.F_COEF+"alpha16",  nf, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_alpha17, qbcp_l.cs_em.F_COEF+"alpha17",  nf, N, 0);
+    qbtbp_ofs_fft_unpack(gsl_alpha18, qbcp_l.cs_em.F_COEF+"alpha18",  nf, N, 0);
+
+
+    //---------------
+    //Primary, EM coordinates
+    //Note that, at this step, the vertical motion of the primaries is undefined,
+    //so we can put either Even or Odd in the qbtbp_ofs_fft_unpack option of gsl_Zc without much difference
+    //---------------
+    qbtbp_ofs_fft_unpack(gsl_Xs, qbcp_l.cs_em.F_COEF+"Ps1", nf, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_Ys, qbcp_l.cs_em.F_COEF+"Ps2", nf, N, 0);
+    qbtbp_ofs_fft_unpack(gsl_Zs, qbcp_l.cs_em.F_COEF+"Ps3", nf, N, 1);
+
+    qbtbp_ofs_fft_unpack(gsl_Xe, qbcp_l.cs_em.F_COEF+"Pe1", nf, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_Ye, qbcp_l.cs_em.F_COEF+"Pe2", nf, N, 0);
+    qbtbp_ofs_fft_unpack(gsl_Ze, qbcp_l.cs_em.F_COEF+"Pe3", nf, N, 1);
+
+    qbtbp_ofs_fft_unpack(gsl_Xm, qbcp_l.cs_em.F_COEF+"Pm1", nf, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_Ym, qbcp_l.cs_em.F_COEF+"Pm2", nf, N, 0);
+    qbtbp_ofs_fft_unpack(gsl_Zm, qbcp_l.cs_em.F_COEF+"Pm3", nf, N, 1);
+
+
+    //---------------
+    //Primary, NC coordinates
+    //Note that, at this step, the vertical motion of the primaries is undefined,
+    //so we can put either Even or Odd in the qbtbp_ofs_fft_unpack option of gsl_zc without much difference
+    //---------------
+    qbtbp_ofs_fft_unpack(gsl_xs, qbcp_l.cs_em.F_COEF+"ps1", nf, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_ys, qbcp_l.cs_em.F_COEF+"ps2", nf, N, 0);
+    qbtbp_ofs_fft_unpack(gsl_zs, qbcp_l.cs_em.F_COEF+"ps3", nf, N, 1);
+
+    qbtbp_ofs_fft_unpack(gsl_xe, qbcp_l.cs_em.F_COEF+"pe1", nf, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_ye, qbcp_l.cs_em.F_COEF+"pe2", nf, N, 0);
+    qbtbp_ofs_fft_unpack(gsl_ze, qbcp_l.cs_em.F_COEF+"pe3", nf, N, 1);
+
+    qbtbp_ofs_fft_unpack(gsl_xm, qbcp_l.cs_em.F_COEF+"pm1", nf, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_ym, qbcp_l.cs_em.F_COEF+"pm2", nf, N, 0);
+    qbtbp_ofs_fft_unpack(gsl_zm, qbcp_l.cs_em.F_COEF+"pm3", nf, N, 1);
+
+
+    //--------------------------
+    //Umemory release
+    //--------------------------
+    gsl_vector_free(gsl_alpha1);
+    gsl_vector_free(gsl_alpha2);
+    gsl_vector_free(gsl_alpha3);
+    gsl_vector_free(gsl_alpha4);
+    gsl_vector_free(gsl_alpha5);
+    gsl_vector_free(gsl_alpha6);
+    gsl_vector_free(gsl_alpha7);
+    gsl_vector_free(gsl_alpha8);
+    gsl_vector_free(gsl_alpha9);
+    gsl_vector_free(gsl_alpha10);
+    gsl_vector_free(gsl_alpha11);
+    gsl_vector_free(gsl_alpha12);
+    gsl_vector_free(gsl_alpha13);
+    gsl_vector_free(gsl_alpha14);
+    gsl_vector_free(gsl_alpha16);
+    gsl_vector_free(gsl_alpha17);
+    gsl_vector_free(gsl_alpha18);
+    gsl_vector_free(gsl_Xe);
+    gsl_vector_free(gsl_Ye);
+    gsl_vector_free(gsl_Ze);
+    gsl_vector_free(gsl_Xm);
+    gsl_vector_free(gsl_Ym);
+    gsl_vector_free(gsl_Zm);
+    gsl_vector_free(gsl_Xs);
+    gsl_vector_free(gsl_Ys);
+    gsl_vector_free(gsl_Zs);
+    gsl_vector_free(gsl_xe);
+    gsl_vector_free(gsl_ye);
+    gsl_vector_free(gsl_ze);
+    gsl_vector_free(gsl_xm);
+    gsl_vector_free(gsl_ym);
+    gsl_vector_free(gsl_zm);
+    gsl_vector_free(gsl_xs);
+    gsl_vector_free(gsl_ys);
+    gsl_vector_free(gsl_zs);
+}
+
+
+/**
+ *  \brief FFT and Storage in txt files of OFS objects delta_i in qbtbp_ofs. Makes use of FFT routines via qbtbp_ofs_fft_unpack.
+ *         The following coefficients are computed and stored:
+ *              - The deltas (1 to 14).
+ *              - The position of the primaries in SE coordinates system (redundant with alpha7-12): Xe, Ye, Ze
+ *              - The position of the primaries in SENC coordinates system: xe, ye, ze
+ */
+void qbtbp_ofs_fft_delta(Ofts< Ofsd > &zt,     //zt = normalized Earth-Moon motion
+                         Ofts< Ofsd > &Zt,     //Zt = normalized Sun-(Earth+Moon) motion
+                         int nf,               //order of the Fourier expansions
+                         QBCP_L &qbcp_l)       //QBCP
+{
+    //--------------------------
+    //Physical params in EM units
+    //--------------------------
+    double as_EM  = qbcp_l.us_em.as;     //Sun-(Earth+Moon) mean distance
+    double ms_EM  = qbcp_l.us_em.ms;     //Sun mass
+    double mu_EM  = qbcp_l.us_em.mu_EM;  //Mass ratio
+    double mu_SEM = qbcp_l.us_em.mu_SEM; //Mass ratio
+
+    //--------------------------
+    //Physical params in SE units
+    //--------------------------
+    double ns = qbcp_l.us_sem.ns;    //Sun-(Earth+Moon) mean angular motion
+    double ni = qbcp_l.us_sem.ni;    //Earth-Moon mean angular motion
+    double n  = qbcp_l.us_sem.n;     //n = ni - ns
+    double as = qbcp_l.us_sem.as;    //Sun-(Earth+Moon) mean distance
+    double ai = qbcp_l.us_sem.ai;    //Earth-Moon mean distance
+
+    //--------------------------
+    //Physical params specific to the QBCP_L
+    //--------------------------
+    double c1    = qbcp_l.cs_sem.c1;
+    double gamma = qbcp_l.cs_sem.gamma;
+
+    //--------------------------
+    //FFT params
+    //--------------------------
+    int N      = pow(2,12);
+    double tf  = 2*M_PI/n;
+    double t   = 0;
+    double eps = 1.0/as_EM;
+
+    //--------------------------
+    // Building z(t) and Z(t)
+    //--------------------------
+    Ofsd bj(nf);
+    Ofsd cj(nf);
+    Ofsc ztc(nf);
+    Ofsc Ztc(nf);
+
+    //From ots to ofs
+    fts2fs(&bj, zt, eps);
+    fts2fs(&cj, Zt, eps);
+
+    //From double to cdouble in ztc and Ztc
+    doubleToComplex(bj, ztc);
+    doubleToComplex(cj, Ztc);
+
+    //Derivatives.
+    Ofsc ztcdot(ztc);
+    Ofsc Ztcdot(Ztc);
+    //Derivation
+    ztcdot.dot(n);
+    Ztcdot.dot(n);
+
+    //Double derivatives.
+    Ofsc ztcddot(ztcdot);
+    Ofsc Ztcddot(Ztcdot);
+    //Derivation
+    ztcddot.dot(n);
+    Ztcddot.dot(n);
+
+    //z(t) and Z(t) and derivatives
+    cdouble zi;
+    cdouble Zi;
+    cdouble Zidot;
+    cdouble Ziddot;
+
+    //--------------------------
+    // GSL objects
+    //--------------------------
+    gsl_vector *gsl_delta1  = gsl_vector_calloc(N);
+    gsl_vector *gsl_delta2  = gsl_vector_calloc(N);
+    gsl_vector *gsl_delta3  = gsl_vector_calloc(N);
+    gsl_vector *gsl_delta4  = gsl_vector_calloc(N);
+    gsl_vector *gsl_delta5  = gsl_vector_calloc(N);
+    gsl_vector *gsl_delta6  = gsl_vector_calloc(N);
+    gsl_vector *gsl_delta7  = gsl_vector_calloc(N);
+    gsl_vector *gsl_delta8  = gsl_vector_calloc(N);
+    gsl_vector *gsl_delta9  = gsl_vector_calloc(N);
+    gsl_vector *gsl_delta10 = gsl_vector_calloc(N);
+    gsl_vector *gsl_delta11 = gsl_vector_calloc(N);
+    gsl_vector *gsl_delta12 = gsl_vector_calloc(N);
+    gsl_vector *gsl_delta13 = gsl_vector_calloc(N);
+    gsl_vector *gsl_delta14 = gsl_vector_calloc(N);
+    //rq: delta15 is let equal to zero because of BCP vector field
+    gsl_vector *gsl_delta16 = gsl_vector_calloc(N);
+    gsl_vector *gsl_delta17 = gsl_vector_calloc(N);
+    gsl_vector *gsl_delta18 = gsl_vector_calloc(N);
+
+
+    //Redundancy for the positions of the primaries
+    gsl_vector *gsl_Xe = gsl_vector_calloc(N);
+    gsl_vector *gsl_Ye = gsl_vector_calloc(N);
+    gsl_vector *gsl_Ze = gsl_vector_calloc(N);
+    gsl_vector *gsl_Xm = gsl_vector_calloc(N);
+    gsl_vector *gsl_Ym = gsl_vector_calloc(N);
+    gsl_vector *gsl_Zm = gsl_vector_calloc(N);
+    gsl_vector *gsl_Xs = gsl_vector_calloc(N);
+    gsl_vector *gsl_Ys = gsl_vector_calloc(N);
+    gsl_vector *gsl_Zs = gsl_vector_calloc(N);
+
+
+    //Positions of the primaries in NC coordinates
+    gsl_vector *gsl_xe = gsl_vector_calloc(N);
+    gsl_vector *gsl_ye = gsl_vector_calloc(N);
+    gsl_vector *gsl_ze = gsl_vector_calloc(N);
+    gsl_vector *gsl_xm = gsl_vector_calloc(N);
+    gsl_vector *gsl_ym = gsl_vector_calloc(N);
+    gsl_vector *gsl_zm = gsl_vector_calloc(N);
+    gsl_vector *gsl_xs = gsl_vector_calloc(N);
+    gsl_vector *gsl_ys = gsl_vector_calloc(N);
+    gsl_vector *gsl_zs = gsl_vector_calloc(N);
+
+
+    //--------------------------
+    //Inner double variables
+    //--------------------------
+    double delta1i;
+    double delta2i;
+    double delta3i;
+    double delta4i;
+    double delta5i;
+    double delta6i;
+    double delta7i;
+    double delta8i;
+    double delta9i;
+    double delta10i;
+    double delta11i;
+    double delta12i;
+    double delta13i;
+    double delta14i;
+    //rq: delta15 is let equal to zero because of BCP vector field
+    double delta16i;
+    double delta17i;
+    double delta18i;
+
+    double Ze[3], Zm[3], Zs[3];
+    double ze[3], zm[3], zs[3];
+
+    //Temp
+    double deltati;
+
+    //Derivatives
+    double delta1doti;
+    double delta2doti;
+    double delta3doti;
+
+
+    //Temp variables
+    //double g1;
+    //double g2;
+    double Rv2;
+
+    //Time loop to prepare the FFT
+    for(int i = 0 ; i < N; i++)
+    {
+        //---------------
+        //update time
+        //---------------
+        t = tf*i/N;
+
+        //---------------
+        //z(t),  Z(t) and derivatives
+        //---------------
+        zi     =  evz(ztc, t, n, ni, ai);
+        Zi     =  evz(Ztc, t, n, ns, as);
+        Zidot  =  evzdot(Ztc, Ztcdot, t, n, ns, as);
+        Ziddot =  evzddot(Ztc, Ztcdot, Ztcddot, t, n, ns, as);
+        //rv2= 1/(Z*Zb)
+        Rv2 = creal(1.0/(Zi*conj(Zi)));
+
+        //---------------
+        // The deltas
+        //---------------
+        delta1i  = +Rv2;
+        delta2i  = -Rv2*creal(Zidot * conj(Zi));
+        delta3i  = +Rv2*cimag(Zidot * conj(Zi));
+        delta4i  = +0.0;
+        delta5i  = +0.0;
+        delta6i  = sqrt(Rv2);
+        //Sun
+        delta7i  = +mu_SEM;
+        delta8i  = +0.0;
+        //Earth
+        delta9i  = (mu_EM)*Rv2*creal(zi*conj(Zi)) - ms_EM/(1.0+ms_EM);
+        delta10i = (mu_EM)*Rv2*cimag(zi*conj(Zi));
+        //Moon
+        delta11i = (mu_EM-1)*Rv2*creal(zi*conj(Zi)) - ms_EM/(1.0+ms_EM);
+        delta12i = (mu_EM-1)*Rv2*cimag(zi*conj(Zi));
+
+
+        //Temp
+        deltati = +creal(Zi*conj(Zi));
+
+        //Derivatives of delta1,2,3
+        delta1doti = creal(+0.0*I-( Zidot*conj(Zi)+Zi*conj(Zidot) ) / cpow(Zi*conj(Zi), 2.0+0.0*I));
+        delta2doti = creal(+0.0*I-( creal(Ziddot*conj(Zi) + Zidot*conj(Zidot))*Zi*conj(Zi)
+                                    - (Zidot*conj(Zi)+Zi*conj(Zidot))*creal(Zidot*conj(Zi)) ) / cpow(Zi*conj(Zi), 2.0+0.0*I));
+        delta3doti = creal(+0.0*I+( cimag(Ziddot*conj(Zi) + Zidot*conj(Zidot))*Zi*conj(Zi)
+                                    - (Zidot*conj(Zi)+Zi*conj(Zidot))*cimag(Zidot*conj(Zi)) ) / cpow(Zi*conj(Zi), 2.0+0.0*I));
+
+        //Delta13 and 14, for NC computation
+        delta13i = -(deltati*deltati*(delta2doti*delta1i - delta1doti*delta2i)+ deltati*(delta2i*delta2i+delta3i*delta3i))*c1 + delta4i/gamma;
+        delta14i =   deltati*deltati*(delta3doti*delta1i - delta1doti*delta3i)*c1 + delta5i/gamma;
+
+        //Delta16i
+        delta16i = delta2doti - delta2i*delta1doti/delta1i + delta2i*delta2i + delta3i*delta3i;
+        //Delta17i
+        delta17i = delta3doti - delta3i*delta1doti/delta1i;
+        //Delta18i
+        delta18i = delta1doti/delta1i;
+
+        //---------------
+        // The primaries, again
+        //---------------
+        //Sun, EM coordinates
+        Zs[0] = delta7i;
+        Zs[1] = delta8i;
+        Zs[2] = 0.0;
+        //Sun, NC coordinates
+        SYStoNC_prim(Zs, zs, c1, gamma);
+        //Earth, EM coordinates
+        Ze[0] = delta9i;
+        Ze[1] = delta10i;
+        Ze[2] = 0.0;
+        //Earth, NC coordinates
+        SYStoNC_prim(Ze, ze, c1, gamma);
+        //Moon, EM coordinates
+        Zm[0] = delta11i;
+        Zm[1] = delta12i;
+        Zm[2] = 0.0;
+        //Moon, NC coordinates
+        SYStoNC_prim(Zm, zm, c1, gamma);
+
+        //---------------
+        //Storage in GSL objects at each time
+        //---------------
+        gsl_vector_set(gsl_delta1,  i, delta1i);
+        gsl_vector_set(gsl_delta2,  i, delta2i);
+        gsl_vector_set(gsl_delta3,  i, delta3i);
+        gsl_vector_set(gsl_delta4,  i, delta4i);
+        gsl_vector_set(gsl_delta5,  i, delta5i);
+        gsl_vector_set(gsl_delta6,  i, delta6i);
+        gsl_vector_set(gsl_delta7,  i, delta7i);
+        gsl_vector_set(gsl_delta8,  i, delta8i);
+        gsl_vector_set(gsl_delta9,  i, delta9i);
+        gsl_vector_set(gsl_delta10, i, delta10i);
+        gsl_vector_set(gsl_delta11, i, delta11i);
+        gsl_vector_set(gsl_delta12, i, delta12i);
+        gsl_vector_set(gsl_delta13, i, delta13i);
+        gsl_vector_set(gsl_delta14, i, delta14i);
+
+        gsl_vector_set(gsl_delta16, i, delta16i);
+        gsl_vector_set(gsl_delta17, i, delta17i);
+        gsl_vector_set(gsl_delta18, i, delta18i);
+
+        //---------------
+        //Primary, EM coordinates
+        //---------------
+        gsl_vector_set(gsl_Xs,  i, Zs[0]);
+        gsl_vector_set(gsl_Ys,  i, Zs[1]);
+        gsl_vector_set(gsl_Zs,  i, Zs[2]);
+
+        gsl_vector_set(gsl_Xe,  i, Ze[0]);
+        gsl_vector_set(gsl_Ye,  i, Ze[1]);
+        gsl_vector_set(gsl_Ze,  i, Ze[2]);
+
+        gsl_vector_set(gsl_Xm,  i, Zm[0]);
+        gsl_vector_set(gsl_Ym,  i, Zm[1]);
+        gsl_vector_set(gsl_Zm,  i, Zm[2]);
+
+        //---------------
+        //Primary, NC coordinates
+        //---------------
+        gsl_vector_set(gsl_xs,  i, zs[0]);
+        gsl_vector_set(gsl_ys,  i, zs[1]);
+        gsl_vector_set(gsl_zs,  i, zs[2]);
+
+        gsl_vector_set(gsl_xe,  i, ze[0]);
+        gsl_vector_set(gsl_ye,  i, ze[1]);
+        gsl_vector_set(gsl_ze,  i, ze[2]);
+
+        gsl_vector_set(gsl_xm,  i, zm[0]);
+        gsl_vector_set(gsl_ym,  i, zm[1]);
+        gsl_vector_set(gsl_zm,  i, zm[2]);
+
+    }
+
+    //--------------------------
+    //Unpack the FFT and put in data file
+    //--------------------------
+    qbtbp_ofs_fft_unpack(gsl_delta1, qbcp_l.cs_sem.F_COEF+"alpha1", nf, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_delta2, qbcp_l.cs_sem.F_COEF+"alpha2", nf, N, 0);
+    qbtbp_ofs_fft_unpack(gsl_delta3, qbcp_l.cs_sem.F_COEF+"alpha3", nf, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_delta4, qbcp_l.cs_sem.F_COEF+"alpha4", nf, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_delta5, qbcp_l.cs_sem.F_COEF+"alpha5", nf, N, 0);
+    qbtbp_ofs_fft_unpack(gsl_delta6, qbcp_l.cs_sem.F_COEF+"alpha6", nf, N, 1);
+    //Sun
+    qbtbp_ofs_fft_unpack(gsl_delta7, qbcp_l.cs_sem.F_COEF+"alpha7", nf, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_delta8, qbcp_l.cs_sem.F_COEF+"alpha8", nf, N, 0);
+    //Earth
+    qbtbp_ofs_fft_unpack(gsl_delta9,  qbcp_l.cs_sem.F_COEF+"alpha9",  nf, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_delta10, qbcp_l.cs_sem.F_COEF+"alpha10", nf, N, 0);
+    //Moon
+    qbtbp_ofs_fft_unpack(gsl_delta11, qbcp_l.cs_sem.F_COEF+"alpha11", nf, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_delta12, qbcp_l.cs_sem.F_COEF+"alpha12", nf, N, 0);
+    //NC additional coef
+    qbtbp_ofs_fft_unpack(gsl_delta13, qbcp_l.cs_sem.F_COEF+"alpha13",  nf, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_delta14, qbcp_l.cs_sem.F_COEF+"alpha14",  nf, N, 0);
+    //VF with velocity additionnal coef
+    qbtbp_ofs_fft_unpack(gsl_delta16, qbcp_l.cs_sem.F_COEF+"alpha16",  nf, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_delta17, qbcp_l.cs_sem.F_COEF+"alpha17",  nf, N, 0);
+    qbtbp_ofs_fft_unpack(gsl_delta18, qbcp_l.cs_sem.F_COEF+"alpha18",  nf, N, 0);
+
+    //---------------
+    //Primary, EM coordinates
+    //Note that, at this step, the vertical motion of the primaries is undefined,
+    //so we can put either Even or Odd in the qbtbp_ofs_fft_unpack option of gsl_Zc without much difference
+    //---------------
+    qbtbp_ofs_fft_unpack(gsl_Xs, qbcp_l.cs_sem.F_COEF+"Ps1", nf, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_Ys, qbcp_l.cs_sem.F_COEF+"Ps2", nf, N, 0);
+    qbtbp_ofs_fft_unpack(gsl_Zs, qbcp_l.cs_sem.F_COEF+"Ps3", nf, N, 1);
+
+    qbtbp_ofs_fft_unpack(gsl_Xe, qbcp_l.cs_sem.F_COEF+"Pe1", nf, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_Ye, qbcp_l.cs_sem.F_COEF+"Pe2", nf, N, 0);
+    qbtbp_ofs_fft_unpack(gsl_Ze, qbcp_l.cs_sem.F_COEF+"Pe3", nf, N, 1);
+
+    qbtbp_ofs_fft_unpack(gsl_Xm, qbcp_l.cs_sem.F_COEF+"Pm1", nf, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_Ym, qbcp_l.cs_sem.F_COEF+"Pm2", nf, N, 0);
+    qbtbp_ofs_fft_unpack(gsl_Zm, qbcp_l.cs_sem.F_COEF+"Pm3", nf, N, 1);
+
+
+    //---------------
+    //Primary, NC coordinates
+    //Note that, at this step, the vertical motion of the primaries is undefined,
+    //so we can put either Even or Odd in the qbtbp_ofs_fft_unpack option of gsl_zc without much difference
+    //---------------
+    qbtbp_ofs_fft_unpack(gsl_xs, qbcp_l.cs_sem.F_COEF+"ps1", nf, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_ys, qbcp_l.cs_sem.F_COEF+"ps2", nf, N, 0);
+    qbtbp_ofs_fft_unpack(gsl_zs, qbcp_l.cs_sem.F_COEF+"ps3", nf, N, 1);
+
+    qbtbp_ofs_fft_unpack(gsl_xe, qbcp_l.cs_sem.F_COEF+"pe1", nf, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_ye, qbcp_l.cs_sem.F_COEF+"pe2", nf, N, 0);
+    qbtbp_ofs_fft_unpack(gsl_ze, qbcp_l.cs_sem.F_COEF+"pe3", nf, N, 1);
+
+    qbtbp_ofs_fft_unpack(gsl_xm, qbcp_l.cs_sem.F_COEF+"pm1", nf, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_ym, qbcp_l.cs_sem.F_COEF+"pm2", nf, N, 0);
+    qbtbp_ofs_fft_unpack(gsl_zm, qbcp_l.cs_sem.F_COEF+"pm3", nf, N, 1);
+
+
+    //--------------------------
+    //Memory release
+    //--------------------------
+    gsl_vector_free(gsl_delta1);
+    gsl_vector_free(gsl_delta2);
+    gsl_vector_free(gsl_delta3);
+    gsl_vector_free(gsl_delta4);
+    gsl_vector_free(gsl_delta5);
+    gsl_vector_free(gsl_delta6);
+    gsl_vector_free(gsl_delta7);
+    gsl_vector_free(gsl_delta8);
+    gsl_vector_free(gsl_delta9);
+    gsl_vector_free(gsl_delta10);
+    gsl_vector_free(gsl_delta11);
+    gsl_vector_free(gsl_delta12);
+    gsl_vector_free(gsl_delta13);
+    gsl_vector_free(gsl_delta14);
+    gsl_vector_free(gsl_delta16);
+    gsl_vector_free(gsl_delta17);
+    gsl_vector_free(gsl_delta18);
+    gsl_vector_free(gsl_Xe);
+    gsl_vector_free(gsl_Ye);
+    gsl_vector_free(gsl_Ze);
+    gsl_vector_free(gsl_Xm);
+    gsl_vector_free(gsl_Ym);
+    gsl_vector_free(gsl_Zm);
+    gsl_vector_free(gsl_Xs);
+    gsl_vector_free(gsl_Ys);
+    gsl_vector_free(gsl_Zs);
+    gsl_vector_free(gsl_xe);
+    gsl_vector_free(gsl_ye);
+    gsl_vector_free(gsl_ze);
+    gsl_vector_free(gsl_xm);
+    gsl_vector_free(gsl_ym);
+    gsl_vector_free(gsl_zm);
+    gsl_vector_free(gsl_xs);
+    gsl_vector_free(gsl_ys);
+    gsl_vector_free(gsl_zs);
+}
+
+//-----------------------------------------------------------------------------
+// Reccurence for computing the QBTBP
+//-----------------------------------------------------------------------------
 /**
  *  \brief One step of the recurrence scheme in qbtbp_ofs. See comments in src/h for the signification of the parameters.
  */
@@ -494,9 +1778,9 @@ void qbtbp_ofs_recurrence(Ofts< Ofsd > &zr_ofts, //zr_ofts = normalized Earth-Mo
                           Ofsd  &vfm,            //vfm = Zr_ofts(j) at order n
                           Ofsd &sigma1,          //sigma1 = exp(-itheta)
                           Ofsd &sigma2,          //sigma2 = exp(+itheta)
-                          int m,                        //order
-                          int nf,                       //order of the Fourier expansions
-                          QBCP_L &qbcp_l)              //QBCP
+                          int m,                 //order
+                          int nf,                //order of the Fourier expansions
+                          QBCP_L &qbcp_l)        //QBCP
 
 {
     //Physical param
@@ -746,10 +2030,711 @@ void qbtbp_ofs_recurrence(Ofts< Ofsd > &zr_ofts, //zr_ofts = normalized Earth-Mo
 
 }
 
+//-----------------------------------------------------------------------------
+// Integrating the QBTBP
+//-----------------------------------------------------------------------------
+/**
+ *  \brief Derivatives of the QBTBP. To plug into GSL integrator.
+ *
+ * Note: the use of gsl livrary forces us to use double variables
+ * As a consequence, in the case of z and Z, we need to use real and imaginary parts
+ * as separate variables
+ */
+int qbtbp_derivatives(double t, const double y[], double f[], void *params)
+{
+    //Parameters for the qbtbp
+    double mu = * (double * ) params;
+    double ms = * ((double * ) (params)+1);
 
+    //Reconstruction of z and Z
+    cdouble z = y[0] + I*y[1];
+    cdouble Z = y[2] + I*y[3];
+
+    cdouble temp1 = Z-mu*z;
+    temp1 = temp1/pow(cabs(temp1), 3.0);
+
+    cdouble temp2 = Z+(1-mu)*z;
+    temp2 = temp2/pow(cabs(temp2), 3.0);
+
+    cdouble zdd = +0.0*I-z/pow(cabs(z), 3.0) + ms*(temp1-temp2);
+    cdouble Zdd = -(1+ms)*(mu*temp2 + (1-mu)*temp1);
+
+    //-------------------------------------------------------------------------------
+    //Phase space derivatives
+    //-------------------------------------------------------------------------------
+    f[0] = y[4];
+    f[1] = y[5];
+    f[2] = y[6];
+    f[3] = y[7];
+    f[4] = creal(zdd);
+    f[5] = cimag(zdd);
+    f[6] = creal(Zdd);
+    f[7] = cimag(Zdd);
+
+    return GSL_SUCCESS;
+}
+
+//-----------------------------------------------------------------------------
+// Testing the QBTBP
+//-----------------------------------------------------------------------------
+/**
+ *  \brief Test function to compare the analytical solution of the QBTBP to the numerical integration of the equations of motion.
+ */
+void qbtbp_test(double t1, Ofsc &bjc, Ofsc &cjc, OdeStruct ode_s, QBCP_L &qbcp_l)
+{
+    cout << "---------------------------------------------------" << endl;
+    cout << "               Test of the                         " << endl;
+    cout << "   Quasi-Bicircular Three-Body Problem (QBTBP)     " << endl;
+    cout << "---------------------------------------------------" << endl;
+    //Initialization
+    double as = qbcp_l.us_em.as;
+    double n  = qbcp_l.us_em.n;
+    double ns = qbcp_l.us_em.ns;
+    int nf    = bjc.getOrder();
+
+    //z(0) and Z(0)
+    cdouble z0 = bjc.evaluate(0.0);
+    cdouble Z0 = as*cjc.evaluate(0.0);
+
+    //zdot(0) and Zdot(0)
+    Ofsc zdot(nf);
+    for(int l = -nf; l<=nf; l++) zdot.setCoef(I*(1.0+l*n)*bjc.ofs_getCoef(l), l);
+    cdouble zdot0 = zdot.evaluate(0.0);
+
+    Ofsc Zdot(nf);
+    for(int l = -nf; l<=nf; l++) Zdot.setCoef(I*(ns+l*n)*cjc.ofs_getCoef(l), l);
+    cdouble Zdot0 = as*Zdot.evaluate(0.0);
+
+    //Initial conditions
+    double yv[8];
+    yv[0] = creal(z0);
+    yv[1] = cimag(z0);
+    yv[2] = creal(Z0);
+    yv[3] = cimag(Z0);
+    yv[4] = creal(zdot0);
+    yv[5] = cimag(zdot0);
+    yv[6] = creal(Zdot0);
+    yv[7] = cimag(Zdot0);
+
+    cout << std::showpos << setiosflags(ios::scientific)  << setprecision(15);
+    cout << "Initial positions: " << endl;
+    cout << "Internal motion: z(t=0.0) = " << creal(z0) << " + " << cimag(z0) << "i" <<  endl;
+    cout << "External motion: Z(t=0.0) = " << creal(Z0) << " + " << cimag(Z0) << "i" <<  endl;
+    cout << "-------------------------------------------" << endl;
+
+    //Loop
+    double h = 1e-6; //first guess for stepper
+    int status;
+    double t = 0.0;
+    while (t < t1)
+    {
+        //Evolve one step
+        status = gsl_odeiv2_evolve_apply (ode_s.e, ode_s.c, ode_s.s, &ode_s.sys, &t, t1, &h, yv);
+        //Break if evolution has gone wrong
+        if (status != GSL_SUCCESS) break;
+    }
+
+
+    //Final state
+    cout << "-------------------------------------------" << endl;
+    cout << "End of integration." << endl;
+    cout << "Final t: " << t << endl;
+    cout << "-------------------------------------------" << endl;
+    cout << "Results from integration" << endl;
+    cout << "Internal motion: z(t=t1) = " << yv[0] << " + " << yv[1] << "i" << endl;
+    cout << "External motion: Z(t=t1) = " << yv[2] << " + " << yv[3] << "i" << endl;
+    cout << "-------------------------------------------" << endl;
+
+    //Analytical final state
+    cdouble zfinal = (cos(t1)+I*sin(t1))*bjc.evaluate(n*t1);
+    cdouble Zfinal = as*(cos(ns*t1)+I*sin(ns*t1))*cjc.evaluate(n*t1);
+
+    cdouble zdotfinal = (cos(t1)+I*sin(t1))*zdot.evaluate(n*t1);
+    cdouble Zdotfinal = as*(cos(ns*t1)+I*sin(ns*t1))*Zdot.evaluate(n*t1);
+
+
+    cout << "Analytical results" << endl;
+    cout << "Internal motion: z(t=t1) = " << creal(zfinal) << " + " << cimag(zfinal) << "i" <<  endl;
+    cout << "External motion: Z(t=t1) = " << creal(Zfinal) << " + " << cimag(Zfinal) << "i" <<  endl;
+    cout << "-------------------------------------------" << endl;
+
+
+    cout << "Absolute delta between analytical and numerical results: " << endl;
+    cout << "dz    = " << cabs(zfinal - yv[0]-I*yv[1])/*/cabs(zfinal)*100 << " %" */<< endl;
+    cout << "dzdot = " << cabs(zdotfinal - yv[4]-I*yv[5])/*/cabs(zdotfinal)*100 << " %" */<< endl;
+    cout << "dZ    = " << cabs(Zfinal - yv[2]-I*yv[3])/*/cabs(zfinal)*100 << " %" */<< endl;
+    cout << "dZdot = " << cabs(Zdotfinal - yv[6]-I*yv[7])/*/cabs(Zdotfinal)*100 << " %" */<< endl;
+    cout << "-------------------------------------------" << endl;
+}
 
 /**
- *  \brief Computation of the coefficients alphas and betas that appear in the QBCP vector field.
+ *  \brief Test function used inside qbtbp_test_IN_EM_SEM.
+ */
+void qbpcomp(Ofsc &bjc,
+             Ofsc &cjc,
+             const double xe0_SEM[],
+             const double xe0_EM[],
+             const double ye0_IN[],
+             double t0,
+             double t0c)
+{
+    //State vectors
+    double xem_SEM[6];
+    double xem_EM[6];
+    double xe0_IN_from_SEM[6];
+    double xe0_IN_from_EM[6];
+    double xe0_EM2[6];
+    double xe0_SEM2[6];
+
+    //-----------------------------
+    // SEM -> EM -> IN
+    //-----------------------------
+    //Planet position & momenta in SEM ref and SEM units
+    SEMvtoSEMm(t0c, xe0_SEM, xem_SEM, &SEML);
+    //Planet position & momenta in EM ref and EM units
+    SEMmtoEMm(t0c, xem_SEM, xem_EM, &SEML);
+    //Planet position & velocity in EM ref and EM units
+    EMmtoEMv(t0, xem_EM, xe0_EM2, &SEML);
+    //Planet position & velocity in IN ref and EM units
+    EMtoIN(t0, xe0_EM2, xe0_IN_from_SEM,  &SEML);
+
+    //-----------------------------
+    // EM -> IN
+    //-----------------------------
+    //Planet position & velocities in IN ref and EM units
+    EMtoIN(t0, xe0_EM, xe0_IN_from_EM,  &SEML);
+    cout << "-------------------------------------------" << endl;
+    cout << "Error in initial planet position & velocity wrt IN" << endl;
+    cout << "SEM -> EM -> IN         EM->IN  " << endl;
+    for(int i = 0; i < 6; i++)
+    {
+        cout <<  xe0_IN_from_SEM[i]-ye0_IN[i] << "    " << xe0_IN_from_EM[i]-ye0_IN[i] << endl;
+    }
+
+    //-----------------------------
+    // EM -> IN -> SE
+    //-----------------------------
+    //Planet position & momenta in EM ref and EM units
+    EMvtoEMm(t0, xe0_EM, xem_EM, &SEML);
+    //Planet position & momenta in SEM ref and SEM units
+    EMmtoSEMm(t0, xem_EM, xem_SEM, &SEML);
+    //Planet position & velocity in SEM ref and SEM units
+    SEMmtoSEMv(t0c, xem_SEM, xe0_SEM2, &SEML);
+
+    cout << "-------------------------------------------" << endl;
+    cout << "SEM          EM -> IN -> SEM     Delta " << endl;
+    for(int i = 0; i < 6; i++)
+    {
+        cout << xe0_SEM[i] << "    " <<  xe0_SEM2[i] << "    " <<  xe0_SEM[i]-xe0_SEM2[i] << endl;
+    }
+    cout << "-------------------------------------------" << endl;
+}
+
+/**
+ *  \brief Test function to compare the analytical solutions found in IN, EM, and SEM coordinates
+ */
+void qbtbp_test_IN_EM_SEM(double t1, Ofsc &bjc, Ofsc &cjc)
+{
+    //Initialization
+    USYS us_em  = SEML.us_em;
+    USYS us_sem = SEML.us_sem;
+    int nf      = SEML.nf;
+    //Derivatives of z and Z
+    Ofsc zdot(bjc);
+    Ofsc Zdot(cjc);
+    zdot.dot(us_em.n);
+    Zdot.dot(us_em.n);
+
+    cout << "---------------------------------------------------" << endl;
+    cout << "               Test in SEM units                   " << endl;
+    cout << "---------------------------------------------------" << endl;
+    double t0 = t1;             //new t0 in EM units
+    double t0c =t0*us_em.ns;    //new t0 in SEM units
+
+    //z(t0) and Z(t0)
+    cdouble z0 = evz(bjc, t0, us_em.n, us_em.ni, us_em.ai);
+    cdouble Z0 = evz(cjc, t0, us_em.n, us_em.ns, us_em.as);
+    cdouble zdot0 = evzdot(bjc, zdot, t0, us_em.n, us_em.ni, us_em.ai);
+    cdouble Zdot0 = evzdot(cjc, Zdot, t0, us_em.n, us_em.ns, us_em.as);
+
+    //-------------------------------------------------------------------------------
+    //Evaluate the deltas @t = t0c
+    //-------------------------------------------------------------------------------
+    double delta[15];
+    evaluateCoef(delta, t0c, us_sem.n, nf, SEML.cs_sem.coeffs, 15);
+    double deltad[15];
+    evaluateCoefDerivatives(deltad, t0c, us_sem.n, nf, SEML.cs_sem.coeffs, 15);
+
+    //-------------------------------------------------------------------------------
+    //Evaluate the alphas @t = t0
+    //-------------------------------------------------------------------------------
+    double alpha[15];
+    evaluateCoef(alpha, t0, us_em.n, nf, SEML.cs_em.coeffs, 15);
+    double alphad[15];
+    evaluateCoefDerivatives(alphad, t0, us_em.n, nf, SEML.cs_em.coeffs, 15);
+
+    cout << "---------------------------------------------------" << endl;
+    cout << "Earth  " << endl;
+    //Earth position & momenta in SEM ref and SEM units
+    double xe0_SEM[6];
+    xe0_SEM[0] = delta[8];
+    xe0_SEM[1] = delta[9];
+    xe0_SEM[2] = 0.0;
+    xe0_SEM[3] = deltad[8];
+    xe0_SEM[4] = deltad[9];
+    xe0_SEM[5] = 0.0;
+    //Earth position & momenta in EM ref and EM units
+    double xe0_EM[6];
+    xe0_EM[0] = us_em.mu_EM;
+    xe0_EM[1] = 0.0;
+    xe0_EM[2] = 0.0;
+    xe0_EM[3] = 0.0;
+    xe0_EM[4] = 0.0;
+    xe0_EM[5] = 0.0;
+    //Earth position & momenta in IN ref and EM units
+    double ye0_IN[6];
+    ye0_IN[0] = -us_em.ms/(1.0+us_em.ms)*creal(Z0) + us_em.mu_EM*creal(z0);
+    ye0_IN[1] = -us_em.ms/(1.0+us_em.ms)*cimag(Z0) + us_em.mu_EM*cimag(z0);
+    ye0_IN[2] = 0.0;
+    ye0_IN[3] = -us_em.ms/(1.0+us_em.ms)*creal(Zdot0) + us_em.mu_EM*creal(zdot0);
+    ye0_IN[4] = -us_em.ms/(1.0+us_em.ms)*cimag(Zdot0) + us_em.mu_EM*cimag(zdot0);
+    ye0_IN[5] = 0.0;
+    //Comparison
+    qbpcomp(bjc, cjc, xe0_SEM, xe0_EM, ye0_IN, t0, t0c);
+
+    cout << "---------------------------------------------------" << endl;
+    cout << "Moon  " << endl;
+    //Moon position & velocity in SEM ref and SEM units
+    double xm0_SEM[6];
+    xm0_SEM[0] = delta[10];
+    xm0_SEM[1] = delta[11];
+    xm0_SEM[2] = 0.0;
+    xm0_SEM[3] = deltad[10];
+    xm0_SEM[4] = deltad[11];
+    xm0_SEM[5] = 0.0;
+    //Moon position & velocity in EM ref and EM units
+    double xm0_EM[6];
+    xm0_EM[0] = us_em.mu_EM-1;
+    xm0_EM[1] = 0.0;
+    xm0_EM[2] = 0.0;
+    xm0_EM[3] = 0.0;
+    xm0_EM[4] = 0.0;
+    xm0_EM[5] = 0.0;
+    //Moon position & momenta in IN ref and EM units
+    double ym0_IN[6];
+    ym0_IN[0] = -us_em.ms/(1.0+us_em.ms)*creal(Z0) - (1-us_em.mu_EM)*creal(z0);
+    ym0_IN[1] = -us_em.ms/(1.0+us_em.ms)*cimag(Z0) - (1-us_em.mu_EM)*cimag(z0);
+    ym0_IN[2] = 0.0;
+    ym0_IN[3] = -us_em.ms/(1.0+us_em.ms)*creal(Zdot0) - (1-us_em.mu_EM)*creal(zdot0);
+    ym0_IN[4] = -us_em.ms/(1.0+us_em.ms)*cimag(Zdot0) - (1-us_em.mu_EM)*cimag(zdot0);
+    ym0_IN[5] = 0.0;
+    //Comparison
+    qbpcomp(bjc, cjc, xm0_SEM, xm0_EM, ym0_IN, t0, t0c);
+
+
+    cout << "---------------------------------------------------" << endl;
+    cout << "Sun  " << endl;
+    //Sun position & velocity in SEM ref and SEM units
+    double xs0_SEM[6];
+    xs0_SEM[0] = us_sem.mu_SEM;
+    xs0_SEM[1] = 0.0;
+    xs0_SEM[2] = 0.0;
+    xs0_SEM[3] = 0.0;
+    xs0_SEM[4] = 0.0;
+    xs0_SEM[5] = 0.0;
+    //Sun position & velocity in EM ref and EM units
+    double xs0_EM[6];
+    xs0_EM[0] = alpha[6];
+    xs0_EM[1] = alpha[7];
+    xs0_EM[2] = 0.0;
+    xs0_EM[3] = alphad[6];
+    xs0_EM[4] = alphad[7];
+    xs0_EM[5] = 0.0;
+    //Sun position & momenta in IN ref and EM units
+    double ys0_IN[6];
+    ys0_IN[0] = 1.0/(1.0+us_em.ms)*creal(Z0);
+    ys0_IN[1] = 1.0/(1.0+us_em.ms)*cimag(Z0);
+    ys0_IN[2] = 0.0;
+    ys0_IN[3] = 1.0/(1.0+us_em.ms)*creal(Zdot0);
+    ys0_IN[4] = 1.0/(1.0+us_em.ms)*cimag(Zdot0);
+    ys0_IN[5] = 0.0;
+    //Comparison
+    qbpcomp(bjc, cjc, xs0_SEM, xs0_EM, ys0_IN, t0, t0c);
+
+}
+
+/**
+ *  \brief Comparison of the QBTBP computed via FFT or via OFS computations
+ */
+void qbtbp_test_FFT_vs_OFS(Ofsc &bjc,       //zt(t)
+                           Ofsc &cjc,       //Zt(t)
+                           int nf,          //order of the Fourier expansions
+                           int N,           //Number of points
+                           int type,        //Type of reference
+                           OdeStruct ode_s, //ode structure
+                           QBCP_L& qbcp_l)  //QBCP
+{
+    reset_ode_structure(&ode_s);
+    //For print
+    cout << std::showpos << setiosflags(ios::scientific)  << setprecision(15);
+
+    //Creation of the matrices of results
+    double **alpha_INT_VS_OFS = dmatrix(0, 7, 0, N-1);
+    double **alpha_INT_VS_FFT = dmatrix(0, 7, 0, N-1);
+    double **alpha_INT        = dmatrix(0, 7, 0, N-1);
+
+    //Retrieving from txt files
+    double *alpha_OFS = dvector(0, 8*(nf+1)-1);
+    double *alpha_FFT = dvector(0, 8*(nf+1)-1);
+
+    cout << "Retrieving OFS coefficients " << endl;
+    coefRetrieving(qbcp_l.cs.F_COEF+"alpha", alpha_OFS, nf, 0, 0, 8);
+    cout << "Retrieving FFT coefficients " << endl;
+    coefRetrieving(qbcp_l.cs.F_COEF+"alpha", alpha_FFT, nf, 0, 1, 8);
+
+    //Physical params in EM units
+    //--------------------------
+    double ns = qbcp_l.us_em.ns;  //Sun-(Earth+Moon) mean angular motion
+    double ni = qbcp_l.us_em.ni;  //Earth-Moon mean angular motion
+    double n  = qbcp_l.us_em.n;   //n = ni - ns
+    double as = qbcp_l.us_em.as;  //Sun-(Earth+Moon) mean distance
+    double ai = qbcp_l.us_em.ai;  //Earth-Moon mean distance
+    double ms = qbcp_l.us_em.ms;  //Sun mass
+
+    //QBTBP init
+    //--------------------------
+    Ofsc ztc(bjc);
+    Ofsc Ztc(cjc);
+    //Derivatives
+    Ofsc ztcdot(ztc);
+    Ofsc Ztcdot(Ztc);
+    //Derivation
+    ztcdot.dot(n);
+    Ztcdot.dot(n);
+
+    //Double derivatives
+    Ofsc ztcddot(ztcdot);
+    Ofsc Ztcddot(Ztcdot);
+    //Derivation
+    ztcddot.dot(n);
+    Ztcddot.dot(n);
+
+    //z(t) and Z(t)
+    cdouble zi;
+    cdouble Zi;
+    cdouble zidot;
+    cdouble Ziddot;
+
+    double rv2;
+    double alpha1i;
+    double alpha2i;
+    double alpha3i;
+    double alpha4i;
+    double alpha5i;
+    double alpha6i;
+    double eval_OFS[8];
+    double eval_FFT[8];
+
+    //z(0) and Z(0)
+    cdouble z0 = bjc.evaluate(0.0);
+    cdouble Z0 = as*cjc.evaluate(0.0);
+
+    //zdot(0) and Zdot(0)
+    Ofsc zdot(nf);
+    for(int l = -nf; l<=nf; l++) zdot.setCoef(I*(1.0+l*n)*bjc.ofs_getCoef(l), l);
+    cdouble zdot0 = zdot.evaluate(0.0);
+
+    Ofsc Zdot(nf);
+    for(int l = -nf; l<=nf; l++) Zdot.setCoef(I*(ns+l*n)*cjc.ofs_getCoef(l), l);
+    cdouble Zdot0 = as*Zdot.evaluate(0.0);
+
+    //Initial conditions
+    double yv[8];
+    yv[0] = creal(z0);
+    yv[1] = cimag(z0);
+    yv[2] = creal(Z0);
+    yv[3] = cimag(Z0);
+    yv[4] = creal(zdot0);
+    yv[5] = cimag(zdot0);
+    yv[6] = creal(Zdot0);
+    yv[7] = cimag(Zdot0);
+
+    //Loop
+    double ti;
+    double tf  = 2*M_PI/n;
+    double t   = 0.0;
+    int status;
+    double f[8];
+    for(int i = 0 ; i < N; i++)
+    {
+        //update
+        ti = tf*i/N;
+
+        //Computing the reference values
+        if(type == 0)
+        {
+            //z(t), zdot(t), Z(t) and Zdot(t) if the type of reference is the numerical integration  (type = 0)
+            //Evolve one step
+            status = gsl_odeiv2_driver_apply (ode_s.d, &t, ti, yv);
+            //Compute z(t) and Z(t)
+            zi     =  yv[0] + yv[1]*I;
+            Zi     =  yv[2] + yv[3]*I;
+            zidot  =  yv[4] + yv[5]*I;
+            qbtbp_derivatives(t, yv, f, ode_s.sys.params);
+            Ziddot =  f[6] + f[7]*I;
+            rv2    =  creal(1.0/(zi*conj(zi)));
+        }
+        else
+        {
+            //z(t), zdot(t), Z(t) and Zdot(t) if the type of reference is the Fourier expansion (type = 1)
+            zi     =  evz(ztc, t, n, ni, ai);
+            Zi     =  evz(Ztc, t, n, ns, as);
+            zidot  =  evzdot(ztc, ztcdot, t, n, ni, ai);
+            Ziddot =  evzddot(Ztc, Ztcdot, Ztcddot, t, n, ns, as);
+            rv2    =  creal(1.0/(zi*conj(zi)));
+        }
+
+
+        //Evalutation of FFT and OFS results
+        evaluateCoef(eval_OFS, t, n, nf, alpha_OFS, 8);
+        evaluateCoef(eval_FFT, t, n, nf, alpha_FFT, 8);
+
+        alpha1i  = rv2;
+        alpha2i  = -rv2*creal(zidot*conj(zi));
+        alpha3i  = +rv2*cimag(zidot*conj(zi));
+        alpha4i  = -ms/(1.0+ms)*creal(Ziddot*conj(zi));
+        alpha5i  = -ms/(1.0+ms)*cimag(Ziddot*conj(zi));
+        alpha6i  = creal(cpow(zi*conj(zi), -1.0/2+0.0*I));
+
+        //Results in matrices
+        alpha_INT_VS_OFS[0][i] = fabs(alpha1i - eval_OFS[0]);
+        alpha_INT_VS_OFS[1][i] = fabs(alpha2i - eval_OFS[1]);
+        alpha_INT_VS_OFS[2][i] = fabs(alpha3i - eval_OFS[2]);
+        alpha_INT_VS_OFS[3][i] = fabs(alpha4i - eval_OFS[3]);
+        alpha_INT_VS_OFS[4][i] = fabs(alpha5i - eval_OFS[4]);
+        alpha_INT_VS_OFS[5][i] = fabs(alpha6i - eval_OFS[5]);
+        alpha_INT_VS_OFS[6][i] = fabs(rv2*creal(Zi*conj(zi)) - eval_OFS[6]);
+        alpha_INT_VS_OFS[7][i] = fabs(rv2*cimag(Zi*conj(zi)) - eval_OFS[7]);
+
+        alpha_INT_VS_FFT[0][i] = fabs(alpha1i - eval_FFT[0]);
+        alpha_INT_VS_FFT[1][i] = fabs(alpha2i - eval_FFT[1]);
+        alpha_INT_VS_FFT[2][i] = fabs(alpha3i - eval_FFT[2]);
+        alpha_INT_VS_FFT[3][i] = fabs(alpha4i - eval_FFT[3]);
+        alpha_INT_VS_FFT[4][i] = fabs(alpha5i - eval_FFT[4]);
+        alpha_INT_VS_FFT[5][i] = fabs(alpha6i - eval_FFT[5]);
+        alpha_INT_VS_FFT[6][i] = fabs(rv2*creal(Zi*conj(zi)) - eval_FFT[6]);
+        alpha_INT_VS_FFT[7][i] = fabs(rv2*cimag(Zi*conj(zi)) - eval_FFT[7]);
+
+        alpha_INT[0][i] = alpha1i;
+        alpha_INT[1][i] = alpha2i;
+        alpha_INT[2][i] = alpha3i;
+        alpha_INT[3][i] = alpha4i;
+        alpha_INT[4][i] = alpha5i;
+        alpha_INT[5][i] = alpha6i;
+        alpha_INT[6][i] = rv2*creal(Zi*conj(zi));
+        alpha_INT[7][i] = rv2*cimag(Zi*conj(zi));
+
+        //Break if evolution has gone wrong
+        if (status != GSL_SUCCESS) break;
+    }
+
+    //Maximum
+    double max_INT_VS_OFS[8];
+    double max_INT_VS_FFT[8];
+    double max_INT[8];
+    for(int j = 0; j < 8; j ++)
+    {
+        max_INT_VS_OFS[j] = alpha_INT_VS_OFS[j][0];
+        max_INT_VS_FFT[j] = alpha_INT_VS_FFT[j][0];
+        max_INT[j]        = alpha_INT[j][0];
+    }
+
+    for(int i = 1 ; i < N; i++)
+    {
+        for(int j = 0; j < 8; j++)
+        {
+            if(max_INT_VS_OFS[j] < alpha_INT_VS_OFS[j][i]) max_INT_VS_OFS[j] = alpha_INT_VS_OFS[j][i];
+            if(max_INT_VS_FFT[j] < alpha_INT_VS_FFT[j][i]) max_INT_VS_FFT[j] = alpha_INT_VS_FFT[j][i];
+            if(max_INT[j] < alpha_INT[j][i]) max_INT[j] = alpha_INT[j][i];
+        }
+    }
+
+    //Print
+    cout << "---------------------------------------" << endl;
+    cout << "       FFT vs OFS                      " << endl;
+    cout << "---------------------------------------" << endl;
+    if(type == 0) cout << "The numerical integration is used to compute the reference values " << endl;
+    else          cout << "The Fourier expansions computed in qbtbp(int) are used to compute the reference values " << endl;
+    cout << std::showpos << setiosflags(ios::scientific)  << setprecision(3);
+    cout << "i         max REF           max REF vs OFS       max REF vs FFT      " << endl;
+    for(int j = 0; j < 8; j++)
+    {
+        cout << j << "      " << max_INT[j] << "           " << max_INT_VS_OFS[j]  << "            " <<  max_INT_VS_FFT[j]  << endl;
+    }
+    cout << "---------------------------------------" << endl;
+
+    //Conclusion
+    cout << "Conclusion: " << endl;
+    cout << "- OFS and FFT coefficients both represent quite well the real integrated system (see comparison with type == 0). " << endl;
+    cout << "- However, the FFT coefficients are better suited to represent the approximated system given by the Fourier expansions computed in qbtbp(int) (see comparison with type == 1). " << endl;
+    cout << "- This is ought to the approximations made to compute z(OFS)^{-a}, a > 0, when computing the OFS coefficients." << endl;
+
+    //Memory release
+    free_dvector(alpha_OFS, 0, 8*(nf+1)-1);
+    free_dvector(alpha_FFT, 0, 8*(nf+1)-1);
+    free_dmatrix(alpha_INT_VS_OFS, 0, 7, 0, N-1);
+    free_dmatrix(alpha_INT       , 0, 7, 0, N-1);
+    free_dmatrix(alpha_INT_VS_FFT, 0, 7, 0, N-1);
+}
+
+//-----------------------------------------------------------------------------
+// Evaluating the QBTBP
+//-----------------------------------------------------------------------------
+/**
+ *  \brief Evaluate z(t), with \f$ z(t) = e^{it} z_r(t) \f$ in Earth-Moon units.
+ */
+cdouble evz(Ofsc& zt, double t, double n, double ni, double ai)
+{
+    return ai*(cos(ni*t)+I*sin(ni*t))*zt.evaluate(n*t);
+}
+
+/**
+ *  \brief Evaluate dz(t)/dt, with \f$ z(t) = e^{it} z_r(t) \f$ in Earth-Moon units.
+ */
+cdouble evzdot(Ofsc& zt, Ofsc& ztdot, double t, double n, double ni, double ai)
+{
+    return ai*(cos(ni*t)+I*sin(ni*t))*(ztdot.evaluate(n*t) + I*ni*zt.evaluate(n*t));
+}
+
+/**
+ *  \brief Evaluate d2z(t)/dt2, with \f$ z(t) = e^{it} z_r(t) \f$ in Earth-Moon units.
+ */
+cdouble evzddot(Ofsc& zt, Ofsc& ztdot, Ofsc& ztddot, double t, double n, double ni, double ai)
+{
+    return ai*(cos(ni*t)+I*sin(ni*t))*( 2*I*ni*ztdot.evaluate(n*t) - ni*ni*zt.evaluate(n*t) + ztddot.evaluate(n*t));
+}
+
+
+//-----------------------------------------------------------------------------
+//Evaluation of parts or all the alpha/beta routines at a given time
+//-----------------------------------------------------------------------------
+/**
+ *  \brief Evaluation of Fourier series given as an array of coefficients, at a given time t.
+ */
+void evaluateCoef(double *alpha, double t, double omega, int order, double *params, int number)
+{
+    double *header;
+    int l;
+    double cR[order];
+    double sR[order];
+
+    cR[0] = cos(omega*t);
+    sR[0] = sin(omega*t);
+
+    for(int i = 1; i< order; i++)
+    {
+        //From trigo formulae (fastest)
+        cR[i] =  cR[i-1]*cR[0] - sR[i-1]*sR[0];
+        sR[i] =  sR[i-1]*cR[0] + cR[i-1]*sR[0];
+        //From GSL
+        //cR[i] =  gsl_sf_cos((i+1)*omega*t);
+        //sR[i] =  gsl_sf_sin((i+1)*omega*t);
+        //Native C
+        //cR[i] =  cos((i+1)*omega*t);
+        //sR[i] =  sin((i+1)*omega*t);
+    }
+
+    for(l = 0, header = params; l < number ; l++, header+=(order+1))
+    {
+        alpha[l] = 0.0;
+        if(l==1 || l== 4 || l==7 || l==9 || l==11 || l==13) alpha[l] = evaluateOdd(t, omega , order, header, sR);    //Odd funtions (alpha_2,5,8,10,12,14)
+        else  alpha[l] = evaluateEven(t, omega, order, header, cR);                                                  //Even functions
+    }
+}
+
+/**
+ *  \brief Evaluation of the time derivatives Fourier series given as an array of coefficients, at a given time t.
+ */
+void evaluateCoefDerivatives(double *alpha, double t, double omega, int order, double *params, int number)
+{
+    double *header;
+    int l;
+    double cR[order];
+    double sR[order];
+
+    cR[0] = cos(omega*t);
+    sR[0] = sin(omega*t);
+
+    for(int i = 1; i< order; i++)
+    {
+        cR[i] =  cR[i-1]*cR[0] - sR[i-1]*sR[0];
+        sR[i] =  sR[i-1]*cR[0] + cR[i-1]*sR[0];
+    }
+
+    for(l = 0, header = params; l < number ; l++, header+=(order+1))
+    {
+        alpha[l] = 0.0;
+        if(l==1 || l== 4 || l==7 || l==9 || l==11 || l==13)
+        {
+            alpha[l] = evaluateOddDerivative(t, omega , order, header, cR); //Odd funtions (alpha_2,5,8,10,12,14)
+        }
+        else  alpha[l] = evaluateEvenDerivative(t, omega, order, header, sR);   //Even functions
+    }
+}
+
+
+//-----------------------------------------------------------------------------
+//Evalution of individual alpha/beta
+//or derivative of alpha/beta of a given type (Odd or Even)
+//-----------------------------------------------------------------------------
+/**
+ *  \brief Evaluate the sum \f$ \sum_{k = 0}^N coef(k) cos(k \omega t)  \f$.
+ */
+double evaluateEven(double t, double omega, int order, double *coef, double *cR)
+{
+    double result = 0.0;
+    for(int i= order; i>=1; i--) result += coef[i]*cR[i-1];//even type
+    result += coef[0];
+    return result;
+}
+
+/**
+ *  \brief Evaluate the sum \f$ \sum_{k = 0}^N - k \omega coef(k) sin(k \omega t)  \f$.
+ */
+double evaluateEvenDerivative(double t, double omega,  int order, double *coef, double *sR)
+{
+    double result = 0.0;
+    for(int i= order; i>=1; i--) result += -omega*i*coef[i]*sR[i-1];//even type
+    return result;
+}
+
+/**
+ *  \brief Evaluate the sum \f$ \sum_{k = 0}^N coef(k) sin(k \omega t)  \f$.
+ */
+double evaluateOdd(double t, double omega,  int order, double *coef, double *sR)
+{
+    double result = 0.0;
+    for(int i= order; i>=1; i--) result += coef[i]*sR[i-1]; //odd type
+    return result;
+}
+
+/**
+ *  \brief Evaluate the sum \f$ \sum_{k = 0}^N  k \omega coef(k) cos(k \omega t)  \f$.
+ */
+double evaluateOddDerivative(double t, double omega,  int order, double *coef, double *cR)
+{
+    double result = 0.0;
+    for(int i= order; i>=1; i--) result += omega*i*coef[i]*cR[i-1];//odd type
+    return result;
+}
+
+
+
+//-------------------------------------------------------------------------------------------------------------------------------------------------------------------
+// Deprecated routine for the computation of the alphas and betas
+//-------------------------------------------------------------------------------------------------------------------------------------------------------------------
+/**
+ *  \brief Computation of the coefficients alphas and betas that appear in the QBCP vector field. NOT USED ANYMORE
  *         These computations are performed via algebraic manipulation on the Fourier series, contrary to other similar routines
  *         Such as qbtbp_ofs_fft_alpha (for the alpha coefficients) that makes use of FFT procedures.
  **/
@@ -1505,1585 +3490,6 @@ void qbtbp_ofs_storage(   Ofts< Ofsd > &zr_ofts,     //zr_ofts = normalized Eart
 }
 
 
-/**
- *  \brief Computes one specific FFT and stores it txt file.
- *  \param xGSL0: a GSL vector of size N which contains the discrete evaluations of the function f on which to perform the FFT.
- *  \param filename: a string. The final result is stored in the file filename+"_fft.txt"
- *  \param nf: an integer. The order of the Fourier series obtained after FFT.
- *  \param flag: a boolean. If true, the function f is supposed even (sum of cosinus). If false, f is supposed odd (sum of sinus).
- */
-void qbtbp_ofs_fft_unpack(gsl_vector *xGSL0, string filename, int nf, int N, int flag)
-{
-    //Copy of xGSL0 into temp vector
-    gsl_vector *xGSL = gsl_vector_calloc(N);
-    gsl_vector_memcpy(xGSL, xGSL0);
-
-    gsl_vector_complex *data_complex = gsl_vector_complex_calloc(N);
-    gsl_fft_real_wavetable * wavetable = gsl_fft_real_wavetable_alloc (N);
-    gsl_fft_real_workspace * workspace = gsl_fft_real_workspace_alloc (N);
-    Ofsc xFFT(nf);
-    ofstream curentStream;
-
-    gsl_fft_real_transform (xGSL->data, 1, N, wavetable, workspace);
-    gsl_fft_halfcomplex_unpack(xGSL->data , data_complex->data ,  xGSL->stride ,xGSL->size);
-    //Order 0
-    if(flag) //even case
-        xFFT.setCoef(+GSL_REAL(gsl_vector_complex_get(data_complex, 0))/N+I*GSL_IMAG(gsl_vector_complex_get(data_complex, 0))/N,  0);
-    else //odd case
-        xFFT.setCoef(0.0,  0);
-
-    //Order n
-    for(int i = 1; i<= nf; i++)
-    {
-        if(flag) //even case
-        {
-            //Negative frequencies
-            xFFT.setCoef(+GSL_REAL(gsl_vector_complex_get(data_complex, N-i))/N, -i);
-            //Positive frequencies
-            xFFT.setCoef(+GSL_REAL(gsl_vector_complex_get(data_complex, i))/N,  i);
-        }
-        else //odd case
-        {
-            //Negative frequencies
-            xFFT.setCoef(I*GSL_IMAG(gsl_vector_complex_get(data_complex, N-i))/N, -i);
-            //Positive frequencies
-            xFFT.setCoef(I*GSL_IMAG(gsl_vector_complex_get(data_complex, i))/N,  i);
-        }
-
-    }
-
-    //Storage in txt file
-    curentStream.open((filename+"_fft.txt").c_str());
-    curentStream <<  xFFT << endl;
-    curentStream.close();
-
-
-    if(flag) //even case
-    {
-        //Cosinus expansion version
-        curentStream.open((filename+"c_fft.txt").c_str());
-        curentStream << 0 << " " << creal(xFFT.ofs_getCoef(0)) << endl;
-        for(int l = 1; l<=nf; l++) curentStream << l << " " << creal(xFFT.ofs_getCoef(-l) + xFFT.ofs_getCoef(l))  <<  endl;
-        curentStream.close();
-    }
-    else //odd case
-    {
-        //Sinus expansion version
-        curentStream.open((filename+"c_fft.txt").c_str());
-        for(int l = 0; l<=nf; l++)
-            curentStream << l << " " <<  cimag(xFFT.ofs_getCoef(-l) - xFFT.ofs_getCoef(l)) << endl;
-        curentStream.close();
-    }
-
-
-    gsl_vector_complex_free(data_complex);
-    gsl_vector_free(xGSL);
-    gsl_fft_real_wavetable_free(wavetable);
-    gsl_fft_real_workspace_free(workspace);
-}
-
-
-
-/**
- *  \brief FFT and Storage in txt files of OFS objects alpha_i in qbtbp_ofs. Makes use of FFT routines via qbtbp_ofs_fft_unpack.
- *         The following coefficients are computed and stored:
- *              - The alpha (1 to 14).
- *              - The position of the primaries in EM coordinates system (redundant with alpha7-12): Xe, Ye, Ze
- *              - The position of the primaries in NC coordinates system: xe, ye, ze
- */
-void qbtbp_ofs_fft_alpha( Ofts< Ofsd > &zt,     //zt = normalized Earth-Moon motion
-                          Ofts< Ofsd > &Zt,     //Zt = normalized Sun-(Earth+Moon) motion
-                          int nf,               //order of the Fourier expansions
-                          QBCP_L& qbcp_l)       //QBCP
-{
-    //--------------------------
-    //Physical params specific to the QBCP_L
-    //--------------------------
-    double c1    = qbcp_l.cs_em.c1;
-    double gamma = qbcp_l.cs_em.gamma;
-
-    //--------------------------
-    //Mass ratio
-    //--------------------------
-    double mu_EM = qbcp_l.us_em.mu_EM;
-
-    //--------------------------
-    //Physical params in EM units
-    //--------------------------
-    double ns = qbcp_l.us_em.ns;  //Sun-(Earth+Moon) mean angular motion
-    double ni = qbcp_l.us_em.ni;  //Earth-Moon mean angular motion
-    double n  = qbcp_l.us_em.n;   //n = ni - ns
-    double as = qbcp_l.us_em.as;  //Sun-(Earth+Moon) mean distance
-    double ai = qbcp_l.us_em.ai;  //Earth-Moon mean distance
-    double ms = qbcp_l.us_em.ms;  //Sun mass
-
-    //--------------------------
-    //FFT params
-    //--------------------------
-    int N      = pow(2,12);
-    double tf  = 2*M_PI/n;
-    double t   = 0;
-    double eps = 1.0/as;
-
-    //--------------------------
-    //QBTBP init
-    //--------------------------
-    Ofsd bj(nf);
-    Ofsd cj(nf);
-    Ofsc ztc(nf);
-    Ofsc Ztc(nf);
-
-    //--------------------------
-    //Building z(t) and Z(t)
-    //--------------------------
-    //From ots to ofs
-    fts2fs(&bj, zt, eps);
-    fts2fs(&cj, Zt, eps);
-
-    //From double to cdouble in ztc and Ztc
-    doubleToComplex(bj, ztc);
-    doubleToComplex(cj, Ztc);
-
-    //Derivatives
-    Ofsc ztcdot(ztc);
-    Ofsc Ztcdot(Ztc);
-    //Derivation
-    ztcdot.dot(n);
-    Ztcdot.dot(n);
-
-    //Double derivatives
-    Ofsc ztcddot(ztcdot);
-    Ofsc Ztcddot(Ztcdot);
-    //Derivation
-    ztcddot.dot(n);
-    Ztcddot.dot(n);
-
-    //z(t) and Z(t)
-    cdouble zi;
-    cdouble Zi;
-    cdouble zidot;
-    cdouble ziddot;
-    cdouble Ziddot;
-
-    //--------------------------
-    // GSL objects
-    //--------------------------
-    gsl_vector *gsl_alpha1  = gsl_vector_calloc(N);
-    gsl_vector *gsl_alpha2  = gsl_vector_calloc(N);
-    gsl_vector *gsl_alpha3  = gsl_vector_calloc(N);
-    gsl_vector *gsl_alpha4  = gsl_vector_calloc(N);
-    gsl_vector *gsl_alpha5  = gsl_vector_calloc(N);
-    gsl_vector *gsl_alpha6  = gsl_vector_calloc(N);
-    gsl_vector *gsl_alpha7  = gsl_vector_calloc(N);
-    gsl_vector *gsl_alpha8  = gsl_vector_calloc(N);
-    gsl_vector *gsl_alpha9  = gsl_vector_calloc(N);
-    gsl_vector *gsl_alpha10 = gsl_vector_calloc(N);
-    gsl_vector *gsl_alpha11 = gsl_vector_calloc(N);
-    gsl_vector *gsl_alpha12 = gsl_vector_calloc(N);
-    gsl_vector *gsl_alpha13 = gsl_vector_calloc(N);
-    gsl_vector *gsl_alpha14 = gsl_vector_calloc(N);
-    //rq: alpha15 is let equal to zero because of BCP vector field
-    gsl_vector *gsl_alpha16 = gsl_vector_calloc(N);
-    gsl_vector *gsl_alpha17 = gsl_vector_calloc(N);
-    gsl_vector *gsl_alpha18 = gsl_vector_calloc(N);
-
-    //Redundancy for the positions of the primaries
-    gsl_vector *gsl_Xe = gsl_vector_calloc(N);
-    gsl_vector *gsl_Ye = gsl_vector_calloc(N);
-    gsl_vector *gsl_Ze = gsl_vector_calloc(N);
-    gsl_vector *gsl_Xm = gsl_vector_calloc(N);
-    gsl_vector *gsl_Ym = gsl_vector_calloc(N);
-    gsl_vector *gsl_Zm = gsl_vector_calloc(N);
-    gsl_vector *gsl_Xs = gsl_vector_calloc(N);
-    gsl_vector *gsl_Ys = gsl_vector_calloc(N);
-    gsl_vector *gsl_Zs = gsl_vector_calloc(N);
-
-
-    //Positions of the primaries in NC coordinates
-    gsl_vector *gsl_xe = gsl_vector_calloc(N);
-    gsl_vector *gsl_ye = gsl_vector_calloc(N);
-    gsl_vector *gsl_ze = gsl_vector_calloc(N);
-    gsl_vector *gsl_xm = gsl_vector_calloc(N);
-    gsl_vector *gsl_ym = gsl_vector_calloc(N);
-    gsl_vector *gsl_zm = gsl_vector_calloc(N);
-    gsl_vector *gsl_xs = gsl_vector_calloc(N);
-    gsl_vector *gsl_ys = gsl_vector_calloc(N);
-    gsl_vector *gsl_zs = gsl_vector_calloc(N);
-
-    //--------------------------
-    //Inner double variables
-    //--------------------------
-    double rv2;
-    double alpha1i;
-    double alpha2i;
-    double alpha3i;
-    double alpha4i;
-    double alpha5i;
-    double alpha6i;
-    double alpha7i;
-    double alpha8i;
-    double alpha9i;
-    double alpha10i;
-    double alpha11i;
-    double alpha12i;
-    double alpha13i;
-    double alpha14i;
-    //rq: alpha15 is let equal to zero because of BCP vector field
-    double alpha16i;
-    double alpha17i;
-    double alpha18i;
-
-    double Ze[3], Zm[3], Zs[3];
-    double ze[3], zm[3], zs[3];
-
-    //Temp
-    double alphati;
-
-    //Derivatives
-    double alpha1doti;
-    double alpha2doti;
-    double alpha3doti;
-
-    //--------------------------
-    //Time loop to prepare the FFT
-    //--------------------------
-    for(int i = 0 ; i < N; i++)
-    {
-        //---------------
-        //update the time
-        //---------------
-        t = tf*i/N;
-
-        //---------------
-        //z(t), zdot(t), Z(t) and Zdot(t)
-        //---------------
-        zi     =  evz(ztc, t, n, ni, ai);
-        Zi     =  evz(Ztc, t, n, ns, as);
-        zidot  =  evzdot(ztc, ztcdot, t, n, ni, ai);
-        ziddot =  evzddot(ztc, ztcdot, ztcddot, t, n, ni, ai);
-        Ziddot =  evzddot(Ztc, Ztcdot, Ztcddot, t, n, ns, as);
-        //rv2= 1/(z*zb)
-        rv2    =  creal(1.0/(zi*conj(zi)));
-
-        //---------------
-        // The alphas
-        //---------------
-        alpha1i  = +rv2;
-        alpha2i  = -rv2*creal(zidot*conj(zi));
-        alpha3i  = +rv2*cimag(zidot*conj(zi));
-        alpha4i  = -ms/(1.0+ms)*creal(Ziddot*conj(zi));
-        alpha5i  = -ms/(1.0+ms)*cimag(Ziddot*conj(zi));
-        alpha6i  = +creal(cpow(zi*conj(zi), -1.0/2+0.0*I));
-        //Sun
-        alpha7i  = +rv2*creal(Zi*conj(zi));
-        alpha8i  = +rv2*cimag(Zi*conj(zi));
-        //Earth
-        alpha9i  = +mu_EM;
-        alpha10i = +0.0;
-        //Moon
-        alpha11i = +mu_EM-1.0;
-        alpha12i = +0.0;
-        //Temp
-        alphati = +creal(zi*conj(zi));
-
-        //Derivatives of alpha1,2,3
-        alpha1doti = creal(+0.0*I-( zidot*conj(zi)+zi*conj(zidot) ) / cpow(zi*conj(zi), 2.0+0.0*I));
-        alpha2doti = creal(+0.0*I-( creal(ziddot*conj(zi) + zidot*conj(zidot))*zi*conj(zi)
-                                    - (zidot*conj(zi)+zi*conj(zidot))*creal(zidot*conj(zi)) ) / cpow(zi*conj(zi), 2.0+0.0*I));
-        alpha3doti = creal(+0.0*I+( cimag(ziddot*conj(zi) + zidot*conj(zidot))*zi*conj(zi)
-                                    - (zidot*conj(zi)+zi*conj(zidot))*cimag(zidot*conj(zi)) ) / cpow(zi*conj(zi), 2.0+0.0*I));
-
-        //Alpha13 and 14, for NC computation
-        alpha13i = -(alphati*alphati*(alpha2doti*alpha1i - alpha1doti*alpha2i)+ alphati*(alpha2i*alpha2i+alpha3i*alpha3i))*c1 + alpha4i/gamma;
-        alpha14i =   alphati*alphati*(alpha3doti*alpha1i - alpha1doti*alpha3i)*c1 + alpha5i/gamma;
-
-        //Alpha16i
-        alpha16i = alpha2doti - alpha2i*alpha1doti/alpha1i + alpha2i*alpha2i + alpha3i*alpha3i;
-        //Alpha17i
-        alpha17i = alpha3doti - alpha3i*alpha1doti/alpha1i;
-        //Alpha18i
-        alpha18i = alpha1doti/alpha1i;
-
-        //---------------
-        // The primaries, again
-        //---------------
-        //Sun, EM coordinates
-        Zs[0] = alpha7i;
-        Zs[1] = alpha8i;
-        Zs[2] = 0.0;
-        //Sun, NC coordinates
-        EMtoNC_prim(Zs, zs, c1, gamma);
-        //Earth, EM coordinates
-        Ze[0] = alpha9i;
-        Ze[1] = alpha10i;
-        Ze[2] = 0.0;
-        //Earth, NC coordinates
-        EMtoNC_prim(Ze, ze, c1, gamma);
-        //Moon, EM coordinates
-        Zm[0] = alpha11i;
-        Zm[1] = alpha12i;
-        Zm[2] = 0.0;
-        //Moon, NC coordinates
-        EMtoNC_prim(Zm, zm, c1, gamma);
-
-        //---------------
-        //Storage in GSL objects at each time
-        //---------------
-        gsl_vector_set(gsl_alpha1,  i, alpha1i);
-        gsl_vector_set(gsl_alpha2,  i, alpha2i);
-        gsl_vector_set(gsl_alpha3,  i, alpha3i);
-        gsl_vector_set(gsl_alpha4,  i, alpha4i);
-        gsl_vector_set(gsl_alpha5,  i, alpha5i);
-        gsl_vector_set(gsl_alpha6,  i, alpha6i);
-        gsl_vector_set(gsl_alpha7,  i, alpha7i);
-        gsl_vector_set(gsl_alpha8,  i, alpha8i);
-        gsl_vector_set(gsl_alpha9,  i, alpha9i);
-        gsl_vector_set(gsl_alpha10, i, alpha10i);
-        gsl_vector_set(gsl_alpha11, i, alpha11i);
-        gsl_vector_set(gsl_alpha12, i, alpha12i);
-        gsl_vector_set(gsl_alpha13, i, alpha13i);
-        gsl_vector_set(gsl_alpha14, i, alpha14i);
-
-        gsl_vector_set(gsl_alpha16, i, alpha16i);
-        gsl_vector_set(gsl_alpha17, i, alpha17i);
-        gsl_vector_set(gsl_alpha18, i, alpha18i);
-
-        //---------------
-        //Primary, EM coordinates
-        //---------------
-        gsl_vector_set(gsl_Xs,  i, Zs[0]);
-        gsl_vector_set(gsl_Ys,  i, Zs[1]);
-        gsl_vector_set(gsl_Zs,  i, Zs[2]);
-
-        gsl_vector_set(gsl_Xe,  i, Ze[0]);
-        gsl_vector_set(gsl_Ye,  i, Ze[1]);
-        gsl_vector_set(gsl_Ze,  i, Ze[2]);
-
-        gsl_vector_set(gsl_Xm,  i, Zm[0]);
-        gsl_vector_set(gsl_Ym,  i, Zm[1]);
-        gsl_vector_set(gsl_Zm,  i, Zm[2]);
-
-        //---------------
-        //Primary, NC coordinates
-        //---------------
-        gsl_vector_set(gsl_xs,  i, zs[0]);
-        gsl_vector_set(gsl_ys,  i, zs[1]);
-        gsl_vector_set(gsl_zs,  i, zs[2]);
-
-        gsl_vector_set(gsl_xe,  i, ze[0]);
-        gsl_vector_set(gsl_ye,  i, ze[1]);
-        gsl_vector_set(gsl_ze,  i, ze[2]);
-
-        gsl_vector_set(gsl_xm,  i, zm[0]);
-        gsl_vector_set(gsl_ym,  i, zm[1]);
-        gsl_vector_set(gsl_zm,  i, zm[2]);
-
-    }
-
-    //--------------------------
-    //Unpack the FFT and put in data file
-    //--------------------------
-    qbtbp_ofs_fft_unpack(gsl_alpha1, qbcp_l.cs_em.F_COEF+"alpha1", nf, N, 1);
-    qbtbp_ofs_fft_unpack(gsl_alpha2, qbcp_l.cs_em.F_COEF+"alpha2", nf, N, 0);
-    qbtbp_ofs_fft_unpack(gsl_alpha3, qbcp_l.cs_em.F_COEF+"alpha3", nf, N, 1);
-    qbtbp_ofs_fft_unpack(gsl_alpha4, qbcp_l.cs_em.F_COEF+"alpha4", nf, N, 1);
-    qbtbp_ofs_fft_unpack(gsl_alpha5, qbcp_l.cs_em.F_COEF+"alpha5", nf, N, 0);
-    qbtbp_ofs_fft_unpack(gsl_alpha6, qbcp_l.cs_em.F_COEF+"alpha6", nf, N, 1);
-    //Sun
-    qbtbp_ofs_fft_unpack(gsl_alpha7, qbcp_l.cs_em.F_COEF+"alpha7", nf, N, 1);
-    qbtbp_ofs_fft_unpack(gsl_alpha8, qbcp_l.cs_em.F_COEF+"alpha8", nf, N, 0);
-    //Earth
-    qbtbp_ofs_fft_unpack(gsl_alpha9,  qbcp_l.cs_em.F_COEF+"alpha9",  nf, N, 1);
-    qbtbp_ofs_fft_unpack(gsl_alpha10, qbcp_l.cs_em.F_COEF+"alpha10", nf, N, 0);
-    //Moon
-    qbtbp_ofs_fft_unpack(gsl_alpha11, qbcp_l.cs_em.F_COEF+"alpha11", nf, N, 1);
-    qbtbp_ofs_fft_unpack(gsl_alpha12, qbcp_l.cs_em.F_COEF+"alpha12", nf, N, 0);
-    //NC additional coef
-    qbtbp_ofs_fft_unpack(gsl_alpha13, qbcp_l.cs_em.F_COEF+"alpha13",  nf, N, 1);
-    qbtbp_ofs_fft_unpack(gsl_alpha14, qbcp_l.cs_em.F_COEF+"alpha14",  nf, N, 0);
-    //VF with velocity additional coef
-    qbtbp_ofs_fft_unpack(gsl_alpha16, qbcp_l.cs_em.F_COEF+"alpha16",  nf, N, 1);
-    qbtbp_ofs_fft_unpack(gsl_alpha17, qbcp_l.cs_em.F_COEF+"alpha17",  nf, N, 0);
-    qbtbp_ofs_fft_unpack(gsl_alpha18, qbcp_l.cs_em.F_COEF+"alpha18",  nf, N, 0);
-
-
-    //---------------
-    //Primary, EM coordinates
-    //Note that, at this step, the vertical motion of the primaries is undefined,
-    //so we can put either Even or Odd in the qbtbp_ofs_fft_unpack option of gsl_Zc without much difference
-    //---------------
-    qbtbp_ofs_fft_unpack(gsl_Xs, qbcp_l.cs_em.F_COEF+"Ps1", nf, N, 1);
-    qbtbp_ofs_fft_unpack(gsl_Ys, qbcp_l.cs_em.F_COEF+"Ps2", nf, N, 0);
-    qbtbp_ofs_fft_unpack(gsl_Zs, qbcp_l.cs_em.F_COEF+"Ps3", nf, N, 1);
-
-    qbtbp_ofs_fft_unpack(gsl_Xe, qbcp_l.cs_em.F_COEF+"Pe1", nf, N, 1);
-    qbtbp_ofs_fft_unpack(gsl_Ye, qbcp_l.cs_em.F_COEF+"Pe2", nf, N, 0);
-    qbtbp_ofs_fft_unpack(gsl_Ze, qbcp_l.cs_em.F_COEF+"Pe3", nf, N, 1);
-
-    qbtbp_ofs_fft_unpack(gsl_Xm, qbcp_l.cs_em.F_COEF+"Pm1", nf, N, 1);
-    qbtbp_ofs_fft_unpack(gsl_Ym, qbcp_l.cs_em.F_COEF+"Pm2", nf, N, 0);
-    qbtbp_ofs_fft_unpack(gsl_Zm, qbcp_l.cs_em.F_COEF+"Pm3", nf, N, 1);
-
-
-    //---------------
-    //Primary, NC coordinates
-    //Note that, at this step, the vertical motion of the primaries is undefined,
-    //so we can put either Even or Odd in the qbtbp_ofs_fft_unpack option of gsl_zc without much difference
-    //---------------
-    qbtbp_ofs_fft_unpack(gsl_xs, qbcp_l.cs_em.F_COEF+"ps1", nf, N, 1);
-    qbtbp_ofs_fft_unpack(gsl_ys, qbcp_l.cs_em.F_COEF+"ps2", nf, N, 0);
-    qbtbp_ofs_fft_unpack(gsl_zs, qbcp_l.cs_em.F_COEF+"ps3", nf, N, 1);
-
-    qbtbp_ofs_fft_unpack(gsl_xe, qbcp_l.cs_em.F_COEF+"pe1", nf, N, 1);
-    qbtbp_ofs_fft_unpack(gsl_ye, qbcp_l.cs_em.F_COEF+"pe2", nf, N, 0);
-    qbtbp_ofs_fft_unpack(gsl_ze, qbcp_l.cs_em.F_COEF+"pe3", nf, N, 1);
-
-    qbtbp_ofs_fft_unpack(gsl_xm, qbcp_l.cs_em.F_COEF+"pm1", nf, N, 1);
-    qbtbp_ofs_fft_unpack(gsl_ym, qbcp_l.cs_em.F_COEF+"pm2", nf, N, 0);
-    qbtbp_ofs_fft_unpack(gsl_zm, qbcp_l.cs_em.F_COEF+"pm3", nf, N, 1);
-
-
-    //--------------------------
-    //Umemory release
-    //--------------------------
-    gsl_vector_free(gsl_alpha1);
-    gsl_vector_free(gsl_alpha2);
-    gsl_vector_free(gsl_alpha3);
-    gsl_vector_free(gsl_alpha4);
-    gsl_vector_free(gsl_alpha5);
-    gsl_vector_free(gsl_alpha6);
-    gsl_vector_free(gsl_alpha7);
-    gsl_vector_free(gsl_alpha8);
-    gsl_vector_free(gsl_alpha9);
-    gsl_vector_free(gsl_alpha10);
-    gsl_vector_free(gsl_alpha11);
-    gsl_vector_free(gsl_alpha12);
-    gsl_vector_free(gsl_alpha13);
-    gsl_vector_free(gsl_alpha14);
-    gsl_vector_free(gsl_alpha16);
-    gsl_vector_free(gsl_alpha17);
-    gsl_vector_free(gsl_alpha18);
-    gsl_vector_free(gsl_Xe);
-    gsl_vector_free(gsl_Ye);
-    gsl_vector_free(gsl_Ze);
-    gsl_vector_free(gsl_Xm);
-    gsl_vector_free(gsl_Ym);
-    gsl_vector_free(gsl_Zm);
-    gsl_vector_free(gsl_Xs);
-    gsl_vector_free(gsl_Ys);
-    gsl_vector_free(gsl_Zs);
-    gsl_vector_free(gsl_xe);
-    gsl_vector_free(gsl_ye);
-    gsl_vector_free(gsl_ze);
-    gsl_vector_free(gsl_xm);
-    gsl_vector_free(gsl_ym);
-    gsl_vector_free(gsl_zm);
-    gsl_vector_free(gsl_xs);
-    gsl_vector_free(gsl_ys);
-    gsl_vector_free(gsl_zs);
-}
-
-
-/**
- *  \brief FFT and Storage in txt files of OFS objects delta_i in qbtbp_ofs. Makes use of FFT routines via qbtbp_ofs_fft_unpack.
- *         The following coefficients are computed and stored:
- *              - The deltas (1 to 14).
- *              - The position of the primaries in SE coordinates system (redundant with alpha7-12): Xe, Ye, Ze
- *              - The position of the primaries in SENC coordinates system: xe, ye, ze
- */
-void qbtbp_ofs_fft_delta(Ofts< Ofsd > &zt,     //zt = normalized Earth-Moon motion
-                         Ofts< Ofsd > &Zt,     //Zt = normalized Sun-(Earth+Moon) motion
-                         int nf,                      //order of the Fourier expansions
-                         QBCP_L &qbcp_l)               //QBCP
-{
-    //--------------------------
-    //Physical params in EM units
-    //--------------------------
-    double as_EM  = qbcp_l.us_em.as;     //Sun-(Earth+Moon) mean distance
-    double ms_EM  = qbcp_l.us_em.ms;     //Sun mass
-    double mu_EM  = qbcp_l.us_em.mu_EM;  //Mass ratio
-    double mu_SEM = qbcp_l.us_em.mu_SEM; //Mass ratio
-
-    //--------------------------
-    //Physical params in SE units
-    //--------------------------
-    double ns = qbcp_l.us_sem.ns;    //Sun-(Earth+Moon) mean angular motion
-    double ni = qbcp_l.us_sem.ni;    //Earth-Moon mean angular motion
-    double n  = qbcp_l.us_sem.n;     //n = ni - ns
-    double as = qbcp_l.us_sem.as;    //Sun-(Earth+Moon) mean distance
-    double ai = qbcp_l.us_sem.ai;    //Earth-Moon mean distance
-
-    //--------------------------
-    //Physical params specific to the QBCP_L
-    //--------------------------
-    double c1    = qbcp_l.cs_sem.c1;
-    double gamma = qbcp_l.cs_sem.gamma;
-
-    //--------------------------
-    //FFT params
-    //--------------------------
-    int N      = pow(2,12);
-    double tf  = 2*M_PI/n;
-    double t   = 0;
-    double eps = 1.0/as_EM;
-
-    //--------------------------
-    // Building z(t) and Z(t)
-    //--------------------------
-    Ofsd bj(nf);
-    Ofsd cj(nf);
-    Ofsc ztc(nf);
-    Ofsc Ztc(nf);
-
-    //From ots to ofs
-    fts2fs(&bj, zt, eps);
-    fts2fs(&cj, Zt, eps);
-
-    //From double to cdouble in ztc and Ztc
-    doubleToComplex(bj, ztc);
-    doubleToComplex(cj, Ztc);
-
-    //Derivatives.
-    Ofsc ztcdot(ztc);
-    Ofsc Ztcdot(Ztc);
-    //Derivation
-    ztcdot.dot(n);
-    Ztcdot.dot(n);
-
-    //Double derivatives.
-    Ofsc ztcddot(ztcdot);
-    Ofsc Ztcddot(Ztcdot);
-    //Derivation
-    ztcddot.dot(n);
-    Ztcddot.dot(n);
-
-    //z(t) and Z(t) and derivatives
-    cdouble zi;
-    cdouble Zi;
-    cdouble Zidot;
-    cdouble Ziddot;
-
-    //--------------------------
-    // GSL objects
-    //--------------------------
-    gsl_vector *gsl_delta1  = gsl_vector_calloc(N);
-    gsl_vector *gsl_delta2  = gsl_vector_calloc(N);
-    gsl_vector *gsl_delta3  = gsl_vector_calloc(N);
-    gsl_vector *gsl_delta4  = gsl_vector_calloc(N);
-    gsl_vector *gsl_delta5  = gsl_vector_calloc(N);
-    gsl_vector *gsl_delta6  = gsl_vector_calloc(N);
-    gsl_vector *gsl_delta7  = gsl_vector_calloc(N);
-    gsl_vector *gsl_delta8  = gsl_vector_calloc(N);
-    gsl_vector *gsl_delta9  = gsl_vector_calloc(N);
-    gsl_vector *gsl_delta10 = gsl_vector_calloc(N);
-    gsl_vector *gsl_delta11 = gsl_vector_calloc(N);
-    gsl_vector *gsl_delta12 = gsl_vector_calloc(N);
-    gsl_vector *gsl_delta13 = gsl_vector_calloc(N);
-    gsl_vector *gsl_delta14 = gsl_vector_calloc(N);
-    //rq: delta15 is let equal to zero because of BCP vector field
-    gsl_vector *gsl_delta16 = gsl_vector_calloc(N);
-    gsl_vector *gsl_delta17 = gsl_vector_calloc(N);
-    gsl_vector *gsl_delta18 = gsl_vector_calloc(N);
-
-
-    //Redundancy for the positions of the primaries
-    gsl_vector *gsl_Xe = gsl_vector_calloc(N);
-    gsl_vector *gsl_Ye = gsl_vector_calloc(N);
-    gsl_vector *gsl_Ze = gsl_vector_calloc(N);
-    gsl_vector *gsl_Xm = gsl_vector_calloc(N);
-    gsl_vector *gsl_Ym = gsl_vector_calloc(N);
-    gsl_vector *gsl_Zm = gsl_vector_calloc(N);
-    gsl_vector *gsl_Xs = gsl_vector_calloc(N);
-    gsl_vector *gsl_Ys = gsl_vector_calloc(N);
-    gsl_vector *gsl_Zs = gsl_vector_calloc(N);
-
-
-    //Positions of the primaries in NC coordinates
-    gsl_vector *gsl_xe = gsl_vector_calloc(N);
-    gsl_vector *gsl_ye = gsl_vector_calloc(N);
-    gsl_vector *gsl_ze = gsl_vector_calloc(N);
-    gsl_vector *gsl_xm = gsl_vector_calloc(N);
-    gsl_vector *gsl_ym = gsl_vector_calloc(N);
-    gsl_vector *gsl_zm = gsl_vector_calloc(N);
-    gsl_vector *gsl_xs = gsl_vector_calloc(N);
-    gsl_vector *gsl_ys = gsl_vector_calloc(N);
-    gsl_vector *gsl_zs = gsl_vector_calloc(N);
-
-
-    //--------------------------
-    //Inner double variables
-    //--------------------------
-    double delta1i;
-    double delta2i;
-    double delta3i;
-    double delta4i;
-    double delta5i;
-    double delta6i;
-    double delta7i;
-    double delta8i;
-    double delta9i;
-    double delta10i;
-    double delta11i;
-    double delta12i;
-    double delta13i;
-    double delta14i;
-    //rq: delta15 is let equal to zero because of BCP vector field
-    double delta16i;
-    double delta17i;
-    double delta18i;
-
-    double Ze[3], Zm[3], Zs[3];
-    double ze[3], zm[3], zs[3];
-
-    //Temp
-    double deltati;
-
-    //Derivatives
-    double delta1doti;
-    double delta2doti;
-    double delta3doti;
-
-
-    //Temp variables
-    //double g1;
-    //double g2;
-    double Rv2;
-
-    //Time loop to prepare the FFT
-    for(int i = 0 ; i < N; i++)
-    {
-        //---------------
-        //update time
-        //---------------
-        t = tf*i/N;
-
-        //---------------
-        //z(t),  Z(t) and derivatives
-        //---------------
-        zi     =  evz(ztc, t, n, ni, ai);
-        Zi     =  evz(Ztc, t, n, ns, as);
-        Zidot  =  evzdot(Ztc, Ztcdot, t, n, ns, as);
-        Ziddot =  evzddot(Ztc, Ztcdot, Ztcddot, t, n, ns, as);
-        //rv2= 1/(Z*Zb)
-        Rv2 = creal(1.0/(Zi*conj(Zi)));
-
-        //---------------
-        // The deltas
-        //---------------
-        delta1i  = +Rv2;
-        delta2i  = -Rv2*creal(Zidot * conj(Zi));
-        delta3i  = +Rv2*cimag(Zidot * conj(Zi));
-        delta4i  = +0.0;
-        delta5i  = +0.0;
-        delta6i  = sqrt(Rv2);
-        //Sun
-        delta7i  = +mu_SEM;
-        delta8i  = +0.0;
-        //Earth
-        delta9i  = (mu_EM)*Rv2*creal(zi*conj(Zi)) - ms_EM/(1.0+ms_EM);
-        delta10i = (mu_EM)*Rv2*cimag(zi*conj(Zi));
-        //Moon
-        delta11i = (mu_EM-1)*Rv2*creal(zi*conj(Zi)) - ms_EM/(1.0+ms_EM);
-        delta12i = (mu_EM-1)*Rv2*cimag(zi*conj(Zi));
-
-
-        //Temp
-        deltati = +creal(Zi*conj(Zi));
-
-        //Derivatives of delta1,2,3
-        delta1doti = creal(+0.0*I-( Zidot*conj(Zi)+Zi*conj(Zidot) ) / cpow(Zi*conj(Zi), 2.0+0.0*I));
-        delta2doti = creal(+0.0*I-( creal(Ziddot*conj(Zi) + Zidot*conj(Zidot))*Zi*conj(Zi)
-                                    - (Zidot*conj(Zi)+Zi*conj(Zidot))*creal(Zidot*conj(Zi)) ) / cpow(Zi*conj(Zi), 2.0+0.0*I));
-        delta3doti = creal(+0.0*I+( cimag(Ziddot*conj(Zi) + Zidot*conj(Zidot))*Zi*conj(Zi)
-                                    - (Zidot*conj(Zi)+Zi*conj(Zidot))*cimag(Zidot*conj(Zi)) ) / cpow(Zi*conj(Zi), 2.0+0.0*I));
-
-        //Delta13 and 14, for NC computation
-        delta13i = -(deltati*deltati*(delta2doti*delta1i - delta1doti*delta2i)+ deltati*(delta2i*delta2i+delta3i*delta3i))*c1 + delta4i/gamma;
-        delta14i =   deltati*deltati*(delta3doti*delta1i - delta1doti*delta3i)*c1 + delta5i/gamma;
-
-        //Delta16i
-        delta16i = delta2doti - delta2i*delta1doti/delta1i + delta2i*delta2i + delta3i*delta3i;
-        //Delta17i
-        delta17i = delta3doti - delta3i*delta1doti/delta1i;
-        //Delta18i
-        delta18i = delta1doti/delta1i;
-
-        //---------------
-        // The primaries, again
-        //---------------
-        //Sun, EM coordinates
-        Zs[0] = delta7i;
-        Zs[1] = delta8i;
-        Zs[2] = 0.0;
-        //Sun, NC coordinates
-        EMtoNC_prim(Zs, zs, c1, gamma);
-        //Earth, EM coordinates
-        Ze[0] = delta9i;
-        Ze[1] = delta10i;
-        Ze[2] = 0.0;
-        //Earth, NC coordinates
-        EMtoNC_prim(Ze, ze, c1, gamma);
-        //Moon, EM coordinates
-        Zm[0] = delta11i;
-        Zm[1] = delta12i;
-        Zm[2] = 0.0;
-        //Moon, NC coordinates
-        EMtoNC_prim(Zm, zm, c1, gamma);
-
-        //---------------
-        //Storage in GSL objects at each time
-        //---------------
-        gsl_vector_set(gsl_delta1,  i, delta1i);
-        gsl_vector_set(gsl_delta2,  i, delta2i);
-        gsl_vector_set(gsl_delta3,  i, delta3i);
-        gsl_vector_set(gsl_delta4,  i, delta4i);
-        gsl_vector_set(gsl_delta5,  i, delta5i);
-        gsl_vector_set(gsl_delta6,  i, delta6i);
-        gsl_vector_set(gsl_delta7,  i, delta7i);
-        gsl_vector_set(gsl_delta8,  i, delta8i);
-        gsl_vector_set(gsl_delta9,  i, delta9i);
-        gsl_vector_set(gsl_delta10, i, delta10i);
-        gsl_vector_set(gsl_delta11, i, delta11i);
-        gsl_vector_set(gsl_delta12, i, delta12i);
-        gsl_vector_set(gsl_delta13, i, delta13i);
-        gsl_vector_set(gsl_delta14, i, delta14i);
-
-        gsl_vector_set(gsl_delta16, i, delta16i);
-        gsl_vector_set(gsl_delta17, i, delta17i);
-        gsl_vector_set(gsl_delta18, i, delta18i);
-
-        //---------------
-        //Primary, EM coordinates
-        //---------------
-        gsl_vector_set(gsl_Xs,  i, Zs[0]);
-        gsl_vector_set(gsl_Ys,  i, Zs[1]);
-        gsl_vector_set(gsl_Zs,  i, Zs[2]);
-
-        gsl_vector_set(gsl_Xe,  i, Ze[0]);
-        gsl_vector_set(gsl_Ye,  i, Ze[1]);
-        gsl_vector_set(gsl_Ze,  i, Ze[2]);
-
-        gsl_vector_set(gsl_Xm,  i, Zm[0]);
-        gsl_vector_set(gsl_Ym,  i, Zm[1]);
-        gsl_vector_set(gsl_Zm,  i, Zm[2]);
-
-        //---------------
-        //Primary, NC coordinates
-        //---------------
-        gsl_vector_set(gsl_xs,  i, zs[0]);
-        gsl_vector_set(gsl_ys,  i, zs[1]);
-        gsl_vector_set(gsl_zs,  i, zs[2]);
-
-        gsl_vector_set(gsl_xe,  i, ze[0]);
-        gsl_vector_set(gsl_ye,  i, ze[1]);
-        gsl_vector_set(gsl_ze,  i, ze[2]);
-
-        gsl_vector_set(gsl_xm,  i, zm[0]);
-        gsl_vector_set(gsl_ym,  i, zm[1]);
-        gsl_vector_set(gsl_zm,  i, zm[2]);
-
-    }
-
-    //--------------------------
-    //Unpack the FFT and put in data file
-    //--------------------------
-    qbtbp_ofs_fft_unpack(gsl_delta1, qbcp_l.cs_sem.F_COEF+"alpha1", nf, N, 1);
-    qbtbp_ofs_fft_unpack(gsl_delta2, qbcp_l.cs_sem.F_COEF+"alpha2", nf, N, 0);
-    qbtbp_ofs_fft_unpack(gsl_delta3, qbcp_l.cs_sem.F_COEF+"alpha3", nf, N, 1);
-    qbtbp_ofs_fft_unpack(gsl_delta4, qbcp_l.cs_sem.F_COEF+"alpha4", nf, N, 1);
-    qbtbp_ofs_fft_unpack(gsl_delta5, qbcp_l.cs_sem.F_COEF+"alpha5", nf, N, 0);
-    qbtbp_ofs_fft_unpack(gsl_delta6, qbcp_l.cs_sem.F_COEF+"alpha6", nf, N, 1);
-    //Sun
-    qbtbp_ofs_fft_unpack(gsl_delta7, qbcp_l.cs_sem.F_COEF+"alpha7", nf, N, 1);
-    qbtbp_ofs_fft_unpack(gsl_delta8, qbcp_l.cs_sem.F_COEF+"alpha8", nf, N, 0);
-    //Earth
-    qbtbp_ofs_fft_unpack(gsl_delta9,  qbcp_l.cs_sem.F_COEF+"alpha9",  nf, N, 1);
-    qbtbp_ofs_fft_unpack(gsl_delta10, qbcp_l.cs_sem.F_COEF+"alpha10", nf, N, 0);
-    //Moon
-    qbtbp_ofs_fft_unpack(gsl_delta11, qbcp_l.cs_sem.F_COEF+"alpha11", nf, N, 1);
-    qbtbp_ofs_fft_unpack(gsl_delta12, qbcp_l.cs_sem.F_COEF+"alpha12", nf, N, 0);
-    //NC additional coef
-    qbtbp_ofs_fft_unpack(gsl_delta13, qbcp_l.cs_sem.F_COEF+"alpha13",  nf, N, 1);
-    qbtbp_ofs_fft_unpack(gsl_delta14, qbcp_l.cs_sem.F_COEF+"alpha14",  nf, N, 0);
-    //VF with velocity additionnal coef
-    qbtbp_ofs_fft_unpack(gsl_delta16, qbcp_l.cs_sem.F_COEF+"alpha16",  nf, N, 1);
-    qbtbp_ofs_fft_unpack(gsl_delta17, qbcp_l.cs_sem.F_COEF+"alpha17",  nf, N, 0);
-    qbtbp_ofs_fft_unpack(gsl_delta18, qbcp_l.cs_sem.F_COEF+"alpha18",  nf, N, 0);
-
-    //---------------
-    //Primary, EM coordinates
-    //Note that, at this step, the vertical motion of the primaries is undefined,
-    //so we can put either Even or Odd in the qbtbp_ofs_fft_unpack option of gsl_Zc without much difference
-    //---------------
-    qbtbp_ofs_fft_unpack(gsl_Xs, qbcp_l.cs_sem.F_COEF+"Ps1", nf, N, 1);
-    qbtbp_ofs_fft_unpack(gsl_Ys, qbcp_l.cs_sem.F_COEF+"Ps2", nf, N, 0);
-    qbtbp_ofs_fft_unpack(gsl_Zs, qbcp_l.cs_sem.F_COEF+"Ps3", nf, N, 1);
-
-    qbtbp_ofs_fft_unpack(gsl_Xe, qbcp_l.cs_sem.F_COEF+"Pe1", nf, N, 1);
-    qbtbp_ofs_fft_unpack(gsl_Ye, qbcp_l.cs_sem.F_COEF+"Pe2", nf, N, 0);
-    qbtbp_ofs_fft_unpack(gsl_Ze, qbcp_l.cs_sem.F_COEF+"Pe3", nf, N, 1);
-
-    qbtbp_ofs_fft_unpack(gsl_Xm, qbcp_l.cs_sem.F_COEF+"Pm1", nf, N, 1);
-    qbtbp_ofs_fft_unpack(gsl_Ym, qbcp_l.cs_sem.F_COEF+"Pm2", nf, N, 0);
-    qbtbp_ofs_fft_unpack(gsl_Zm, qbcp_l.cs_sem.F_COEF+"Pm3", nf, N, 1);
-
-
-    //---------------
-    //Primary, NC coordinates
-    //Note that, at this step, the vertical motion of the primaries is undefined,
-    //so we can put either Even or Odd in the qbtbp_ofs_fft_unpack option of gsl_zc without much difference
-    //---------------
-    qbtbp_ofs_fft_unpack(gsl_xs, qbcp_l.cs_sem.F_COEF+"ps1", nf, N, 1);
-    qbtbp_ofs_fft_unpack(gsl_ys, qbcp_l.cs_sem.F_COEF+"ps2", nf, N, 0);
-    qbtbp_ofs_fft_unpack(gsl_zs, qbcp_l.cs_sem.F_COEF+"ps3", nf, N, 1);
-
-    qbtbp_ofs_fft_unpack(gsl_xe, qbcp_l.cs_sem.F_COEF+"pe1", nf, N, 1);
-    qbtbp_ofs_fft_unpack(gsl_ye, qbcp_l.cs_sem.F_COEF+"pe2", nf, N, 0);
-    qbtbp_ofs_fft_unpack(gsl_ze, qbcp_l.cs_sem.F_COEF+"pe3", nf, N, 1);
-
-    qbtbp_ofs_fft_unpack(gsl_xm, qbcp_l.cs_sem.F_COEF+"pm1", nf, N, 1);
-    qbtbp_ofs_fft_unpack(gsl_ym, qbcp_l.cs_sem.F_COEF+"pm2", nf, N, 0);
-    qbtbp_ofs_fft_unpack(gsl_zm, qbcp_l.cs_sem.F_COEF+"pm3", nf, N, 1);
-
-
-    //--------------------------
-    //Memory release
-    //--------------------------
-    gsl_vector_free(gsl_delta1);
-    gsl_vector_free(gsl_delta2);
-    gsl_vector_free(gsl_delta3);
-    gsl_vector_free(gsl_delta4);
-    gsl_vector_free(gsl_delta5);
-    gsl_vector_free(gsl_delta6);
-    gsl_vector_free(gsl_delta7);
-    gsl_vector_free(gsl_delta8);
-    gsl_vector_free(gsl_delta9);
-    gsl_vector_free(gsl_delta10);
-    gsl_vector_free(gsl_delta11);
-    gsl_vector_free(gsl_delta12);
-    gsl_vector_free(gsl_delta13);
-    gsl_vector_free(gsl_delta14);
-    gsl_vector_free(gsl_delta16);
-    gsl_vector_free(gsl_delta17);
-    gsl_vector_free(gsl_delta18);
-    gsl_vector_free(gsl_Xe);
-    gsl_vector_free(gsl_Ye);
-    gsl_vector_free(gsl_Ze);
-    gsl_vector_free(gsl_Xm);
-    gsl_vector_free(gsl_Ym);
-    gsl_vector_free(gsl_Zm);
-    gsl_vector_free(gsl_Xs);
-    gsl_vector_free(gsl_Ys);
-    gsl_vector_free(gsl_Zs);
-    gsl_vector_free(gsl_xe);
-    gsl_vector_free(gsl_ye);
-    gsl_vector_free(gsl_ze);
-    gsl_vector_free(gsl_xm);
-    gsl_vector_free(gsl_ym);
-    gsl_vector_free(gsl_zm);
-    gsl_vector_free(gsl_xs);
-    gsl_vector_free(gsl_ys);
-    gsl_vector_free(gsl_zs);
-}
-
-
-//-----------------------------------------------------------------------------
-// Integrating the QBTBP
-//-----------------------------------------------------------------------------
-/**
- *  \brief Derivatives of the QBTBP. To plug into GSL integrator.
- *
- * Note: the use of gsl livrary forces us to use double variables
- * As a consequence, in the case of z and Z, we need to use real and imaginary parts
- * as separate variables
- */
-int qbtbp_derivatives(double t, const double y[], double f[], void *params)
-{
-    //Parameters for the qbtbp
-    double mu = * (double * ) params;
-    double ms = * ((double * ) (params)+1);
-
-    //Reconstruction of z and Z
-    cdouble z = y[0] + I*y[1];
-    cdouble Z = y[2] + I*y[3];
-
-    cdouble temp1 = Z-mu*z;
-    temp1 = temp1/pow(cabs(temp1), 3.0);
-
-    cdouble temp2 = Z+(1-mu)*z;
-    temp2 = temp2/pow(cabs(temp2), 3.0);
-
-    cdouble zdd = +0.0*I-z/pow(cabs(z), 3.0) + ms*(temp1-temp2);
-    cdouble Zdd = -(1+ms)*(mu*temp2 + (1-mu)*temp1);
-
-    //-------------------------------------------------------------------------------
-    //Phase space derivatives
-    //-------------------------------------------------------------------------------
-    f[0] = y[4];
-    f[1] = y[5];
-    f[2] = y[6];
-    f[3] = y[7];
-    f[4] = creal(zdd);
-    f[5] = cimag(zdd);
-    f[6] = creal(Zdd);
-    f[7] = cimag(Zdd);
-
-    return GSL_SUCCESS;
-}
-
-//-----------------------------------------------------------------------------
-// Testing the QBTBP
-//-----------------------------------------------------------------------------
-/**
- *  \brief Test function to compare the analytical solution of the QBTBP to the numerical integration of the equations of motion.
- */
-void qbtbp_test(double t1, Ofsc &bjc, Ofsc &cjc, OdeStruct ode_s, QBCP_L &qbcp_l)
-{
-    cout << "---------------------------------------------------" << endl;
-    cout << "               Test of the                         " << endl;
-    cout << "   Quasi-Bicircular Three-Body Problem (QBTBP)     " << endl;
-    cout << "---------------------------------------------------" << endl;
-    //Initialization
-    double as = qbcp_l.us_em.as;
-    double n  = qbcp_l.us_em.n;
-    double ns = qbcp_l.us_em.ns;
-    int nf    = bjc.getOrder();
-
-    //z(0) and Z(0)
-    cdouble z0 = bjc.evaluate(0.0);
-    cdouble Z0 = as*cjc.evaluate(0.0);
-
-    //zdot(0) and Zdot(0)
-    Ofsc zdot(nf);
-    for(int l = -nf; l<=nf; l++) zdot.setCoef(I*(1.0+l*n)*bjc.ofs_getCoef(l), l);
-    cdouble zdot0 = zdot.evaluate(0.0);
-
-    Ofsc Zdot(nf);
-    for(int l = -nf; l<=nf; l++) Zdot.setCoef(I*(ns+l*n)*cjc.ofs_getCoef(l), l);
-    cdouble Zdot0 = as*Zdot.evaluate(0.0);
-
-    //Initial conditions
-    double yv[8];
-    yv[0] = creal(z0);
-    yv[1] = cimag(z0);
-    yv[2] = creal(Z0);
-    yv[3] = cimag(Z0);
-    yv[4] = creal(zdot0);
-    yv[5] = cimag(zdot0);
-    yv[6] = creal(Zdot0);
-    yv[7] = cimag(Zdot0);
-
-    cout << std::showpos << setiosflags(ios::scientific)  << setprecision(15);
-    cout << "Initial positions: " << endl;
-    cout << "Internal motion: z(t=0.0) = " << creal(z0) << " + " << cimag(z0) << "i" <<  endl;
-    cout << "External motion: Z(t=0.0) = " << creal(Z0) << " + " << cimag(Z0) << "i" <<  endl;
-    cout << "-------------------------------------------" << endl;
-
-    //Loop
-    double h = 1e-6; //first guess for stepper
-    int status;
-    double t = 0.0;
-    while (t < t1)
-    {
-        //Evolve one step
-        status = gsl_odeiv2_evolve_apply (ode_s.e, ode_s.c, ode_s.s, &ode_s.sys, &t, t1, &h, yv);
-        //Break if evolution has gone wrong
-        if (status != GSL_SUCCESS) break;
-    }
-
-
-    //Final state
-    cout << "-------------------------------------------" << endl;
-    cout << "End of integration." << endl;
-    cout << "Final t: " << t << endl;
-    cout << "-------------------------------------------" << endl;
-    cout << "Results from integration" << endl;
-    cout << "Internal motion: z(t=t1) = " << yv[0] << " + " << yv[1] << "i" << endl;
-    cout << "External motion: Z(t=t1) = " << yv[2] << " + " << yv[3] << "i" << endl;
-    cout << "-------------------------------------------" << endl;
-
-    //Analytical final state
-    cdouble zfinal = (cos(t1)+I*sin(t1))*bjc.evaluate(n*t1);
-    cdouble Zfinal = as*(cos(ns*t1)+I*sin(ns*t1))*cjc.evaluate(n*t1);
-
-    cdouble zdotfinal = (cos(t1)+I*sin(t1))*zdot.evaluate(n*t1);
-    cdouble Zdotfinal = as*(cos(ns*t1)+I*sin(ns*t1))*Zdot.evaluate(n*t1);
-
-
-    cout << "Analytical results" << endl;
-    cout << "Internal motion: z(t=t1) = " << creal(zfinal) << " + " << cimag(zfinal) << "i" <<  endl;
-    cout << "External motion: Z(t=t1) = " << creal(Zfinal) << " + " << cimag(Zfinal) << "i" <<  endl;
-    cout << "-------------------------------------------" << endl;
-
-
-    cout << "Absolute delta between analytical and numerical results: " << endl;
-    cout << "dz    = " << cabs(zfinal - yv[0]-I*yv[1])/*/cabs(zfinal)*100 << " %" */<< endl;
-    cout << "dzdot = " << cabs(zdotfinal - yv[4]-I*yv[5])/*/cabs(zdotfinal)*100 << " %" */<< endl;
-    cout << "dZ    = " << cabs(Zfinal - yv[2]-I*yv[3])/*/cabs(zfinal)*100 << " %" */<< endl;
-    cout << "dZdot = " << cabs(Zdotfinal - yv[6]-I*yv[7])/*/cabs(Zdotfinal)*100 << " %" */<< endl;
-    cout << "-------------------------------------------" << endl;
-}
-
-/**
- *  \brief Test function used inside qbtbp_test_IN_EM_SEM.
- */
-void qbpcomp(Ofsc &bjc,
-             Ofsc &cjc,
-             const double xe0_SEM[],
-             const double xe0_EM[],
-             const double ye0_IN[],
-             double t0,
-             double t0c)
-{
-    //State vectors
-    double xem_SEM[6];
-    double xem_EM[6];
-    double xe0_IN_from_SEM[6];
-    double xe0_IN_from_EM[6];
-    double xe0_EM2[6];
-    double xe0_SEM2[6];
-
-    //-----------------------------
-    // SEM -> EM -> IN
-    //-----------------------------
-    //Planet position & momenta in SEM ref and SEM units
-    SEMvtoSEMm(t0c, xe0_SEM, xem_SEM, &SEML);
-    //Planet position & momenta in EM ref and EM units
-    SEMmtoEMm(t0c, xem_SEM, xem_EM, &SEML);
-    //Planet position & velocity in EM ref and EM units
-    EMmtoEMv(t0, xem_EM, xe0_EM2, &SEML);
-    //Planet position & velocity in IN ref and EM units
-    EMtoIN(t0, xe0_EM2, xe0_IN_from_SEM,  &SEML);
-
-    //-----------------------------
-    // EM -> IN
-    //-----------------------------
-    //Planet position & velocities in IN ref and EM units
-    EMtoIN(t0, xe0_EM, xe0_IN_from_EM,  &SEML);
-    cout << "-------------------------------------------" << endl;
-    cout << "Error in initial planet position & velocity wrt IN" << endl;
-    cout << "SEM -> EM -> IN         EM->IN  " << endl;
-    for(int i = 0; i < 6; i++)
-    {
-        cout <<  xe0_IN_from_SEM[i]-ye0_IN[i] << "    " << xe0_IN_from_EM[i]-ye0_IN[i] << endl;
-    }
-
-    //-----------------------------
-    // EM -> IN -> SE
-    //-----------------------------
-    //Planet position & momenta in EM ref and EM units
-    EMvtoEMm(t0, xe0_EM, xem_EM, &SEML);
-    //Planet position & momenta in SEM ref and SEM units
-    EMmtoSEMm(t0, xem_EM, xem_SEM, &SEML);
-    //Planet position & velocity in SEM ref and SEM units
-    SEMmtoSEMv(t0c, xem_SEM, xe0_SEM2, &SEML);
-
-    cout << "-------------------------------------------" << endl;
-    cout << "SEM          EM -> IN -> SEM     Delta " << endl;
-    for(int i = 0; i < 6; i++)
-    {
-        cout << xe0_SEM[i] << "    " <<  xe0_SEM2[i] << "    " <<  xe0_SEM[i]-xe0_SEM2[i] << endl;
-    }
-    cout << "-------------------------------------------" << endl;
-}
-
-/**
- *  \brief Test function to compare the analytical solutions found in IN, EM, and SEM coordinates
- */
-void qbtbp_test_IN_EM_SEM(double t1, Ofsc &bjc, Ofsc &cjc)
-{
-    //Initialization
-    USYS us_em  = SEML.us_em;
-    USYS us_sem = SEML.us_sem;
-    int nf      = SEML.nf;
-    //Derivatives of z and Z
-    Ofsc zdot(bjc);
-    Ofsc Zdot(cjc);
-    zdot.dot(us_em.n);
-    Zdot.dot(us_em.n);
-
-    cout << "---------------------------------------------------" << endl;
-    cout << "               Test in SEM units                   " << endl;
-    cout << "---------------------------------------------------" << endl;
-    double t0 = t1;             //new t0 in EM units
-    double t0c =t0*us_em.ns;    //new t0 in SEM units
-
-    //z(t0) and Z(t0)
-    cdouble z0 = evz(bjc, t0, us_em.n, us_em.ni, us_em.ai);
-    cdouble Z0 = evz(cjc, t0, us_em.n, us_em.ns, us_em.as);
-    cdouble zdot0 = evzdot(bjc, zdot, t0, us_em.n, us_em.ni, us_em.ai);
-    cdouble Zdot0 = evzdot(cjc, Zdot, t0, us_em.n, us_em.ns, us_em.as);
-
-    //-------------------------------------------------------------------------------
-    //Evaluate the deltas @t = t0c
-    //-------------------------------------------------------------------------------
-    double delta[15];
-    evaluateCoef(delta, t0c, us_sem.n, nf, SEML.cs_sem.coeffs, 15);
-    double deltad[15];
-    evaluateCoefDerivatives(deltad, t0c, us_sem.n, nf, SEML.cs_sem.coeffs, 15);
-
-    //-------------------------------------------------------------------------------
-    //Evaluate the alphas @t = t0
-    //-------------------------------------------------------------------------------
-    double alpha[15];
-    evaluateCoef(alpha, t0, us_em.n, nf, SEML.cs_em.coeffs, 15);
-    double alphad[15];
-    evaluateCoefDerivatives(alphad, t0, us_em.n, nf, SEML.cs_em.coeffs, 15);
-
-    cout << "---------------------------------------------------" << endl;
-    cout << "Earth  " << endl;
-    //Earth position & momenta in SEM ref and SEM units
-    double xe0_SEM[6];
-    xe0_SEM[0] = delta[8];
-    xe0_SEM[1] = delta[9];
-    xe0_SEM[2] = 0.0;
-    xe0_SEM[3] = deltad[8];
-    xe0_SEM[4] = deltad[9];
-    xe0_SEM[5] = 0.0;
-    //Earth position & momenta in EM ref and EM units
-    double xe0_EM[6];
-    xe0_EM[0] = us_em.mu_EM;
-    xe0_EM[1] = 0.0;
-    xe0_EM[2] = 0.0;
-    xe0_EM[3] = 0.0;
-    xe0_EM[4] = 0.0;
-    xe0_EM[5] = 0.0;
-    //Earth position & momenta in IN ref and EM units
-    double ye0_IN[6];
-    ye0_IN[0] = -us_em.ms/(1.0+us_em.ms)*creal(Z0) + us_em.mu_EM*creal(z0);
-    ye0_IN[1] = -us_em.ms/(1.0+us_em.ms)*cimag(Z0) + us_em.mu_EM*cimag(z0);
-    ye0_IN[2] = 0.0;
-    ye0_IN[3] = -us_em.ms/(1.0+us_em.ms)*creal(Zdot0) + us_em.mu_EM*creal(zdot0);
-    ye0_IN[4] = -us_em.ms/(1.0+us_em.ms)*cimag(Zdot0) + us_em.mu_EM*cimag(zdot0);
-    ye0_IN[5] = 0.0;
-    //Comparison
-    qbpcomp(bjc, cjc, xe0_SEM, xe0_EM, ye0_IN, t0, t0c);
-
-    cout << "---------------------------------------------------" << endl;
-    cout << "Moon  " << endl;
-    //Moon position & velocity in SEM ref and SEM units
-    double xm0_SEM[6];
-    xm0_SEM[0] = delta[10];
-    xm0_SEM[1] = delta[11];
-    xm0_SEM[2] = 0.0;
-    xm0_SEM[3] = deltad[10];
-    xm0_SEM[4] = deltad[11];
-    xm0_SEM[5] = 0.0;
-    //Moon position & velocity in EM ref and EM units
-    double xm0_EM[6];
-    xm0_EM[0] = us_em.mu_EM-1;
-    xm0_EM[1] = 0.0;
-    xm0_EM[2] = 0.0;
-    xm0_EM[3] = 0.0;
-    xm0_EM[4] = 0.0;
-    xm0_EM[5] = 0.0;
-    //Moon position & momenta in IN ref and EM units
-    double ym0_IN[6];
-    ym0_IN[0] = -us_em.ms/(1.0+us_em.ms)*creal(Z0) - (1-us_em.mu_EM)*creal(z0);
-    ym0_IN[1] = -us_em.ms/(1.0+us_em.ms)*cimag(Z0) - (1-us_em.mu_EM)*cimag(z0);
-    ym0_IN[2] = 0.0;
-    ym0_IN[3] = -us_em.ms/(1.0+us_em.ms)*creal(Zdot0) - (1-us_em.mu_EM)*creal(zdot0);
-    ym0_IN[4] = -us_em.ms/(1.0+us_em.ms)*cimag(Zdot0) - (1-us_em.mu_EM)*cimag(zdot0);
-    ym0_IN[5] = 0.0;
-    //Comparison
-    qbpcomp(bjc, cjc, xm0_SEM, xm0_EM, ym0_IN, t0, t0c);
-
-
-    cout << "---------------------------------------------------" << endl;
-    cout << "Sun  " << endl;
-    //Sun position & velocity in SEM ref and SEM units
-    double xs0_SEM[6];
-    xs0_SEM[0] = us_sem.mu_SEM;
-    xs0_SEM[1] = 0.0;
-    xs0_SEM[2] = 0.0;
-    xs0_SEM[3] = 0.0;
-    xs0_SEM[4] = 0.0;
-    xs0_SEM[5] = 0.0;
-    //Sun position & velocity in EM ref and EM units
-    double xs0_EM[6];
-    xs0_EM[0] = alpha[6];
-    xs0_EM[1] = alpha[7];
-    xs0_EM[2] = 0.0;
-    xs0_EM[3] = alphad[6];
-    xs0_EM[4] = alphad[7];
-    xs0_EM[5] = 0.0;
-    //Sun position & momenta in IN ref and EM units
-    double ys0_IN[6];
-    ys0_IN[0] = 1.0/(1.0+us_em.ms)*creal(Z0);
-    ys0_IN[1] = 1.0/(1.0+us_em.ms)*cimag(Z0);
-    ys0_IN[2] = 0.0;
-    ys0_IN[3] = 1.0/(1.0+us_em.ms)*creal(Zdot0);
-    ys0_IN[4] = 1.0/(1.0+us_em.ms)*cimag(Zdot0);
-    ys0_IN[5] = 0.0;
-    //Comparison
-    qbpcomp(bjc, cjc, xs0_SEM, xs0_EM, ys0_IN, t0, t0c);
-
-}
-
-/**
- *  \brief Comparison of the QBTBP computed via FFT or via OFS computations
- */
-void qbtbp_test_FFT_vs_OFS(Ofsc &bjc,       //zt(t)
-                           Ofsc &cjc,       //Zt(t)
-                           int nf,          //order of the Fourier expansions
-                           int N,           //Number of points
-                           int type,        //Type of reference
-                           OdeStruct ode_s, //ode structure
-                           QBCP_L& qbcp_l)  //QBCP
-{
-    reset_ode_structure(&ode_s);
-    //For print
-    cout << std::showpos << setiosflags(ios::scientific)  << setprecision(15);
-
-    //Creation of the matrices of results
-    double **alpha_INT_VS_OFS = dmatrix(0, 7, 0, N-1);
-    double **alpha_INT_VS_FFT = dmatrix(0, 7, 0, N-1);
-    double **alpha_INT        = dmatrix(0, 7, 0, N-1);
-
-    //Retrieving from txt files
-    double *alpha_OFS = dvector(0, 8*(nf+1)-1);
-    double *alpha_FFT = dvector(0, 8*(nf+1)-1);
-
-    cout << "Retrieving OFS coefficients " << endl;
-    coefRetrieving(qbcp_l.cs.F_COEF+"alpha", alpha_OFS, nf, 0, 0, 8);
-    cout << "Retrieving FFT coefficients " << endl;
-    coefRetrieving(qbcp_l.cs.F_COEF+"alpha", alpha_FFT, nf, 0, 1, 8);
-
-    //Physical params in EM units
-    //--------------------------
-    double ns = qbcp_l.us_em.ns;  //Sun-(Earth+Moon) mean angular motion
-    double ni = qbcp_l.us_em.ni;  //Earth-Moon mean angular motion
-    double n  = qbcp_l.us_em.n;   //n = ni - ns
-    double as = qbcp_l.us_em.as;  //Sun-(Earth+Moon) mean distance
-    double ai = qbcp_l.us_em.ai;  //Earth-Moon mean distance
-    double ms = qbcp_l.us_em.ms;  //Sun mass
-
-    //QBTBP init
-    //--------------------------
-    Ofsc ztc(bjc);
-    Ofsc Ztc(cjc);
-    //Derivatives
-    Ofsc ztcdot(ztc);
-    Ofsc Ztcdot(Ztc);
-    //Derivation
-    ztcdot.dot(n);
-    Ztcdot.dot(n);
-
-    //Double derivatives
-    Ofsc ztcddot(ztcdot);
-    Ofsc Ztcddot(Ztcdot);
-    //Derivation
-    ztcddot.dot(n);
-    Ztcddot.dot(n);
-
-    //z(t) and Z(t)
-    cdouble zi;
-    cdouble Zi;
-    cdouble zidot;
-    cdouble Ziddot;
-
-    double rv2;
-    double alpha1i;
-    double alpha2i;
-    double alpha3i;
-    double alpha4i;
-    double alpha5i;
-    double alpha6i;
-    double eval_OFS[8];
-    double eval_FFT[8];
-
-    //z(0) and Z(0)
-    cdouble z0 = bjc.evaluate(0.0);
-    cdouble Z0 = as*cjc.evaluate(0.0);
-
-    //zdot(0) and Zdot(0)
-    Ofsc zdot(nf);
-    for(int l = -nf; l<=nf; l++) zdot.setCoef(I*(1.0+l*n)*bjc.ofs_getCoef(l), l);
-    cdouble zdot0 = zdot.evaluate(0.0);
-
-    Ofsc Zdot(nf);
-    for(int l = -nf; l<=nf; l++) Zdot.setCoef(I*(ns+l*n)*cjc.ofs_getCoef(l), l);
-    cdouble Zdot0 = as*Zdot.evaluate(0.0);
-
-    //Initial conditions
-    double yv[8];
-    yv[0] = creal(z0);
-    yv[1] = cimag(z0);
-    yv[2] = creal(Z0);
-    yv[3] = cimag(Z0);
-    yv[4] = creal(zdot0);
-    yv[5] = cimag(zdot0);
-    yv[6] = creal(Zdot0);
-    yv[7] = cimag(Zdot0);
-
-    //Loop
-    double ti;
-    double tf  = 2*M_PI/n;
-    double t   = 0.0;
-    int status;
-    double f[8];
-    for(int i = 0 ; i < N; i++)
-    {
-        //update
-        ti = tf*i/N;
-
-        //Computing the reference values
-        if(type == 0)
-        {
-            //z(t), zdot(t), Z(t) and Zdot(t) if the type of reference is the numerical integration  (type = 0)
-            //Evolve one step
-            status = gsl_odeiv2_driver_apply (ode_s.d, &t, ti, yv);
-            //Compute z(t) and Z(t)
-            zi     =  yv[0] + yv[1]*I;
-            Zi     =  yv[2] + yv[3]*I;
-            zidot  =  yv[4] + yv[5]*I;
-            qbtbp_derivatives(t, yv, f, ode_s.sys.params);
-            Ziddot =  f[6] + f[7]*I;
-            rv2    =  creal(1.0/(zi*conj(zi)));
-        }
-        else
-        {
-            //z(t), zdot(t), Z(t) and Zdot(t) if the type of reference is the Fourier expansion (type = 1)
-            zi     =  evz(ztc, t, n, ni, ai);
-            Zi     =  evz(Ztc, t, n, ns, as);
-            zidot  =  evzdot(ztc, ztcdot, t, n, ni, ai);
-            Ziddot =  evzddot(Ztc, Ztcdot, Ztcddot, t, n, ns, as);
-            rv2    =  creal(1.0/(zi*conj(zi)));
-        }
-
-
-        //Evalutation of FFT and OFS results
-        evaluateCoef(eval_OFS, t, n, nf, alpha_OFS, 8);
-        evaluateCoef(eval_FFT, t, n, nf, alpha_FFT, 8);
-
-        alpha1i  = rv2;
-        alpha2i  = -rv2*creal(zidot*conj(zi));
-        alpha3i  = +rv2*cimag(zidot*conj(zi));
-        alpha4i  = -ms/(1.0+ms)*creal(Ziddot*conj(zi));
-        alpha5i  = -ms/(1.0+ms)*cimag(Ziddot*conj(zi));
-        alpha6i  = creal(cpow(zi*conj(zi), -1.0/2+0.0*I));
-
-        //Results in matrices
-        alpha_INT_VS_OFS[0][i] = fabs(alpha1i - eval_OFS[0]);
-        alpha_INT_VS_OFS[1][i] = fabs(alpha2i - eval_OFS[1]);
-        alpha_INT_VS_OFS[2][i] = fabs(alpha3i - eval_OFS[2]);
-        alpha_INT_VS_OFS[3][i] = fabs(alpha4i - eval_OFS[3]);
-        alpha_INT_VS_OFS[4][i] = fabs(alpha5i - eval_OFS[4]);
-        alpha_INT_VS_OFS[5][i] = fabs(alpha6i - eval_OFS[5]);
-        alpha_INT_VS_OFS[6][i] = fabs(rv2*creal(Zi*conj(zi)) - eval_OFS[6]);
-        alpha_INT_VS_OFS[7][i] = fabs(rv2*cimag(Zi*conj(zi)) - eval_OFS[7]);
-
-        alpha_INT_VS_FFT[0][i] = fabs(alpha1i - eval_FFT[0]);
-        alpha_INT_VS_FFT[1][i] = fabs(alpha2i - eval_FFT[1]);
-        alpha_INT_VS_FFT[2][i] = fabs(alpha3i - eval_FFT[2]);
-        alpha_INT_VS_FFT[3][i] = fabs(alpha4i - eval_FFT[3]);
-        alpha_INT_VS_FFT[4][i] = fabs(alpha5i - eval_FFT[4]);
-        alpha_INT_VS_FFT[5][i] = fabs(alpha6i - eval_FFT[5]);
-        alpha_INT_VS_FFT[6][i] = fabs(rv2*creal(Zi*conj(zi)) - eval_FFT[6]);
-        alpha_INT_VS_FFT[7][i] = fabs(rv2*cimag(Zi*conj(zi)) - eval_FFT[7]);
-
-        alpha_INT[0][i] = alpha1i;
-        alpha_INT[1][i] = alpha2i;
-        alpha_INT[2][i] = alpha3i;
-        alpha_INT[3][i] = alpha4i;
-        alpha_INT[4][i] = alpha5i;
-        alpha_INT[5][i] = alpha6i;
-        alpha_INT[6][i] = rv2*creal(Zi*conj(zi));
-        alpha_INT[7][i] = rv2*cimag(Zi*conj(zi));
-
-        //Break if evolution has gone wrong
-        if (status != GSL_SUCCESS) break;
-    }
-
-    //Maximum
-    double max_INT_VS_OFS[8];
-    double max_INT_VS_FFT[8];
-    double max_INT[8];
-    for(int j = 0; j < 8; j ++)
-    {
-        max_INT_VS_OFS[j] = alpha_INT_VS_OFS[j][0];
-        max_INT_VS_FFT[j] = alpha_INT_VS_FFT[j][0];
-        max_INT[j]        = alpha_INT[j][0];
-    }
-
-    for(int i = 1 ; i < N; i++)
-    {
-        for(int j = 0; j < 8; j++)
-        {
-            if(max_INT_VS_OFS[j] < alpha_INT_VS_OFS[j][i]) max_INT_VS_OFS[j] = alpha_INT_VS_OFS[j][i];
-            if(max_INT_VS_FFT[j] < alpha_INT_VS_FFT[j][i]) max_INT_VS_FFT[j] = alpha_INT_VS_FFT[j][i];
-            if(max_INT[j] < alpha_INT[j][i]) max_INT[j] = alpha_INT[j][i];
-        }
-    }
-
-    //Print
-    cout << "---------------------------------------" << endl;
-    cout << "       FFT vs OFS                      " << endl;
-    cout << "---------------------------------------" << endl;
-    if(type == 0) cout << "The numerical integration is used to compute the reference values " << endl;
-    else          cout << "The Fourier expansions computed in qbtbp(int) are used to compute the reference values " << endl;
-    cout << std::showpos << setiosflags(ios::scientific)  << setprecision(3);
-    cout << "i         max REF           max REF vs OFS       max REF vs FFT      " << endl;
-    for(int j = 0; j < 8; j++)
-    {
-        cout << j << "      " << max_INT[j] << "           " << max_INT_VS_OFS[j]  << "            " <<  max_INT_VS_FFT[j]  << endl;
-    }
-    cout << "---------------------------------------" << endl;
-
-    //Conclusion
-    cout << "Conclusion: " << endl;
-    cout << "- OFS and FFT coefficients both represent quite well the real integrated system (see comparison with type == 0). " << endl;
-    cout << "- However, the FFT coefficients are better suited to represent the approximated system given by the Fourier expansions computed in qbtbp(int) (see comparison with type == 1). " << endl;
-    cout << "- This is ought to the approximations made to compute z(OFS)^{-a}, a > 0, when computing the OFS coefficients." << endl;
-
-    //Memory release
-    free_dvector(alpha_OFS, 0, 8*(nf+1)-1);
-    free_dvector(alpha_FFT, 0, 8*(nf+1)-1);
-    free_dmatrix(alpha_INT_VS_OFS, 0, 7, 0, N-1);
-    free_dmatrix(alpha_INT       , 0, 7, 0, N-1);
-    free_dmatrix(alpha_INT_VS_FFT, 0, 7, 0, N-1);
-}
-
-//-----------------------------------------------------------------------------
-// Evaluating the QBTBP
-//-----------------------------------------------------------------------------
-/**
- *  \brief Evaluate z(t), with \f$ z(t) = e^{it} z_r(t) \f$ in Earth-Moon units.
- */
-cdouble evz(Ofsc& zt, double t, double n, double ni, double ai)
-{
-    return ai*(cos(ni*t)+I*sin(ni*t))*zt.evaluate(n*t);
-}
-
-/**
- *  \brief Evaluate dz(t)/dt, with \f$ z(t) = e^{it} z_r(t) \f$ in Earth-Moon units.
- */
-cdouble evzdot(Ofsc& zt, Ofsc& ztdot, double t, double n, double ni, double ai)
-{
-    return ai*(cos(ni*t)+I*sin(ni*t))*(ztdot.evaluate(n*t) + I*ni*zt.evaluate(n*t));
-}
-
-/**
- *  \brief Evaluate d2z(t)/dt2, with \f$ z(t) = e^{it} z_r(t) \f$ in Earth-Moon units.
- */
-cdouble evzddot(Ofsc& zt, Ofsc& ztdot, Ofsc& ztddot, double t, double n, double ni, double ai)
-{
-    return ai*(cos(ni*t)+I*sin(ni*t))*( 2*I*ni*ztdot.evaluate(n*t) - ni*ni*zt.evaluate(n*t) + ztddot.evaluate(n*t));
-}
-
-
-//-----------------------------------------------------------------------------
-//Evaluation of parts or all the alpha/beta routines at a given time
-//-----------------------------------------------------------------------------
-/**
- *  \brief Evaluation of Fourier series given as an array of coefficients, at a given time t.
- */
-void evaluateCoef(double *alpha, double t, double omega, int order, double *params, int number)
-{
-    double *header;
-    int l;
-    double cR[order];
-    double sR[order];
-
-    cR[0] = cos(omega*t);
-    sR[0] = sin(omega*t);
-
-    for(int i = 1; i< order; i++)
-    {
-        //From trigo formulae (fastest)
-        cR[i] =  cR[i-1]*cR[0] - sR[i-1]*sR[0];
-        sR[i] =  sR[i-1]*cR[0] + cR[i-1]*sR[0];
-        //From GSL
-        //cR[i] =  gsl_sf_cos((i+1)*omega*t);
-        //sR[i] =  gsl_sf_sin((i+1)*omega*t);
-        //Native C
-        //cR[i] =  cos((i+1)*omega*t);
-        //sR[i] =  sin((i+1)*omega*t);
-    }
-
-    for(l = 0, header = params; l < number ; l++, header+=(order+1))
-    {
-        alpha[l] = 0.0;
-        if(l==1 || l== 4 || l==7 || l==9 || l==11 || l==13) alpha[l] = evaluateOdd(t, omega , order, header, sR);    //Odd funtions (alpha_2,5,8,10,12,14)
-        else  alpha[l] = evaluateEven(t, omega, order, header, cR);                                                  //Even functions
-    }
-}
-
-/**
- *  \brief Evaluation of the time derivatives Fourier series given as an array of coefficients, at a given time t.
- */
-void evaluateCoefDerivatives(double *alpha, double t, double omega, int order, double *params, int number)
-{
-    double *header;
-    int l;
-    double cR[order];
-    double sR[order];
-
-    cR[0] = cos(omega*t);
-    sR[0] = sin(omega*t);
-
-    for(int i = 1; i< order; i++)
-    {
-        cR[i] =  cR[i-1]*cR[0] - sR[i-1]*sR[0];
-        sR[i] =  sR[i-1]*cR[0] + cR[i-1]*sR[0];
-    }
-
-    for(l = 0, header = params; l < number ; l++, header+=(order+1))
-    {
-        alpha[l] = 0.0;
-        if(l==1 || l== 4 || l==7 || l==9 || l==11 || l==13)
-        {
-            alpha[l] = evaluateOddDerivative(t, omega , order, header, cR); //Odd funtions (alpha_2,5,8,10,12,14)
-        }
-        else  alpha[l] = evaluateEvenDerivative(t, omega, order, header, sR);   //Even functions
-    }
-}
-
-
-//-----------------------------------------------------------------------------
-//Evalution of individual alpha/beta
-//or derivative of alpha/beta of a given type (Odd or Even)
-//-----------------------------------------------------------------------------
-/**
- *  \brief Evaluate the sum \f$ \sum_{k = 0}^N coef(k) cos(k \omega t)  \f$.
- */
-double evaluateEven(double t, double omega, int order, double *coef, double *cR)
-{
-    double result = 0.0;
-    for(int i= order; i>=1; i--) result += coef[i]*cR[i-1];//even type
-    result += coef[0];
-    return result;
-}
-
-/**
- *  \brief Evaluate the sum \f$ \sum_{k = 0}^N - k \omega coef(k) sin(k \omega t)  \f$.
- */
-double evaluateEvenDerivative(double t, double omega,  int order, double *coef, double *sR)
-{
-    double result = 0.0;
-    for(int i= order; i>=1; i--) result += -omega*i*coef[i]*sR[i-1];//even type
-    return result;
-}
-
-/**
- *  \brief Evaluate the sum \f$ \sum_{k = 0}^N coef(k) sin(k \omega t)  \f$.
- */
-double evaluateOdd(double t, double omega,  int order, double *coef, double *sR)
-{
-    double result = 0.0;
-    for(int i= order; i>=1; i--) result += coef[i]*sR[i-1]; //odd type
-    return result;
-}
-
-/**
- *  \brief Evaluate the sum \f$ \sum_{k = 0}^N  k \omega coef(k) cos(k \omega t)  \f$.
- */
-double evaluateOddDerivative(double t, double omega,  int order, double *coef, double *cR)
-{
-    double result = 0.0;
-    for(int i= order; i>=1; i--) result += omega*i*coef[i]*cR[i-1];//odd type
-    return result;
-}
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------------
 // Backup void qbtbp_ofs and qbtbp_ots

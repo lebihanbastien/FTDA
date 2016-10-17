@@ -2456,7 +2456,7 @@ void update_s0(Orbit *orbit, double st0[], double sr)
     }
     else //if model = QBCP
     {
-        //If fwrk = F_SEM
+        //If coordsys = F_SEM
         //The starting condition z(t0) = 0 is s2 == s4
         //AND there is not root of P36(nt)
         switch(orbit->vdim)

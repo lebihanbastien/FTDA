@@ -713,9 +713,6 @@ void CCM8toRVF(const double s8[],
     //----------
     for(int p = 0; p < REDUCED_NV; p++)
     {
-//        cout << "CCM8toRVF. s[" << p << "] = " << creal(s[p]) << "   +I*" << cimag(s[p]) << endl;
-//        cout << "order = " << order << endl;
-//        cout << "ofs_order = " << ofs_order << endl;
         fh[p].evaluate(s, ofs, order, ofs_order);
         f4[p] = ofs.evaluate(n*t, ofs_order);
     }
@@ -754,18 +751,6 @@ void CCM8toRVF8(const double s8[],
         f8[p2++] = creal(sd[p]);
         f8[p2++] = cimag(sd[p]);
     }
-
-//    f8[0] = creal(sd[0]);
-//    f8[1] = cimag(sd[0]);
-//
-//    f8[2] = creal(sd[1]);
-//    f8[3] = cimag(sd[1]);
-//
-//    f8[4] = creal(sd[2]);
-//    f8[5] = cimag(sd[2]);
-//
-//    f8[6] = creal(sd[3]);
-//    f8[7] = cimag(sd[3]);
 }
 
 /**

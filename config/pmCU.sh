@@ -27,7 +27,7 @@ MODEL=$QBCP
 # COORDINATE SYSTEM
 # EM = 0; SEM = 1; SE = 2 (deprecated)
 #------------------------------------
-CS=$SEM  
+CS=$EM  
 
 #------------------------------------
 # Normalization
@@ -66,7 +66,7 @@ STORAGE=$TRUE
 #------------------------------------
 # Numerical constants for all computation
 #------------------------------------
-OFTS_ORDER=16
+OFTS_ORDER=18
 
 
 

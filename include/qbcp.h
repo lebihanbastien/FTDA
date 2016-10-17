@@ -233,20 +233,6 @@ void SEMtoNC(double t, const double ySEM[], double yNC[], QBCP_L *qbp);
 void NCtoSEM(double t, const double yNC[], double ySEM[], QBCP_L *qbp);
 
 //-----------------------------------------------------------------------------
-// COC: NCEM <--> NCSEM
-//-----------------------------------------------------------------------------
-
-/**
- *  \brief COC: from NC coordinates (SEM) to NC coordinates (EM)
- **/
-void SNCtoENC(double t, const double ySNC[], double yENC[], QBCP_L *qbp);
-
-/**
- *  \brief COC: from NC coordinates (EM) to NC coordinates (SEM)
- **/
-void ENCtoSNC(double t, const double yENC[], double ySNC[], QBCP_L *qbp);
-
-//-----------------------------------------------------------------------------
 // COC: tests & plots
 //-----------------------------------------------------------------------------
 /**
@@ -296,26 +282,7 @@ void dynTest_SEMtoEM();
  **/
 void dynTest_EMtoSEM();
 
-//-----------------------------------------------------------------------------
-//Dynamical equivalents to the Libration points
-//-----------------------------------------------------------------------------
-/**
- *  \brief Main routine for the computation of the dynamical equivalent to the Libration points.
- **/
-void lpdyneq(gsl_odeiv2_driver *d, double y0[], gnuplot_ctrl *h1);
 
-/**
- *  \brief Inverse a 2x2 matrix. Used in lpdyneq_cont.
- **/
-void invMat22(double A[2][2], double invA[2][2]);
 
-/**
- *  \brief Computation of lpdyneq with continuation between two models. WORK IN PROGRESS.
- **/
-void lpdyneq_cont(gsl_odeiv2_driver *d, gsl_odeiv2_control * loose_control, gsl_odeiv2_control * hard_control, double y0[], gnuplot_ctrl *h1);
-/**
- *  \brief Computation of lpdyneq with continuation between two models. WORK IN PROGRESS.
- **/
-void lpdyneq_cont_2(gsl_odeiv2_driver *d, gsl_odeiv2_control * loose_control, gsl_odeiv2_control * hard_control, double y0[]);
 
 #endif // QBCP_H_INCLUDED

@@ -3,7 +3,23 @@
 # of a projection map (connections between EML2 and SEML1,2)
 ######################################################################################
 #===============================================================================
-# CONTINUATION
+# CONTINUATION: Only some solutions
+#===============================================================================
+proj_map_cont_traj_one =  proj_map_cont_traj[which(proj_map_cont_traj$label %% 5 == 0),]
+pp_path_sol = ggplot() + geom_path(data = proj_map_cont_traj_one, aes(x = x_CMS_SEM, y = y_CMS_SEM, colour = label, group = label), size = 1)
+pp_path_sol = pp_path_sol + scale_colour_gradient(space="Lab", high = "black", low = "white", guide = FALSE)
+pp_path_sol = pp_path_sol + custom_theme 
+#Add SEMLi
+seml2 = data.frame(x0_CMU_EM = 0.0, y0_CMU_EM = 0.0, z0_CMU_EM = 0.0);
+seml2 = NCtoSYS(seml2, CST_GAMMA_LIB_SEM, CST_C1_LIB_SEM);
+pp_path_sol = pp_path_sol + geom_point(data = seml2, aes(x= xEM, y = yEM), size = 4) 
+#Labels
+pp_path_sol = pp_path_sol + labs(x = "X (SEM)", y = "Y (SEM)")
+pp_path_sol
+
+
+#===============================================================================
+# CONTINUATION: ALL found solutions as a "continuum"
 #===============================================================================
 proj_map_cont_traj_one =  proj_map_cont_traj#[which(proj_map_cont_traj$label < 2),]
 pp_path_cont = ggplot() + geom_path(data = proj_map_cont_traj_one, aes(x = x_CMS_SEM, y = y_CMS_SEM, colour = label, group = factor(label)), size = 1.5)
@@ -23,21 +39,37 @@ pp_path_cont
 #------------------------------------------------
 # Plot : tiles (pmin_dist_SEM) in the s1_CMU_EM/s3_CMU_EM space
 #------------------------------------------------
-pp_tiles_s1EM_s3EM_eP = plotdf_tile_n(proj_map_tem, "s1_CMU_EM", "s3_CMU_EM", "s1 (EML2)", "s3 (EML2)", "pmin_dist_SEM", "Projection \ndistance", projection_lim_mid, TRUE)
-# pp_tiles_s1EM_s3EM_eP = pp_tiles_s1EM_s3EM_eP + scale_x_continuous(limits = c(16, 30)) 
-# pp_tiles_s1EM_s3EM_eP = pp_tiles_s1EM_s3EM_eP + scale_y_continuous(limits = c(-35, -23)) 
+pp_tiles_s1EM_s3EM_eP = plotdf_tile_n(proj_map_tem, "s1_CMU_EM", "s3_CMU_EM", "s1 (EML2)", "s3 (EML2)", "pmin_dist_SEM", "Projection \ndistance", projection_lim_mid, TRUE, colorLimits = projection_color_lim)
+pp_tiles_s1EM_s3EM_eP = pp_tiles_s1EM_s3EM_eP + scale_x_continuous(limits = c(-35, 35), breaks = seq(-34,34,4)) 
+pp_tiles_s1EM_s3EM_eP = pp_tiles_s1EM_s3EM_eP + scale_y_continuous(limits = c(-35, 35), breaks = seq(-34,34,4))  
 pp_tiles_s1EM_s3EM_eP
+
+#------------------------------------------------
+# Plot : tiles (sf_CM_SEM) in the s1_CMU_EM/s3_CMU_EM space
+#------------------------------------------------
+pp_tiles_s1EM_s3EM_rf = plotdf_tile_n(proj_map_tem, "s1_CMU_EM", "s3_CMU_EM", "s1 (EML2)", "s3 (EML2)", "sf_CM_SEM", "Radius at final point", 0.4, TRUE)
+pp_tiles_s1EM_s3EM_rf = pp_tiles_s1EM_s3EM_rf + scale_x_continuous(limits = c(-35, 35), breaks = seq(-34,34,4))
+pp_tiles_s1EM_s3EM_rf = pp_tiles_s1EM_s3EM_rf + scale_y_continuous(limits = c(-35, 35), breaks = seq(-34,34,4)) 
+pp_tiles_s1EM_s3EM_rf
+
+#------------------------------------------------
+# Plot : tiles (pmin_dist_SEM) in the s1_CMU_EM/s3_CMU_EM space, with continutation
+#------------------------------------------------
+pp_tiles_s1EM_s3EM_eP_cont = plotdf_tile_n(proj_map_tem, "s1_CMU_EM", "s3_CMU_EM", "s1 (EML2)", "s3 (EML2)", "pmin_dist_SEM", "Projection \ndistance", projection_lim_mid, TRUE, colorLimits = projection_color_lim)
+pp_tiles_s1EM_s3EM_eP_cont = pp_tiles_s1EM_s3EM_eP_cont + scale_x_continuous(limits = c(-35, 35), breaks = seq(-34,34,4))
+pp_tiles_s1EM_s3EM_eP_cont = pp_tiles_s1EM_s3EM_eP_cont + scale_y_continuous(limits = c(-35, 35), breaks = seq(-34,34,4)) 
+pp_tiles_s1EM_s3EM_eP_cont
 
 #Adding some specific points
-# s1 = c(-3.131121281756720e+01, -3.276492877366309e+01, -3.043854834129248e+01, +3.218682800989279e+01, +3.435177734715551e+01, +2.287726449350953e+01, +2.092962158553479e+01)
-# s3 = c(+1.020651477675207e+01, +2.693265287540921e+01, +2.879570444016836e-01, +3.303849815659568e+01, -1.033936728130126e+01, -2.731602874014531e+01, -3.446251071019438e+01)
-# some_points = data.frame(s1_CMU_EM = s1, s3_CMU_EM = s3);
-# pp_tiles_s1EM_s3EM_eP = pp_tiles_s1EM_s3EM_eP + geom_point(data = some_points, aes(s1, s3), color = "red", size = 5)
-# pp_tiles_s1EM_s3EM_eP
+s1 = c(-19.6734010192183, -17.1501764344739, 18.0368297229752, 8.33528384435544, 16.4521052628656)#, -3.276492877366309e+01, -3.043854834129248e+01, +3.218682800989279e+01, +3.435177734715551e+01, +2.287726449350953e+01, +2.092962158553479e+01)
+s3 = c(1.11039067757786, 11.8945781333513, -32.5007644319156, -1.19257336959027, 15.5416792554699)#, +2.693265287540921e+01, +2.879570444016836e-01, +3.303849815659568e+01, -1.033936728130126e+01, -2.731602874014531e+01, -3.446251071019438e+01)
+some_points = data.frame(s1_CMU_EM = s1, s3_CMU_EM = s3);
+#pp_tiles_s1EM_s3EM_eP_cont = pp_tiles_s1EM_s3EM_eP_cont + geom_point(data = some_points, aes(s1, s3), color = "red", size = 5)
+pp_tiles_s1EM_s3EM_eP_cont
 
 #Adding some continuation results
-pp_tiles_s1EM_s3EM_eP = pp_tiles_s1EM_s3EM_eP + geom_path(data = proj_map_cont, aes(s1_CMU_EM, s3_CMU_EM), color = "black", size = 1)
-pp_tiles_s1EM_s3EM_eP
+pp_tiles_s1EM_s3EM_eP_cont = pp_tiles_s1EM_s3EM_eP_cont + geom_path(data = proj_map_cont, aes(s1_CMU_EM, s3_CMU_EM), color = "black", size = 1)
+pp_tiles_s1EM_s3EM_eP_cont
 
 #------------------------------------------------
 # Plot : tiles (tof_EM) in the s1_CMU_EM/s3_CMU_EM space
@@ -88,8 +120,21 @@ pp_pts_s3EM_dX
 pp_pts_s1EM_s1SEM = plotdf_point(proj_map_tem, "s1_CMU_EM", "s1_CM_SEM", "s1_CMU_EM", "s1_CM_SEM", pointSize = 3)
 pp_pts_s1EM_s1SEM
 
+
+#------------------------------------------------
+# Plot : points (pmin_dist_SEM) in the x0_CMU_NCEM/y0_CMU_NCEM space
+#------------------------------------------------
+pp_tiles_x0EM_y0EM_eP = plotdf_point(proj_map_tem, "x0_CMU_NCEM", "y0_CMU_NCEM", "x0_CMU_NCEM", "y0_CMU_NCEM","pmin_dist_SEM", "pmin_dist_SEM", 0, pointSize = 3)
+pp_tiles_x0EM_y0EM_eP = pp_tiles_x0EM_y0EM_eP + scale_colour_gradient2("pmin_dist_SEM", space="Lab", midpoint = projection_lim_mid, mid = "white", high = muted("blue"))
+pp_tiles_x0EM_y0EM_eP = pp_tiles_x0EM_y0EM_eP + geom_point(data = proj_map_tem[which(abs(proj_map_tem$ns_CM_SEM - SNMAX) < 0.001),], aes(x0_CMU_NCEM, y0_CMU_NCEM), color = "red", size = 5)
+pp_tiles_x0EM_y0EM_eP
+
+#Adding some continuation results
+pp_tiles_x0EM_y0EM_eP = pp_tiles_x0EM_y0EM_eP + geom_path(data = proj_map_cont, aes(x0_CMU_NCEM,  y0_CMU_NCEM) , color = "black", size = 1)
+pp_tiles_x0EM_y0EM_eP
+
 #===============================================================================
-# POINTS: SML2 focus
+# POINTS: SEML2 focus
 #===============================================================================
 
 #------------------------------------------------
@@ -107,17 +152,7 @@ pp_tiles_s1SEM_s3SEM_eP
 pp_tiles_s1SEM_s3SEM_eP = pp_tiles_s1SEM_s3SEM_eP + geom_path(data = proj_map_cont, aes(s1_CMS_SEM, s3_CMS_SEM), color = "black", size = 1)
 pp_tiles_s1SEM_s3SEM_eP
 
-#------------------------------------------------
-# Plot : points (pmin_dist_SEM) in the x0_CMU_EM/y0_CMU_EM space
-#------------------------------------------------
-pp_tiles_x0EM_y0EM_eP = plotdf_point(proj_map_tem, "x0_CMU_EM", "y0_CMU_EM", "x0_CMU_EM", "y0_CMU_EM","pmin_dist_SEM", "pmin_dist_SEM", 0, pointSize = 3)
-pp_tiles_x0EM_y0EM_eP = pp_tiles_x0EM_y0EM_eP + scale_colour_gradient2("pmin_dist_SEM", space="Lab", midpoint = projection_lim_mid, mid = "white", high = muted("blue"))
-pp_tiles_x0EM_y0EM_eP = pp_tiles_x0EM_y0EM_eP + geom_point(data = proj_map_tem[which(abs(proj_map_tem$ns_CM_SEM - SNMAX) < 0.001),], aes(x0_CMU_EM, y0_CMU_EM), color = "red", size = 5)
-pp_tiles_x0EM_y0EM_eP
 
-#Adding some continuation results
-pp_tiles_x0EM_y0EM_eP = pp_tiles_x0EM_y0EM_eP + geom_path(data = proj_map_cont, aes(x0_CMU_NCEM,  y0_CMU_NCEM) , color = "black", size = 1)
-pp_tiles_x0EM_y0EM_eP
 
 #------------------------------------------------
 # Plot : points (pmin_dist_SEM) in the x0_CM_SEM/y0_CM_SEM space
@@ -136,13 +171,13 @@ pp_pts_x0SEM_y0SEM_eP = pp_pts_x0SEM_y0SEM_eP + geom_point(data = proj_map_tem[w
 
 
 #Add SEMLi
-seml2 = data.frame(x0_CMU_EM = 0.0, y0_CMU_EM = 0.0, z0_CMU_EM = 0.0);
+seml2 = data.frame(x = 0.0, y = 0.0, z = 0.0);
 seml2 = NCtoSYS(seml2, CST_GAMMA_LIB_SEM, CST_C1_LIB_SEM);
 pp_pts_x0SEM_y0SEM_eP = pp_pts_x0SEM_y0SEM_eP + geom_point(data = seml2, aes(x= xEM, y = yEM), size = 4) 
 
 #Adding some continuation results
-pp_pts_x0SEM_y0SEM_eP = pp_pts_x0SEM_y0SEM_eP + geom_path(data = proj_map_cont, aes(x0_CMS_SEM,  y0_CMS_SEM) , color = "black", size = 1)
-pp_pts_x0SEM_y0SEM_eP
+#pp_pts_x0SEM_y0SEM_eP = pp_pts_x0SEM_y0SEM_eP + geom_path(data = proj_map_cont, aes(x0_CMS_SEM,  y0_CMS_SEM) , color = "black", size = 1)
+#pp_pts_x0SEM_y0SEM_eP
 
 
 #Scaling

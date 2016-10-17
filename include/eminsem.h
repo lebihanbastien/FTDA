@@ -98,4 +98,14 @@ void EMmtoSEMm(double t, const double yEMm[], double ySEMm[],
  **/
 void NCEMmtoSEMm(double t, const double yNCEMm[], double ySEMm[], QBCP_L *qbcp_l);
 
+/**
+ * \brief From NC SEM to  NC EM (both in position/momenta form)
+ **/
+void NCSEMmtoNCEMm(double t, const double yNCSEMm[], double yNCEM[], QBCP_L *qbcp_l);
+
+/**
+ * \brief From NC EM to  NC SEM (both in position/momenta form)
+ **/
+void NCEMmtoNCSEMm(double tEM, const double yNCEMm[], double yNCSEM[], QBCP_L *qbcp_l);
+
 #endif // EMINSEM_H_INCLUDED

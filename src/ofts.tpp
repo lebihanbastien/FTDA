@@ -2253,6 +2253,118 @@ inline void readVOFTS_bin(vector<Ofts<Ofsc > >  &W, string filename, int fftN)
 
 }
 
+//----------------------------------------------------------------------------------------
+// Binary format, copy in lesser dimension series
+//----------------------------------------------------------------------------------------
+/**
+ * \brief Reads a given \c Oftsc  object, in bin format, and transform it into another Oftsc object, of lesser dimensions
+ *        More precisely:
+ *        We suppose that W is a very sparse Fourier-Taylor series, with only non-null coefficients along the dimension dim.
+ *        Hence, it is possible to entirely store W into a simpler series W1, with only one dimension.
+ **/
+inline int fromOFTStoOFTS_bin(Oftsc &W, Oftsc &W1, int dim)
+{
+    //====================================================================================
+    //Init & check
+    //====================================================================================
+    int nv  = W.getNV();  ///number of variables
+    //Check that the desired dimension dim is consistent with nv
+    if(dim > nv-1)
+    {
+        cout << "fromOFTStoOFTS_bin. dim is greater than the number of dimensions." << endl;
+        return -1;
+    }
+
+    //====================================================================================
+    //Open the stream & check
+    //====================================================================================
+        //Parameters
+        int *kv = (int*) calloc(nv, sizeof(int)); //exponent
+
+        //================================================================================
+        //Loop on order
+        //================================================================================
+        for(int nrc=0; nrc<= W.getOrder(); nrc++)
+        {
+            //kv = (k 0 0 0 ...)
+            kv[0] = nrc;
+            for(int i=1; i<nv; i++) kv[i] = 0;
+
+
+            //============================================================================
+            //Loop on the monomials at order nrc
+            //============================================================================
+            for (int i=0; i< FTDA::nmon(nv, nrc); i++)
+            {
+                //If the exponents are non null only on dim, we save the value in W1
+                W1.getCoef(nrc, 0)->ccopy(*W.getCoef(nrc,i));
+
+                //Update the exponents
+                if(i< FTDA::nmon(nv, nrc)-1)  FTDA::prxkt(kv, nv);
+            }
+
+    }
+
+    return 0;
+}
+
+/**
+ * \brief Reads some Oftsc  objects, in bin format,
+ *        and transform it into other Oftsc objects, of lesser dimensions.
+ *
+ *        Indeed, we know that, if the center-stable or center-unstable manifolds are
+ *        computed using the parameterization method, the series in the dimensions
+ *        0, and 3 of Wh (parameterization in TFC coordinates) are of the form:
+ *
+ *          Wh[0] = sum_(k=0)^n c_k s_5^k
+ *
+ *        I.e. they are FT series of only one variable, namely the variable s5,
+ *        last variable of the reduced variables (s1, s2, s3, s4, s5).
+ *
+ *        To limit the amount of memory needed to stored these series, we can use
+ *        one-dimensional FT series. This is done via the present routine.
+ *
+ *        This routine makes use of fromOFTStoOFTS_bin to read and store into the less dimensions objects.
+ *        Then, the results are stored in binary files.
+ **/
+inline void fromVOFTStoVOFTS_bin(vector<Oftsc> &W, Oftsc &W1, Oftsc &DW1, string filein, string fileout)
+{
+    //====================================================================================
+    //Init
+    //====================================================================================
+    string ss1;
+    int ind = 0;
+
+    //====================================================================================
+    //Loop on all coefficients
+    //====================================================================================
+    for(unsigned int i = 0; i < 6; i++)
+    {
+        if(i == 0 || i == 3) //only along certain dimensions
+        {
+            //Store in 1-dim series
+            fromOFTStoOFTS_bin(W[i], W1, 4);
+
+            //ss1 = numToString(ind)
+            ss1 = static_cast<ostringstream*>( &(ostringstream() << ind) )->str();
+
+            //Store the result
+            writeOFTS_bin(W1, (fileout+"["+ss1+"].bin"));
+            //writeOFTS_txt(W1, (fileout+"["+ss1+"].txt"));
+
+            //Jacobian
+            for(int m = 1; m <= W1.getOrder(); m++) DW1.der(W1, 1, m);
+
+            //Store the Jacobian
+            writeOFTS_bin(DW1, (fileout+"d["+ss1+"].bin"));
+            //writeOFTS_txt(DW1, (fileout+"d["+ss1+"].txt"));
+
+            //Advance ind
+            ind++;
+        }
+    }
+}
+
 //----------------------------------------------
 // Text 2 binary
 //----------------------------------------------

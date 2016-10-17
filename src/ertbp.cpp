@@ -160,7 +160,7 @@ void eccBessel(Ofsc &xFFT, int fftN, double e)
 /**
  *  \brief Main routine to compute the Elliptic Three-Body Problem in Ofs format.
  */
-void ertbp(int li_EM, int li_SEM, int fwrk)
+void ertbp(int li_EM, int li_SEM, int coordsys)
 {
     cout << "---------------------------------------------------" << endl;
     cout << "                                                   " << endl;
@@ -179,7 +179,7 @@ void ertbp(int li_EM, int li_SEM, int fwrk)
 
     //Init the ERTBP focused on one libration point
     QBCP_L qbcp_l;
-    init_QBCP_L(&qbcp_l, &fbp, 1, li_EM, li_SEM, true, M_ERTBP, fwrk, PMS_GRAPH, MAN_CENTER, MAN_CENTER);  //Note: PM style is NOT used
+    init_QBCP_L(&qbcp_l, &fbp, 1, li_EM, li_SEM, true, M_ERTBP, coordsys, PMS_GRAPH, MAN_CENTER, MAN_CENTER);  //Note: PM style is NOT used
 
     //Parameters
     int nf       = qbcp_l.nf;

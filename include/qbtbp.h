@@ -46,12 +46,12 @@ using namespace std;
  *  \brief Main routine to compute the QBTBP in Ofs format. The iteratives equation of the QBTBP are solved using qbtbp_ofs.
  *   If necessary, the result is tested using qbtbp_test.
  */
-void qbtbp(int li_EM, int li_SEM, int isTestOn, int fwrk);
+void qbtbp(int li_EM, int li_SEM, int isTestOn, int coordsys);
 
 /**
  *  \brief Main routine to compute the Bicircular Three-Body Problem in Ofs format.
  */
-void bcp(int li_EM, int li_SEM, int fwrk);
+void bcp(int li_EM, int li_SEM, int coordsys);
 
 //-----------------------------------------------------------------------------
 // Computing the QBTBP
@@ -63,7 +63,7 @@ void bcp(int li_EM, int li_SEM, int fwrk);
  *  \param Zr_ofts: a reference to reduced external  motion \f$ Z \f$ so that: \f$ Z_r = \sum \limits_{j} c_j e^{ijnt} \f$ and \f$ Z = a_s e^{in_st} Z_r \f$ in Earth-Moon units.
  *  \param qbcp_l: a reference to the current qbcp, focused on a given point \f$ L_{1,2} \f$.
  */
-void qbtbp_ofs (Ofts< Ofsd > &zr_ofts, Ofts< Ofsd > &Zr_ofts, QBCP_L& qbcp_l, int fwrk);
+void qbtbp_ofs (Ofts< Ofsd > &zr_ofts, Ofts< Ofsd > &Zr_ofts, QBCP_L& qbcp_l, int coordsys);
 
 
 /**

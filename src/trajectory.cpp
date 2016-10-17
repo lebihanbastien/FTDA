@@ -353,7 +353,7 @@ void trajectory_CU(double sti[], Pmap &pmap, int label, int is3D)
     //-------------------------------------------------
     //Change FOCUS
     //-------------------------------------------------
-    changeDCS(SEML, F_SEM);
+    changeCOORDSYS(SEML, F_SEM);
     //------------------------------------------
     // Initialisation of the central manifold
     //------------------------------------------

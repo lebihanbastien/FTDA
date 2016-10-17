@@ -20,7 +20,7 @@ COMPTYPE=$QBTBP
 # MODEL
 # RTBP = 0; QBCP = 1; BCP = 2; ERTBP = 3
 #------------------------------------
-MODEL=$QBCP  
+MODEL=$BCP  
 
 #------------------------------------
 # COORDINATE SYSTEM
@@ -37,8 +37,8 @@ ISNORM=$TRUE
 #------------------------------------
 # DEFAULT LIBRATION POINT FOR EM & SEM SYSTEM
 #------------------------------------
-LI_EM=2
-LI_SEM=1
+LI_EM=1
+LI_SEM=2
 
 #------------------------------------
 # TYPE OF MANIFOLD
@@ -61,7 +61,7 @@ PMS=$GRAPH
 # STORAGE
 # FALSE = 0; TRUE = 1
 #------------------------------------
-STORAGE=$FALSE
+STORAGE=$TRUE
 
 #------------------------------------
 # Numerical constants for all computation

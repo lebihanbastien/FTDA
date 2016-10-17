@@ -234,7 +234,7 @@ struct QBCP_L
 
     //Model
     int model;
-    int fwrk;
+    int coordsys;
     int li;
     int pms;
 
@@ -308,14 +308,14 @@ void init_USYS(USYS *usys, int label, int model);
 /**
  *  \brief From EM to NC coordinates for the primaries. Used in qbtbp_ofs_fft_*
  */
-void EMtoNC_prim(double Zc[3], double zc[3], double c1, double gamma);
+void SYStoNC_prim(double Zc[3], double zc[3], double c1, double gamma);
 
 /**
  * \brief Initializes a coordinate systems (CSYS structure), with associated vector field coefficients, data folder names, and unit system.
  * \param csys pointer on the CSYS structure to initialize.
  * \param qbcp_l pointer on the QBCP_L structure that contains csys.
  * \param qbcp pointer on the QBCP structure that contains parameters specific to each libration points (namely, gamma)
- * \param fwrk indix of the coordinate system to use (F_EM, F_SEM).
+ * \param coordsys indix of the coordinate system to use (F_EM, F_SEM).
  * \param li number of the libration point to focus on (L1, L2).
  * \param coefNumber the number of vector field coefficients to initialize. It has been set in the QBCP_init function.
  * \param isNew boolean. if true, the qbtbp has not been computed via the qbtbp() routine, so the vector field coefficients cannot be initialized.
@@ -323,7 +323,7 @@ void EMtoNC_prim(double Zc[3], double zc[3], double c1, double gamma);
  *   Note that the QBCP structure is used only for the initialization of the coordinate systems. More precisely, it contains some parameters
  *   specific to each libration point (gamma), via its CR3BP structures.
  **/
-void init_CSYS(CSYS *csys, QBCP_L *qbcp_l, QBCP *qbcp, int fwrk, int li, int coefNumber, int isNew, int pmType, int manType);
+void init_CSYS(CSYS *csys, QBCP_L *qbcp_l, QBCP *qbcp, int coordsys, int li, int coefNumber, int isNew, int pmType, int manType);
 
 /**
 * \brief Initialize the Quasi-Bicircular Four-Body Problem in the form of a QBCP structure.
@@ -347,10 +347,10 @@ void init_QBCP(QBCP *qbcp, int n1, int n2, int n3, int model);
 *
 * NEEDS TO BE MODIFIED TO GET RID OF THE HARD CODED VALUES
 **/
-void init_QBCP_L(QBCP_L *qbcp_l, QBCP *qbcp, int isNormalized, int li_EM, int li_SEM, int isNew, int model, int fwrk, int pmType, int manType_EM, int manType_SEM);
+void init_QBCP_L(QBCP_L *qbcp_l, QBCP *qbcp, int isNormalized, int li_EM, int li_SEM, int isNew, int model, int coordsys, int pmType, int manType_EM, int manType_SEM);
 
 
-void init_QBCP_I(QBCP_I *model, QBCP_L *model1, QBCP_L *model2, int n1, int n2, int n3, int isNormalized, int li_EM, int li_SEM, int isNew, int mod1, int mod2, int fwrk, int pmType);
+void init_QBCP_I(QBCP_I *model, QBCP_L *model1, QBCP_L *model2, int n1, int n2, int n3, int isNormalized, int li_EM, int li_SEM, int isNew, int mod1, int mod2, int coordsys, int pmType);
 
 /**
  * \brief Initializes a libration point.
@@ -366,11 +366,11 @@ void init_libp(LibrationPoint *libp, CR3BP cr3bp, int number);
 /**
  *  \brief Change the default coordinate system
  **/
-void changeDCS(QBCP_L &qbcp_l, int fwrk);
+void changeCOORDSYS(QBCP_L &qbcp_l, int coordsys);
 /**
  *  \brief Change the default coordinate system and the libration point for this coordinate system
  **/
-void changeLIDCS(QBCP_L &qbcp_l, int fwrk, int li);
+void changeLICOORDSYS(QBCP_L &qbcp_l, int coordsys, int li);
 
 //-----------------------------------------------------------------------------------------------------------------------------
 //            Subroutines
@@ -386,14 +386,14 @@ string init_F_LI(int li);
 string init_F_MODEL(int model);
 
 /**
- *  \brief Return the string corresponding to the framework (coord. syst.) indix provided (e.g. "EM" if fwrk == F_EM).
+ *  \brief Return the string corresponding to the framework (coord. syst.) indix provided (e.g. "EM" if coordsys == F_EM).
  **/
-string init_F_FWRK(int fwrk);
+string init_F_COORDSYS(int coordsys);
 
 /**
  *  \brief Return the folder name corresponding to the prefix/model/framework/libration point number combination provided (e.g. "prefix/QBCP/EM/L1").
  **/
-string init_F_FOLDER(string prefix, int model, int fwrk, int li);
+string init_F_FOLDER(string prefix, int model, int coordsys, int li);
 
 /**
  * \brief Retrieve a set of coefficients, given as Fourier series from a txt file.

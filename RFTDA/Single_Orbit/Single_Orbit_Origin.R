@@ -1,5 +1,39 @@
-# Script to plot an native_orbit along with its associated precisions
-# in the parameterization method of the QBFBP/RTBP around L1/L2 of the Earth-Moon system
+# Script to plot the dynamical equivalent to the libration points of the Sun-Earth-Moon system.
+# This file makes use of the date files of type (example) "DYNEQ of EML1 in EM.txt" contains in the folder "OOFTDA/plot/QBCP/..."
+# And the resulting plots are saved in the same folder.
+#
+# Output files include: eps, pdf, tikz (.tex)
+#
+# The possible plots are:
+#---------------------------------
+# DYNEQ of EML1 in EM.txt, using:
+# Li    = "L1"
+# MODEL = "QBCP"
+# FWRK  = "EM"
+# FWRK2  = "SEM"
+#---------------------------------
+# DYNEQ of EML2 in EM.txt, using:
+# Li    = "L2"
+# MODEL = "QBCP"
+# FWRK  = "EM"
+# FWRK2  = "SEM"
+#---------------------------------
+# DYNEQ of SEML1 in SEM.txt, using:
+# Li    = "L1"
+# MODEL = "QBCP"
+# FWRK  = "SEM"
+# FWRK2  = "EM"
+#---------------------------------
+# DYNEQ of SEML1 in SEM.txt, using:
+# Li    = "L2"
+# MODEL = "QBCP"
+# FWRK  = "SEM"
+# FWRK2  = "EM"
+#---------------------------------
+#
+# Used for the computation of the plots in the IOP article (2016).
+# BLB 2016
+# Working as of 30/08/2016.
 #--------------------------------------------------------------------------------------------------------------------------
 
 #------------------------------------------------
@@ -10,12 +44,14 @@ source("source/init.R")
 #------------------------------------------------
 # Select Models & libration point
 #------------------------------------------------
-Li    = "L1"
+Li    = "L2"
 MODEL = "QBCP"
-FWRK  = "EM"
-FWRK2  = "SEM"
+FWRK  = "SEM"
+FWRK2  = "EM"
+
+#Working folder
 currentfolder = paste0(plotfolder(MODEL, FWRK, Li), "orbits/")
-maxPrec = 1e-6
+
 #Period of the system
 Period = ifelse(MODEL=="QBCP", 6.79119387190792, 2*pi)
 
@@ -37,9 +73,6 @@ if(MODEL == "QBCP")
   fplot = plotdf_line_dashed;
 }
 fplot_path = plotdf_path;
-
-# Orders
-maxOrder = 0
 
 #--------------------------------------------------------------------------------------------------------------------------
 #                                             XYZ
@@ -94,7 +127,7 @@ native_orbit_start = orbit[which(orbit$t == 0.0),]
 #-------------------------------------------------------------------------------------
 #Path
 #------------------------------------------------
-porb = fplot_path (orbit,  "xEM", "yEM",  "$x$ $[$-$]$",  "$y$ $[$-$]$", "type", "", TRUE, "type")
+porb = fplot_path (orbit,  "xEM", "yEM",  "$X$ $[$-$]$",  "$Y$ $[$-$]$", "type", "", TRUE, "type")
 
 #------------------------------------------------
 # Starting point
@@ -150,7 +183,7 @@ if(Li == "L2" && FWRK == "EM"){
 
 if(Li == "L1" && FWRK == "SEM")
 {
-  porb = porb + scale_x_continuous(breaks = c(-0.980075594, -0.980075593))  #cont scale on the x axis
+  porb = porb + scale_x_continuous(breaks = c(-0.9899842, -0.9899841, -0.9899840))  #cont scale on the x axis
 }
 
 if(Li == "L2" && FWRK == "SEM"){
@@ -172,12 +205,12 @@ if(FWRK == "EM")
 }
 if(Li == "L2" && FWRK == "SEM")
 {
-  porb = porb + scale_y_continuous(breaks = seq(-1e-7, 1e-7, 5e-8), labels=scientific_10)
+  porb = porb + scale_y_continuous(limits = c(-9.17e-8, 9.17e-8), breaks = seq(-1e-7, 1e-7, 5e-8), labels=scientific_10)
 }
 
 if(Li == "L1" && FWRK == "SEM")
 {
-  porb = porb + scale_y_continuous(breaks = seq(-1e-9, 1e-9, 5e-10), labels=scientific_10)
+  porb = porb + scale_y_continuous(limits = c(-9.17e-8, 9.17e-8), breaks = seq(-1e-7, 1e-7, 5e-8), labels=scientific_10)
 }
 
 #------------------------------------------------
@@ -194,7 +227,7 @@ if(FWRK == "SEM")
 
 
 #--------------------------------------------------------------------------------------------------------------------------
-#Save in eps file
+#Save in eps/pdf file
 #--------------------------------------------------------------------------------------------------------------------------
 ggsave(porb, width = xSize, height = ySize, file = paste0(currentfolder, "orbit_", Li, ".eps"))
 ggsave(porb, width = xSize, height = ySize, file = paste0(currentfolder, "orbit_", Li, ".pdf"))
@@ -203,23 +236,25 @@ ggsave(porb, width = xSize, height = ySize, file = paste0(currentfolder, "orbit_
 #Save in tikz
 #--------------------------------------------------------------------------------------------------------------------------
 # Does not currently work
-# ggplot2tikz(porb, xSize, ySize, file = paste0(currentfolder, "orbit_", Li, ".tex"))
+ggplot2tikz(porb, xSize, ySize, file = paste0(currentfolder, "orbit_", Li, ".tex"))
 
-  
-#Create a .tex file that will contain your plot as vectors
-#You need to set the size of your plot here, if you do it in LaTeX, font consistency with the rest of the document will be lost
-tikz(paste0(currentfolder, "orbit_", Li, ".tex"), width = xSize, height = ySize, standAlone=TRUE, documentDeclaration="\\documentclass{standalone}\n",
-     packages = c("\\usepackage[utf8]{inputenc}",
-                  "\\usepackage[T1]{fontenc}",
-                  "\\usepackage{tikz}", 
-                  "\\usepackage{pgf}", 
-                  "\\usetikzlibrary{calc}", 
-                  "\\usepackage{amssymb}", 
-                  "\\usepackage{amsfonts}\n"))
-
-#Simple plot of the dummy data using LaTeX elements
-plot <- porb
-#This line is only necessary if you want to preview the plot right after compiling
-print(plot)
-#Necessary to close or the tikxDevice .tex file will not be written
-dev.off()
+#--------------------------------------------------------------------------------------------------------------------------
+# Old code that is now included in ggplot2tikz
+#--------------------------------------------------------------------------------------------------------------------------
+# #Create a .tex file that will contain your plot as vectors
+# #You need to set the size of your plot here, if you do it in LaTeX, font consistency with the rest of the document will be lost
+# tikz(paste0(currentfolder, "orbit_", Li, ".tex"), width = xSize, height = ySize, standAlone=TRUE, documentDeclaration="\\documentclass{standalone}\n",
+#      packages = c("\\usepackage[utf8]{inputenc}",
+#                   "\\usepackage[T1]{fontenc}",
+#                   "\\usepackage{tikz}", 
+#                   "\\usepackage{pgf}", 
+#                   "\\usetikzlibrary{calc}", 
+#                   "\\usepackage{amssymb}", 
+#                   "\\usepackage{amsfonts}\n"))
+# 
+# #Simple plot of the dummy data using LaTeX elements
+# plot <- porb
+# #This line is only necessary if you want to preview the plot right after compiling
+# print(plot)
+# #Necessary to close or the tikxDevice .tex file will not be written
+# dev.off()

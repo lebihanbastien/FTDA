@@ -1,6 +1,10 @@
 # Script to plot an orbit along with its associated precisions
-# in the parameterization method of the QBFBP/RTBP around L1/L2 of the Earth-Moon system
-#----------------------------------------------------------------------------------------
+# in the parameterization method of the QBFBP/RTBP around L2 of the Earth-Moon system
+#
+# Used for the computation of the plots in the IOP article (2016).
+# BLB 2016
+# Working as of 30/08/2016.
+#--------------------------------------------------------------------------------------------------------------------------
 
 #------------------------------------------------
 # Init

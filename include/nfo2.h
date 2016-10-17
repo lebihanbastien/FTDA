@@ -24,6 +24,7 @@
 #include "qbcp.h"
 #include "define_env.h"
 #include "parameters.h"
+#include "lpdyneq.h"
 
 #include <stdio.h>
 #include <iostream>
@@ -47,9 +48,9 @@ void nfo2(QBCP_L &qbcp_l, int isStored);
 void nfo2_QBP(QBCP_L &qbcp_l, int isStored);
 
 /**
- *  \brief Continuation routine
+ *  \brief Main routine. Compute the complete change of coordinates.
  */
-void continuation(QBCP_L &qbcp_l, int isStored);
+void nfo2_RTBP(QBCP_L &qbcp_l, int isStored);
 
 //-------------------------------------------------------------------------------------------------------
 //Compute the STM/Monodromy Matrix
@@ -94,6 +95,7 @@ void monoDiag(gsl_matrix* MM, gsl_matrix_complex *evecd, gsl_vector_complex *eva
  */
 void monoDecomp(gsl_odeiv2_driver *d,           //driver for odeRK78
                 const double y0[],              //initial conditions
+                const double n,                 //pulsation
                 QBCP_L *qbcp_l,                //Four-Body problem
                 int M,                          //Number of steps for Monodromy matrix splitting in a product of matrices
                 int STABLE_DIR_TYPE,            //Type of computation of the stable direction
@@ -123,10 +125,28 @@ void permutationS(gsl_matrix_complex *S,
                  int *keymap);
 
 
+void monoDecomp_RTBP(gsl_odeiv2_driver* d,           //driver for odeRK78
+                     const double y0[],              //initial conditions
+                     const double n,                 //pulsation
+                     QBCP_L* qbcp_l,                 //Four-Body problem
+                     int M,                          //Number of steps for Monodromy matrix splitting in a product of matrices
+                     int STABLE_DIR_TYPE,            //Type of computation of the stable direction
+                     gsl_matrix_complex* MMc,        //Final monodromy matrix in complex form                                    |
+                     gsl_matrix* MM,                 //Final monodromy matrix in real form                                       |
+                     gsl_matrix_complex* Dm,         //The eigenvalues  are stored in Dm(i,i), i = 0,...,5                       |   Outputs
+                     gsl_matrix_complex* DB,         //DB = 1/T*log(Dm)                                                          |
+                     gsl_matrix_complex* B,          //B = S*DB*Sinv                                                             |
+                     gsl_matrix_complex* S,          //The eigenvectors are stored on  S(i,*), i = 0,...,5                       |
+                     gsl_matrix* JB,                 //Real Jordan form of B                                                     |
+                     gsl_matrix* Br,                 //Real form of B computed from the Jordan Form                              |
+                     gsl_matrix* R,                  //B = R*JB*Rinv                                                             |
+                     gsl_matrix_complex** DAT,       //Contains the STM at each of the M steps                                   |
+                     int isStored);
+
 /**
  *  \brief Obtain the real Jordan form of the matrix B.
  */
-void monoDecompLog(gsl_matrix_complex *S,  gsl_matrix_complex *Dm, double T, double n, gsl_matrix_complex *DB, gsl_matrix_complex *B, gsl_matrix *Br, gsl_matrix *JB, gsl_matrix *R);
+void monoDecompLog(gsl_matrix_complex *S,  gsl_matrix_complex *Dm, double T,  gsl_matrix_complex *DB, gsl_matrix_complex *B, gsl_matrix *Br, gsl_matrix *JB, gsl_matrix *R);
 
 /**
  *  \brief Diagonalization of the central part of VECS(*,*,0), wich at this point, has no unstable component under M = DAT[M]*DAT[M-1]*...*DAT[1].
@@ -225,13 +245,14 @@ void ortho(gsl_matrix_complex **VECS, int IK, int M);
 /**
  *  \brief Obtain the FFT decomposition of various matrices P, Q = inv(P) FT11, FT12, FT21 and FT22.
  */
-void nfo2coc(gsl_odeiv2_driver *d, const double y0[], QBCP_L *qbcp_l, gsl_matrix* Br, gsl_matrix* R, gsl_matrix* JB, int N, int isStored);
+void nfo2coc(gsl_odeiv2_driver *d, const double y0[], const double n, QBCP_L *qbcp_l, gsl_matrix* Br, gsl_matrix* R, gsl_matrix* JB, int N, int isStored);
 
 /**
  *  \brief Integrate the various matrices referenced on a N point grid to seed FFT process.
  */
 void nfo2Int(gsl_odeiv2_driver *d,
              const double y0[],
+             const double n,
              QBCP_L *qbcp_l,
              gsl_matrix* Br,
              gsl_matrix* R,
@@ -253,12 +274,12 @@ void nfo2Int(gsl_odeiv2_driver *d,
 /**
  *  \brief FFT of the coefficients of a given matrix P obtained on a N points grid
  */
-void nfo2FFT(Ofsc& xFFT, QBCP_L *qbcp_l, gsl_matrix** P, gsl_matrix** Pt, /*gsl_matrix* R,*/ int N, int fftN, int fftPlot, string filename, int flag, int isStored);
+void nfo2FFT(Ofsc& xFFT, QBCP_L *qbcp_l, gsl_matrix** P, gsl_matrix** Pt, double n, int N, int fftN, int fftPlot, string filename, int flag, int isStored);
 
 /**
  *  \brief Test of the validity of the FFT on a fftPlot points grid.
  */
-void nfo2Test(Ofsc& xFFT, QBCP_L *qbcp_l, gsl_matrix** P, /*gsl_matrix* R,*/ int fftPlot, int i0, int j0);
+void nfo2Test(Ofsc& xFFT, QBCP_L *qbcp_l, gsl_matrix** P, double n, int fftPlot, int i0, int j0);
 
 
 //-------------------------------------------------------------------------------------------------------
@@ -267,12 +288,12 @@ void nfo2Test(Ofsc& xFFT, QBCP_L *qbcp_l, gsl_matrix** P, /*gsl_matrix* R,*/ int
 /**
  *  \brief Periodicity test of P.
  */
-void nfo2PerTest(gsl_odeiv2_driver *d, const double y0[], QBCP_L *qbcp_l, gsl_matrix* R);
+void nfo2PerTest(gsl_odeiv2_driver *d, const double y0[], double n, QBCP_L *qbcp_l, gsl_matrix* R);
 
 /**
  *  \brief Symmetry test on P.
  */
-void nfo2SymTest(gsl_odeiv2_driver *d, const double y0[], QBCP_L *qbcp_l, gsl_matrix* R, int p, int N);
+void nfo2SymTest(gsl_odeiv2_driver *d, const double y0[],  double n, QBCP_L *qbcp_l, gsl_matrix* R, int p, int N);
 
 /**
  *  \brief Test of the symplectic character of a given complex matrix.

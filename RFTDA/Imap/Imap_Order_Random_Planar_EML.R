@@ -12,7 +12,7 @@ source("source/init.R")
 #------------------------------------------------
 # Select Models & libration point
 #------------------------------------------------
-Li    = "L2"
+Li    = "L1"
 MODEL = "QBCP"
 FWRK  = "EM"
 Type  = "rand" #selection or global
@@ -219,7 +219,7 @@ imapr = rbind(imapr_eml1, imapr_eml2);
 # Only a given precision
 #---------------------
 # Version without background
-pplc = plotdf_point(imapr, "xEM", "yEM", "$X$ $[$-$]$", "$Y$ $[$-$]$", pointSize = 1, colorCol = "order", colorLabel = "Order", isColorFac = TRUE)
+pplc = plotdf_point(imapr, "xEM", "yEM", "$X$", "$Y$", pointSize = 1, colorCol = "order", colorLabel = "Order", isColorFac = TRUE)
 pplc = pplc + guides(colour = guide_legend(override.aes = list(size=3)))
 pplc
 #Version with background (at constant energy)
@@ -231,13 +231,20 @@ pplc
 
 #Add m2
 primaryPos  =  -(1-muR)  #Add m2
-moon = data.frame(xEM = primaryPos, yEM = 0)
-pplc = pplc + geom_point(data = moon, aes(xEM, yEM), size = 4, colour = "black", fill = "black", pch = 21)
+# moon = data.frame(xEM = primaryPos, yEM = 0)
+# pplc = pplc + geom_point(data = moon, aes(xEM, yEM), size = 4, colour = "black", fill = "black", pch = 21)
+
+#Add m2 with true apparen radius
+moon = circleFun(center = c(primaryPos, 0), diameter = primaryR/L, npoints = 100, start = 0, end = 2, filled = TRUE)
+pplc = pplc + geom_polygon(data=moon, aes(x,y), color="black", fill="black")
+
+
+#Ratio and limits
 pplc = pplc + coord_fixed(ratio=1)
 if(Li == "L2")
 {
   pplc = pplc + scale_y_continuous(limits = c(-0.115,0.115))
-#  pplc = pplc + theme(legend.justification = c(1,0), legend.position = c(0.5,0))
+ #  pplc = pplc + theme(legend.justification = c(1,0), legend.position = c(0.5,0))
  # pplc
 }else{
   pplc = pplc + scale_y_continuous(limits = c(-0.115,0.115))

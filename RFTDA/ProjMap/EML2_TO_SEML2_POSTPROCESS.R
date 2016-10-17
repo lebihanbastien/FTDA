@@ -2,11 +2,43 @@
 # R script used in EML2_TO_SEML.R for the postprocess 
 # of a projection map (connections between EML2 and SEML1,2)
 ######################################################################################
+#------------------------------------------------
+# Define limit of projection
+#------------------------------------------------
+#hard
+projection_lim_max = 1e-2;
+projection_lim_mid = 5e-4;
+
+#===============================================================================
+# Define limit of projection for colors
+#===============================================================================
+projection_color_lim = c(0, 5e-3);
+
+#easy
+# projection_lim_max = 5e-3;
+# projection_lim_mid = 1e-3;
+
+# Projection in SI
+projection_lim_max_SI = projection_lim_max*CST_DIST_PRIM_SEM
+projection_lim_mid_SI = projection_lim_mid*CST_DIST_PRIM_SEM 
+projection_lim_mid_SI
+
+
+#------------------------------------------------
+# Time index
+#------------------------------------------------
+time_index = -1;
+
+#===============================================================================
+# Factor(label)
+#===============================================================================
+#proj_map_source$flabel = factor(proj_map_source$label)
+
 
 #===============================================================================
 #Keep only values with a projection distance below projection_lim_max.
 #===============================================================================
-proj_map = proj_map[which(proj_map$pmin_dist_SEM <= projection_lim_max),] 
+proj_map = proj_map_source[which(proj_map_source$pmin_dist_SEM <= projection_lim_max),] 
 
 #===============================================================================
 #Errors and norms
@@ -41,6 +73,15 @@ proj_map_min$pmin_dist_SI
 1e3*proj_map_min$dv_at_projection_SI
 
 #===============================================================================
+#Radius
+#===============================================================================
+proj_map$rf_CM_SEM = sqrt(proj_map$xf_CM_SEM^2 + proj_map$yf_CM_SEM^2 + proj_map$zf_CM_SEM^2)
+rf_CM_SEM_mid = mean(proj_map$rf_CM_SEM)
+
+proj_map$sf_CM_SEM = sqrt(proj_map$s1_CM_SEM^2 + proj_map$s3_CM_SEM^2)
+sf_CM_SEM_mid = mean(proj_map$sf_CM_SEM)
+
+#===============================================================================
 #Time
 #===============================================================================
 #Get the time as a percentage of T
@@ -55,7 +96,22 @@ proj_map$tof_SI = (proj_map$tf_man_SEMT-proj_map$t0_CMU_EMT)*SEMperiod("EM")*Tcr
 #proj_map = proj_map[which(proj_map$t0_CMU_EMT == proj_map$t0_CMU_EMT[8]),]
 
 #===============================================================================
+#NCEM to EM
+#===============================================================================
+proj_map$x0_CMU_EM <- -CST_GAMMA_LIB_EM * (proj_map$x0_CMU_NCEM-CST_C1_LIB_EM);
+proj_map$y0_CMU_EM <- -CST_GAMMA_LIB_EM * (proj_map$y0_CMU_NCEM);
+proj_map$z0_CMU_EM <- +CST_GAMMA_LIB_EM * (proj_map$z0_CMU_NCEM);
+
+
+#===============================================================================
 # Select a given value of time
 #===============================================================================
 t0_CMU_EM_vec = unique(proj_map$t0_CMU_EM)
-proj_map_tem = proj_map[which(proj_map$t0_CMU_EM == t0_CMU_EM_vec[1]),] 
+
+if(time_index > 0)
+{
+  proj_map_tem = proj_map[which(proj_map$t0_CMU_EM == t0_CMU_EM_vec[time_index]),] 
+}else{
+  proj_map_tem = proj_map
+}
+

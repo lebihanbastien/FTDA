@@ -408,7 +408,7 @@ void INtoSEM(double t, const double yIN[], double ySE[],
 }
 
 //-----------------------------------------------------------------------------
-// COC: SEM <--> IN <--> EM
+// COC: SEM <--> EM
 //-----------------------------------------------------------------------------
 /**
  * \brief From SEM to EM (both in position/momenta form)
@@ -463,6 +463,9 @@ void EMmtoSEMm(double t, const double yEMm[], double ySEMm[],
     SEMvtoSEMm(tc, ySEMv, ySEMm, qbcp_l);
 }
 
+//-----------------------------------------------------------------------------
+// COC: SEM <--> NCEM
+//-----------------------------------------------------------------------------
 /**
  * \brief From NC EM to SEM (both in position/momenta form)
  **/
@@ -474,3 +477,35 @@ void NCEMmtoSEMm(double t, const double yNCEMm[], double ySEMm[], QBCP_L *qbcp_l
     //EM to SEM
     EMmtoSEMm(t, yEMm, ySEMm, qbcp_l);
 }
+
+//-----------------------------------------------------------------------------
+// COC: NCSEM <--> NCEM
+//-----------------------------------------------------------------------------
+/**
+ * \brief From NC SEM to  NC EM (both in position/momenta form)
+ **/
+void NCSEMmtoNCEMm(double t, const double yNCSEMm[], double yNCEM[], QBCP_L *qbcp_l)
+{
+    double ySEMm[6], yEMm[6];
+    //NC to EM
+    NCtoSEM(t, yNCSEMm, ySEMm, qbcp_l);
+    //SEM to EM
+    SEMmtoEMm(t, ySEMm, yEMm, qbcp_l);
+    //EM to NC (careful, the time should be set into EM units!)
+    EMtoNC(t/qbcp_l->us_em.ns, yEMm, yNCEM, qbcp_l);
+}
+
+/**
+ * \brief From NC EM to  NC SEM (both in position/momenta form)
+ **/
+void NCEMmtoNCSEMm(double tEM, const double yNCEMm[], double yNCSEM[], QBCP_L *qbcp_l)
+{
+    double yEMm[6], ySEMm[6];
+    //NC to EM
+    NCtoEM(tEM, yNCEMm, yEMm, qbcp_l);
+    //EM to SEM
+    EMmtoSEMm(tEM, yEMm, ySEMm, qbcp_l);
+    //SEM to NC (careful, the time should be set into SEM units!)
+    SEMtoNC(tEM*qbcp_l->us_em.ns, ySEMm, yNCSEM, qbcp_l);
+}
+

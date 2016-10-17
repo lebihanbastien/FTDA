@@ -43,13 +43,33 @@ fontsize = list(title = 20,    #fontsize for title
                 big   = 30)   #fontsize for labels   
 
 #Linesize
-linesize = list(line = 1, point = 2)
+linesize = list(line = 2, point = 2)
 
 #--------------------------------------------------------------------------#
 #Themes
 #--------------------------------------------------------------------------#
 #Base custom theme
 custom_theme = theme(
+  #Background
+  plot.background = element_rect(fill = "transparent", colour = NA),
+  #Axes
+  axis.text.x  = element_text(colour="grey20", size=fontsize[["label"]], angle=0, hjust = 0.5, vjust=  0.5, margin = margin(10,1,1,1)),
+  axis.text.y  = element_text(colour="grey20", size=fontsize[["label"]], angle=0, hjust = 1,   vjust=  0.5, margin = margin(1,5,1,1)),
+  axis.title.x = element_text(colour="grey20", size=fontsize[["label"]], vjust =  0.5, margin = margin(20,1,1,1)),
+  axis.title.y = element_text(colour="grey20", size=fontsize[["label"]], vjust =  0.5, margin = margin(1,15,1,1)),
+  #Legend
+  legend.text  = element_text(colour="grey20", size=fontsize[["legend"]], hjust = 0.0),
+  legend.title = element_text(colour="grey20", size=fontsize[["legend"]]),
+  legend.title.align   = 0.5,
+  legend.key.size      = unit(1, 'cm'),
+  legend.key.width     = unit(2, 'cm')
+)
+
+
+#BW custom theme
+custom_bw_theme = theme_bw() + theme(
+  #Background
+  plot.background = element_rect(fill = "transparent", colour = NA),
   #Axes
   axis.text.x  = element_text(colour="grey20", size=fontsize[["label"]], angle=0, hjust = 0.5, vjust=  0.5, margin = margin(10,1,1,1)),
   axis.text.y  = element_text(colour="grey20", size=fontsize[["label"]], angle=0, hjust = 1,   vjust=  0.5, margin = margin(1,5,1,1)),
@@ -65,6 +85,8 @@ custom_theme = theme(
 
 #Big fong
 big_font_theme = theme(
+  #Background
+  plot.background = element_rect(fill = "transparent", colour = NA),
   #Axes
   axis.text.x  = element_text(colour="grey20", size=fontsize[["big"]] , angle=0, hjust = 0.5, vjust=  0.5, margin = margin(10,1,1,1)),
   axis.text.y  = element_text(colour="grey20", size=fontsize[["big"]] , angle=0, hjust = 1,   vjust=  0.5, margin = margin(1,5,1,1)),
@@ -724,7 +746,11 @@ plotdf_tile_n<- function(ttm,              #dataframe
                          colorLabel,       #associated label
                          colorMidPoint,
                          isLegendOn,
-                         legendPos)
+                         legendPos,
+                         lowColor,
+                         midColor,
+                         highColor,
+                         colorLimits)
 {
   #Ggplot init
   #--------------------------------------
@@ -780,19 +806,208 @@ plotdf_tile_n<- function(ttm,              #dataframe
     }
   }
   
+  #Colors
+  #--------------------------------------
+  if(!missing(lowColor)) #if a lowColor was provided
+  {
+    lowColor_temp = lowColor
+  }else
+  {
+    lowColor_temp = muted("red")
+  }
+
+  if(!missing(midColor)) #if a midColor was provided
+  {
+    midColor_temp = midColor
+  }else
+  {
+    midColor_temp = "white"
+  }
+  
+  if(!missing(highColor)) #if a highColor was provided
+  {
+    highColor_temp = highColor
+  }else
+  {
+    highColor_temp = muted("blue")
+  }
+
   #Fill color gradient
   #--------------------------------------
   if(isLegendOn==1)
   {
     cg = guide_legend(title.hjust = 0.0)
-    px = px + scale_fill_gradient2(clb, space="Lab", midpoint = cmp, mid = "white", high = muted("blue"))
+    
+    if(!missing(colorLimits))
+    {
+      px = px + scale_fill_gradient2(clb, space="Lab", midpoint = cmp, mid = midColor_temp, high = highColor_temp, limits = colorLimits)
+    }else{
+      px = px + scale_fill_gradient2(clb, space="Lab", midpoint = cmp, mid = midColor_temp, high = highColor_temp)
+    }
   }else{
-    px = px + scale_fill_gradient2(clb, space="Lab", midpoint = cmp, mid = "white", high = muted("blue"),   guide = FALSE)
+    if(!missing(colorLimits))
+    {
+      px = px + scale_fill_gradient2(clb, space="Lab", midpoint = cmp, mid = midColor_temp, high = highColor_temp, limits = colorLimits,  guide = FALSE)
+    }else{
+      px = px + scale_fill_gradient2(clb, space="Lab", midpoint = cmp, mid = midColor_temp, high = highColor_temp, guide = FALSE)
+    }
   }
   
   #Color gradient
   #--------------------------------------
-  px = px + scale_colour_gradient2(clb, space="Lab", midpoint = cmp, mid = "white", high = muted("blue"), guide = FALSE)
+  if(!missing(colorLimits))
+  {
+    px = px + scale_colour_gradient2(clb, space="Lab", midpoint = cmp, mid = midColor_temp, high = highColor_temp, guide = FALSE, limits = colorLimits)
+  }else{
+    px = px + scale_colour_gradient2(clb, space="Lab", midpoint = cmp, mid = midColor_temp, high = highColor_temp, guide = FALSE)
+  }
+  
+  #Labels
+  #--------------------------------------
+  if(!missing(xlabel)) xlabeli = xlabel
+  else xlabeli = colx
+  
+  if(!missing(ylabel)) ylabeli = ylabel
+  else ylabeli = coly
+  
+  px = px + labs(x = xlabeli, y = ylabeli)
+  
+  
+  #Theme
+  #--------------------------------------
+  px= px + custom_theme +theme(legend.title.align= 0.5)
+  
+  
+  #Legend position
+  #--------------------------------------
+  if(!missing(legendPos))
+  {
+    px = px+theme(legend.position=legendPos, legend.title.align= 0.5)
+  }
+  
+  #Return the plot handle
+  #--------------------------------------
+  return(px)
+}
+
+#--------------------------------------------------------------------------#
+# Tile plot with low/high color
+#--------------------------------------------------------------------------#
+plotdf_tile_1<- function(ttm,              #dataframe
+                         colx,             #x
+                         coly,             #y
+                         xlabel,           #xlabel
+                         ylabel,           #ylabel
+                         colorCol,         #column for color scaling
+                         colorLabel,       #associated label
+                         isLegendOn,
+                         legendPos,
+                         lowColor,
+                         highColor,
+                         colorLimits,
+                         na.value)
+{
+  #Ggplot init
+  #--------------------------------------
+  px = ggplot()
+  
+  #Changing temporarily the names of the desired columns (x & y)
+  #--------------------------------------
+  i1 = which(colnames(ttm) == colx)
+  i2 = which(colnames(ttm) == coly)
+  colnames(ttm)[i1] = "temp1"
+  colnames(ttm)[i2] = "temp2"
+  
+  #Colour label if necessary
+  #--------------------------------------
+  if(!missing(colorLabel))
+  {
+    clb = colorLabel #new title
+  }
+  else{
+    clb = expression(log[10]~bgroup("(",e[O]~bgroup("(",frac(T,2),")"),")") ~~~~ "") #orbital error by default
+  }
+  
+  #Plot
+  #--------------------------------------
+  if(!missing(colorCol)) #if a color scheme is provided
+  {
+    #Changing temporarily the names of the desired columns (colorCol)
+    i1 = which(colnames(ttm) == colorCol)
+    colnames(ttm)[i1] = "colorCol"
+    
+    # Plot tiles
+    px = px + geom_tile(data = ttm, aes(temp1, temp2, fill = colorCol, colour = colorCol))
+  }
+  else #no colour scheme, automatically on log10(eOm) if it exists
+  {
+    if(is.null(ttm$log10eOm))
+    {
+      stop("Error in plotdf_tile_n: no colour scheme provided and ttm$log10eOm does not exist")
+    }
+    else
+    {
+      px = px + geom_tile(data = ttm, aes(temp1, temp2, fill = log10eOm, colour = log10eOm))
+    }
+  }
+  
+  #Colors
+  #--------------------------------------
+  if(!missing(lowColor)) #if a lowColor was provided
+  {
+    lowColor_temp = lowColor
+  }else
+  {
+    lowColor_temp = muted("blue")
+  }
+  
+  if(!missing(highColor)) #if a highColor was provided
+  {
+    highColor_temp = highColor
+  }else
+  {
+    highColor_temp = "white" 
+  }
+  
+  if(!missing(na.value)) #if a highColor was provided
+  {
+    na.value_temp = na.value
+  }else
+  {
+    na.value_temp = "grey50" 
+  }
+  
+  
+  
+  #Fill color gradient
+  #--------------------------------------
+  if(isLegendOn==1)
+  {
+    cg = guide_legend(title.hjust = 0.0)
+    
+    if(!missing(colorLimits))
+    {
+      px = px + scale_fill_gradient(clb, space="Lab", low = lowColor_temp, high = highColor_temp,  na.value = na.value_temp, limits = colorLimits)
+    }else{
+      px = px + scale_fill_gradient2(clb, space="Lab", low = lowColor_temp, high = highColor_temp, na.value = na.value_temp)
+    }
+  }else{
+    if(!missing(colorLimits))
+    {
+      px = px + scale_fill_gradient(clb, space="Lab", low = lowColor_temp, high = highColor_temp, na.value = na.value_temp, limits = colorLimits,  guide = FALSE)
+    }else{
+      px = px + scale_fill_gradient(clb, space="Lab", low = lowColor_temp, high = highColor_temp, na.value = na.value_temp, guide = FALSE)
+    }
+  }
+  
+  #Color gradient
+  #--------------------------------------
+  if(!missing(colorLimits))
+  {
+    px = px + scale_colour_gradient(clb, space="Lab",  low = lowColor_temp, high = highColor_temp, na.value = na.value_temp, guide = FALSE, limits = colorLimits)
+  }else{
+    px = px + scale_colour_gradient(clb, space="Lab",  low = lowColor_temp, high = highColor_temp, na.value = na.value_temp, guide = FALSE)
+  }
   
   #Labels
   #--------------------------------------

@@ -194,7 +194,7 @@ pmdf_lab$precFlag = precFlag
 #--------------------------
 #Lab: vs ePm
 #--------------------------
-pEM = plotdf_point(pmdf_lab, "xEM", "yEM", "X [-]", "Y [-]", "precFlag", expression(e[P](t) < 10 ^{-6}),1, pointSize = 0.3)
+pEM = plotdf_point(pmdf_lab, "xEM", "yEM", "X", "Y", "precFlag", expression(e[P](t) < 10 ^{-6}),1, pointSize = 0.3)
 #Colors
 pEM = pEM + scale_colour_manual(values = c("#000000", "#279B61"), guide = FALSE);#, "#CC6666", "#9999CC"), guide = FALSE) #to get the proper order!
 #Theme
@@ -206,19 +206,19 @@ if (pEM_limits)
   pEM = pEM + scale_y_continuous(limits = pEM_limits_y)
 }
 #Change font
-pEM = pEM+theme(text=element_text(family="Times"))
+pEM = pEM+theme(text=element_text(family="Times"), plot.background = element_rect(fill = "transparent",colour = NA))
 #Display
 pEM
 #Save
-ggsave(pEM, width = xSize, height = xSize, file = paste0(filename, "_EM.png")) #Save in png
-ggsave(pEM, width = xSize, height = xSize, file = paste0(filename, "_EM.pdf")) #Save in pdf
+ggsave(pEM, width = xSize, height = xSize, bg = "transparent",  file = paste0(filename, "_EM.png")) #Save in png
+ggsave(pEM, width = xSize, height = xSize, bg = "transparent",  file = paste0(filename, "_EM.pdf")) #Save in pdf
 
 
 
 #--------------------------
 # EM with prescribed precision
 #--------------------------
-pEMprec = plotdf_point(pmdf_lab, "xEM", "yEM", "X [-]", "Y [-]", pointSize = 1)
+pEMprec = plotdf_point(pmdf_lab, "xEM", "yEM", "X", "Y", pointSize = 1)
 #Theme
 pEMprec = pEMprec +big_font_theme
 #Display
@@ -227,23 +227,23 @@ pEMprec
 #--------------------------
 #Lab: labels
 #--------------------------
-pLab = plotdf_point(pmdf_lab, "xEM", "yEM", "X [-]", "Y [-]", "label", "label", 1, pointSize = 0.3)
+pLab = plotdf_point(pmdf_lab, "xEM", "yEM", "X", "Y", "label", "label", 1, pointSize = 0.3)
 #Colors
 pLab = pLab + scale_colour_discrete(guide = FALSE)
 #Theme
 pLab = pLab + custom_theme
 #Change font
-pLab = pLab+theme(text=element_text(family="Times"))
+pLab = pLab+theme(text=element_text(family="Times"), plot.background = element_rect(fill = "transparent",colour = NA))
 #Display
 pLab
 #Save
-ggsave(pLab, width = xSize, height = xSize, file = paste0(filename, "_Labels.png")) #Save png
-ggsave(pLab, width = xSize, height = xSize, file = paste0(filename, "_Labels.pdf")) #Save in pdf
+ggsave(pLab, width = xSize, height = xSize, bg = "transparent", file = paste0(filename, "_Labels.png")) #Save png
+ggsave(pLab, width = xSize, height = xSize, bg = "transparent", file = paste0(filename, "_Labels.pdf")) #Save in pdf
 
 #--------------------------
 #Lab: labels (tex version)
 #--------------------------
-pTeX = plotdf_point(pmdf_lab, "xEM", "yEM", "$X$ $[$-$]$", "$Y$ $[$-$]$", "label", "label", 1, pointSize = 1)
+pTeX = plotdf_point(pmdf_lab, "xEM", "yEM", "$X$", "$Y$", "label", "label", 1, pointSize = 1)
 #Colors
 pTeX = pTeX + scale_colour_discrete(guide = FALSE)
 #Theme
@@ -251,7 +251,7 @@ pTeX = pTeX + custom_theme#big_font_theme
 #Display
 pTeX
 #Save
-#ggplot2tikz(pTeX, width = xSize, height = ySize, file = paste0(filename, "_tex.tex")) #Save in tex
+ggplot2tikz(pTeX, width = xSize, height = ySize, file = paste0(filename, "_tex.tex")) #Save in tex
 
 #--------------------------
 #Time between each projection

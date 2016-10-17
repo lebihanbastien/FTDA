@@ -69,8 +69,14 @@ public:
 //-----------------------------------------------------------------------
 //Binomial coefficients
 //-----------------------------------------------------------------------
-
+/**
+ * \brief Computes the binomial coefficient (x y).
+ **/
 unsigned long binomial(unsigned long n, unsigned long k);
+
+/**
+ * \brief Computes the binomial coefficient (n k). DEPRECATED.
+ **/
 unsigned long gcd_ui(unsigned long x, unsigned long y);
 
 #endif // FTDA_H_INCLUDED

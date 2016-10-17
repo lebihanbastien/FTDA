@@ -362,7 +362,7 @@ int qbfbp_Dfn_varnonlin(double t, const double y[], double **Df, void *params_vo
 // Inner routines for the computation of the vector fields
 //-------------------------------------------------------
 /**
- *  \brief Build the Variational Equation Matrix Q from the arrays b and alpha
+ *  \brief Build the Variational Equation Matrix Q from the arrays b and alpha. Note that alpha[14] (alpha15) is zero for the QBCP
  **/
 void set_vareq_matrix(gsl_matrix *Q, double b[], double alpha[])
 {
@@ -394,7 +394,7 @@ void set_vareq_matrix(gsl_matrix *Q, double b[], double alpha[])
 }
 
 /**
- *  \brief Update the vector field of the state in system coordinates (non-normalized)
+ *  \brief Update the vector field of the state in system coordinates (non-normalized). Note that alpha[14] (alpha15) is zero for the QBCP
  **/
 int vf_state( const double y[], double f[], double alpha[],
               double ps[], double pe[], double pm[],
@@ -442,7 +442,7 @@ int vf_state( const double y[], double f[], double alpha[],
 }
 
 /**
- *  \brief Update the vector field of the state in Normalized-Centered (NC) coordinates
+ *  \brief Update the vector field of the state in Normalized-Centered (NC) coordinates. Note that alpha[14] (alpha15) is zero for the QBCP
  **/
 int vfn_state(const double y[], double f[], double alpha[],
               double ps[], double pe[], double pm[],
@@ -547,7 +547,7 @@ int vfn_stm(const double y[], gsl_matrix *Q, double alpha[],
 
 
 /**
- *  \brief Update the Normalized-Centered variational equation matrix - case of a double **Df, instead of a gsl_matrix.
+ *  \brief Update the Normalized-Centered variational equation matrix - case of a double **Df, instead of a gsl_matrix. Note that alpha[14] (alpha15) is zero for the QBCP
  **/
 int vfn_stm(const double y[], double **Df, double alpha[],
             double ps[], double pe[], double pm[],
@@ -925,7 +925,7 @@ double qbfbp_H(double t, const double y[], void *params_void)
 
 
 /**
- *  \brief Hamiltonian of the QBCP with EM units and Normalized-Centered coordinates
+ *  \brief Hamiltonian of the QBCP with EM units and Normalized-Centered coordinates. Note that alpha[14] (alpha15) is zero for the QBCP
  **/
 double qbfbp_Hn(double t, const double y[], void *params_void)
 {
@@ -974,9 +974,7 @@ double qbfbp_Hn(double t, const double y[], void *params_void)
              - y[0]*alpha[12]
              - y[1]*alpha[13]
              - 0.5*alpha[14]*(y[0]*y[0] + y[1]*y[1] + y[2]*y[2])
-             - alpha[5]/pow(gamma,3.0)*( me/pow(qpe2, 1.0/2)
-                                            + mm/pow(qpm2, 1.0/2)
-                                            + ms/pow(qps2, 1.0/2) );
+             - alpha[5]/pow(gamma,3.0)*( me/pow(qpe2, 1.0/2) + mm/pow(qpm2, 1.0/2) + ms/pow(qps2, 1.0/2) );
     return H;
 }
 
@@ -1404,43 +1402,6 @@ void NCtoSEM(double t, const double yNC[], double ySEM[], QBCP_L *qbp)
 
 }
 
-//-----------------------------------------------------------------------------
-// COC: NCEM <--> NCSEM
-//-----------------------------------------------------------------------------
-
-/**
- *  \brief COC: from NC coordinates (SEM) to NC coordinates (EM)
- **/
-void SNCtoENC(double t, const double ySNC[], double yENC[], QBCP_L *qbp)
-{
-    double yEMm[6];
-    double ySEMm[6];
-
-    //SNC to SEM
-    NCtoSEM(t, ySNC, ySEMm, qbp);
-    //SEM to EM
-    SEMmtoEMm(t, ySEMm, yEMm, qbp);
-    //EM to ENC
-    EMtoNC(t, yEMm, yENC, qbp);
-}
-
-
-/**
- *  \brief COC: from NC coordinates (EM) to NC coordinates (SEM)
- **/
-void ENCtoSNC(double t, const double yENC[], double ySNC[], QBCP_L *qbp)
-{
-    double yEMm[6];
-    double ySEMm[6];
-
-    //ENC to EM
-    NCtoEM(t, yENC, yEMm, qbp);
-    //EM to SEM
-    EMmtoSEMm(t, yEMm, ySEMm, qbp);
-    //SEM to SNC
-    SEMtoNC(t, ySEMm, ySNC, qbp);
-}
-
 
 //-----------------------------------------------------------------------------
 // COC: tests & plots
@@ -1749,7 +1710,7 @@ int odePlot_EMtoSEM(const double y[],
         ti = i * t1 / Npoints;
         if(i > 0) gsl_odeiv2_driver_apply (d, &t, ti, yENC);
         //ENC to SNC
-        ENCtoSNC(t, yENC, ySNC, &qbcp_l);
+        NCEMmtoNCSEMm(t, yENC, ySNC, &qbcp_l);
         //Storage
         xc[i] = ySNC[0];
         yc[i] = ySNC[1];
@@ -1809,7 +1770,7 @@ int odePlot_SEMtoEM(const double y[],
         ti = i * t1 / Npoints;
         if(i > 0) gsl_odeiv2_driver_apply (d, &t, ti, ySNC);
         //SNC to ENC
-        SNCtoENC(ti, ySNC, yENC, &qbcp_l);
+        NCSEMmtoNCEMm(ti, ySNC, yENC, &qbcp_l);
         //Storage
         xc[i] = yENC[0];
         yc[i] = yENC[1];
@@ -1870,7 +1831,7 @@ void dynTest_SEMtoEM()
     //-------------------------------------------------
     // SEML focused on the SEM system
     //-------------------------------------------------
-    changeDCS(SEML, F_SEM);
+    changeCOORDSYS(SEML, F_SEM);
 
     //-------------------------------------------------
     //Integration tools
@@ -1955,13 +1916,13 @@ void dynTest_SEMtoEM()
     //-------------------------------------------------
     //Using EM frame
     //-------------------------------------------------
-    changeDCS(SEML, F_EM);
+    changeCOORDSYS(SEML, F_EM);
 
     //-------------------------------
     //SNC to ENC
     //-------------------------------
     double yENC[42];        //in NC units, momenta
-    SNCtoENC(0.0, ySNC, yENC, &SEML);
+    NCSEMmtoNCEMm(0.0, ySNC, yENC, &SEML);
     //Storing eye(6) into the initial vector
     gslc_matrixToVector(yENC, Id, 6, 6, 6);
     //differential_correction(yENC, 0.5*T_EM, 1e-14, d, 0); //NOT NEEDED, ALREADY VERY PRECISE!
@@ -2017,7 +1978,7 @@ void dynTest_EMtoSEM()
     //-------------------------------------------------
     //Using EM frame
     //-------------------------------------------------
-    changeDCS(SEML, F_EM);
+    changeCOORDSYS(SEML, F_EM);
 
     //-------------------------------------------------
     //Integration tools
@@ -2097,13 +2058,13 @@ void dynTest_EMtoSEM()
     //-------------------------------------------------
     //Using SEM frame
     //-------------------------------------------------
-    changeDCS(SEML, F_SEM);
+    changeCOORDSYS(SEML, F_SEM);
 
     //-----------------
     //ENC to SNC
     //-----------------
     double ySNC[42];    //in NC units, momenta
-    ENCtoSNC(0.0, yENC, ySNC, &SEML);
+    NCEMmtoNCSEMm(0.0, yENC, ySNC, &SEML);
     //Storing eye(6) into the initial vector
     gslc_matrixToVector(ySNC, Id, 6, 6, 6);
 
@@ -2119,9 +2080,9 @@ void dynTest_EMtoSEM()
     //Diff Corr in SNC
     differential_correction(ySNC, T_SE, 1e-14, d, 42, 0);
     //Change framework for integration
-    changeDCS(SEML, F_EM);
+    changeCOORDSYS(SEML, F_EM);
     //SNC to ENC coordinates for IC
-    SNCtoENC(0.0, ySNC, yENC, &SEML);
+    NCSEMmtoNCEMm(0.0, ySNC, yENC, &SEML);
     //Plot
     title = "DYNEQ of "+Li+" diffcor in SEM, prop. in SEM, back in EM";
     odePrintGen(yENC, 42, tfac*T_EM, d, h1, 5000, title.c_str(), "lines", "1", "3", 1, SEML.cs_em.F_PLOT);

@@ -31,7 +31,7 @@
  /**
  *  \brief Main routine to compute the Elliptic Three-Body Problem in Ofs format.
  */
-void ertbp(int li_EM, int li_SEM, int fwrk);
+void ertbp(int li_EM, int li_SEM, int coordsys);
 
 
 #endif // ERTBP_H_INCLUDED

@@ -188,7 +188,7 @@ void dlinmin(double z1[], double t, void *params, double p[], double xi[], int n
              void (*dfunk)(double [], double[], double[], double, void *))
 {
     int j;
-    double xx,xmin,fx,fb,fa,bx,ax;
+    double xx,xmin=0.0,fx,fb,fa,bx,ax;
     ncom=n; //Define the global variables.
     pcom  = dvector(0,n-1);
     xicom = dvector(0,n-1);

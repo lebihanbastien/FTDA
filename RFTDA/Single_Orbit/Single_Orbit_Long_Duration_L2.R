@@ -1,6 +1,10 @@
 # Script to plot an orbit along with its associated precisions
-# in the parameterization method of the QBFBP/RTBP around L1/L2 of the Earth-Moon system
-#----------------------------------------------------------------------------------------
+# in the parameterization method of the QBFBP/RTBP around L2 of the Earth-Moon system
+#
+# Used for the computation of the plots in the IOP article (2016).
+# BLB 2016
+# Working as of 30/08/2016, but with NOT a long duration result (short duration, indeed).
+#--------------------------------------------------------------------------------------------------------------------------
 
 #------------------------------------------------
 # Init
@@ -18,7 +22,7 @@ FWRK  = "EM"
 # Filename
 #------------------------------------------------
 sizep = "51.0435_test"
-filename = "~/BackUpBox/PhD/FourierTaylorInCpp/plot/QBCP/EM/L2/orbit_order_20_size_-20.txt"
+filename = "~/BackUpBox/PhD/FourierTaylorInCpp/plot/QBCP/EM/L2/orbit_order_16_size_5.txt"
 
 #------------------------------------------------
 #Normalized units (gamma, c1)
