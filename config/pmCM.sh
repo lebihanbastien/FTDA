@@ -39,7 +39,7 @@ ISNORM=$TRUE
 # DEFAULT LIBRATION POINT FOR EM & SEM SYSTEM
 #------------------------------------
 LI_EM=2
-LI_SEM=2
+LI_SEM=1
 
 #------------------------------------
 # TYPE OF MANIFOLD
@@ -66,7 +66,7 @@ STORAGE=$TRUE
 #------------------------------------
 # Numerical constants for all computation
 #------------------------------------
-OFTS_ORDER=18
+OFTS_ORDER=20
 
 
 

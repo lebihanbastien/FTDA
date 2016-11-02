@@ -6,13 +6,13 @@
 # Define limit of projection
 #------------------------------------------------
 #hard
-projection_lim_max = 1e-2;
+projection_lim_max = 1e-3;
 projection_lim_mid = 5e-4;
 
 #===============================================================================
 # Define limit of projection for colors
 #===============================================================================
-projection_color_lim = c(0, 5e-3);
+projection_color_lim = c(0, 1e-3);
 
 #easy
 # projection_lim_max = 5e-3;

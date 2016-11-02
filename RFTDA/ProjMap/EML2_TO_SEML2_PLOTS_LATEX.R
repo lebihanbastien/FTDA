@@ -69,8 +69,8 @@ pp_path_some = pp_path_some + geom_point(data = earth, aes(x= x, y = y), size = 
 pp_path_some = pp_path_some + labs(x = "$X$", y = "$Y$")
 
 #Limits
-pp_path_some = pp_path_some + scale_x_continuous(limits = c(-1.013, -0.997))
-pp_path_some = pp_path_some + scale_y_continuous(limits = c(-0.012, 0.013)) 
+#pp_path_some = pp_path_some + scale_x_continuous(limits = c(-1.013, -0.997))
+#pp_path_some = pp_path_some + scale_y_continuous(limits = c(-0.012, 0.013)) 
 
 #Theme
 pp_path_some = pp_path_some + custom_theme

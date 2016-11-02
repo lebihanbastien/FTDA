@@ -3,37 +3,6 @@
 # of a projection map (connections between EML2 and SEML1,2)
 ######################################################################################
 #===============================================================================
-# CONTINUATION: Only some solutions
-#===============================================================================
-proj_map_cont_traj_one =  proj_map_cont_traj[which(proj_map_cont_traj$label %% 5 == 0),]
-pp_path_sol = ggplot() + geom_path(data = proj_map_cont_traj_one, aes(x = x_CMS_SEM, y = y_CMS_SEM, colour = label, group = label), size = 1)
-pp_path_sol = pp_path_sol + scale_colour_gradient(space="Lab", high = "black", low = "white", guide = FALSE)
-pp_path_sol = pp_path_sol + custom_theme 
-#Add SEMLi
-seml2 = data.frame(x0_CMU_EM = 0.0, y0_CMU_EM = 0.0, z0_CMU_EM = 0.0);
-seml2 = NCtoSYS(seml2, CST_GAMMA_LIB_SEM, CST_C1_LIB_SEM);
-pp_path_sol = pp_path_sol + geom_point(data = seml2, aes(x= xEM, y = yEM), size = 4) 
-#Labels
-pp_path_sol = pp_path_sol + labs(x = "X (SEM)", y = "Y (SEM)")
-pp_path_sol
-
-
-#===============================================================================
-# CONTINUATION: ALL found solutions as a "continuum"
-#===============================================================================
-proj_map_cont_traj_one =  proj_map_cont_traj#[which(proj_map_cont_traj$label < 2),]
-pp_path_cont = ggplot() + geom_path(data = proj_map_cont_traj_one, aes(x = x_CMS_SEM, y = y_CMS_SEM, colour = label, group = factor(label)), size = 1.5)
-pp_path_cont = pp_path_cont + scale_colour_gradient2("label", space="Lab", midpoint = max(proj_map_cont_traj_one$label)/2, mid = "white", high = muted("blue"))
-pp_path_cont = pp_path_cont + custom_theme 
-#Add SEMLi
-seml2 = data.frame(x0_CMU_EM = 0.0, y0_CMU_EM = 0.0, z0_CMU_EM = 0.0);
-seml2 = NCtoSYS(seml2, CST_GAMMA_LIB_SEM, CST_C1_LIB_SEM);
-pp_path_cont = pp_path_cont + geom_point(data = seml2, aes(x= xEM, y = yEM), size = 4) 
-#Labels
-pp_path_cont = pp_path_cont + labs(x = "X (SEM)", y = "Y (SEM)")
-pp_path_cont
-
-#===============================================================================
 # TILES
 #===============================================================================
 #------------------------------------------------
@@ -43,6 +12,7 @@ pp_tiles_s1EM_s3EM_eP = plotdf_tile_n(proj_map_tem, "s1_CMU_EM", "s3_CMU_EM", "s
 pp_tiles_s1EM_s3EM_eP = pp_tiles_s1EM_s3EM_eP + scale_x_continuous(limits = c(-35, 35), breaks = seq(-34,34,4)) 
 pp_tiles_s1EM_s3EM_eP = pp_tiles_s1EM_s3EM_eP + scale_y_continuous(limits = c(-35, 35), breaks = seq(-34,34,4))  
 pp_tiles_s1EM_s3EM_eP
+
 
 #------------------------------------------------
 # Plot : tiles (sf_CM_SEM) in the s1_CMU_EM/s3_CMU_EM space
@@ -82,6 +52,37 @@ pp_tiles_s1EM_s3EM_tofEM
 #------------------------------------------------
 pp_tiles_s1EM_s3EM_DV = plotdf_tile_n(proj_map_tem, "s1_CMU_EM", "s3_CMU_EM", "s1_CMU_EM", "s3_CMU_EM", "dv_at_projection_SI", "dv_at_projection_SI", 0.04, TRUE)
 pp_tiles_s1EM_s3EM_DV
+
+#===============================================================================
+# CONTINUATION: Only some solutions
+#===============================================================================
+proj_map_cont_traj_one =  proj_map_cont_traj[which(proj_map_cont_traj$label %% 5 == 0),]
+pp_path_sol = ggplot() + geom_path(data = proj_map_cont_traj_one, aes(x = x_CMS_SEM, y = y_CMS_SEM, colour = label, group = label), size = 1)
+pp_path_sol = pp_path_sol + scale_colour_gradient(space="Lab", high = "black", low = "white", guide = FALSE)
+pp_path_sol = pp_path_sol + custom_theme 
+#Add SEMLi
+seml2 = data.frame(x0_CMU_EM = 0.0, y0_CMU_EM = 0.0, z0_CMU_EM = 0.0);
+seml2 = NCtoSYS(seml2, CST_GAMMA_LIB_SEM, CST_C1_LIB_SEM);
+pp_path_sol = pp_path_sol + geom_point(data = seml2, aes(x= xEM, y = yEM), size = 4) 
+#Labels
+pp_path_sol = pp_path_sol + labs(x = "X (SEM)", y = "Y (SEM)")
+pp_path_sol
+
+
+#===============================================================================
+# CONTINUATION: ALL found solutions as a "continuum"
+#===============================================================================
+proj_map_cont_traj_one =  proj_map_cont_traj#[which(proj_map_cont_traj$label < 2),]
+pp_path_cont = ggplot() + geom_path(data = proj_map_cont_traj_one, aes(x = x_CMS_SEM, y = y_CMS_SEM, colour = label, group = factor(label)), size = 1.5)
+pp_path_cont = pp_path_cont + scale_colour_gradient2("label", space="Lab", midpoint = max(proj_map_cont_traj_one$label)/2, mid = "white", high = muted("blue"))
+pp_path_cont = pp_path_cont + custom_theme 
+#Add SEMLi
+seml2 = data.frame(x0_CMU_EM = 0.0, y0_CMU_EM = 0.0, z0_CMU_EM = 0.0);
+seml2 = NCtoSYS(seml2, CST_GAMMA_LIB_SEM, CST_C1_LIB_SEM);
+pp_path_cont = pp_path_cont + geom_point(data = seml2, aes(x= xEM, y = yEM), size = 4) 
+#Labels
+pp_path_cont = pp_path_cont + labs(x = "X (SEM)", y = "Y (SEM)")
+pp_path_cont
 
 #===============================================================================
 # POINTS: EML2 focus

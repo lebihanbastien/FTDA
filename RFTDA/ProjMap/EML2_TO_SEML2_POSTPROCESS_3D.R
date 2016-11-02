@@ -6,7 +6,7 @@
 # Define limit of projection
 #------------------------------------------------
 #hard
-projection_lim_max = Inf;
+projection_lim_max = 1e-2;
 projection_lim_mid = 5e-4;
 
 #===============================================================================

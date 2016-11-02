@@ -10,11 +10,12 @@ source("source/init.R")
 #------------------------------------------------
 # Select paramaters
 #------------------------------------------------
-LIB_POINT_EM = "L2"
-DYN_MODEL    = "QBCP"
-FWRK         = "EM"
-DATA_SOURCE  = "LOCAL" #FROM_SERVER or LOCAL
-ORDER        = switch(DATA_SOURCE, "LOCAL" = "16", "FROM_SERVER" = "20");
+LIB_POINT_EM  = "L2"
+LIB_POINT_SEM = "L1"
+DYN_MODEL     = "QBCP"
+FWRK          = "EM"
+DATA_SOURCE   = "LOCAL" #FROM_SERVER or LOCAL
+ORDER         = switch(DATA_SOURCE, "LOCAL" = "12", "FROM_SERVER" = "20");
 
 
 #------------------------------------------------
@@ -33,15 +34,15 @@ FILE_SUBFOLDER = switch(DATA_SOURCE, "LOCAL" = "plot/QBCP/EM/L2/", "FROM_SERVER"
 
 # From server or not?
 #-------------------------
-FILE_PREFIX     = switch(DATA_SOURCE, "LOCAL" = paste0(ftincppdafolder, FILE_SUBFOLDER, "projcu_order_", ORDER),
-                     "FROM_SERVER" = paste0(ftincppdafolder, FILE_SUBFOLDER, "projcu_order_", ORDER) )
-FILE_PREFIX_SOL = switch(DATA_SOURCE, "LOCAL" = paste0(ftincppdafolder, FILE_SUBFOLDER, "sortprojintcu_order_", ORDER),
-                     "FROM_SERVER" = paste0(ftincppdafolder, FILE_SUBFOLDER, "sortprojintcu_order_", ORDER) )
+FILE_PREFIX     = switch(DATA_SOURCE, "LOCAL" = paste0(ftincppdafolder, FILE_SUBFOLDER, "projcu_order_", ORDER, "_dest_", LIB_POINT_SEM),
+                     "FROM_SERVER" = paste0(ftincppdafolder, FILE_SUBFOLDER, "projcu_order_", ORDER, "_dest_", LIB_POINT_SEM) )
+FILE_PREFIX_SOL = switch(DATA_SOURCE, "LOCAL" = paste0(ftincppdafolder, FILE_SUBFOLDER, "sortprojintcu_order_", ORDER, "_dest_", LIB_POINT_SEM),
+                     "FROM_SERVER" = paste0(ftincppdafolder, FILE_SUBFOLDER, "sortprojintcu_order_", ORDER, "_dest_", LIB_POINT_SEM) )
 
-FILE_PREFIX_CONT      = switch(DATA_SOURCE, "LOCAL" = paste0(ftincppdafolder, FILE_SUBFOLDER, "cont_atf_order_", ORDER),
-                         "FROM_SERVER" = paste0(ftincppdafolder, FILE_SUBFOLDER, "cont_atf_order_", ORDER) )
-FILE_PREFIX_CONT_TRAJ = switch(DATA_SOURCE, "LOCAL" = paste0(ftincppdafolder, FILE_SUBFOLDER, "cont_atf_traj_order_", ORDER),
-                          "FROM_SERVER" = paste0(ftincppdafolder, FILE_SUBFOLDER, "cont_atf_traj_order_", ORDER) )
+FILE_PREFIX_CONT      = switch(DATA_SOURCE, "LOCAL" = paste0(ftincppdafolder, FILE_SUBFOLDER, "cont_atf_order_", ORDER, "_dest_", LIB_POINT_SEM),
+                         "FROM_SERVER" = paste0(ftincppdafolder, FILE_SUBFOLDER, "cont_atf_order_", ORDER, "_dest_", LIB_POINT_SEM) )
+FILE_PREFIX_CONT_TRAJ = switch(DATA_SOURCE, "LOCAL" = paste0(ftincppdafolder, FILE_SUBFOLDER, "cont_atf_traj_order_", ORDER, "_dest_", LIB_POINT_SEM),
+                          "FROM_SERVER" = paste0(ftincppdafolder, FILE_SUBFOLDER, "cont_atf_traj_order_", ORDER, "_dest_", LIB_POINT_SEM) )
 
 # Which data file?
 #-------------------------
@@ -63,8 +64,8 @@ FILE_SUFFIX = switch(DATA_SOURCE, "LOCAL" = "", "FROM_SERVER" = "" )
 
 # Suffix for continuation file
 #-------------------------
-FILE_SUFFIX_CONT      = "_t0_0.99"
-FILE_SUFFIX_CONT_TRAJ = "_t0_0.99"
+FILE_SUFFIX_CONT      = "_t0_0.5"
+FILE_SUFFIX_CONT_TRAJ = "_t0_0.5"
 
 #------------------------------------------------
 # Constants
@@ -187,8 +188,8 @@ source("ProjMap/EML2_TO_SEML2_POSTPROCESS.R")
 #===============================================================================
 # PLOTS
 #===============================================================================
-source("ProjMap/EML2_TO_SEML2_PLOTS_LATEX.R")
-#source("ProjMap/EML2_TO_SEML2_PLOTS.R")
+#source("ProjMap/EML2_TO_SEML2_PLOTS_LATEX.R")
+source("ProjMap/EML2_TO_SEML2_PLOTS.R")
 
 #===============================================================================
 # MULTIPLOTS
