@@ -69,7 +69,10 @@ void qbtbp(int li_EM, int li_SEM, int isTestOn, int coordsys)
         param[0] = qbcp_l.us_em.mu_EM; //note that the qbtbp is computed in EM framework
         param[1] = qbcp_l.us_em.ms;    //note that the qbtbp is computed in EM framework
         //General structures
-        init_ode_structure(&ode_s, T, T_root, 1e-16, 1e-16, 1e-12, 1e-12, 8, 1e-6,  qbtbp_derivatives, NULL, param);
+        init_ode_structure(&ode_s, T, T_root, Config::configManager().G_PREC_ABS(),
+        Config::configManager().G_PREC_REL(), Config::configManager().G_PREC_ROOT(),
+        8, Config::configManager().G_PREC_HSTART(),
+        qbtbp_derivatives, NULL, param);
 
         //----------------------------
         //Init the external/internal
@@ -2123,7 +2126,7 @@ void qbtbp_test(double t1, Ofsc &bjc, Ofsc &cjc, OdeStruct ode_s, QBCP_L &qbcp_l
     cout << "-------------------------------------------" << endl;
 
     //Loop
-    double h = 1e-6; //first guess for stepper
+    double h = Config::configManager().G_PREC_HSTART(); //first guess for stepper
     int status;
     double t = 0.0;
     while (t < t1)

@@ -60,7 +60,7 @@ MANTYPE_SEM=$MAN_CENTER
 # STORAGE
 # FALSE = 0; TRUE = 1
 #------------------------------------
-STORAGE=$FALSE
+STORAGE=$TRUE
 
 #------------------------------------
 # PMAP TYPE
@@ -85,13 +85,13 @@ PMAP_isPar=0;
 #------------------------------------
 # OpenMP settings
 #------------------------------------
-NUM_THREADS=2
+NUM_THREADS=4
 
 #------------------------------------
 # Numerical constants for all computation
 #------------------------------------
 OFS_ORDER=30
-OFTS_ORDER=20
+OFTS_ORDER=1
 REDUCED_NV=4
 
 #------------------------------------
@@ -105,8 +105,8 @@ PMAP_isQBCP=$MODEL   #isQBCP
 PMAP_max_events=100  #Maximum number of events allowed (warning: all directions of crossing are considered!)
 PMAP_t0=0.0          #Initial time (-1 for inner computation in C routine)
 PMAP_dHv=0.1         #Energy
-PMAP_gsize=500       #Number of steps on the grid
-PMAP_gmin=-20.0        #left boundary
+PMAP_gsize=100       #Number of steps on the grid
+PMAP_gmin=-20.0      #left boundary
 PMAP_gmax=20.0       #right boundary
 PMAP_PROJ_FREQ=-1    #projection frequency on manifold. If -1, no projection
 

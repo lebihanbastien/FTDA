@@ -1578,7 +1578,10 @@ void testIntCOC()
     sys.dimension = NV;
     sys.params = &SEML;
     const gsl_odeiv2_step_type *T = gsl_odeiv2_step_rk8pd;
-    gsl_odeiv2_driver *d = gsl_odeiv2_driver_alloc_y_new (&sys, T, 1e-6, 1e-14, 1e-14);
+    gsl_odeiv2_driver* d = gsl_odeiv2_driver_alloc_y_new (&sys, T,
+    Config::configManager().G_PREC_HSTART(),
+    Config::configManager().G_PREC_ABS(),
+    Config::configManager().G_PREC_REL());
 
     //For dot(zh) = Fh(zh)
     //-------------------
@@ -1607,7 +1610,10 @@ void testIntCOC()
     sys_h.dimension = 12;
     sys_h.params = &coc;
     const gsl_odeiv2_step_type *T_h = gsl_odeiv2_step_rk8pd;
-    gsl_odeiv2_driver *d_h = gsl_odeiv2_driver_alloc_y_new (&sys_h, T_h, 1e-6, 1e-14, 1e-14);
+    gsl_odeiv2_driver *d_h = gsl_odeiv2_driver_alloc_y_new (&sys_h, T_h,
+    Config::configManager().G_PREC_HSTART(),
+    Config::configManager().G_PREC_ABS(),
+    Config::configManager().G_PREC_REL());
 
     //Time dependencies
     double tinit = 0.0;

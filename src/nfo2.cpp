@@ -7,7 +7,7 @@
  */
 
 #include "nfo2.h"
-#include "config.h"
+#include "init.h"
 
 #define CLEANED_FFT 1
 #define ORIGINAL_FFT 0
@@ -107,7 +107,10 @@ void nfo2(QBCP_L &qbcp_l, int isStored)
     //Stepper
     const gsl_odeiv2_step_type *T = gsl_odeiv2_step_rk8pd;
     //Driver
-    gsl_odeiv2_driver *d = gsl_odeiv2_driver_alloc_y_new (&sys, T, 1e-6, 1e-15, 1e-15);
+    gsl_odeiv2_driver *d = gsl_odeiv2_driver_alloc_y_new (&sys, T,
+                       Config::configManager().G_PREC_HSTART(),
+                       Config::configManager().G_PREC_ABS(),
+                       Config::configManager().G_PREC_REL());
 
     //----------------------------------------------------------------------------------------------------------
     // 1. Differential correction to get the dynamical equivalent of the libration point (lpdyneq)
@@ -136,7 +139,10 @@ void nfo2(QBCP_L &qbcp_l, int isStored)
     //Stepper
     const gsl_odeiv2_step_type *T2 = gsl_odeiv2_step_rk8pd;
     //Driver
-    gsl_odeiv2_driver *d2 = gsl_odeiv2_driver_alloc_y_new (&sys2, T2, 1e-6, 1e-15, 1e-15);
+    gsl_odeiv2_driver *d2 = gsl_odeiv2_driver_alloc_y_new (&sys2, T2,
+                            Config::configManager().G_PREC_HSTART(),
+                            Config::configManager().G_PREC_ABS(),
+                            Config::configManager().G_PREC_REL());
 
     //-------------------------------------------------
     // Initialization of various GSL objects
@@ -274,7 +280,10 @@ void nfo2_QBP(QBCP_L &qbcp_l, int isStored)
     //Stepper
     const gsl_odeiv2_step_type *T = gsl_odeiv2_step_rk8pd;
     //Driver
-    gsl_odeiv2_driver *d = gsl_odeiv2_driver_alloc_y_new (&sys, T, 1e-6, 1e-15, 1e-15);
+    gsl_odeiv2_driver *d = gsl_odeiv2_driver_alloc_y_new (&sys, T,
+                           Config::configManager().G_PREC_HSTART(),
+                           Config::configManager().G_PREC_ABS(),
+                           Config::configManager().G_PREC_REL());
 
     //Differential correction to get the dynamical equivalent of the libration point (lpdyneq)
     gsl_odeiv2_control * loose_control = gsl_odeiv2_control_y_new(1e-10 , 1e-10);
@@ -309,7 +318,10 @@ void nfo2_QBP(QBCP_L &qbcp_l, int isStored)
     //Stepper
     const gsl_odeiv2_step_type *T2 = gsl_odeiv2_step_rk8pd;
     //Driver
-    gsl_odeiv2_driver *d2 = gsl_odeiv2_driver_alloc_y_new (&sys2, T2, 1e-6, 1e-16, 1e-16);
+    gsl_odeiv2_driver *d2 = gsl_odeiv2_driver_alloc_y_new (&sys2, T2,
+                           Config::configManager().G_PREC_HSTART(),
+                           Config::configManager().G_PREC_ABS(),
+                           Config::configManager().G_PREC_REL());
 
 
     //----------------------------------------------------------------------------------------------------------
@@ -395,7 +407,10 @@ void nfo2_RTBP(QBCP_L &qbcp_l, int isStored)
     //Stepper
     const gsl_odeiv2_step_type *T = gsl_odeiv2_step_rk8pd;
     //Driver
-    gsl_odeiv2_driver *d = gsl_odeiv2_driver_alloc_y_new (&sys, T, 1e-6, 1e-15, 1e-15);
+    gsl_odeiv2_driver *d = gsl_odeiv2_driver_alloc_y_new (&sys, T,
+                           Config::configManager().G_PREC_HSTART(),
+                           Config::configManager().G_PREC_ABS(),
+                           Config::configManager().G_PREC_REL());
 
     //------------------------------------------------------------------------------------
     // 1. Differential correction to get the dynamical equivalent of the libration point (lpdyneq)
@@ -457,7 +472,10 @@ void nfo2_RTBP(QBCP_L &qbcp_l, int isStored)
     //Stepper
     const gsl_odeiv2_step_type *T2 = gsl_odeiv2_step_rk8pd;
     //Driver
-    gsl_odeiv2_driver *d2 = gsl_odeiv2_driver_alloc_y_new (&sys2, T2, 1e-6, 1e-15, 1e-15);
+    gsl_odeiv2_driver *d2 = gsl_odeiv2_driver_alloc_y_new (&sys2, T2,
+                           Config::configManager().G_PREC_HSTART(),
+                           Config::configManager().G_PREC_ABS(),
+                           Config::configManager().G_PREC_REL());
 
     //-------------------------------------------------
     // Initialization of various GSL objects
@@ -1329,7 +1347,7 @@ void monoDecomp(gsl_odeiv2_driver *d,           //driver for odeRK78
         {
             //stable direction with inverse power method directly on the mon. matrix
             //GENERALLY GIVES BAD RESULTS, JUST HERE FOR REFERENCE
-            inversePowerMethod(MMc, 1e-20, 6, 0, eigenVs, &eigenLs);
+            inversePowerMethod(MMc, 1e-15, 6, 0, eigenVs, &eigenLs);
         }
 
         //----------------------------------------------------------------------------------
@@ -2027,7 +2045,7 @@ void monoDecomp_RTBP(gsl_odeiv2_driver* d,           //driver for odeRK78
         {
             //stable direction with inverse power method directly on the mon. matrix
             //GENERALLY GIVES BAD RESULTS, JUST HERE FOR REFERENCE
-            inversePowerMethod(MMc, 1e-20, 6, 0, eigenVs, &eigenLs);
+            inversePowerMethod(MMc, 1e-15, 6, 0, eigenVs, &eigenLs);
         }
 
         //----------------------------------------------------------------------------------
@@ -3434,15 +3452,15 @@ void dipowers(gsl_matrix_complex **DAT, int M, int N, gsl_vector_complex *VEP, g
     //Precision required
     double PREC = 1e-16;
 
-    //----------------------------------------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------
     // Misc complex numbers
-    //----------------------------------------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------
     gsl_complex one_c = gslc_complex(1.0, 0.0);
     gsl_complex zero_c = gslc_complex(0.0, 0.0);
 
-    //----------------------------------------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------
     // Specific gsl tools for the dipowers routine
-    //----------------------------------------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------
     gsl_matrix_complex *AUX = gsl_matrix_complex_calloc(N,N);
     gsl_vector_complex *BUX = gsl_vector_complex_calloc(N);
     gsl_vector_complex *CUX = gsl_vector_complex_calloc(N);
@@ -3454,7 +3472,6 @@ void dipowers(gsl_matrix_complex **DAT, int M, int N, gsl_vector_complex *VEP, g
     //For inverse power method, may not be used
     int s;
     gsl_permutation * p = gsl_permutation_alloc (N);
-
     //Power method
     int IT = 0;
     do
@@ -5254,7 +5271,6 @@ void nfo2SympTest(gsl_odeiv2_driver *d, const double y0[], double t1, QBCP_L *qb
     //Time
     double t = 0.0;
 
-    //d->h = -1e-6;
     //Integration
     gsl_odeiv2_driver_apply (d, &t , t1 , y);
 
@@ -5304,7 +5320,6 @@ void nfo2PerTest(gsl_odeiv2_driver *d, const double y0[], double n, QBCP_L *qbcp
     double t  = 0.0;
     double t1 = 2*M_PI/n;
 
-    //d->h = -1e-6;
     //Integration
     gsl_odeiv2_driver_apply (d, &t , t1 , y);
 

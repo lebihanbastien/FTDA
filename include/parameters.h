@@ -11,7 +11,6 @@
 
 #include <string>
 #include <complex.h>
-//#include "define_env.h"
 
 using namespace std;
 
@@ -42,8 +41,6 @@ using namespace std;
 #define MOON 301
 /// Custom indix for the Sun+Earth system
 #define EARTH_AND_MOON 700
-/// Precision on the position of the librations points L1/L2/L3 in define_env.h
-#define LIBRATION_POINT_PRECISION 1e-16
 
 //------------------------------------------------------------------------------------
 //   ORDER AND NUMBER OF VARIABLES FOR OFS AND OFTS OBJECTS

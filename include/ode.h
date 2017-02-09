@@ -44,7 +44,6 @@ struct OdeStruct
     double eps_int_rel;  //for integration (relative precision)
     double eps_int_abs;  //for integration (absolute precision)
     double eps_root;     //for root finding
-    double eps_diff;     //for differential correction
 
     //Initial step
     double h;
@@ -81,7 +80,6 @@ void init_ode_structure(OdeStruct *ode_s,
                         double eps_int_abs,
                         double eps_int_rel,
                         double eps_root,
-                        double eps_diff,
                         size_t dim,
                         double h,
                         int (* func) (double t, const double y[], double dydt[], void *params),
@@ -120,7 +118,6 @@ void update_ode_structure(OdeStruct *ode_s,
                          gsl_odeiv2_system sys,
                          gsl_odeiv2_driver * d,
                          gsl_root_fsolver *s_root,
-                         double eps_root,
-                         double eps_diff);
+                         double eps_root);
 
 #endif // CUSTOM_ODE_H_INCLUDED

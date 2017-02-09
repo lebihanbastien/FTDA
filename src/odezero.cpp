@@ -84,13 +84,14 @@ int custom_odezero(double y[], double *tcross, double t1, OdeStruct *ode_s)
     //------------------------------------------------------------------------------
     //Reaching y=0
     //------------------------------------------------------------------------------
+    double deltat = Config::configManager().G_DELTA_T();
     //Previous value of yv an t are kept
     t = 0.0;
     previous_t = t;
     for(i=0; i<6; i++) previous_yv[i] = yv[i];
 
     //Stepping until y=0 is crossed
-    while (t < 1e-3 || previous_yv[1]*yv[1]>=0)  //NOTE: a condition on time was included to avoid a termination @first step.
+    while (t < deltat || previous_yv[1]*yv[1]>=0)  //NOTE: a condition on time was included to avoid a termination @first step.
     {
         //Updating the previous y and t values
         previous_t = t;
@@ -159,7 +160,6 @@ int custom_odezero(double y[], double *tcross, double t1, OdeStruct *ode_s)
 
     //Updating the outputs (state + STM)
     t = 0.0;
-    h = 1e-6;
     status = gsl_odeiv2_driver_apply(ode_s->d, &t, *tcross, y);  //updating y
 
     //------------------------------------------------------------------------------

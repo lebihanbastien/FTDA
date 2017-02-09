@@ -46,7 +46,10 @@ void compute_dyn_eq_lib_point(QBCP_L &qbcp_l, int isStored)
     //Stepper
     const gsl_odeiv2_step_type *T = gsl_odeiv2_step_rk8pd;
     //Driver
-    gsl_odeiv2_driver *d = gsl_odeiv2_driver_alloc_y_new (&sys, T, 1e-6, 1e-15, 1e-15);
+    gsl_odeiv2_driver *d = gsl_odeiv2_driver_alloc_y_new (&sys, T,
+                       Config::configManager().G_PREC_HSTART(),
+                       Config::configManager().G_PREC_ABS(),
+                       Config::configManager().G_PREC_REL());
 
     //Building the filename
     string f_model  = init_F_MODEL(qbcp_l.model);
@@ -224,13 +227,14 @@ void lpdyneq(gsl_odeiv2_driver *d, double y0[], gnuplot_ctrl *h1)
     //==============================================================================
     //Initial IC
     cout << "lpdyneq. initial IC:" << endl;
-    for(int i =0; i<6; i++) cout << y0[i] << endl;
+    for(int i =0; i < 6; i++) cout << y0[i] << endl;
 
+    double prec = 5e-15;
+    //if(!isNormalized) prec *= qbp->cs.gamma;
     if(qbp->model != M_ERTBP)
     {
         cout << "lpdyneq. Starting differential correction..." << endl;
-        if(isNormalized) differential_correction(y0, 0.5*tend, 1e-14, d, 42, 0);
-        else differential_correction(y0, 0.5*tend, 1e-14, d, 42, 0);
+        differential_correction(y0, 0.5*tend, prec, d, 42, 0);
         cout << "lpdyneq. End of differential correction." << endl;
     }
 
@@ -260,9 +264,9 @@ void lpdyneq_cont_2(gsl_odeiv2_driver *d, gsl_odeiv2_control * loose_control, gs
     //Settings for iostd
     cout << std::showpos << setiosflags(ios::scientific)  << setprecision(15);
 
-    //----------------------------------------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------
     //Plotting devices
-    //----------------------------------------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------
     char ch;                //Used to close the gnuplot windows at the very end of the program
     gnuplot_ctrl  *h1, *h2;
     h1 = gnuplot_init();
@@ -575,7 +579,10 @@ void continuation_dyn_eq_lib_point(QBCP_L &qbcp_l, int from_model, int to_model,
     //Stepper
     const gsl_odeiv2_step_type *T = gsl_odeiv2_step_rk8pd;
     //Driver
-    gsl_odeiv2_driver *d = gsl_odeiv2_driver_alloc_y_new (&sys, T, 1e-6, 1e-15, 1e-15);
+    gsl_odeiv2_driver *d = gsl_odeiv2_driver_alloc_y_new (&sys, T,
+                       Config::configManager().G_PREC_HSTART(),
+                       Config::configManager().G_PREC_ABS(),
+                       Config::configManager().G_PREC_REL());
 
     //Differential correction to get the dynamical equivalent of the libration point (lpdyneq)
     gsl_odeiv2_control * loose_control = gsl_odeiv2_control_y_new(1e-10 , 1e-10);
@@ -1135,7 +1142,9 @@ void continuation_res_orbit(QBCP_L &qbcp_l, int from_model, int to_model, int is
     //Stepper
     const gsl_odeiv2_step_type *T = gsl_odeiv2_step_rk8pd;
     //Driver
-    gsl_odeiv2_driver *d = gsl_odeiv2_driver_alloc_y_new (&sys, T, 1e-6, 1e-15, 1e-15);
+    gsl_odeiv2_driver *d = gsl_odeiv2_driver_alloc_y_new (&sys, T, Config::configManager().G_PREC_HSTART(),
+                       Config::configManager().G_PREC_ABS(),
+                       Config::configManager().G_PREC_REL());
 
     //Differential correction to get the dynamical equivalent of the libration point (lpdyneq)
     gsl_odeiv2_control * loose_control = gsl_odeiv2_control_y_new(1e-10 , 1e-10);

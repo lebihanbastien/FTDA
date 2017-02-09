@@ -1,71 +1,63 @@
 # R script to handle an energy map of the QBCP around EML1,2
-#-------------------------------------------------------------------------------
+#===============================================================================
 
-#-------------------------------------------------------------------------------
+#===============================================================================
 # Init
-#-------------------------------------------------------------------------------
+#===============================================================================
 # R options
-#------------------------------------------------
+#-------------------------------------------------------------------------------
 options(digits = 15)
 
-#------------------------------------------------
+
 # Load libraries
-#------------------------------------------------
+#-------------------------------------------------------------------------------
 library(plyr)
 library(ggplot2)
 library(reshape2)
 library(scales)
 library(grid)
 
-#------------------------------------------------
 # Load Source files
-#------------------------------------------------
+#-------------------------------------------------------------------------------
 source("source/init.R")
 
 
-#------------------------------------------------
 # Select Models & libration point
-#------------------------------------------------
+#-------------------------------------------------------------------------------
 Li        = "L2"
 MODEL     = "QBCP"
 FWRK      = "EM"
 Energy    = "0.1"
-order     = "10"
+order     = "1"
 ofs_order = "30"
+t0        = "0.5";
 
 #Current working folder
 currentfolder = paste0(printfolder(MODEL, FWRK, Li))
 
-#------------------------------------------------
+
 #Normalized units (gamma, c1)
-#------------------------------------------------
+#-------------------------------------------------------------------------------
 gamma = gamma(Li, FWRK);
-c1 =  c1(Li, FWRK);
-if(FWRK == "SEM")
-{
-  L = 149.60e6; #Sun-Earth distance in [km]
-}else{
-  L = 384400;   #Earth-Moon distance in [km]
-}
+L     = Ldist(FWRK);
+c1    =  c1(Li, FWRK);
 
-#-------------------------------------------------------------------------------
+#===============================================================================
 # Data reading
-#-------------------------------------------------------------------------------
-#------------------------------------------------
+#===============================================================================
+
 # Filename to check
-#------------------------------------------------
-fileprefix = paste0(currentfolder, "Serv/Serv_hm_Energy_", Energy, "_order_", order, "_ofs_", ofs_order)
-filename = paste0(fileprefix, ".bin")
+#-------------------------------------------------------------------------------
+fileprefix = paste0(currentfolder, "Serv/Serv_hm_Energy_", Energy, "_order_", order, "_ofs_", ofs_order, "_t0_", t0)
+filename   = paste0(fileprefix, ".bin")
 
-
-#------------------------------------------------
 # Load bin source
-#------------------------------------------------
+#-------------------------------------------------------------------------------
 if (file.exists(filename))
 {
   names = c("label", "x", "y", "z", "px", "py", "pz",
             "xEM", "yEM", "zEM", "pxEM", "pyEM", "pzEM",
-            "s1", "s2", "s3", "s4", "t", "dHz", "eIm");
+            "s1", "s2", "s3", "s4", "t", "Hz", "dHz");
   icdf = dffbinary(filename, 20, names);
   icdf$order = order;
   
@@ -74,13 +66,12 @@ if (file.exists(filename))
   icdf = data.frame()
 }
 
-
-#-------------------------------------------------------------------------------
 # Postprocessing
 #-------------------------------------------------------------------------------
 #Get rid of the origin
-isOrigin = icdf$s1 == 0 & icdf$s2 == 0 & icdf$s3 == 0 & icdf$s4 == 0
-icdf = icdf[which(!isOrigin),]
+isOrigin = icdf$s3 == icdf$s3[length(icdf$s3)] | icdf$s3 == icdf$s3[1] | icdf$s3 == 0 |
+           icdf$s1 == icdf$s1[length(icdf$s1)] | icdf$s1 == icdf$s1[1] | icdf$s1 == 0  #& icdf$s2 == 0 & icdf$s3 == 0 & icdf$s4 == 0
+icdf = icdf[which(isOrigin),]
 
 # From NC to EM units
 icdf = NCtoC(icdf, gamma)
@@ -92,33 +83,39 @@ icdf = CtoPH(icdf, L)
 icdf$rNC = sqrt(icdf$x^2+icdf$y^2+icdf$z^2)
 icdf$rPH = sqrt(icdf$xCPH^2+icdf$yCPH^2+icdf$zCPH^2)
 
+# Mean value of Hz
+mHz = mean(icdf$Hz)
+
+# Deviation wrt the mean value (signed)
+icdf$ssdHz = icdf$Hz - mHz
+
+
 #Select only 0 < dHz <= maxValue
-#isdHzSuitable = abs(icdf$dHz) <= maxdHz # & icdf$dHz >= 0.0
-#icdf = icdf[which(isdHzSuitable),]
+#issdHzSuitable = abs(icdf$dHz) <= maxdHz # & icdf$dHz >= 0.0
+#icdf = icdf[which(issdHzSuitable),]
 
 #Select only s2 < 40 (heuristic, getting rid of )
 #icdf = icdf[which(abs(icdf$s2) <= 40),]
 #icdf = icdf[which(icdf$s3 >= 0),]
 
-#-------------------------------------------------------------------------------
+#===============================================================================
 # Plots
-#-------------------------------------------------------------------------------
+#===============================================================================
 
-#---------------
-# s2 vs s1
-#---------------
-pT = ggplot()+geom_tile(data = icdf, aes(s1, s2, fill = dHz, colour = dHz))+custom_theme
-pT = pT + scale_fill_gradient2(space="Lab", midpoint = 0, mid = "white", high = muted("blue"))
-pT = pT + scale_colour_gradient2(space="Lab", midpoint = 0, mid = "white", high = muted("blue"), guide = FALSE)
-pT
 
-#---------------
 # s3 vs s1
-#---------------
-pT = ggplot()+geom_tile(data = icdf, aes(s1, s3, fill = dHz, colour = dHz))+custom_theme
+#-------------------------------------------------------------------------------
+pT = ggplot()+geom_tile(data = icdf, aes(s1, s3, fill = ssdHz, colour = ssdHz))+custom_theme
 pT = pT + scale_fill_gradient2(space="Lab", midpoint = 0, mid = "white", high = muted("blue"))
 pT = pT + scale_colour_gradient2(space="Lab", midpoint = 0, mid = "white", high = muted("blue"), guide = FALSE)
 pT
+
+
+# x0 vs y0
+#-------------------------------------------------------------------------------
+pxy = plotdf_point(icdf, "x", "y", "x", "y", "ssdHz", "ssdHz", 0, pointSize = 3)
+pxy = pxy + scale_colour_gradient2(space="Lab", midpoint = 0, mid = "white", high = muted("blue"), guide = FALSE)
+pxy
 
 #---------------
 # dH vs s1
@@ -126,10 +123,11 @@ pT
 plotdf_point(icdf, "s1", "dHz", "s1", "dHz", "s2", "s2", 0)+ scale_colour_gradient2(space="Lab", midpoint = 0, mid = "white", high = muted("blue"))
 
 
+stop()
 
-#-------------------------------------------------------------------------------
-# Second Postprocessing & Plot
-#-------------------------------------------------------------------------------
+#===============================================================================
+# Second Postprocessing & Plot with gnuplot (in progress, needs clean up)
+#===============================================================================
 #-----------------------
 #Initialize gnuplot window
 #-----------------------
@@ -302,7 +300,7 @@ if(res == "y") file.remove(fileName);
 
 #TODO: 
 #Repeat the process above BUT for a given maximum value of dHz (ie check that the planar @ dHz fixed and @ t= 0is first unique and enclose the rest of the curves)
-#Uniqueness is okay: we have fixe s2 = s4 = t = 0 + dHz is fixed ==> gives unique relation s1 = f(s3). 
+#Uniqueness is okay: we have fixed s2 = s4 = t = 0 + dHz is fixed ==> gives unique relation s1 = f(s3). 
 
 #In fact, dHz is an increasing value of all (s1, s2, s3, s4), when taken POSITIVE.
 #But what about the relationship between the si and xPH and yPH? is it monotonous? It depends on the values of the matrix P(t=0)

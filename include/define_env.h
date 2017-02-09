@@ -10,14 +10,23 @@
  */
 
 #include <iostream>
-#include <time.h>
-#include <stdio.h>
-#include <complex.h>
-#include <gsl_complex_math.h>
 #include <fstream>
 #include <sstream>
-#include "ofs.h"
+
+#include <time.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <complex.h>
+#include <math.h>
+#include <string.h>
+
+#include <gsl_complex_math.h>
+
+//Custom
+#include "define_env.h"
+#include "parameters.h"
+#include "ofs.h"
+#include "Config.h"
 
 //Type of unit systems
 #define USYS_EM  0 //Earth-Moon      system
@@ -105,9 +114,6 @@ struct CR3BP
     LibrationPoint l3;
     LibrationPoint l4;
     LibrationPoint l5;
-
-    //precision on L1/L2/L3 position
-    double gprecision;
 
     //Name
     char name[50];

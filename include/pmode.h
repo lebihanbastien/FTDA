@@ -59,7 +59,7 @@ int qbfbp_fh(double t, const double y[], double f[], void *params_void);
  *
  *   Note that: the expansions FW, DWf and Wdot are taken from files,
  *   whereas the parameterization itself CM and CMh, and the reduced vector field Fh
- *   are taken from global objects, defined in config.cpp.
+ *   are taken from global objects, defined in init.cpp.
  *
  *   Requires initCM().
  *

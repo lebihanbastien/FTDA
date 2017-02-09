@@ -7,7 +7,7 @@
 #===============================================================================
 # CONTINUATION: Only certain values
 #===============================================================================
-maxlabel = 90
+maxlabel = Inf
 proj_map_cont_traj_in =  proj_map_cont_traj[which(proj_map_cont_traj$label < maxlabel),]
 proj_map_cont_in      =  proj_map_cont[which(proj_map_cont$label < maxlabel),]
 

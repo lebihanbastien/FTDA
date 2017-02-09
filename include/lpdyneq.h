@@ -1,7 +1,7 @@
 #ifndef LPDYNEQ_H_INCLUDED
 #define LPDYNEQ_H_INCLUDED
 
-#include "config.h"
+#include "init.h"
 #include "eminsem.h"
 extern "C" {
 #include "gnuplot_i.h"

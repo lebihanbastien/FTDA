@@ -26,6 +26,12 @@ ggplot2tikz <- function(plot, width0, height0, file)
   #return(plottrash)
 }
 
+# To stop quietly a code... Used instead of stop() that throw and error.
+stopQuietly <- function(...) {
+  blankMsg <- sprintf("\r%s\r", paste(rep(" ", getOption("width")-1L), collapse=" "));
+  stop(simpleError(blankMsg));
+} # stopQuietly()
+
 #--------------------------------------------------------------------------#
 # Potential
 #--------------------------------------------------------------------------#

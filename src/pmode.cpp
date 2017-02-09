@@ -56,7 +56,7 @@ int qbfbp_fh(double t, const double y[], double f[], void *params_void)
  *
  *   Note that: the expansions FW, DWf and Wdot are taken from files,
  *   whereas the parameterization itself CM and CMh, and the reduced vector field Fh
- *   are taken from global objects, defined in config.cpp.
+ *   are taken from global objects, defined in init.cpp.
  *
  *   Requires initCM().
  *
@@ -102,7 +102,10 @@ void pmErrorvsOrderTest(int nkm, int km[], double si[])
     sys.dimension = 6;
     sys.params = &SEML;
     const gsl_odeiv2_step_type *T = gsl_odeiv2_step_rk8pd;
-    gsl_odeiv2_driver *d = gsl_odeiv2_driver_alloc_y_new (&sys, T, 1e-6, 1e-14, 1e-14);
+    gsl_odeiv2_driver *d = gsl_odeiv2_driver_alloc_y_new (&sys, T,
+    Config::configManager().G_PREC_HSTART(),
+    Config::configManager().G_PREC_ABS(),
+    Config::configManager().G_PREC_REL());
 
     //For dot(s) = fh(s)
     RVF rvf;
@@ -118,7 +121,10 @@ void pmErrorvsOrderTest(int nkm, int km[], double si[])
     sys_fh.dimension = 2*REDUCED_NV;
     sys_fh.params    = &rvf;
     const gsl_odeiv2_step_type *T_fh = gsl_odeiv2_step_rk8pd;
-    gsl_odeiv2_driver *d_fh = gsl_odeiv2_driver_alloc_y_new (&sys_fh, T_fh, 1e-6, 1e-14, 1e-14);
+    gsl_odeiv2_driver *d_fh = gsl_odeiv2_driver_alloc_y_new (&sys_fh, T_fh,
+    Config::configManager().G_PREC_HSTART(),
+    Config::configManager().G_PREC_ABS(),
+    Config::configManager().G_PREC_REL());
 
 
     cout << "---------------------------------------------------" << endl;
@@ -226,7 +232,10 @@ void pmEOvsOrderTest(int nkm, int km[], double si[])
     sys.dimension = 6;
     sys.params = &SEML;
     const gsl_odeiv2_step_type *T = gsl_odeiv2_step_rk8pd;
-    gsl_odeiv2_driver *d = gsl_odeiv2_driver_alloc_y_new (&sys, T, 1e-6, 1e-14, 1e-14);
+    gsl_odeiv2_driver *d = gsl_odeiv2_driver_alloc_y_new (&sys, T,
+    Config::configManager().G_PREC_HSTART(),
+    Config::configManager().G_PREC_ABS(),
+    Config::configManager().G_PREC_REL());
 
     //For dot(s) = fh(s)
     RVF rvf;
@@ -242,7 +251,10 @@ void pmEOvsOrderTest(int nkm, int km[], double si[])
     sys_fh.dimension = 2*REDUCED_NV;
     sys_fh.params    = &rvf;
     const gsl_odeiv2_step_type *T_fh = gsl_odeiv2_step_rk8pd;
-    gsl_odeiv2_driver *d_fh = gsl_odeiv2_driver_alloc_y_new (&sys_fh, T_fh, 1e-6, 1e-14, 1e-14);
+    gsl_odeiv2_driver *d_fh = gsl_odeiv2_driver_alloc_y_new (&sys_fh, T_fh,
+    Config::configManager().G_PREC_HSTART(),
+    Config::configManager().G_PREC_ABS(),
+    Config::configManager().G_PREC_REL());
 
 
     cout << "---------------------------------------------------" << endl;
@@ -353,7 +365,10 @@ void pmOfsOrderTest(int order)
     sys.dimension = 6;
     sys.params = &SEML;
     const gsl_odeiv2_step_type *T = gsl_odeiv2_step_rk8pd;
-    gsl_odeiv2_driver *d = gsl_odeiv2_driver_alloc_y_new (&sys, T, 1e-6, 1e-14, 1e-14);
+    gsl_odeiv2_driver *d = gsl_odeiv2_driver_alloc_y_new (&sys, T,
+    Config::configManager().G_PREC_HSTART(),
+    Config::configManager().G_PREC_ABS(),
+    Config::configManager().G_PREC_REL());
 
     //For dot(s) = fh(s)
     RVF rvf;
@@ -369,7 +384,10 @@ void pmOfsOrderTest(int order)
     sys_fh.dimension = 2*REDUCED_NV;
     sys_fh.params    = &rvf;
     const gsl_odeiv2_step_type *T_fh = gsl_odeiv2_step_rk8pd;
-    gsl_odeiv2_driver *d_fh = gsl_odeiv2_driver_alloc_y_new (&sys_fh, T_fh, 1e-6, 1e-14, 1e-14);
+    gsl_odeiv2_driver *d_fh = gsl_odeiv2_driver_alloc_y_new (&sys_fh, T_fh,
+    Config::configManager().G_PREC_HSTART(),
+    Config::configManager().G_PREC_ABS(),
+    Config::configManager().G_PREC_REL());
 
 
     cout << "---------------------------------------------------" << endl;

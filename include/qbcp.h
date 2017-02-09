@@ -26,7 +26,7 @@
 #include "define_env.h"
 #include "parameters.h"
 #include "odezero.h"
-#include "config.h"
+#include "init.h"
 #include "eminsem.h"
 
 extern "C" {

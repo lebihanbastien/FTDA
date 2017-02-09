@@ -27,44 +27,52 @@
  **/
 int differential_correction(double ystart[], double t1, double eps_diff, gsl_odeiv2_driver *d, int N, int isPlotted)
 {
-    //=====================================
+    //====================================================================================
     //Init
-    //=====================================
-    double y[N];
+    //====================================================================================
+    double y[N], yc[N];
     int i;
     int iter = 0;
     int status;
-    int itermax = 100;
+    int itermax = 1000;
 
     double dyf[2];
     double dy0[2];
+    dy0[0] = 0.0;
+    dy0[1] = 0.0;
     double t;
 
     double A[2][2];
     double invA[2][2];
     double deter;
+    double eps_c = 10;
+    double eps_m = 10;
 
-    //=====================================
+    //====================================================================================
     //Optionnal plotting
-    //=====================================
+    //====================================================================================
     gnuplot_ctrl  *hc;
     hc = gnuplot_init();
     gnuplot_setstyle(hc, (char*)"lines");
     gnuplot_set_xlabel(hc, (char*)"x [-]");
     gnuplot_set_ylabel(hc, (char*)"y [-]");
 
-    //=====================================
+    //====================================================================================
+    //Update the starting point (STM (0) = Id included)
+    //====================================================================================
+    for(i=0; i< N; i++) yc[i] = ystart[i];
+
+    //====================================================================================
     //Correction loop
-    //=====================================
+    //====================================================================================
     do
     {
-        //=====================================
+        //================================================================================
         //Update the starting point (STM (0) = Id included)
-        //=====================================
-        for(i=0; i< N; i++) y[i] = ystart[i];
+        //================================================================================
+        for(i=0; i< N; i++) y[i] = yc[i];
         //Integration until t=t1 is reached
         t = 0.0;
-
 
         //Optionnal plotting
         if(isPlotted)
@@ -72,9 +80,9 @@ int differential_correction(double ystart[], double t1, double eps_diff, gsl_ode
             odePlotGen(y, N, t1, d, hc, 5000, "DiffCorr", "lines", "1", "2", 8);
         }
 
-        //=====================================
+        //================================================================================
         //Integration
-        //=====================================
+        //================================================================================
         gsl_odeiv2_driver_reset(d);
         status = gsl_odeiv2_driver_apply (d, &t , t1 , y);
 
@@ -84,9 +92,9 @@ int differential_correction(double ystart[], double t1, double eps_diff, gsl_ode
             return GSL_FAILURE;
         }
 
-        //=====================================
+        //================================================================================
         //Update the matrix A
-        //=====================================s
+        //================================================================================
         A[0][0] = y[5+7];  //Phi21
         A[0][1] = y[5+11]; //Phi25
 
@@ -100,45 +108,59 @@ int differential_correction(double ystart[], double t1, double eps_diff, gsl_ode
         invA[1][0] = -A[1][0]/deter;
         invA[1][1] = +A[0][0]/deter;
 
-        //=====================================
+        //================================================================================
         //Update the final error
-        //=====================================
+        //================================================================================
         dyf[0] = -y[1];
         dyf[1] = -y[3];
 
-        //=====================================
-        //Break the loop if precision is good
-        //=====================================
-        if(sqrt(dyf[0]*dyf[0] + dyf[1]*dyf[1]) < eps_diff) break;
+        //================================================================================
+        //Check that yc leads to a better precision, and update the output if so.
+        //================================================================================
+        //Current precision
+        eps_c = sqrt(dyf[0]*dyf[0] + dyf[1]*dyf[1]);
 
-        //=====================================
+        //Compare to the best precision yet
+        if(eps_c < eps_m)
+        {
+            eps_m = eps_c;
+            for(i=0; i< N; i++) ystart[i] = yc[i];
+            cout << eps_m << endl;
+        }
+
+        //================================================================================
+        //Break the loop if precision is good
+        //================================================================================
+        if(eps_m < eps_diff) break;
+
+        //================================================================================
         //Inversion of the error
-        //=====================================
+        //================================================================================
         dy0[0] = invA[0][0]*dyf[0] + invA[0][1]*dyf[1];
         dy0[1] = invA[1][0]*dyf[0] + invA[1][1]*dyf[1];
 
-        //=====================================
+        //================================================================================
         //Update the state
-        //=====================================
-        ystart[0] += dy0[0];
-        ystart[4] += dy0[1];
+        //================================================================================
+        yc[0] += 0.1*dy0[0];
+        yc[4] += 0.1*dy0[1];
     }
     while((++iter) < itermax);
 
-    //=====================================
+    //====================================================================================
     // Warning message if no convergence
-    //=====================================
+    //====================================================================================
     if(iter>=itermax)
     {
-        printf("WARNING: number of iter max exceeded during differential correction. Final precision is around %+5.2e. Premature ending\n", sqrt(dyf[0]*dyf[0] + dyf[1]*dyf[1]));
+        printf("WARNING: number of iter max exceeded during differential correction. Final precision is around %+5.2e. Premature ending\n", eps_m);
         return GSL_FAILURE;
     }
 
-    //=====================================
+    //====================================================================================
     // Display info
-    //=====================================
+    //====================================================================================
     cout << "differential_correction. Required eps = " << eps_diff << endl;
-    cout << "differential_correction. Obtained eps = " << sqrt(dyf[0]*dyf[0] + dyf[1]*dyf[1]) << endl;
+    cout << "differential_correction. Obtained eps = " << eps_m    << endl;
 
     gnuplot_close(hc);
     return GSL_SUCCESS;
@@ -307,7 +329,7 @@ int differential_correction_deps_mns(double *ystart, double *nullvector, double 
     }
     else
     {
-        //If not, we follow the last direciton of the null vector.
+        //If not, we follow the last direction of the null vector.
         for(int i = 0; i < 3; i++)
         {
             nv[i] = gsl_matrix_get(Q, i, 2);

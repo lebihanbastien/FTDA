@@ -23,7 +23,7 @@
 #include "timec.h"
 #include "matrix.h"
 
-#include "config.h"
+#include "init.h"
 #include "nfo2.h"
 
 #include <stdio.h>

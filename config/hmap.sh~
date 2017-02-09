@@ -66,7 +66,7 @@ STORAGE=$TRUE
 # PMAP TYPE
 # PMAP = 1; TMAP = 2; EMAP = 3; IMAP=4
 #------------------------------------
-PMAP_TYPE=$IMAP
+PMAP_TYPE=$HMAP
 
 #------------------------------------
 # PMAP METHODS
@@ -91,7 +91,7 @@ NUM_THREADS=4
 # Numerical constants for all computation
 #------------------------------------
 OFS_ORDER=30
-OFTS_ORDER=1
+OFTS_ORDER=10
 REDUCED_NV=4
 
 #------------------------------------
@@ -103,7 +103,7 @@ PMAP_ofs_order=$OFS_ORDER    #OFS ORDER
 PMAP_TF=10000	     #final integration time. needs to be big for PMAP
 PMAP_isQBCP=$MODEL   #isQBCP
 PMAP_max_events=100  #Maximum number of events allowed (warning: all directions of crossing are considered!)
-PMAP_t0=0.5          #Initial time (-1 for inner computation in C routine)
+PMAP_t0=0.0          #Initial time (-1 for inner computation in C routine)
 PMAP_dHv=0.1         #Energy
 PMAP_gsize=100       #Number of steps on the grid
 PMAP_gmin=-20.0      #left boundary

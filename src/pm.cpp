@@ -2282,7 +2282,7 @@ void pm_normalform(int OutputEachOrder, int Output)
     cdouble bux;       //temp obj
     int kv[REDUCED_NV];       //contains the indices for each monomial
     cdouble divisor;          //divisor in the cohomological equations
-    double threshold = 1e-1;  //threshold for small divisors
+    double threshold = 1e-2;  //threshold for small divisors = 1e-2
 
 
     //------------------------------------------

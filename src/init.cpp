@@ -1,11 +1,11 @@
 /**
- * \file config.cpp
+ * \file init.cpp
  * \brief Configuration file. It allows to initialize the environment of the Sun-(Earth+Moon) Quasi-Bicircular Four-Body Problem.
  * \author BLB.
  * \date May 2015
  * \version 1.0
  */
-#include "config.h"
+#include "init.h"
 #include <gsl_complex_math.h>
 #include <gsl/gsl_matrix.h>
 #include <gsl/gsl_eigen.h>

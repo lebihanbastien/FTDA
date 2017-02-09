@@ -5,7 +5,7 @@
 #include "matrix.h"
 
 #include "odezero.h"
-#include "config.h"
+#include "init.h"
 
 //Gnuplot
 extern "C" {

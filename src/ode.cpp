@@ -36,7 +36,6 @@ void init_ode_structure(OdeStruct *ode_s,
                         double eps_int_abs,
                         double eps_int_rel,
                         double eps_root,
-                        double eps_diff,
                         size_t dim,
                         double h,
                         int (* func) (double t, const double y[], double dydt[], void *params),
@@ -45,7 +44,6 @@ void init_ode_structure(OdeStruct *ode_s,
 {
     //Precisions and initial step
     ode_s->eps_root = eps_root;
-    ode_s->eps_diff = eps_diff;
     ode_s->h = h;
     ode_s->eps_int_abs = eps_int_abs;
     ode_s->eps_int_rel = eps_int_rel;
@@ -136,8 +134,7 @@ void update_ode_structure(OdeStruct *ode_s,
                          gsl_odeiv2_system sys,
                          gsl_odeiv2_driver * d,
                          gsl_root_fsolver *s_root,
-                         double eps_root,
-                         double eps_diff)
+                         double eps_root)
 {
     ode_s->dim = d->sys->dimension;
     ode_s->T = T;
@@ -149,7 +146,7 @@ void update_ode_structure(OdeStruct *ode_s,
     ode_s->s_root = s_root;
 
     ode_s->eps_root = eps_root;
-    ode_s->eps_diff = eps_diff;
+    //ode_s->eps_diff = eps_diff;
     ode_s->h = d->h;
 
     //Integration tolerances are set to -1 because they are hidden in d and e (be careful during initialization!)

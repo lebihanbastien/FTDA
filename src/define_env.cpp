@@ -6,15 +6,7 @@
  * \version 1.0
  */
 
-//std
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
-#include <string.h>
-//custom
 #include "define_env.h"
-#include "parameters.h"
 
 //-----------------------------------------------------------------------------------------------------------------------------
 //            Init routines
@@ -226,7 +218,6 @@ void init_CR3BP(CR3BP *cr3bp, int n1, int n2)
     cr3bp->R1 = (*cr3bp).m1.Req;
     cr3bp->R2 = (*cr3bp).m2.Req;
     cr3bp->rh = pow((*cr3bp).mu/3,1/3.0);                         //Hill's radius adim formula
-    cr3bp->gprecision = 1e-12;                                    //arbitrary
 
     //Li initialization
     init_libp(&cr3bp->l1, *cr3bp, 1);
@@ -810,7 +801,7 @@ void init_libp(LibrationPoint *libp, CR3BP cr3bp, int number)
     case 1:
         //Gamma
         gamma_i = cr3bp.rh - 1.0/3.0*pow(cr3bp.rh,2.0)- 1/9*pow(cr3bp.rh,3);                    //initial guess
-        gamma_i = rtnewt(polynomialLi, gamma_i, LIBRATION_POINT_PRECISION, cr3bp.mu, number);   //newton-raphson method
+        gamma_i = rtnewt(polynomialLi, gamma_i, Config::configManager().G_PREC_LIB(), cr3bp.mu, number);   //newton-raphson method
         libp->gamma_i = gamma_i;
 
         //Position
@@ -824,7 +815,7 @@ void init_libp(LibrationPoint *libp, CR3BP cr3bp, int number)
     case 2:
         //Gamma
         gamma_i = cr3bp.rh + 1.0/3.0*pow(cr3bp.rh,2.0)- 1/9*pow(cr3bp.rh,3);
-        gamma_i = rtnewt(polynomialLi, gamma_i, LIBRATION_POINT_PRECISION, cr3bp.mu, number);
+        gamma_i = rtnewt(polynomialLi, gamma_i, Config::configManager().G_PREC_LIB(), cr3bp.mu, number);
         libp->gamma_i = gamma_i;
 
         //Position
@@ -838,7 +829,7 @@ void init_libp(LibrationPoint *libp, CR3BP cr3bp, int number)
     case 3:
         //Gamma
         gamma_i = 7/12.0*cr3bp.mu + pow(237,2.0)/pow(12,4.0)*pow(cr3bp.mu,3.0);
-        gamma_i = rtnewt(polynomialLi, gamma_i, LIBRATION_POINT_PRECISION, cr3bp.mu, number);
+        gamma_i = rtnewt(polynomialLi, gamma_i, Config::configManager().G_PREC_LIB(), cr3bp.mu, number);
         libp->gamma_i = 1-gamma_i;  //BEWARE: for L3, gamma3 = L3-M1 distance != L3-M2
 
 

@@ -188,28 +188,28 @@ int main(int argc, char *argv[])
     {
         switch(model)
         {
-            //-------------------------------------
+            //----------------------------------------------------------------------------
             // QBTBP resolution up to OFS_ORDER.
             // if the testing argument is true,
             // the results are tested on
             // one full period
-            //-------------------------------------
+            //----------------------------------------------------------------------------
         case M_QBCP:
             qbtbp(li_EM, li_SEM, true, coordsys);
             break;
 
-            //-------------------------------------
+            //----------------------------------------------------------------------------
             // BCP resolution in OFS format.
             // Storage in txt file.
-            //-------------------------------------
+            //----------------------------------------------------------------------------
         case M_BCP:
             bcp(li_EM, li_SEM, coordsys);
             break;
 
-            //-------------------------------------
+            //----------------------------------------------------------------------------
             // ERTBP resolution in OFS format.
             // Storage in txt file.
-            //-------------------------------------
+            //----------------------------------------------------------------------------
         case M_ERTBP:
             ertbp(li_EM, li_SEM, coordsys);
             break;
@@ -218,13 +218,13 @@ int main(int argc, char *argv[])
         break;
     }
 
-    //------------------------------------------------
+    //------------------------------------------------------------------------------------
     // Compute the complete change of coordinates to:
     // - Get rid of order 1
     // - Get a normal form for the order 2
     // of the Hamiltonian of the QBCP
     // Results are stored in the folder data/COC
-    //------------------------------------------------
+    //------------------------------------------------------------------------------------
     case 1:
     {
         switch(model)
@@ -244,23 +244,23 @@ int main(int argc, char *argv[])
     }
 
 
-    //------------------------------------------------
+    //------------------------------------------------------------------------------------
     // Parameterization method
-    //------------------------------------------------
+    //------------------------------------------------------------------------------------
     case 2:
     {
         pmt(0, storage, pms, SEML.cs.manType);
         break;
     }
 
-    //------------------------------------------------
+    //------------------------------------------------------------------------------------
     // Test of the parameterization method
-    //------------------------------------------------
+    //------------------------------------------------------------------------------------
     case 3:
     {
-        //------------------------------------------
+        //--------------------------------------------------------------------------------
         // Additionnal parameters in bash
-        //------------------------------------------
+        //--------------------------------------------------------------------------------
         // 1. Initial conditions
         double si[REDUCED_NV];
         for(int i = 0; i < REDUCED_NV; i++) si[i] = atof(argv[index++]);
@@ -278,22 +278,22 @@ int main(int argc, char *argv[])
             }
         }
 
-        //------------------------------------------
+        //--------------------------------------------------------------------------------
         // Initialisation of the central manifold
-        //------------------------------------------
+        //--------------------------------------------------------------------------------
         initCM(SEML);
         initCOC(SEML);
 
-        //------------------------------------------
+        //--------------------------------------------------------------------------------
         // Test
-        //------------------------------------------
+        //--------------------------------------------------------------------------------
         //pmEOvsOrderTest(nkm, km, si);
         pmErrorvsOrderTest(nkm, km, si);
 
 
-        //------------------------------------------
+        //--------------------------------------------------------------------------------
         // Plot
-        //------------------------------------------
+        //--------------------------------------------------------------------------------
         //        gnuplot_ctrl  *h1;
         //        h1 = gnuplot_init();
         //        //coeff_plot(h1, &SEML);
@@ -317,14 +317,14 @@ int main(int argc, char *argv[])
         break;
     }
 
-    //------------------------------------------------
+    //------------------------------------------------------------------------------------
     // Poincare maps
-    //------------------------------------------------
+    //------------------------------------------------------------------------------------
     case 4:
     {
-        //------------------------------------------
+        //--------------------------------------------------------------------------------
         // Additionnal parameters in bash
-        //------------------------------------------
+        //--------------------------------------------------------------------------------
         //1. Array of orders to test
         int nkm = atoi(argv[index++]);
         int km[nkm];
@@ -355,17 +355,17 @@ int main(int argc, char *argv[])
         int  argpmapc  = atoi(argv[index++]);
         cout << "Number of PMAP parameters & settings is " << argpmapc << endl;
 
-        //------------------------------------------
+        //--------------------------------------------------------------------------------
         // Initialisation of the central manifold
-        //------------------------------------------
+        //--------------------------------------------------------------------------------
         initCM(SEML);
         initCOC(SEML);
 
 
-        //------------------------------------------
+        //--------------------------------------------------------------------------------
         // Pmap init
         // Bash line for parallel computation: export OMP_SET_NUM_THREADS=5
-        //------------------------------------------
+        //--------------------------------------------------------------------------------
         Pmap pmap;
         if(MODEL_TYPE == M_RTBP)
         {
@@ -395,10 +395,24 @@ int main(int argc, char *argv[])
         }
 
 
-        //------------------------
-        //May evolve
-        //------------------------
-        pmap.projFreq   =  atoi(argv[index++]);
+        //--------------------------------------------------------------------------------
+        // Parameters that may evolve
+        //
+        //  - projFreq is the frequency of projection inside the map
+        //  - type is the type of map: either PMAP, TMAP, EMAP or IMAP
+        //  - tf is the final time of integration (useful only for PMAP/TMAP).
+        //  - isGS: force some simplifications in the evaluation
+        //    of the manifolds. The parameterization style of the manifold at hand must be
+        //    the graph style (PMS_GRAPH) for isGS to be active.
+        //  - order: the effective order of the Taylor expansions on the map.
+        //  - ofs_order: the effective order of the Fourier expansions on the map.
+        //  - max_events: the maximum number of events on the map. Typically,
+        //    the number of points on the xy-plane for the PMAP.
+        //  - t0 the initial time for all trajectories on the map.
+        //    t0 is given as a fraction of the period T of the SEM system.
+        //    T is computed in the units (EM or SEM) selected earlier by the user.
+        //
+        //--------------------------------------------------------------------------------
         pmap.projFreq   =  atoi(argv[index++]);
         pmap.type       =  atoi(argv[index++]);
         pmap.tf         =  atof(argv[index++]); //needs to be a big number of Pmap, not for Tmap
@@ -416,7 +430,7 @@ int main(int argc, char *argv[])
         //Specific case of the initial time, that
         //may be initialized as a root of a coefficient
         //of the COC matrix
-        pmap.t0         =  atoi(argv[index++]);
+        pmap.t0         =  atof(argv[index++])*SEML.us.T;
         if(pmap.t0 == -1) pmap.t0 = pij(2, 5); //root of p36 is input is -1
 
         pmap.dHv        =  atof(argv[index++]);
@@ -438,9 +452,9 @@ int main(int argc, char *argv[])
         cout << "pmap.gmax       = "  << pmap.gmax << endl;
         cout << "---------------------------------------------------" << endl;
 
-        //-----------------------
+        //--------------------------------------------------------------------------------
         // Additionnal map settings
-        //-----------------------
+        //--------------------------------------------------------------------------------
         int append = atoi(argv[index++]);
         int isPlot = atoi(argv[index++]);
         int isPar  = atoi(argv[index++]);
@@ -451,16 +465,16 @@ int main(int argc, char *argv[])
         cout << "isPar           = "  << isPar << endl;
         cout << "method          = "  << pmap.type << endl;
 
-        //-----------------------
+        //--------------------------------------------------------------------------------
         // openMP settings
-        //-----------------------
+        //--------------------------------------------------------------------------------
         int num_threads = atoi(argv[index++]);
         omp_set_num_threads(num_threads);
         cout << "num_threads     = "  << num_threads << endl;
 
-        //------------------------------------------
+        //--------------------------------------------------------------------------------
         // Pmap computation
-        //------------------------------------------
+        //--------------------------------------------------------------------------------
         switch(pmap.type)
         {
         case PMAP:
@@ -469,21 +483,21 @@ int main(int argc, char *argv[])
             pmap_build(pmap, append, method, isPlot, isPar);
             break;
         }
+
         case TMAP:
         {
             tmap_build(pmap, append, method, isPlot, isPar);
             break;
         }
 
-
-        //-----------------------
+        //--------------------------------------------------------------------------------
         // Precision map
         // for various orders
         //
         //  €€ TODO: add a parameter to take into account
         //   the different possibilities for error maps
         //
-        //-----------------------
+        //--------------------------------------------------------------------------------
         case EMAP:
         {
             for(int i = 0; i < nkm; i++)
@@ -493,14 +507,16 @@ int main(int argc, char *argv[])
             }
             break;
         }
-        //-----------------------
+
+
+        //--------------------------------------------------------------------------------
         // Invariance error map
         // for various orders
         //
         //  €€ TODO: add a parameter to take into account
         //   the different possibilities for invariance error maps
         //
-        //-----------------------
+        //--------------------------------------------------------------------------------
         case IMAP:
         {
             for(int i = 0; i < nkm; i++)
@@ -513,13 +529,27 @@ int main(int argc, char *argv[])
             break;
         }
 
+
+        //--------------------------------------------------------------------------------
+        // Energy (hamiltonian) map
+        //
+        //  €€ TODO: add a parameter to take into account
+        //   the different possibilities for invariance error maps
+        //
+        //--------------------------------------------------------------------------------
+        case HMAP:
+        {
+            pmap_energy(pmap, append, isPar, pmap.dHv);
+            break;
+        }
+
         }
         break; //and of case 4: pmaps
     }
 
-    //------------------------------------------------
+    //------------------------------------------------------------------------------------
     // COCs
-    //------------------------------------------------
+    //------------------------------------------------------------------------------------
     case 5:
     {
         //-----------------------------
@@ -549,9 +579,9 @@ int main(int argc, char *argv[])
         break;
     }
 
-    //------------------------------------------------
+    //------------------------------------------------------------------------------------
     // Compute the dynamical equivalent of the libration point, and other resonant orbits
-    //------------------------------------------------
+    //------------------------------------------------------------------------------------
     case 6:
     {
         //-----------------------------
@@ -565,7 +595,8 @@ int main(int argc, char *argv[])
         // Continuation procedures for the computation of the lpdyneq
         // Works for:
         // - EML1 in BCP.
-        // - Seems to work for SEML1,2 of the BCP, but equations of motion need to be checked.
+        // - Seems to work for SEML1,2 of the BCP,
+        //   but equations of motion need to be checked.
         //-----------------------------
         //continuation_dyn_eq_lib_point(SEML, M_RTBP, M_BCP, storage);
 

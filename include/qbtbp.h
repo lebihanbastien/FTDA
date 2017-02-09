@@ -30,7 +30,7 @@
 #include "ode.h"
 #include "gslc.h"
 #include "define_env.h"
-#include "config.h"
+#include "init.h"
 #include "eminsem.h"
 
 extern "C" {

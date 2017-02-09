@@ -11,7 +11,7 @@
 
 #include "qbcp.h"
 #include "qbtbp.h"
-#include "config.h"
+#include "init.h"
 
 //-----------------------------------------------------------------------------
 // COC: Velocities <--> Momenta

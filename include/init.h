@@ -2,7 +2,7 @@
 #define CONFIG_H_INCLUDED
 
 /**
- * \file config.h
+ * \file init.h
  * \brief Configuration file. It allows to initialize the environment of the Sun-(Earth+Moon) Quasi-Bicircular Four-Body Problem.
  * \author BLB.
  * \date May 2015

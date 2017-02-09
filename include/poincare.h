@@ -6,8 +6,10 @@ extern "C"
     #include "nrutil.h"
     #include "multimin.h"
 }
+
+
 #include "pmode.h"
-#include "config.h"
+#include "init.h"
 #include "parameters.h"
 
 //Integration methods
@@ -16,10 +18,12 @@ extern "C"
 #define DUAL_INT_STEPPED  3
 #define SINGLE_INT 4
 
+//Types of map
 #define PMAP  1
 #define TMAP  2
 #define EMAP  3
 #define IMAP  4
+#define HMAP  5
 
 /**
  * \file poincare.h
@@ -87,74 +91,74 @@ struct Pmap
 typedef struct Orbit Orbit;
 struct Orbit
 {
-    //-----------
+    //------------------------------------------------------------------------------------
     //Parent
-    //-----------
-    Pmap     *pmap;                   //Poincare map (parent)
-    QBCP_L   *qbcp_l;                 //QBCP around a given Li point (parent)
+    //------------------------------------------------------------------------------------
+    Pmap     *pmap;         //Poincare map (parent)
+    QBCP_L   *qbcp_l;       //QBCP around a given Li point (parent)
 
-    //-----------
+    //------------------------------------------------------------------------------------
     //Parameterization (common to all orbits)
-    //-----------
-    vector<Oftsc>*  W;            //z(t) = W(s(t), t)
-    vector<Oftsc>*  Wh;           //zh(t) = Wh(s(t), t)
-    matrix<Oftsc>*  DW;           //Jacobian of W
-    Ofsc* ofs;                    //Auxiliary Ofs object
-    double  n;                    //Pulsation of the QBCP
-    //-----------
+    //------------------------------------------------------------------------------------
+    vector<Oftsc>*  W;      //z(t) = W(s(t), t)
+    vector<Oftsc>*  Wh;     //zh(t) = Wh(s(t), t)
+    matrix<Oftsc>*  DW;     //Jacobian of W
+    Ofsc* ofs;              //Auxiliary Ofs object
+    double  n;              //Pulsation of the QBCP
+    //------------------------------------------------------------------------------------
     //COC (common to all orbits)
-    //-----------
-    matrix<Ofsc>* PC;             //COC matrix
-    vector<Ofsc>* V;              //COC vector
+    //------------------------------------------------------------------------------------
+    matrix<Ofsc>* PC;       //COC matrix
+    vector<Ofsc>* V;        //COC vector
 
-    //-----------
+    //------------------------------------------------------------------------------------
     //For event detection
-    //-----------
-    value_params *val_par;           //Event parameters
-    value_function *fvalue;          //fvalue for event detection
-    double** z0_mat;                 //Pointer towards the stored position of events (NC)
-    double** zh0_mat;                //Pointer towards the stored position of events (TFR)
-    double** s0_mat;                 //Pointer towards the stored position of events (RCM)
-    double*  te_mat;                 //Pointer towards the stored time of events
-    double*  hz;                     //Energy z(t) at each event
-    double*  hw;                     //Energy W(s(t),t) at each event
-    double*  ePm;                    //Projection error at each event
-    int last_indix;                  //indix of the last computed event in z0_mat
-    int reset_number;                //number of reset during computation (for dual integration)
-    int      *nevent;                //the label of the events
+    //------------------------------------------------------------------------------------
+    value_params *val_par;  //Event parameters
+    value_function *fvalue; //fvalue for event detection
+    double** z0_mat;        //Pointer towards the stored position of events (NC)
+    double** zh0_mat;       //Pointer towards the stored position of events (TFR)
+    double** s0_mat;        //Pointer towards the stored position of events (RCM)
+    double*  te_mat;        //Pointer towards the stored time of events
+    double*  hz;            //Energy z(t) at each event
+    double*  hw;            //Energy W(s(t),t) at each event
+    double*  ePm;           //Projection error at each event
+    int last_indix;         //indix of the last computed event in z0_mat
+    int reset_number;       //number of reset during computation (for dual integration)
+    int      *nevent;       //the label of the events
 
-    //-----------
+    //------------------------------------------------------------------------------------
     //Characteristics
-    //-----------
-    double   *z0;                    //Initial position in NC coordinates dim = 6
-    double   *zh0;                   //Initial position in TFR coordinates dim = 6
-    double   *si;                    //Initial RCM configuration dim = REDUCED_NV
-    double   *s0d;                   //Initial position in CCM8 coordinates (real+imag part) dim = 2*REDUCED_NV
-    cdouble  *s0;                    //Initial position in CCM8 coordinates (real+imag part) dim = 4
-    double   *xf;                    //Final position dim = 6
-    double    tf;                    //final time after computation
-    double    eOm;                   //Orbit error
-    int       int_method;            //integration method used to compute the orbit; -1 if not computed
-    int       label;                 //label of the orbit
-    int       vdim;                  //the dimension along wich we guarantee a certain initial energy value
+    //------------------------------------------------------------------------------------
+    double   *z0;           //Initial position in NC coordinates dim = 6
+    double   *zh0;          //Initial position in TFR coordinates dim = 6
+    double   *si;           //Initial RCM configuration dim = REDUCED_NV
+    double   *s0d;          //Initial position in CCM8 coordinates (real+imag part) dim = 2*REDUCED_NV
+    cdouble  *s0;           //Initial position in CCM8 coordinates (real+imag part) dim = 4
+    double   *xf;           //Final position dim = 6
+    double    tf;           //final time after computation
+    double    eOm;          //Orbit error
+    int       int_method;   //integration method used to compute the orbit; -1 if not computed
+    int       label;        //label of the orbit
+    int       vdim;         //the dimension along wich we guarantee a certain initial energy value
 
 
-    //-----------
+    //------------------------------------------------------------------------------------
     //ODE integration
-    //-----------
-    OdeStruct *ode_s_6;              //NC ode struct
-    OdeStruct *ode_s_8;              //TFC ode struct
+    //------------------------------------------------------------------------------------
+    OdeStruct *ode_s_6;     //NC ode struct
+    OdeStruct *ode_s_8;     //TFC ode struct
 
-    OdeStruct *ode_s_6_root;         //NC ode struct
-    OdeStruct *ode_s_8_root;         //TFC ode struct
+    OdeStruct *ode_s_6_root; //NC ode struct
+    OdeStruct *ode_s_8_root; //TFC ode struct
 };
 
 
-//-----------------------------------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 //
 //  Poincare map
 //
-//-----------------------------------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 /**
  *   \brief Computes a Poincare map
  *   \param pmap a reference to the Poincare map parameters
@@ -240,11 +244,11 @@ void pmap_test_error(Pmap &pmap, int append, bool isPar, double hzmax);
 void pmap_energy(Pmap &pmap, int append, bool isPar, double hzmax);
 
 
-//-----------------------------------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 //
 //  Init of one orbit
 //
-//-----------------------------------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 
 /**
     \brief Initialize an orbit wrt a Poincare map so that H(orbit.s0) = H(Pmap)
@@ -275,11 +279,11 @@ double orbit_ham(Pmap &pmap, double st0[]);
 double deltham(double sr, void *params);
 
 
-//-----------------------------------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 //
 //  Computation of one orbit
 //
-//-----------------------------------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 /**
     \brief Computes the poincare map of one given orbit
     \param orbit a pointer to the orbit
@@ -369,11 +373,11 @@ int refine_root(Orbit *orbit,
 
 
 
-//-----------------------------------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 //
 //  Print & Read
 //
-//-----------------------------------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 /**
  *   \brief Print the poincare map of and orbit in a txt file
  **/
@@ -417,13 +421,19 @@ void header_energy_fprint(string filename);
 /**
     \brief Print the energy map of and orbit in a bin file
 **/
+void orbit_imap_fprint_bin(Orbit *orbit, string filename, int append);
+
+
+/**
+    \brief Print the energy map of and orbit in a bin file
+**/
 void orbit_energy_fprint_bin(Orbit *orbit, string filename, int append);
 
-//--------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 //
 // Steppers
 //
-//--------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 /**
  *   \brief Integrates the current state yv/sv one step, using both NC and rvf vector fields.
  **/
@@ -451,11 +461,11 @@ int gslc_dual_evolve(Orbit *orbit,
                      double threshold);
 
 
-//-----------------------------------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 //
 // Plotting (deprecated)
 //
-//-----------------------------------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 //Plot one orbit
 void orbit_plot(Orbit *orbit, gnuplot_ctrl *h1, int type, int points, OdeStruct *ode_s_6, OdeStruct *ode_s_8);
 //Plot one orbit (3D)
@@ -466,11 +476,11 @@ void orbit_poincare_plot(Orbit *orbit, gnuplot_ctrl *h1, gnuplot_ctrl *h2, int c
 void orbit_Tmap_plot(Orbit *orbit, gnuplot_ctrl *h1, gnuplot_ctrl *h2, int color);
 
 
-//-----------------------------------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 //
 //  Square distance & minimization of it (deprecated)
 //
-//-----------------------------------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 /**
     \brief Given an initial guess st0, computes the min argument of square distance between a given configuraton z1 and z = W(g(st), t) (see sqdist).
     i.e. st1 = argmin sqdist(st, z1, t, &orbit)
@@ -509,11 +519,11 @@ double sqdist(double st0[], double z1[], double t, void *params);
 void dsqdist(double st0[], double df[], double z1[], double t, void *params);
 
 
-//-----------------------------------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 //
 //  Orbit C structure handling
 //
-//-----------------------------------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 /**
     \brief Initialize one orbit structure
  **/
@@ -555,11 +565,11 @@ void init_orbit(Orbit *orbit,
 void free_orbit(Orbit *orbit);
 
 
-//-----------------------------------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 //
 //  Inner routines
 //
-//-----------------------------------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 /**
  *   \brief Initialize the grid on which the poincare map will be evaluated
  **/
