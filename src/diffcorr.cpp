@@ -275,13 +275,13 @@ int differential_correction_deps_mns(double *ystart, double *nullvector, double 
         qbpi->epsilon -= gsl_vector_get(Pn, 2);
 
         //-------------------------------------------------------------------------------
-        //Norm of the correction
+        //Norm of the error
         //-------------------------------------------------------------------------------
-        dx = gsl_blas_dnrm2(Pn);
+        dx = gsl_blas_dnrm2(P);
     }
     while((fabs(dx)> eps_diff) && (++iter) < itermax);
 
-
+    cout << "dx = " << dx << endl;
     //-------------------------------------------------------------------------------
     //End the computation if there was no convergence
     //-------------------------------------------------------------------------------
@@ -324,7 +324,7 @@ int differential_correction_deps_mns(double *ystart, double *nullvector, double 
     if(isFirst)
     {
         //If it is the first use, we go in the direction so that depsilon > 0
-        sign = gsl_matrix_get(Q, 2, 2) > 0? 1:-1;
+        sign = gsl_matrix_get(Q, 2, 2) > 0? -1:+1;
         for(int i = 0; i < 3; i++) nullvector[i] = sign*gsl_matrix_get(Q, i, 2);
     }
     else
@@ -355,7 +355,7 @@ int differential_correction_deps_mns(double *ystart, double *nullvector, double 
     gnuplot_close(hc);
 
 
-    return GSL_SUCCESS;
+    return iter;
 }
 
 /**

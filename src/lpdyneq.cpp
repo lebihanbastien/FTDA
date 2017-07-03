@@ -393,7 +393,8 @@ void lpdyneq_cont_2(gsl_odeiv2_driver *d, gsl_odeiv2_control * loose_control, gs
     //---------------------------------------------------------
     //Arclength stepsize
     //---------------------------------------------------------
-    double ds = 5e-3;
+    double ds = 8e-3;
+    int iterc = 1;
 
     //---------------------------------------------------------
     //Driver: loose control
@@ -474,7 +475,7 @@ void lpdyneq_cont_2(gsl_odeiv2_driver *d, gsl_odeiv2_control * loose_control, gs
         // With a square system (pseudo-arclength constraint added)
         //differential_correction_deps_pac(y0, nullvector, gv, ds, fT*tend, 1e-10, d, 48, 1);
         // With the minimum norm solution
-        differential_correction_deps_mns(y0, nullvector, gv, fT*tend, 1e-10, d, 48, 0, 0);
+        iterc = differential_correction_deps_mns(y0, nullvector, gv, fT*tend, 1e-10, d, 48, (iter%50 == 0), 0);
 
         //------------------------
         // Plotting the direction of motion
@@ -504,13 +505,17 @@ void lpdyneq_cont_2(gsl_odeiv2_driver *d, gsl_odeiv2_control * loose_control, gs
             cout << "New state is = " << endl;
             vector_printf(ym, 6);
             cout << "New eps = " << qbpi->epsilon << endl;
-            odePlot(y0, 48,  0.5*fT*tend, d, h1, Npoints, 8);
-            odePlot(y0, 48, -0.5*fT*tend, d, h1, Npoints, 8);
+            odePlot(y0, 48,  fT*tend, d, h1, Npoints, 8);
+            odePlot(y0, 48, -0.5*fT*tend, d, h1, Npoints, 7);
             //printf("Press ENTER to go on\n");
             //scanf("%c",&ch);
         }
         //Upload iter
         iter++;
+
+        cout << "Old ds = " << ds << endl;
+        ds = ds*6/(fabs(iterc)+1);
+        cout << "New ds = " << ds << endl;
 
     }
     while(iter <= Nmax && qbpi->epsilon <= 1.0001);

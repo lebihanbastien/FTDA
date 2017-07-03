@@ -16,7 +16,7 @@ export PM=2
 export PM_TEST=3
 export COMPMAP=4
 export COC=5
-export TRAJ=5
+export TRAJ=6
 
 #------------------------------------
 # TYPE OF MANIFOLD

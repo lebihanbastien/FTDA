@@ -80,18 +80,18 @@ PMAP_method=$SINGLE_INT
 #------------------------------------
 PMAP_append=0;
 PMAP_isPlot=0;
-PMAP_isPar=0;
+PMAP_isPar=1;
 
 #------------------------------------
 # OpenMP settings
 #------------------------------------
-NUM_THREADS=4
+NUM_THREADS=50
 
 #------------------------------------
 # Numerical constants for all computation
 #------------------------------------
 OFS_ORDER=30
-OFTS_ORDER=2
+OFTS_ORDER=10
 REDUCED_NV=4
 
 #------------------------------------
@@ -105,9 +105,9 @@ PMAP_isQBCP=$MODEL   #isQBCP
 PMAP_max_events=100  #Maximum number of events allowed (warning: all directions of crossing are considered!)
 PMAP_t0=0.0          #Initial time (-1 for inner computation in C routine)
 PMAP_dHv=0.1         #Energy
-PMAP_gsize=100       #Number of steps on the grid
-PMAP_gmin=-20.0      #left boundary
-PMAP_gmax=20.0       #right boundary
+PMAP_gsize=50        #Number of steps on the grid
+PMAP_gmin=-30.0      #left boundary
+PMAP_gmax=30.0       #right boundary
 PMAP_PROJ_FREQ=-1    #projection frequency on manifold. If -1, no projection
 
 
@@ -122,6 +122,11 @@ NORDERS=${#ORDERS[@]}
 #------------------------------------
 ORDERS_OFS=($OFS_ORDER)
 NORDERS_OFS=${#ORDERS_OFS[@]} 
+
+#------------------------------------
+# NOHUP?
+#------------------------------------
+ISNOHUP=1
 
 
 

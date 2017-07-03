@@ -539,7 +539,8 @@ int main(int argc, char *argv[])
         //--------------------------------------------------------------------------------
         case HMAP:
         {
-            pmap_energy(pmap, append, isPar, pmap.dHv);
+            //pmap_energy(pmap, append, isPar, pmap.dHv);
+            pmap_energy_3d(pmap, append, isPar, pmap.dHv);
             break;
         }
 
@@ -589,7 +590,7 @@ int main(int argc, char *argv[])
         // - EML1, EML2 in QBCP
         // - SEML1, SEML2 in QBCP
         //-----------------------------
-        compute_dyn_eq_lib_point(SEML, storage);
+        //compute_dyn_eq_lib_point(SEML, storage);
 
         //-----------------------------
         // Continuation procedures for the computation of the lpdyneq
@@ -598,7 +599,7 @@ int main(int argc, char *argv[])
         // - Seems to work for SEML1,2 of the BCP,
         //   but equations of motion need to be checked.
         //-----------------------------
-        //continuation_dyn_eq_lib_point(SEML, M_RTBP, M_BCP, storage);
+        continuation_dyn_eq_lib_point(SEML, M_RTBP, M_BCP, storage);
 
         //-----------------------------
         // Continuation procedures for the computation of other resonant orbits

@@ -243,6 +243,19 @@ void pmap_test_error(Pmap &pmap, int append, bool isPar, double hzmax);
  **/
 void pmap_energy(Pmap &pmap, int append, bool isPar, double hzmax);
 
+/**
+ *   \brief Energy of the initial conditions on a Poincare map. Parallelized version
+ *   \param pmap a reference to the Poincare maps parameters
+ *   \param hzmax the maximum energy value allowed.
+ *          Note that only positive dhz are selected
+ *
+ *    Requires initCM and initCOC
+ *
+ *   REMARK: may be good to "force" p36(t0= 0.0) (e.g. pmap.t0 =  +1.044814582930593 for L2) so that each IC begins on z = 0 plane
+ *   If so, the way H(0) = cst is guaranteed must be changed because we need also to ensure that s4 = 0.0 (which is not the case, since it is the variable
+ *   that ensures H(0) = cst
+ **/
+void pmap_energy_3d(Pmap& pmap, int append, bool isPar, double hzmax);
 
 //----------------------------------------------------------------------------------------
 //

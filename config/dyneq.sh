@@ -21,13 +21,13 @@ COMPTYPE=$TRAJ
 # MODEL
 # RTBP = 0; QBCP = 1; BCP = 2
 #------------------------------------
-MODEL=$QBCP  
+MODEL=$BCP  
 
 #------------------------------------
 # COORDINATE SYSTEM
 # EM = 0; SEM = 1; SE = 2 (SE is deprecated)
 #------------------------------------
-CS=$SEM  
+CS=$EM  
 
 #------------------------------------
 # Normalization

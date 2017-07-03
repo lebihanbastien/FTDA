@@ -54,7 +54,7 @@ STORAGE=$FALSE
 #------------------------------------
 # Order to test
 #------------------------------------
-ORDERS=(5 10 15)
+ORDERS=(20)
 NORDERS=${#ORDERS[@]} 
 
 #------------------------------------
@@ -93,7 +93,7 @@ NUM_THREADS=2
 #------------------------------------
 PMAP_TF=10000	     #final integration time. needs to be big for PMAP
 PMAP_isQBCP=$MODEL   #isQBCP
-PMAP_order=15        #ORDER
+PMAP_order=20        #ORDER
 PMAP_ofs_order=30    #OFS ORDER
 PMAP_max_events=1000 #Maximum number of events allowed (warning: all directions of crossing are considered!)
 PMAP_t0=0.0          #Initial time (-1 for inner computation in C routine)
@@ -106,7 +106,7 @@ PMAP_gmax=2.0       #right boundary
 # Numerical constants for all computation
 #------------------------------------
 OFS_ORDER=30
-OFTS_ORDER=15
+OFTS_ORDER=20
 REDUCED_NV=4
 
 
