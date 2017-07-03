@@ -4020,8 +4020,8 @@ void applyLegRecDer(vector<Oftsc> &Wt,   //tilde state vector (xt, yt,..)
                     Ofsc &AUX,           //spare OFS object
                     Ofsc &BUX,           //spare OFS object
                     Ofsc &temp,          //spare OFS object
-                    int m,                  //current order of the W expansion
-                    int k)                  //current En[k] that needs to be updated
+                    int m,               //current order of the W expansion
+                    int k)               //current En[k] that needs to be updated
 {
     //AUX = ILe^2*(2*k-1)/k
     AUX.ofs_mprod(ILe, ILe, (2.0*k - 1.0)/k+0.0*I);
@@ -4095,10 +4095,10 @@ void updateLegPoly(vector<Oftsc> &Wt,   //vector of size 6: tilde state vector (
                    Ofsc &AUX,           //Temporary variables
                    Ofsc &BUX,           //Temporary variables
                    Ofsc &CUX,           //Temporary variables
-                   Ofsc &temp,           //Temporary variables
-                   QBCP_L& qbcp_l,       //current QBCP
-                   int m,                  //current order of the W expansion
-                   int k)                  //current En[k] (and Enx[k+1]) that needs to be updated
+                   Ofsc &temp,          //Temporary variables
+                   QBCP_L& qbcp_l,      //current QBCP
+                   int m,               //current order of the W expansion
+                   int k)               //current En[k] (and Enx[k+1]) that needs to be updated
 {
     //At this step:
     // -  En[0, .., k-1] are at order m

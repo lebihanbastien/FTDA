@@ -187,7 +187,7 @@ void pmErrorvsOrderTest(int nkm, int km[], double si[])
         //------------------------------------------
         rvf.order = order;
         tic();
-        errorPlot(st0, CMh, PC, V, FW, DWf, Wdot, 0.5*tmax, d, d_fh, 500, SEML, order, ofs_order, ht, color++);
+        errorPlot(st0, CMh, PC, V, FW, DWf, Wdot, tmax, d, d_fh, 1000, SEML, order, ofs_order, ht, color++);
         cout << "errorPlot in: " << toc() << endl;
     }
 
@@ -737,6 +737,7 @@ int errorPlot(const double st0[],      //RCM initial conditions
     string F_COC   = qbcp_l.cs.F_COC;
 
 
+
     //------------------------------------------
     //Reset integrator
     //------------------------------------------
@@ -770,16 +771,16 @@ int errorPlot(const double st0[],      //RCM initial conditions
     //------------------------------------------
     // Inner state (NC, TFC...)
     //------------------------------------------
-    double  s1rcm[REDUCED_NV];  //RCM
-    cdouble s1ccm[REDUCED_NV];  //CCM
+    double  s1rcm[REDUCED_NV];    //RCM
+    cdouble s1ccm[REDUCED_NV];    //CCM
     double  s1ccm8[2*REDUCED_NV]; //CCM8
-    double  z1ncr[6];  //NC, integrated with NC vector field
-    double  z1ncr2[6]; //NC, but computed from z = W(s,t)
-    double  z1em[6];   //EM
-    double  fnc[6];  //NC vector field
-    double  W0;         //Euclidian norm in NC coordinates
-    double  W0km;       //Euclidian norm in km
-    Ofsc AUX;       //OFS temp variable
+    double  z1ncr[6], z0ncr[6];   //NC, integrated with NC vector field
+    double  z1ncr2[6];            //NC, but computed from z = W(s,t)
+    double  z1em[6], z0em[6];     //EM
+    double  fnc[6];               //NC vector field
+    double  W0;                   //Euclidian norm in NC coordinates
+    double  W0km;                 //Euclidian norm in km
+    Ofsc AUX;                     //OFS temp variable
 
     //------------------------------------------
     //Retrieving the parameters
@@ -789,9 +790,10 @@ int errorPlot(const double st0[],      //RCM initial conditions
     //------------------------------------------
     //Hamiltonian at the origin
     //------------------------------------------
-    for(int i = 0; i <6; i++) z1ncr[i] = 0.0;
-    NCtoSYS(0.0, z1ncr, z1em, (QBCP_L*) dnc->sys->params);  //Hamiltonian in sys coordinates (for reference)
-    double HLi = qbfbp_H(0.0, z1em, dnc->sys->params);
+    double stLi[4] = {0, 0, 0, 0};
+    RCMtoNCbyTFC(stLi, 0.0, n, order, ofs_order, Wh, AUX, PC, V, z0ncr, false);
+    NCtoSYS(0.0, z0ncr, z0em, (QBCP_L*) dnc->sys->params);  //Hamiltonian in sys coordinates (for reference)
+    double HLi = qbfbp_H(0.0, z0em, dnc->sys->params);
 
     //------------------------------------------
     // RCM to NC for NC initial conditions
@@ -819,12 +821,12 @@ int errorPlot(const double st0[],      //RCM initial conditions
     cout << "Approximated distance from Li [km]: " << W0km << endl;
 
     //------------------------------------------
-    // Hamiltonian
+    // Initial relative Hamiltonian
     //-----------------------------------------
     //H0 = qbfbp_Hn(0.0, z1ncr, dnc->sys->params)-HLi0;           //Hamiltonian
-    NCtoSYS(0.0, z1ncr, z1em, (QBCP_L*) dnc->sys->params);                 //Hamiltonian in EM coordinates (for reference)
-    H0 = qbfbp_H(0.0, z1em, dnc->sys->params);
-    cout << "H in EM coordinates: " << qbfbp_H(0.0, z1em, dnc->sys->params) - HLi << endl;
+    NCtoSYS(0.0, z1ncr, z1em, (QBCP_L*) dnc->sys->params);        //Hamiltonian in EM coordinates (for reference)
+    H0 = qbfbp_H(0.0, z1em, dnc->sys->params) -HLi ;
+    cout << "H in EM coordinates: " << H0 << endl;
 
     //------------------------------------------
     // For plotting (first value)
@@ -842,7 +844,7 @@ int errorPlot(const double st0[],      //RCM initial conditions
     //Errors
     eIc[0]  = 0.0;
     eOc[0]  = 0.0;
-    eHc[0]  = 0.0;
+    eHc[0]  = sqrt((H0 - HLi)*(H0 - HLi));
 
     //------------------------------------------
     // Loop on time
@@ -878,11 +880,20 @@ int errorPlot(const double st0[],      //RCM initial conditions
         CCM8toCCM(s1ccm8, s1ccm);
         //z1ncr2 = W(s1rcm, ti)
         RCMtoNCbyTFC(s1rcm, ti, n, order, ofs_order, Wh, AUX, PC, V, z1ncr2, false);
-        //Evluating the vector field at z1ncr2 = W(s1rcm, ti)
+
+        //Evaluating the vector field at z1ncr2 = W(s1rcm, ti)
         qbfbp_vfn_novar(ti, z1ncr2, fnc, dnc->sys->params);
+
+        //Hamiltonian, at the origin
+        RCMtoNCbyTFC(stLi, ti, n, order, ofs_order, Wh, AUX, PC, V, z0ncr, false);
+        NCtoSYS(ti, z0ncr, z0em, (QBCP_L*) dnc->sys->params);  //Hamiltonian in sys coordinates (for reference)
+        HLi = qbfbp_H(ti, z0em, dnc->sys->params);
+
+
         //Hamiltonian, taken at z1ncr2 = W(s1rcm, ti)
-        NCtoSYS(n*ti, z1ncr2, z1em, (QBCP_L*) dnc->sys->params);
+        NCtoSYS(ti, z1ncr2, z1em, (QBCP_L*) dnc->sys->params);
         H  = qbfbp_H(ti, z1em, dnc->sys->params);
+
 
         //---------------------
         //Error computation
@@ -935,7 +946,7 @@ int errorPlot(const double st0[],      //RCM initial conditions
         //Errors
         eOc[i] = eOm;
         eIc[i] = eIm;
-        eHc[i]  = sqrt((H - H0)*(H - H0));
+        eHc[i] = sqrt((H - HLi)*(H - HLi));
     }
     if(t1 <0)
     {
