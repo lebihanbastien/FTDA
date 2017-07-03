@@ -38,7 +38,7 @@ ISNORM=$TRUE
 #------------------------------------
 # DEFAULT LIBRATION POINT FOR EM & SEM SYSTEM
 #------------------------------------
-LI_EM=1
+LI_EM=2
 LI_SEM=2
 
 #------------------------------------
@@ -66,10 +66,11 @@ STORAGE=$TRUE
 #------------------------------------
 # Point to test
 #------------------------------------
-#IC=(0.01 0 0 0.0) #small orbit
-#IC=(1 0 0 0.0)  #big orbit
+#IC=(10 0 0 0.0) #small planar orbit
+#IC=(40 0 0 0.0) #big planar orbit
 
-IC=(0.85 0.85 0.85 0.0) #big orbit 3D
+#IC=(1 1 1 0) #small 3d orbit
+IC=(10 10 10 0) #big 3d orbit
 
 #------------------------------------
 # Order to to test
