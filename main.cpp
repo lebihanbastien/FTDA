@@ -399,7 +399,7 @@ int main(int argc, char *argv[])
         // Parameters that may evolve
         //
         //  - projFreq is the frequency of projection inside the map
-        //  - type is the type of map: either PMAP, TMAP, EMAP or IMAP
+        //  - type is the type of map: either PMAP, TMAP, EMAP or IMAP (or IMAPPLANAR)
         //  - tf is the final time of integration (useful only for PMAP/TMAP).
         //  - isGS: force some simplifications in the evaluation
         //    of the manifolds. The parameterization style of the manifold at hand must be
@@ -519,13 +519,13 @@ int main(int argc, char *argv[])
         //--------------------------------------------------------------------------------
         case IMAP:
         {
-            for(int i = 0; i < nkm; i++)
-            {
-                pmap.order = km[i];
-                //pmap_invariance_error(pmap, append, isPar, pmap.dHv);
-                pmap_invariance_error_random(pmap, append, isPar, pmap.dHv);
-                //pmap_test_error(pmap, append, isPar, pmap.dHv);
-            }
+            pmap_invariance_error_random(pmap, append, isPar, pmap.dHv, km, nkm);
+            break;
+        }
+
+        case IMAPPLANAR:
+        {
+            pmap_invariance_error_random_planar(pmap, append, isPar, pmap.dHv, km, nkm);
             break;
         }
 
@@ -612,6 +612,17 @@ int main(int argc, char *argv[])
 
 
     }
+
+
+    //------------------------------------------------------------------------------------
+    // Note: their a double free or corruption from an unknown source.
+    // For now, we do not quit properly!
+    //------------------------------------------------------------------------------------
+    char ch;
+    printf("Press ENTER to finish the program\n");
+    scanf("%c",&ch);
+
+
     return 0;
 
 

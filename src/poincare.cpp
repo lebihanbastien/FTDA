@@ -26,6 +26,31 @@ void orbit_pmap_fprint_bin(Orbit* orbit, string filename, int append);
 //
 //----------------------------------------------------------------------------------------
 /**
+ *   \brief Compute the error via infinity or L2 norm. The infinity norm is selected
+ *          for now.
+ **/
+double compute_error(double* eI, int nv)
+{
+    //------------------------------------------------------------------------------------
+    //Taking the maximum (infinity norm)
+    //------------------------------------------------------------------------------------
+    double eIm = fabs(eI[0]);
+    for(int p = 1; p < nv; p++) if(eI[p] > eIm) eIm = fabs(eI[p]);
+
+    //------------------------------------------------------------------------------------
+    // OR Taking the L2 norm
+    //------------------------------------------------------------------------------------
+    //    double eIm = eI[0]*eI[0];
+    //    for(int p = 1; p < nv; p++) eIm += eI[p]*eI[p];
+    //    eIm = sqrt(eIm);
+
+    //------------------------------------------------------------------------------------
+    // Return the error
+    //------------------------------------------------------------------------------------
+    return eIm;
+}
+
+/**
  *   \brief Initialize the grid on which the poincare map will be evaluated
  **/
 void init_grid(double* grid, double gmin, double gmax, int gsize)
@@ -695,9 +720,9 @@ void pmap_invariance_error(Pmap& pmap, int append, bool isPar, double hzmax)
                        &fvalue, &ode_s_6, &ode_s_8, &ode_s_6_root, &ode_s_8_root,
                        &pmap, &SEML, &orbit_ofs, pmap.vdim, label);
 
-            //------------------------------------------------------------------------------------
+            //----------------------------------------------------------------------------
             // Move on the grid
-            //------------------------------------------------------------------------------------
+            //----------------------------------------------------------------------------
             double* sti = dvector(0, 3);
             sti[0] = grid_s1[i];
             sti[1] = 0.0;
@@ -714,11 +739,11 @@ void pmap_invariance_error(Pmap& pmap, int append, bool isPar, double hzmax)
             //If the correction is successful, we can go on with the computation of the return map
             if(status == GSL_SUCCESS)
             {
-                double eI[6], fnc[6], eIm;
+                double eI[6], fnc[6];
                 cdouble eId;
-                //------------------------------------------------------------------------------------
+                //------------------------------------------------------------------------
                 // Computation
-                //------------------------------------------------------------------------------------
+                //------------------------------------------------------------------------
                 //Evaluating the vector field at z0 = W(s0, t0)
                 qbfbp_vfn_novar(orbit.pmap->t0, orbit.z0, fnc, orbit.qbcp_l);
 
@@ -741,22 +766,16 @@ void pmap_invariance_error(Pmap& pmap, int append, bool isPar, double hzmax)
                     eI[p] = cabs(eId);
                 }
 
-                //-------------------------------
-                //Taking the maximum (infinity norm)
-                //-------------------------------
-                eIm = eI[0];
-                for(int p = 1; p < NV; p++) if(eI[p] > eIm) eIm = eI[p];
-
-                //-------------------------------
+                //------------------------------------------------------------------------
                 // Set the error in orbit.eOm
-                //-------------------------------
-                orbit.eOm = eIm;
+                //------------------------------------------------------------------------
+                orbit.eOm = compute_error(eI, NV);
 
                 #pragma omp critical
                 {
-                    //-------------------------------
+                    //--------------------------------------------------------------------
                     // Displays the current state of the computation
-                    //-------------------------------
+                    //--------------------------------------------------------------------
                     cout << std::noshowpos << resetiosflags(ios::scientific)  << setprecision(4);
                     if(label%1000 == 0)
                     {
@@ -768,9 +787,9 @@ void pmap_invariance_error(Pmap& pmap, int append, bool isPar, double hzmax)
                     cout << std::showpos << setiosflags(ios::scientific)  << setprecision(15);
 
 
-                    //------------------------------------------------------------------------------------
+                    //--------------------------------------------------------------------
                     // Print in file
-                    //------------------------------------------------------------------------------------
+                    //--------------------------------------------------------------------
                     orbit.label = ++label;
                     orbit_energy_fprint(&orbit, filename, hzmax, 1);
                 }
@@ -878,8 +897,8 @@ void pmap_invariance_error_random(Pmap& pmap, int append, bool isPar, double hzm
         randseq[i][0] = pmap.gmin*(1-randseq[i][0]) + pmap.gmax*randseq[i][0];
         randseq[i][2] = pmap.gmin*(1-randseq[i][2]) + pmap.gmax*randseq[i][2];
         //s2 & s4
-        randseq[i][1] = 1e-1*(pmap.gmin*(1-randseq[i][1]) + pmap.gmax*randseq[i][1]);
-        randseq[i][3] = 1e-1*(pmap.gmin*(1-randseq[i][3]) + pmap.gmax*randseq[i][3]);
+        randseq[i][1] = 5e-1*(pmap.gmin*(1-randseq[i][1]) + pmap.gmax*randseq[i][1]);
+        randseq[i][3] = 5e-1*(pmap.gmin*(1-randseq[i][3]) + pmap.gmax*randseq[i][3]);
     }
 
     //@TODO
@@ -964,7 +983,7 @@ void pmap_invariance_error_random(Pmap& pmap, int append, bool isPar, double hzm
         //If the correction is successful, we can go on with the computation of the return map
         if(status == GSL_SUCCESS)
         {
-            double eI[6], fnc[6], eIm;
+            double eI[6], fnc[6];
             cdouble eId;
             //----------------------------------------------------------------------------
             // Computation
@@ -991,16 +1010,10 @@ void pmap_invariance_error_random(Pmap& pmap, int append, bool isPar, double hzm
                 eI[p] = cabs(eId);
             }
 
-            //-------------------------------
-            //Taking the maximum (infinity norm)
-            //-------------------------------
-            eIm = eI[0];
-            for(int p = 1; p < NV; p++) if(eI[p] > eIm) eIm = eI[p];
-
-            //-------------------------------
+            //----------------------------------------------------------------------------
             // Set the error in orbit.eOm
-            //-------------------------------
-            orbit.eOm = eIm;
+            //----------------------------------------------------------------------------
+            orbit.eOm = compute_error(eI, NV);
 
             #pragma omp critical
             {
@@ -1036,6 +1049,481 @@ void pmap_invariance_error_random(Pmap& pmap, int append, bool isPar, double hzm
     //Memory release
     free_dvector(grid_s1, 0,  pmap.gsize);
     free_dvector(grid_s2, 0,  pmap.gsize);
+}
+
+/**
+ *   \brief Invariance error computation
+ *   \param pmap a reference to the Poincare maps parameters
+ *   \param hzmax the maximum energy value allowed.
+ *          Note that only positive dhz are selected
+ *
+ *    Requires initCM and initCOC
+ *
+ *   REMARK: may be good to "force" p36(t0= 0.0) (e.g. pmap.t0 =  +1.044814582930593 for L2) so that each IC begins on z = 0 plane
+ *   If so, the way H(0) = cst is guaranteed must be changed because we need also to ensure that s4 = 0.0 (which is not the case, since it is the variable
+ *   that ensures H(0) = cst
+ **/
+void pmap_invariance_error_random(Pmap& pmap, int append, bool isPar, double hzmax, int km[], int nkm)
+{
+    cout << "---------------------------------------------------" << endl;
+    cout << "                                                   " << endl;
+    cout << "          Invariance error map computation         " << endl;
+    cout << "                                                   " << endl;
+    cout << "---------------------------------------------------" << endl;
+    cout << std::showpos << setiosflags(ios::scientific)  << setprecision(15);
+
+    //------------------------------------------------------------------------------------
+    // Strings
+    //------------------------------------------------------------------------------------
+    string F_GS    = SEML.cs.F_GS;
+    string F_PLOT  = SEML.cs.F_PLOT;
+    string F_COC   = SEML.cs.F_COC;
+    string F_PRINT = SEML.cs.F_PRINT;
+
+    //------------------------------------------------------------------------------------
+    //Energy of Li (sti = 0)
+    //------------------------------------------------------------------------------------
+    double st0[4];   //initial conditions in real TFC coordinates
+    for(int i =0; i<4; i++) st0[i] = 0.0;
+    pmap.H0 = orbit_ham(pmap, st0);
+
+    //------------------------------------------------------------------------------------
+    //Set the Hamiltonian to H0+dHv
+    //------------------------------------------------------------------------------------
+    pmap.Hv = pmap.H0+pmap.dHv;
+    cout << "pmap.Hv = " << pmap.Hv << endl;
+
+    //------------------------------------------------------------------------------------
+    //Building the working grid
+    //------------------------------------------------------------------------------------
+    double* grid_s1 = dvector(0,  pmap.gsize);
+    init_grid(grid_s1, pmap.gmin,  pmap.gmax, pmap.gsize);
+    double numberOfOrbits = pow(1.0+pmap.gsize, 1.0);
+
+    //------------------------------------------------------------------------------------
+    //Generating the quasi-random sequence
+    //------------------------------------------------------------------------------------
+    //Building objects
+    gsl_qrng* q = gsl_qrng_alloc (gsl_qrng_sobol, 4);
+    double** randseq = dmatrix(0, pmap.gsize, 0, 3);
+
+    //Storing sequence, all variables in [0, 1]
+    for(int i = 0; i <= pmap.gsize; i++) gsl_qrng_get (q, randseq[i]);
+
+    //Normalisation (only EML2 case for now)
+    for(int i = 0; i <= pmap.gsize; i++)
+    {
+        //s1 & s3
+        randseq[i][0] = pmap.gmin*(1-randseq[i][0]) + pmap.gmax*randseq[i][0];
+        randseq[i][2] = pmap.gmin*(1-randseq[i][2]) + pmap.gmax*randseq[i][2];
+        //s2 & s4
+        randseq[i][1] = 5e-1*(pmap.gmin*(1-randseq[i][1]) + pmap.gmax*randseq[i][1]);
+        randseq[i][3] = 5e-1*(pmap.gmin*(1-randseq[i][3]) + pmap.gmax*randseq[i][3]);
+    }
+
+    //------------------------------------------------------------------------------------
+    //Loop
+    //------------------------------------------------------------------------------------
+    for(int m = 0; m < nkm; m++)
+    {
+        pmap.order = km[m];
+
+        //--------------------------------------------------------------------------------
+        //Plot & Print
+        //--------------------------------------------------------------------------------
+        //Filename to print
+        string ssOrder, ssOfs, ssEnergy;
+        ssOrder = numTostring(pmap.order);
+        ssOfs   = numTostring(pmap.ofs_order);
+        ssEnergy   = numTostring(hzmax);
+
+        //--------------------------------------------------------------------------------
+        //Header in txt file if no appending (reset the file!)
+        //--------------------------------------------------------------------------------
+        string filename;
+        string type = "rand";
+        filename = F_PRINT+"eIm_"+type+"_ofs_"+ssOfs+"_order_"+ssOrder+"_PhD";
+        if(!append) header_fprint_bin(filename);
+        cout << "Data stored in " << filename << endl;
+
+
+        double percent;
+        int label = 1;
+        #pragma omp parallel for if(isPar)
+        for(int i = 0; i <= pmap.gsize; i++)
+        {
+            //----------------------------------------------------------------------------
+            //Integration tools
+            //----------------------------------------------------------------------------
+            //------------------
+            //For dot(z) = F(z)
+            //------------------
+            OdeStruct ode_s_6;
+            init_ode_NC(ode_s_6, pmap);
+            //For root finding
+            OdeStruct ode_s_6_root;
+            init_ode_NC(ode_s_6_root, pmap);
+
+            //------------------
+            //For dot(s) = fh(s)
+            //------------------
+            //Reduced vector field structure
+            RVF rvf;
+            OdeStruct ode_s_8;
+            Ofsc rvf_ofs(OFS_ORDER);
+            init_ode_CCM(ode_s_8, rvf, rvf_ofs, pmap);
+            //Reduced vector field structure for root finding
+            RVF rvf_root;
+            OdeStruct ode_s_8_root;
+            Ofsc rvf_ofs_root(OFS_ORDER);
+            init_ode_CCM(ode_s_8_root, rvf_root, rvf_ofs_root, pmap);
+
+            //----------------------------------------------------------------------------
+            //Event structures
+            //----------------------------------------------------------------------------
+            value_params val_par;
+            val_par.dim        = 2;                   //event on z component
+            val_par.direction  = 0;                   //all zeros are detected
+            val_par.max_events = pmap.max_events;     //maximum of events
+            val_par.value      = 0.0;                 //event when z = 0
+            value_function fvalue;
+            fvalue.val_par     = &val_par;
+            fvalue.value       = &linear_intersection;
+
+            //----------------------------------------------------------------------------
+            //Orbit structure
+            //----------------------------------------------------------------------------
+            int status;
+            Ofsc orbit_ofs(OFS_ORDER);
+            Orbit orbit;
+            init_orbit(&orbit, &CM, &CMh, &JCM, &Mcoc, &Vcoc, &val_par,
+            &fvalue, &ode_s_6, &ode_s_8, &ode_s_6_root, &ode_s_8_root,
+            &pmap, &SEML, &orbit_ofs, pmap.vdim, label);
+
+            //----------------------------------------------------------------------------
+            // Move on the grid
+            //----------------------------------------------------------------------------
+            double* sti = dvector(0, 3);
+            sti[0] = randseq[i][0];
+            sti[1] = randseq[i][1];
+            sti[2] = randseq[i][2];
+            sti[3] = randseq[i][3];
+
+            //----------------------------------------------------------------------------
+            //Between the lines: if we do not want to correct the energy
+            //----------------------------------------------------------------------------
+            //-------------------------//
+            status = GSL_SUCCESS;
+            orbit_update_ic(orbit, sti, orbit.pmap->t0);
+            orbit.int_method =  0;
+            //-------------------------//
+
+            //If the correction is successful, we can go on with the computation of the return map
+            if(status == GSL_SUCCESS)
+            {
+                double eI[6], fnc[6];
+                cdouble eId;
+                //------------------------------------------------------------------------
+                // Computation
+                //------------------------------------------------------------------------
+                //Evaluating the vector field at z0 = W(s0, t0)
+                qbfbp_vfn_novar(orbit.pmap->t0, orbit.z0, fnc, orbit.qbcp_l);
+
+                //-------------------------------
+                // eI:
+                // - F(W(s,t)) - DWf(s,t) - Wdot(s,t)
+                //------------------------------
+                for(int p = 1; p < NV; p++)
+                {
+                    //The vector field was computed in fnc
+                    eId = fnc[p]+0.0*I;
+                    //Computing DW*Fh(s0, t0)
+                    DWFh[p].evaluate(orbit.s0, *orbit.ofs, orbit.pmap->order, orbit.pmap->ofs_order);
+                    eId -= orbit.ofs->evaluate(orbit.n*orbit.pmap->t0, orbit.pmap->ofs_order);
+
+                    //Computing Wdot(s0, t0)
+                    CMdot[p].evaluate(orbit.s0, *orbit.ofs, orbit.pmap->order, orbit.pmap->ofs_order);
+                    eId -= orbit.ofs->evaluate(orbit.n*orbit.pmap->t0, orbit.pmap->ofs_order);
+                    //Taking the error as the absolute value (norm)
+                    eI[p] = cabs(eId);
+                }
+
+                //------------------------------------------------------------------------
+                // Set the error in orbit.eOm
+                //------------------------------------------------------------------------
+                orbit.eOm = compute_error(eI, NV);
+
+                #pragma omp critical
+                {
+                    //--------------------------------------------------------------------
+                    // Displays the current state of the computation
+                    //--------------------------------------------------------------------
+                    cout << std::noshowpos << resetiosflags(ios::scientific)  << setprecision(4);
+                    if(label%((int)floor(numberOfOrbits/10)) == 0)
+                    {
+                        percent = (double) label/numberOfOrbits*100;
+                        std::cout << "\r" << percent << "% completed: ";
+                        std::cout << std::string(floor(0.1*percent), '|') << endl;
+                        std::cout.flush();
+                    }
+                    cout << std::showpos << setiosflags(ios::scientific)  << setprecision(15);
+
+
+                    //--------------------------------------------------------------------
+                    // Print in file
+                    //--------------------------------------------------------------------
+                    orbit.label = ++label;
+                    //orbit_energy_fprint(&orbit, filename, hzmax, 1);
+                    orbit_imap_fprint_bin(&orbit, filename, 1);
+                }
+            }
+            else cout << "";
+
+            //memory release
+            free_orbit(&orbit);
+            free_dvector(sti, 0, 3);
+        }
+    }
+
+    //Memory release
+    free_dvector(grid_s1, 0,  pmap.gsize);
+}
+
+/**
+ *   \brief Invariance error computation
+ *   \param pmap a reference to the Poincare maps parameters
+ *   \param hzmax the maximum energy value allowed.
+ *          Note that only positive dhz are selected
+ *
+ *    Requires initCM and initCOC
+ *
+ *   REMARK: may be good to "force" p36(t0= 0.0) (e.g. pmap.t0 =  +1.044814582930593 for L2) so that each IC begins on z = 0 plane
+ *   If so, the way H(0) = cst is guaranteed must be changed because we need also to ensure that s4 = 0.0 (which is not the case, since it is the variable
+ *   that ensures H(0) = cst
+ **/
+void pmap_invariance_error_random_planar(Pmap& pmap, int append, bool isPar, double hzmax, int km[], int nkm)
+{
+    cout << "---------------------------------------------------" << endl;
+    cout << "                                                   " << endl;
+    cout << "          Invariance error map computation         " << endl;
+    cout << "                                                   " << endl;
+    cout << "---------------------------------------------------" << endl;
+    cout << std::showpos << setiosflags(ios::scientific)  << setprecision(15);
+
+    //------------------------------------------------------------------------------------
+    // Strings
+    //------------------------------------------------------------------------------------
+    string F_GS    = SEML.cs.F_GS;
+    string F_PLOT  = SEML.cs.F_PLOT;
+    string F_COC   = SEML.cs.F_COC;
+    string F_PRINT = SEML.cs.F_PRINT;
+
+    //------------------------------------------------------------------------------------
+    //Energy of Li (sti = 0)
+    //------------------------------------------------------------------------------------
+    double st0[4];   //initial conditions in real TFC coordinates
+    for(int i =0; i<4; i++) st0[i] = 0.0;
+    pmap.H0 = orbit_ham(pmap, st0);
+
+    //------------------------------------------------------------------------------------
+    //Set the Hamiltonian to H0+dHv
+    //------------------------------------------------------------------------------------
+    pmap.Hv = pmap.H0+pmap.dHv;
+    cout << "pmap.Hv = " << pmap.Hv << endl;
+
+    //------------------------------------------------------------------------------------
+    //Building the working grid
+    //------------------------------------------------------------------------------------
+    double* grid_s1 = dvector(0,  pmap.gsize);
+    //double* grid_s2 = dvector(0,  pmap.gsize);
+
+    init_grid(grid_s1, pmap.gmin,  pmap.gmax, pmap.gsize);
+    //init_grid(grid_s2, pmap.gmin,  pmap.gmax, pmap.gsize);
+    double numberOfOrbits = pow(1.0+pmap.gsize, 1.0);
+
+    //------------------------------------------------------------------------------------
+    //Generating the quasi-random sequence
+    //------------------------------------------------------------------------------------
+    //Building objects
+    gsl_qrng* q = gsl_qrng_alloc (gsl_qrng_sobol, 4);
+    double** randseq = dmatrix(0, pmap.gsize, 0, 3);
+
+    //Storing sequence, all variables in [0, 1]
+    for(int i = 0; i <= pmap.gsize; i++) gsl_qrng_get (q, randseq[i]);
+
+    //Normalisation (only EML2 case for now)
+    for(int i = 0; i <= pmap.gsize; i++)
+    {
+        //s1 & s3
+        randseq[i][0] = pmap.gmin*(1-randseq[i][0]) + pmap.gmax*randseq[i][0];
+        randseq[i][2] = pmap.gmin*(1-randseq[i][2]) + pmap.gmax*randseq[i][2];
+    }
+
+    //------------------------------------------------------------------------------------
+    //Loop
+    //------------------------------------------------------------------------------------
+    for(int m = 0; m < nkm; m++)
+    {
+        pmap.order = km[m];
+
+        //--------------------------------------------------------------------------------
+        //Plot & Print
+        //--------------------------------------------------------------------------------
+        //Filename to print
+        string ssOrder, ssOfs, ssEnergy;
+        ssOrder = numTostring(pmap.order);
+        ssOfs   = numTostring(pmap.ofs_order);
+        ssEnergy   = numTostring(hzmax);
+
+        //--------------------------------------------------------------------------------
+        //Header in txt file if no appending (reset the file!)
+        //--------------------------------------------------------------------------------
+        string filename;
+        string type = "rand";
+        filename = F_PRINT+"eIm_"+type+"_ofs_"+ssOfs+"_order_"+ssOrder+"_planar_PhD";
+        if(!append) header_fprint_bin(filename);
+        cout << "Data stored in " << filename << endl;
+
+        double percent;
+        int label = 1;
+        #pragma omp parallel for if(isPar)
+        for(int i = 0; i <= pmap.gsize; i++)
+        {
+            //----------------------------------------------------------------------------
+            //Integration tools
+            //----------------------------------------------------------------------------
+            //------------------
+            //For dot(z) = F(z)
+            //------------------
+            OdeStruct ode_s_6;
+            init_ode_NC(ode_s_6, pmap);
+            //For root finding
+            OdeStruct ode_s_6_root;
+            init_ode_NC(ode_s_6_root, pmap);
+
+            //------------------
+            //For dot(s) = fh(s)
+            //------------------
+            //Reduced vector field structure
+            RVF rvf;
+            OdeStruct ode_s_8;
+            Ofsc rvf_ofs(OFS_ORDER);
+            init_ode_CCM(ode_s_8, rvf, rvf_ofs, pmap);
+            //Reduced vector field structure for root finding
+            RVF rvf_root;
+            OdeStruct ode_s_8_root;
+            Ofsc rvf_ofs_root(OFS_ORDER);
+            init_ode_CCM(ode_s_8_root, rvf_root, rvf_ofs_root, pmap);
+
+            //----------------------------------------------------------------------------
+            //Event structures
+            //----------------------------------------------------------------------------
+            value_params val_par;
+            val_par.dim        = 2;                   //event on z component
+            val_par.direction  = 0;                   //all zeros are detected
+            val_par.max_events = pmap.max_events;     //maximum of events
+            val_par.value      = 0.0;                 //event when z = 0
+            value_function fvalue;
+            fvalue.val_par     = &val_par;
+            fvalue.value       = &linear_intersection;
+
+            //----------------------------------------------------------------------------
+            //Orbit structure
+            //----------------------------------------------------------------------------
+            int status;
+            Ofsc orbit_ofs(OFS_ORDER);
+            Orbit orbit;
+            init_orbit(&orbit, &CM, &CMh, &JCM, &Mcoc, &Vcoc, &val_par,
+                       &fvalue, &ode_s_6, &ode_s_8, &ode_s_6_root, &ode_s_8_root,
+                       &pmap, &SEML, &orbit_ofs, pmap.vdim, label);
+
+            //----------------------------------------------------------------------------
+            // Move on the grid
+            //----------------------------------------------------------------------------
+            double* sti = dvector(0, 3);
+            sti[0] = randseq[i][0];
+            sti[1] = 0.0;
+            sti[2] = randseq[i][2];
+            sti[3] = 0.0;
+
+            //----------------------------------------------------------------------------
+            //Between the lines: if we do not want to correct the energy
+            //----------------------------------------------------------------------------
+            //-------------------------//
+            status = GSL_SUCCESS;
+            orbit_update_ic(orbit, sti, orbit.pmap->t0);
+            orbit.int_method =  0;
+            //-------------------------//
+
+            //If the correction is successful, we can go on with the computation of the return map
+            if(status == GSL_SUCCESS)
+            {
+                double eI[6], fnc[6];
+                cdouble eId;
+                //------------------------------------------------------------------------
+                // Computation
+                //------------------------------------------------------------------------
+                //Evaluating the vector field at z0 = W(s0, t0)
+                qbfbp_vfn_novar(orbit.pmap->t0, orbit.z0, fnc, orbit.qbcp_l);
+
+                //------------------------------------------------------------------------
+                // eI:
+                // - F(W(s,t)) - DWf(s,t) - Wdot(s,t)
+                //------------------------------------------------------------------------
+                for(int p = 1; p < NV; p++)
+                {
+                    //The vector field was computed in fnc
+                    eId = fnc[p]+0.0*I;
+                    //Computing DW*Fh(s0, t0)
+                    DWFh[p].evaluate(orbit.s0, *orbit.ofs, orbit.pmap->order, orbit.pmap->ofs_order);
+                    eId -= orbit.ofs->evaluate(orbit.n*orbit.pmap->t0, orbit.pmap->ofs_order);
+
+                    //Computing Wdot(s0, t0)
+                    CMdot[p].evaluate(orbit.s0, *orbit.ofs, orbit.pmap->order, orbit.pmap->ofs_order);
+                    eId -= orbit.ofs->evaluate(orbit.n*orbit.pmap->t0, orbit.pmap->ofs_order);
+                    //Taking the error as the absolute value (norm)
+                    eI[p] = cabs(eId);
+                }
+
+                //------------------------------------------------------------------------
+                // Set the error in orbit.eOm
+                //------------------------------------------------------------------------
+                orbit.eOm = compute_error(eI, NV);
+
+                #pragma omp critical
+                {
+                    //--------------------------------------------------------------------
+                    // Displays the current state of the computation
+                    //--------------------------------------------------------------------
+                    cout << std::noshowpos << resetiosflags(ios::scientific)  << setprecision(4);
+                    if(label%((int)floor(numberOfOrbits/10)) == 0)
+                    {
+                        percent = (double) label/numberOfOrbits*100;
+                        std::cout << "\r" << percent << "% completed: ";
+                        std::cout << std::string(floor(0.1*percent), '|') << endl;
+                        std::cout.flush();
+                    }
+                    cout << std::showpos << setiosflags(ios::scientific)  << setprecision(15);
+
+
+                    //--------------------------------------------------------------------
+                    // Print in file
+                    //--------------------------------------------------------------------
+                    orbit.label = ++label;
+                    //orbit_energy_fprint(&orbit, filename, hzmax, 1);
+                    orbit_imap_fprint_bin(&orbit, filename, 1);
+                }
+            }
+            else cout << "";
+
+            //memory release
+            free_orbit(&orbit);
+            free_dvector(sti, 0, 3);
+        }
+    }
+
+    //Memory release
+    free_dvector(grid_s1, 0,  pmap.gsize);
 }
 
 /**
@@ -1215,7 +1703,7 @@ void pmap_test_error(Pmap& pmap, int append, bool isPar, double hzmax)
             //If the correction is successful, we can go on with the computation of the return map
             if(status == GSL_SUCCESS)
             {
-                double eI[6], fnc[6], eIm;
+                double eI[6], fnc[6];
                 cdouble eId;
                 //------------------------------------------------------------------------------------
                 // Computation
@@ -1239,16 +1727,12 @@ void pmap_test_error(Pmap& pmap, int append, bool isPar, double hzmax)
                     eI[p] = cabs(eId);
                 }
 
-                //-------------------------------
-                //Taking the maximum (infinity norm)
-                //-------------------------------
-                eIm = eI[0];
-                for(int p = 1; p < NV; p++) if(eI[p] > eIm) eIm = eI[p];
-
-                //-------------------------------
+                //------------------------------------------------------------------------
                 // Set the error in orbit.eOm
-                //-------------------------------
-                orbit.eOm = eIm;
+                //------------------------------------------------------------------------
+                orbit.eOm = compute_error(eI, NV);
+
+
                 cout << std::noshowpos << resetiosflags(ios::scientific)  << setprecision(4);
                 if(label%1000 == 0)
                 {
@@ -1260,9 +1744,9 @@ void pmap_test_error(Pmap& pmap, int append, bool isPar, double hzmax)
                 cout << std::showpos << setiosflags(ios::scientific)  << setprecision(15);
 
 
-                //------------------------------------------------------------------------------------
+                //------------------------------------------------------------------------
                 // Print in file
-                //------------------------------------------------------------------------------------
+                //------------------------------------------------------------------------
                 orbit.label = ++label;
                 orbit_energy_fprint(&orbit, filename, hzmax, 1);
             }
@@ -1692,7 +2176,6 @@ void pmap_energy_3d(Pmap& pmap, int append, bool isPar, double hzmax)
     //Memory release
     free_dvector(grid, 0,  pmap.gsize);
 }
-
 
 /**
  *   \brief Computes a Stroboscopic map

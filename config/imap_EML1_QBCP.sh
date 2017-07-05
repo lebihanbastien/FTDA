@@ -25,7 +25,7 @@ MODEL=$QBCP
 # COORDINATE SYSTEM
 # EM = 0; SEM = 1; SE = 2
 #------------------------------------
-CS=$SEM  
+CS=$EM  
 
 #------------------------------------
 # Normalization
@@ -36,8 +36,8 @@ ISNORM=$TRUE
 #------------------------------------
 # DEFAULT LIBRATION POINT FOR EM & SEM SYSTEM
 #------------------------------------
-LI_EM=2
-LI_SEM=1
+LI_EM=1
+LI_SEM=2
 
 #------------------------------------
 # PM STYLE
@@ -106,16 +106,16 @@ PMAP_max_events=100  #Maximum number of events allowed (warning: all directions 
 PMAP_t0=0.0          #Initial time (-1 for inner computation in C routine)
 PMAP_dHv=0.1         #Energy
 PMAP_gsize=10000     #Number of steps on the grid
-PMAP_gmin=-0.5       #left boundary
-PMAP_gmax=0.5        #right boundary
+PMAP_gmin=-2         #left boundary
+PMAP_gmax=2          #right boundary
 PMAP_PROJ_FREQ=-1    #projection frequency on manifold. If -1, no projection
 
 
 #------------------------------------
 # Order to test
 #------------------------------------
-ORDERS=(5 10 15 20 25 30)
 #ORDERS=(3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30)
+ORDERS=(5 10 15 20 25 30)
 NORDERS=${#ORDERS[@]} 
 
 #------------------------------------
@@ -123,6 +123,3 @@ NORDERS=${#ORDERS[@]}
 #------------------------------------
 ORDERS_OFS=($OFS_ORDER)
 NORDERS_OFS=${#ORDERS_OFS[@]} 
-
-
-

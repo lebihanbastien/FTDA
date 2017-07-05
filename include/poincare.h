@@ -13,18 +13,18 @@ extern "C"
 #include "parameters.h"
 
 //Integration methods
-#define DUAL_INT 1
+#define DUAL_INT          1
 #define DUAL_INT_NO_RESET 2
 #define DUAL_INT_STEPPED  3
-#define SINGLE_INT 4
+#define SINGLE_INT        4
 
 //Types of map
-#define PMAP  1
-#define TMAP  2
-#define EMAP  3
-#define IMAP  4
-#define HMAP  5
-
+#define PMAP        1
+#define TMAP        2
+#define EMAP        3
+#define IMAP        4
+#define HMAP        5
+#define IMAPPLANAR  6
 /**
  * \file poincare.h
  * \brief Computation of Poincare, Error, and Period map for the QBCP.
@@ -216,6 +216,8 @@ void pmap_invariance_error(Pmap &pmap, int append, bool isPar, double hzmax);
  *   that ensures H(0) = cst
  **/
 void pmap_invariance_error_random(Pmap &pmap, int append, bool isPar, double hzmax);
+void pmap_invariance_error_random_planar(Pmap& pmap, int append, bool isPar, double hzmax, int km[], int nkm);
+void pmap_invariance_error_random(Pmap& pmap, int append, bool isPar, double hzmax, int km[], int nkm);
 
 /**
  *   \brief Test error computation

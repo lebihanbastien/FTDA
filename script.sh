@@ -275,6 +275,8 @@ if [ $COMPTYPE == $COMPMAP ]; then
 		;;
 		$HMAP) echo 'PMAP_TYPE = HMAP'
 		;;
+		$IMAPPLANAR) echo 'PMAP_TYPE = IMAPPLANAR'
+		;;
 		*)     echo "PMAP_TYPE = " $PMAP_TYPE ". Unknown type."
 	esac
 	echo

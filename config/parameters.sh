@@ -79,7 +79,7 @@ export TMAP=2
 export EMAP=3
 export IMAP=4
 export HMAP=5
-
+export IMAPPLANAR=6
 
 #------------------------------------
 # PMAP METHODS
