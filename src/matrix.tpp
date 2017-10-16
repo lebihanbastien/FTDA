@@ -755,7 +755,7 @@ inline void writeMOFTS_bin(matrix<Ofts<Ofsc > > &W, string filename)
  * \brief Reads a given matrix W of type \c Ofts<Ofsc >  in a binary files of the form "filename+i+j.bin", with i = 0, size1(W)-1
  *        and j = 0, size2(W)-1.
  **/
-inline void readMOFTS_bin(matrix<Ofts<Ofsc > > &W, string filename, int fftN)
+inline void readMOFTS_bin(matrix<Ofts<Ofsc > > &W, string filename)
 {
     string ss1, ss2;
     //Loop on all coefficients
@@ -765,7 +765,7 @@ inline void readMOFTS_bin(matrix<Ofts<Ofsc > > &W, string filename, int fftN)
         {
             ss1 = static_cast<ostringstream*>( &(ostringstream() << i) )->str();
             ss2 = static_cast<ostringstream*>( &(ostringstream() << j) )->str();
-            readOFTS_bin(*W.getCA(i,j), (filename+"["+ss1+"]["+ss2+"].bin"), fftN);
+            readOFTS_bin(*W.getCA(i,j), (filename+"["+ss1+"]["+ss2+"].bin"));
         }
     }
 }

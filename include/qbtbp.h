@@ -38,7 +38,6 @@ extern "C" {
 }
 
 
-using namespace std;
 //-----------------------------------------------------------------------------
 // Main routine
 //-----------------------------------------------------------------------------
@@ -63,7 +62,7 @@ void bcp(int li_EM, int li_SEM, int coordsys);
  *  \param Zr_ofts: a reference to reduced external  motion \f$ Z \f$ so that: \f$ Z_r = \sum \limits_{j} c_j e^{ijnt} \f$ and \f$ Z = a_s e^{in_st} Z_r \f$ in Earth-Moon units.
  *  \param qbcp_l: a reference to the current qbcp, focused on a given point \f$ L_{1,2} \f$.
  */
-void qbtbp_ofs (Ofts< Ofsd > &zr_ofts, Ofts< Ofsd > &Zr_ofts, QBCP_L& qbcp_l, int coordsys);
+void qbtbp_ofs (Ofts< Ofsd > &zr_ofts, Ofts< Ofsd > &Zr_ofts, QBCP_L& qbcp_l);
 
 
 /**
@@ -296,22 +295,22 @@ void evaluateCoefDerivatives(double *alpha, double t, double omega, int order, d
 /**
  *  \brief Evaluate the sum \f$ \sum_{k = 0}^N coef(k) cos(k \omega t)  \f$.
  */
-double evaluateEven(double t, double omega, int order, double *coef, double *cR);
+double evaluateEven(int order, double *coef, double *cR);
 
 /**
  *  \brief Evaluate the sum \f$ \sum_{k = 0}^N - k \omega coef(k) sin(k \omega t)  \f$.
  */
-double evaluateEvenDerivative(double t, double omega,  int order, double *coef, double *sR);
+double evaluateEvenDerivative(double omega,  int order, double *coef, double *sR);
 
 /**
  *  \brief Evaluate the sum \f$ \sum_{k = 0}^N coef(k) sin(k \omega t)  \f$.
  */
-double evaluateOdd(double t, double omega,  int order, double *coef, double *sR);
+double evaluateOdd(int order, double *coef, double *sR);
 
 /**
  *  \brief Evaluate the sum \f$ \sum_{k = 0}^N  k \omega coef(k) cos(k \omega t)  \f$.
  */
-double evaluateOddDerivative(double t, double omega,  int order, double *coef, double *cR);
+double evaluateOddDerivative(double omega,  int order, double *coef, double *cR);
 
 //-----------------------------------------------------------------------------
 // Backup void qbtbp_ofs and qbtbp_ots

@@ -1,5 +1,7 @@
 #include "Config.h"
 
+using namespace std;
+
 //----------------------------------------------------------------------------------------
 //Constructor
 //----------------------------------------------------------------------------------------
@@ -8,15 +10,27 @@
  **/
 Config::Config()
 {
+    //------------------------------------------------------------------------------------
+    // Parameters for ODE structure (see ode.h & cpp)
+    //------------------------------------------------------------------------------------
     PREC_ABS    = 1e-15;
     PREC_REL    = 1e-15;
     PREC_ROOT   = 1e-13;
     PREC_LIB    = 1e-16;
     PREC_HSTART = 1e-8;
-
     DELTA_T     = 1e-6;
 
+    //------------------------------------------------------------------------------------
+    // Parameters for differential correction procedures
+    //------------------------------------------------------------------------------------
     DC_ITERMAX  = 20;
+
+    //------------------------------------------------------------------------------------
+    // Parameters for aesthetics (cout, plotting)
+    //------------------------------------------------------------------------------------
+    COUT_SMALL_PREC  = 3;
+    COUT_MEDIUM_PREC = 5;
+    COUT_LARGE_PREC  = 15;//Large cout precision
 }
 
 
@@ -52,3 +66,34 @@ Config::~Config()
 {
     //dtor
 }
+
+
+
+//----------------------------------------------------------------------------------------
+// Aesthetics
+//----------------------------------------------------------------------------------------
+/**
+ *  \brief Sets a small precision in cout.
+ **/
+void Config::coutsp()
+{
+    cout <<  std::setprecision(COUT_SMALL_PREC) << resetiosflags(ios::scientific);
+}
+
+/**
+ *  \brief Sets an average precision in cout.
+ **/
+void Config::coutmp()
+{
+    cout <<  std::setprecision(COUT_MEDIUM_PREC) << std::showpos  <<  setiosflags(ios::scientific);
+}
+
+/**
+ *  \brief Sets a big precision in cout.
+ **/
+void Config::coutlp()
+{
+    cout <<  std::setprecision(COUT_LARGE_PREC) << std::showpos  <<  setiosflags(ios::scientific);
+}
+
+

@@ -98,9 +98,9 @@ PMAP_ofs_order=30    #OFS ORDER
 PMAP_max_events=1000 #Maximum number of events allowed (warning: all directions of crossing are considered!)
 PMAP_t0=0.0          #Initial time (-1 for inner computation in C routine)
 PMAP_dHv=0.01        #Energy
-PMAP_gsize=10         #Number of steps on the grid
-PMAP_gmin=0.0      #left boundary
-PMAP_gmax=2.0       #right boundary
+PMAP_gsize=10        #Number of steps on the grid
+PMAP_gmin=0.0        #left boundary
+PMAP_gmax=2.0        #right boundary
 
 #------------------------------------
 # Numerical constants for all computation

@@ -224,7 +224,6 @@ void applyVF(vector<Ofsc>  &alpha,
  *          Since they are linear in the variable W[i], we always have the good value in it.
  **/
 void initLegPrim(vector<Oftsc> &Wt,   //vector of size 6
-                 Oftsc &Rho2,         //Ofts containing Wt[0]^2+Wt[1]^2+Wt[2]^2
                  vector<Oftsc> &En,   //vector of size OFTS_ORDER
                  vector<Oftsc> &Enx,  //vector of size OFTS_ORDER
                  vector<Oftsc> &Eny,  //vector of size OFTS_ORDER
@@ -245,7 +244,6 @@ void initLegPrim(vector<Oftsc> &Wt,   //vector of size 6
  *          Since they are linear in the variable W[i], we always have the good value in it.
  **/
 void initLegendrePoly( vector<Oftsc> &Wt,   //vector of size 6
-                       Oftsc &Rho2,         //Ofts containing Wt[0]^2+Wt[1]^2+Wt[2]^2
                        vector<Oftsc> &En,   //vector of size OFTS_ORDER
                        vector<Oftsc> &Mn,   //vector of size OFTS_ORDER
                        vector<Oftsc> &Sn,   //vector of size OFTS_ORDER
@@ -275,10 +273,8 @@ void initLegendrePoly( vector<Oftsc> &Wt,   //vector of size 6
  *   \brief Apply the Legendre-derived recurrence for the potential of one given primary.
  *          No reset here, since we may add other terms afterwards.
  **/
-void applyLegRec(vector<Oftsc> &Wt,   //tilde state vector (xt, yt,..)
-                 Oftsc &Rho2,         //Ofts containing W[0]^2+W[1]^2+W[2]^2
+void applyLegRec(Oftsc &Rho2,         //Ofts containing W[0]^2+W[1]^2+W[2]^2
                  vector<Oftsc> &En,   //vector of size OFTS_ORDER
-                 vector<Ofsc>  &Xe,   //modified position of the primary
                  Ofsc &ILe,           //modified inverse orbit radius of the Primary
                  Oftsc &xse,          //=xe*xt+ye*yt @order m
                  Ofsc &AUX,           //spare OFS object
@@ -338,9 +334,7 @@ void updateLegPoly(vector<Oftsc> &Wt,   //vector of size 6: tilde state vector (
                    Oftsc &xss,          //=xs*xt+ys*yt
                    Ofsc &AUX,           //Temporary variables
                    Ofsc &BUX,           //Temporary variables
-                   Ofsc &CUX,           //Temporary variables
                    Ofsc &temp,          //Temporary variables
-                   QBCP_L& qbcp_l,        //current QBCP
                    int m,                  //current order of the W expansion
                    int k);                 //current En[k] (and Enx[k+1]) that needs to be updated
 
@@ -542,7 +536,6 @@ void updatePotentialExpansion_OFS(vector<Ofsc> &W,    //vector of size 6
                              vector<Ofsc> &Sn,   //vector of size OFTS_ORDER+1
                              vector<Ofsc> &Enx,  //vector of size OFTS_ORDER+1
                              vector<Ofsc> &Eny,  //vector of size OFTS_ORDER+1
-                             vector<Ofsc> &Enz,  //vector of size OFTS_ORDER+1
                              vector<Ofsc> &Mnx,  //vector of size OFTS_ORDER+1
                              vector<Ofsc> &Mny,  //vector of size OFTS_ORDER+1
                              vector<Ofsc> &Mnz,  //vector of size OFTS_ORDER+1
@@ -555,9 +548,7 @@ void updatePotentialExpansion_OFS(vector<Ofsc> &W,    //vector of size 6
                              Ofsc &ILe,           //modified inverse orbit radius of the Earth
                              Ofsc &ILm,           //modified inverse orbit radius of the Moon
                              Ofsc &ILs,           //modified inverse orbit radius of the Sun
-                             QBCP_L& qbcp_l,        //QBFPB on a given Li
-                             int nPot);              //partial potential order (2 <= nPot <= POTENTIAL_ORDER)
-
+                             QBCP_L& qbcp_l);     //QBFPB on a given Li
 
 //---------------------------------------------------------------------------------------------------------------------------------------
 //          FTDA version

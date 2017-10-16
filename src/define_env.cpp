@@ -7,10 +7,11 @@
  */
 
 #include "define_env.h"
+#include "Constants.h"
 
-//-----------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 //            Init routines
-//-----------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 /**
  * \brief Initialize a QBCP_L structure, i.e. a QBCP focused on two libration points: one the EM system and one of the SEM system.
  *        The libration point must be L1 or L2 both for the EM and SEM systems.
@@ -22,115 +23,121 @@
  * \param isNew an integer: equal to 1 if no solution has been previously computed with the routine qbtbp(), 0 otherwise
  * \param model: QBCP, BCP, CRTBP...
  * \param coordsys: default coordinate system for this structure: for example:
- *                      - if coordsys == F_EM,  the qbcp_l is focused on the li_EM  point of the EM  system.
- *                      - if coordsys == F_SEM, the qbcp_l is focused on the li_SEM point of the SEM system.
+ *                      - if coordsys == Csts::EM,  the qbcp_l is focused on the li_EM  point of the EM  system.
+ *                      - if coordsys == Csts::SEM, the qbcp_l is focused on the li_SEM point of the SEM system.
  *        The default focus can be change dynamically during computation, via the routines changeCOORDSYS and changeLICOORDSYS.
- * \param pmType: type of parameterization of the manifolds (PMS_GRAPH, PMS_NORMFORM...). Note that the pmType influences the number of coefficients taken into account in the Fourier series! Indeed, for graph method, the reduced vector field is non autonomous, and full Fourier series are used. For normal form, the reduced vector field is quasi autonomous and we can safely reduce the order of the series to 5 (11 coefficients taken into account).
- * \param manType_EM: type of manifold about li_EM (MAN_CENTER, MAN_CENTER_S...).
- * \param manType_SEM: type of manifold about li_SEM (MAN_CENTER, MAN_CENTER_S...).
+ * \param pmType: type of parameterization of the manifolds (Csts::GRAPH, Csts::NORMFORM...). Note that the pmType influences the number of coefficients taken into account in the Fourier series! Indeed, for graph method, the reduced vector field is non autonomous, and full Fourier series are used. For normal form, the reduced vector field is quasi autonomous and we can safely reduce the order of the series to 5 (11 coefficients taken into account).
+ * \param manType_EM: type of manifold about li_EM (Csts::MAN_CENTER, Csts::MAN_CENTER_S...).
+ * \param manType_SEM: type of manifold about li_SEM (Csts::MAN_CENTER, Csts::MAN_CENTER_S...).
  *
  *   Note that the QBCP structure is used only for the initialization of the coordinate systems. More precisely, it contains some parameters
  *   specific to each libration point (gamma), via its CR3BP structures (see init_QBCP, the routine that initializes the QBCP structures).
  **/
-void init_QBCP_L(QBCP_L *qbcp_l, QBCP *qbcp, int isNormalized, int li_EM, int li_SEM, int isNew, int model, int coordsys, int pmType, int manType_EM, int manType_SEM)
+void init_QBCP_L(QBCP_L *qbcp_l, QBCP *qbcp, int isNormalized, int li_EM, int li_SEM,
+                 int isNew, int model, int coordsys, int pmType, int manType_EM, int manType_SEM)
 {
-    //-------------------------------------------------------------------------------------------------
+    //====================================================================================
     //      Common to all models
     //      These settings may be needed to initialize the CSYS and USYS structures
     //      For this reason, they are initialized in priority
-    //-------------------------------------------------------------------------------------------------
-    //-----------------
+    //====================================================================================
+
+    //------------------------------------------------------------------------------------
     // - Hard-coded value of the order of the Fourier series. Equals zero for RTBP
-    // - Note that for the bicircular models, the order of the Fourier series is still equals to OFS_ORDER
-    // This may need to be changed when EFFECTIVE_OFS_ORDER will be used, to be able to manipulate Fourier series
-    // with an order smaller than the value 30, hard coded in the data files.
+    // - Note that for the bicircular models, the order of the Fourier series is still
+    // equals to OFS_ORDER.
+    // This may need to be changed when some dynamic order will be used, to be able
+    // to manipulate Fourier series with an order smaller than the value 30, hard coded
+    // in the data files.
     // - Used in the CSYS init functions.
-    //-----------------
+    //------------------------------------------------------------------------------------
     switch(model)
     {
-    case M_QBCP:
-    case M_BCP:
-    case M_ERTBP:
+    case Csts::QBCP:
+    case Csts::BCP:
+    case Csts::ERTBP:
         qbcp_l->nf = OFS_ORDER;
         break;
-    case M_RTBP:
+    case Csts::CRTBP:
         qbcp_l->nf = 0;
         break;
     default:
         cout << "init_QBCP_L. Warning: unknown model." << endl;
     }
 
-    //-----------------
+    //------------------------------------------------------------------------------------
     //Normalization or not. True is always preferable - may be deprecated
     //Kept for compatibility with old code.
-    //-----------------
+    //------------------------------------------------------------------------------------
     qbcp_l->isNormalized = isNormalized;
 
-    //-----------------
+    //------------------------------------------------------------------------------------
     //Libration point
     //Note: passing the complete libration point structure as argument may be done in the near future.
     //not necessary for now.
-    //-----------------
+    //------------------------------------------------------------------------------------
     qbcp_l->li_EM  = li_EM;
     qbcp_l->li_SEM = li_SEM;
 
-    //-----------------
+    //------------------------------------------------------------------------------------
     // Model - used in the CSYS init functions.
-    //-----------------
+    //------------------------------------------------------------------------------------
     qbcp_l->model   = model;
 
-    //-----------------
+    //------------------------------------------------------------------------------------
     // Parameterization style - used in the CSYS init functions.
-    //-----------------
+    //------------------------------------------------------------------------------------
     qbcp_l->pms   = pmType;
 
-    //-----------------
+    //------------------------------------------------------------------------------------
     // Effective order of the Fourier series in RVF (reduced vector field)
-    //-----------------
+    //------------------------------------------------------------------------------------
     switch(pmType)
     {
-        case PMS_GRAPH:
-        case PMS_MIXED:
+        case Csts::GRAPH:
+        case Csts::MIXED:
             qbcp_l->eff_nf = qbcp_l->nf;    //for graph method, the reduced vector field is non autonomous
         break;
-        case PMS_NORMFORM:
+        case Csts::NORMFORM:
             qbcp_l->eff_nf = min(qbcp_l->nf, 5);  //for normal form, the reduced vector field is quasi autonomous and we can safely reduce the value to 5
         break;
         default:
         cout << "init_QBCP_L. Warning: unknown pmType." << endl;
     }
 
-    //-------------------------------------------------------------------------------------------------
+    //====================================================================================
     // Unit systems
-    //-------------------------------------------------------------------------------------------------
-    init_USYS(&qbcp_l->us_em,  USYS_EM,  model);
-    init_USYS(&qbcp_l->us_sem, USYS_SEM, model);
+    //====================================================================================
+    init_USYS(&qbcp_l->us_em,  Csts::EM,  model);
+    init_USYS(&qbcp_l->us_sem, Csts::SEM, model);
 
-    //-------------------------------------------------------------------------------------------------
+    //====================================================================================
     // Coordinate systems
-    //-------------------------------------------------------------------------------------------------
-    qbcp_l->numberOfCoefs = 15;
+    //====================================================================================
+    qbcp_l->numberOfCoefs = 15; // Number of coefficients in the equations of motion
 
-    //--------------------
+    //------------------------------------------------------------------------------------
     // Earth-Moon
-    //--------------------
-    init_CSYS(&qbcp_l->cs_em_l1, qbcp_l, qbcp,  F_EM, 1, qbcp_l->numberOfCoefs, isNew, pmType, manType_EM); //L1
-    init_CSYS(&qbcp_l->cs_em_l2, qbcp_l, qbcp,  F_EM, 2, qbcp_l->numberOfCoefs, isNew, pmType, manType_EM); //L2
-    init_CSYS(&qbcp_l->cs_em_l3, qbcp_l, qbcp,  F_EM, 3, qbcp_l->numberOfCoefs, isNew, pmType, manType_EM); //L3
-    //--------------------
+    //------------------------------------------------------------------------------------
+    init_CSYS(&qbcp_l->cs_em_l1, qbcp_l, qbcp,  Csts::EM, 1, qbcp_l->numberOfCoefs, isNew, pmType, manType_EM); //L1
+    init_CSYS(&qbcp_l->cs_em_l2, qbcp_l, qbcp,  Csts::EM, 2, qbcp_l->numberOfCoefs, isNew, pmType, manType_EM); //L2
+    init_CSYS(&qbcp_l->cs_em_l3, qbcp_l, qbcp,  Csts::EM, 3, qbcp_l->numberOfCoefs, isNew, pmType, manType_EM); //L3
+
+    //------------------------------------------------------------------------------------
     // Sun-Earth
-    //--------------------
-    init_CSYS(&qbcp_l->cs_sem_l1, qbcp_l, qbcp,  F_SEM, 1, qbcp_l->numberOfCoefs, isNew, pmType, manType_SEM); //L1
-    init_CSYS(&qbcp_l->cs_sem_l2, qbcp_l, qbcp,  F_SEM, 2, qbcp_l->numberOfCoefs, isNew, pmType, manType_SEM); //L2
-    init_CSYS(&qbcp_l->cs_sem_l3, qbcp_l, qbcp,  F_SEM, 3, qbcp_l->numberOfCoefs, isNew, pmType, manType_SEM); //L3
+    //------------------------------------------------------------------------------------
+    init_CSYS(&qbcp_l->cs_sem_l1, qbcp_l, qbcp,  Csts::SEM, 1, qbcp_l->numberOfCoefs, isNew, pmType, manType_SEM); //L1
+    init_CSYS(&qbcp_l->cs_sem_l2, qbcp_l, qbcp,  Csts::SEM, 2, qbcp_l->numberOfCoefs, isNew, pmType, manType_SEM); //L2
+    init_CSYS(&qbcp_l->cs_sem_l3, qbcp_l, qbcp,  Csts::SEM, 3, qbcp_l->numberOfCoefs, isNew, pmType, manType_SEM); //L3
 
 
-    //-------------------------------------------------------------------------------------------------
+    //====================================================================================
     // DEFAULT SETTINGS
     // - The flag li_EM determines the default Earth-Moon libration point.
     // - The flag li_SEM determines the default Sun-(Earth+Moon) libration point.
-    // - The flag coordsys determines the default focus; either on the Earth-Moon or Sun-Earth+Moon framework
-    //-------------------------------------------------------------------------------------------------
+    // - The flag coordsys determines the default focus; either on the Earth-Moon or
+    //   Sun-Earth+Moon framework
+    //====================================================================================
     //Coord. syst. for the EM point
     //--------------------
     switch(li_EM)
@@ -168,17 +175,12 @@ void init_QBCP_L(QBCP_L *qbcp_l, QBCP *qbcp, int isNormalized, int li_EM, int li
     qbcp_l->coordsys = coordsys;
     switch(coordsys)
     {
-    case F_EM:
+    case Csts::EM:
         qbcp_l->us = qbcp_l->us_em;
         qbcp_l->cs = qbcp_l->cs_em;
         qbcp_l->li = qbcp_l->li_EM;
         break;
-    case F_SEM:
-        qbcp_l->us = qbcp_l->us_sem;
-        qbcp_l->cs = qbcp_l->cs_sem;
-        qbcp_l->li = qbcp_l->li_SEM;
-        break;
-    case F_SE:
+    case Csts::SEM:
         qbcp_l->us = qbcp_l->us_sem;
         qbcp_l->cs = qbcp_l->cs_sem;
         qbcp_l->li = qbcp_l->li_SEM;
@@ -187,15 +189,15 @@ void init_QBCP_L(QBCP_L *qbcp_l, QBCP *qbcp, int isNormalized, int li_EM, int li
         cout << "init_QBCP_L. Warning: unknown coordsys." << endl;
     }
 
-    //-------------------------------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------
     // 6*6 matrix B used for Floquet transformation
     // Do we need it here?
-    //-------------------------------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------
     qbcp_l->B  = (double*) calloc(36, sizeof(double));
 
-    //-------------------------------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------
     // When epsilon = 1.0, the Moon is "on". When epsilon = 0.0, the Moon is "off"
-    //-------------------------------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------
     //Moon "on" by default. Deprecated value for now.
     qbcp_l->epsilon = 1.0;
 }
@@ -232,7 +234,7 @@ void init_CR3BP(CR3BP *cr3bp, int n1, int n2)
     strcat(cr3bp->name, cr3bp->m2.name);
 
     //Distance to manifold approximation
-    if(n1 == EARTH && n2 == MOON) cr3bp->d_man = 50/cr3bp->L; //50km for the Earth-Moon system
+    if(n1 == Csts::EARTH && n2 == Csts::MOON) cr3bp->d_man = 50/cr3bp->L; //50km for the Earth-Moon system
     else cr3bp->d_man = 100/cr3bp->L; //100km otherwise (to be changed for specific systems!)
 }
 
@@ -275,12 +277,12 @@ void init_USYS(USYS *usys, int label, int model)
     //Rest of the parameters
     switch(model)
     {
-    case M_QBCP:
-    case  M_BCP:
+    case Csts::QBCP:
+    case  Csts::BCP:
     {
         switch(label)
         {
-        case USYS_EM :
+        case Csts::EM :
         {
             //Physical params in EM units
             //--------------------------
@@ -296,7 +298,7 @@ void init_USYS(USYS *usys, int label, int model)
             break;
         }
 
-        case USYS_SEM :
+        case Csts::SEM :
         {
             //Physical params in SEM units
             //--------------------------
@@ -336,8 +338,8 @@ void init_USYS(USYS *usys, int label, int model)
         break;
 
     }
-    case M_RTBP:
-    case M_ERTBP:
+    case Csts::CRTBP:
+    case Csts::ERTBP:
     {
         //SEM mass ratio
         usys->mu_SEM = (me_EM + mm_EM)/(ms_EM + me_EM + mm_EM);
@@ -346,7 +348,7 @@ void init_USYS(USYS *usys, int label, int model)
 
         switch(label)
         {
-        case USYS_EM:
+        case Csts::EM:
 
             //Physical params in EM units
             //--------------------------
@@ -361,7 +363,7 @@ void init_USYS(USYS *usys, int label, int model)
             usys->mm = usys->mu_EM;
             break;
 
-        case USYS_SEM:
+        case Csts::SEM:
 
             //Physical params in SEM units
             //--------------------------
@@ -402,12 +404,12 @@ void init_USYS(USYS *usys, int label, int model)
  * \param csys pointer on the CSYS structure to initialize.
  * \param qbcp_l pointer on the QBCP_L structure that contains csys.
  * \param qbcp pointer on the QBCP structure that contains parameters specific to each libration points (namely, gamma)
- * \param coordsys indix of the coordinate system to use (F_EM, F_SEM).
+ * \param coordsys indix of the coordinate system to use (Csts::EM, Csts::SEM).
  * \param li number of the libration point to focus on (L1, L2).
  * \param coefNumber the number of vector field coefficients to initialize. It has been set in the QBCP_init function.
  * \param isNew boolean. if true, the qbtbp has not been computed via the qbtbp() routine, so the vector field coefficients cannot be initialized.
- * \param pmType: type of parameterization of the manifolds (PMS_GRAPH, PMS_NORMFORM...).
- * \param manType: type of manifold about li (MAN_CENTER, MAN_CENTER_S...).
+ * \param pmType: type of parameterization of the manifolds (Csts::GRAPH, Csts::NORMFORM...).
+ * \param manType: type of manifold about li (Csts::MAN_CENTER, Csts::MAN_CENTER_S...).
  *
  *   Note that the QBCP structure is used only for the initialization of the coordinate systems. More precisely, it contains some parameters
  *   specific to each libration point (gamma), via its CR3BP structures.
@@ -441,32 +443,32 @@ void init_CSYS(CSYS *csys, QBCP_L *qbcp_l, QBCP *qbcp, int coordsys, int li, int
     {
     //If the Center Manifold is selected,
     //we can choose between the styles
-    case MAN_CENTER:
+    case Csts::MAN_CENTER:
 
         switch(pmType)
         {
-        case PMS_GRAPH:
+        case Csts::GRAPH:
             csys->F_PMS = csys->F_GS;
             break;
-        case PMS_NORMFORM:
+        case Csts::NORMFORM:
             csys->F_PMS = csys->F_NF;
             break;
-        case PMS_MIXED:
+        case Csts::MIXED:
             csys->F_PMS = csys->F_MS;
             break;
 
         }
         break;
     //Else, the style is fixed
-    case MAN_CENTER_S:
+    case Csts::MAN_CENTER_S:
         csys->F_PMS = csys->F_CS;
         break;
 
-    case MAN_CENTER_U:
+    case Csts::MAN_CENTER_U:
         csys->F_PMS = csys->F_CU;
         break;
 
-    case MAN_CENTER_US:
+    case Csts::MAN_CENTER_US:
         csys->F_PMS = csys->F_CUS;
         break;
     }
@@ -476,11 +478,10 @@ void init_CSYS(CSYS *csys, QBCP_L *qbcp_l, QBCP *qbcp, int coordsys, int li, int
     //--------------------------------------
     switch(coordsys)
     {
-    case F_EM:
+    case Csts::EM:
         csys->us = qbcp_l->us_em;
         break;
-    case F_SEM:
-    case F_SE:
+    case Csts::SEM:
         csys->us = qbcp_l->us_sem;
         break;
     default:
@@ -496,13 +497,12 @@ void init_CSYS(CSYS *csys, QBCP_L *qbcp_l, QBCP *qbcp, int coordsys, int li, int
     CR3BP cr3bp_root;
     switch(coordsys)
     {
-    case F_EM:
+    case Csts::EM:
         cr3bp_root  = qbcp->cr3bp1;
         csys->cr3bp = qbcp->cr3bp1;
         csys->mu    = qbcp_l->us_em.mu_EM;
         break;
-    case F_SEM:
-    case F_SE:
+    case Csts::SEM:
         cr3bp_root  = qbcp->cr3bp2;
         csys->cr3bp = qbcp->cr3bp2;
         csys->mu    = qbcp_l->us_sem.mu_SEM;
@@ -577,9 +577,9 @@ void init_CSYS(CSYS *csys, QBCP_L *qbcp_l, QBCP *qbcp, int coordsys, int li, int
         //Switch between the models
         switch(model)
         {
-        case M_QBCP:
-        case M_BCP:
-        case M_ERTBP:
+        case Csts::QBCP:
+        case Csts::BCP:
+        case Csts::ERTBP:
         {
             compType = 1; //from FFTs
             //-------------------------
@@ -599,7 +599,7 @@ void init_CSYS(CSYS *csys, QBCP_L *qbcp_l, QBCP *qbcp, int coordsys, int li, int
 
         }
 
-        case M_RTBP:
+        case Csts::CRTBP:
         {
             //cout << "init_CSYS. The use of the RTBP has been detected." << endl;
             //----------------------------------------
@@ -616,7 +616,7 @@ void init_CSYS(CSYS *csys, QBCP_L *qbcp_l, QBCP *qbcp, int coordsys, int li, int
 
             switch(coordsys)
             {
-                case F_EM:
+                case Csts::EM:
                     //Sun position
                     csys->coeffs[6] = 0.0;
                     csys->coeffs[7] = 0.0;
@@ -628,7 +628,7 @@ void init_CSYS(CSYS *csys, QBCP_L *qbcp_l, QBCP *qbcp, int coordsys, int li, int
                     csys->coeffs[11] = 0.0;
                 break;
 
-                case F_SEM:
+                case Csts::SEM:
                     //Sun position
                     csys->coeffs[6]  = csys->mu;
                     csys->coeffs[7]  = 0.0;
@@ -651,7 +651,7 @@ void init_CSYS(CSYS *csys, QBCP_L *qbcp_l, QBCP *qbcp, int coordsys, int li, int
             //----------------------------------------
             switch(coordsys)
             {
-                case F_EM:
+                case Csts::EM:
                     csys->Pe[0] = csys->mu;
                     csys->Pe[1] = 0.0;
                     csys->Pe[2] = 0.0;
@@ -665,7 +665,7 @@ void init_CSYS(CSYS *csys, QBCP_L *qbcp_l, QBCP *qbcp, int coordsys, int li, int
                     csys->Ps[2] = 0.0;
                     break;
 
-                case F_SEM:
+                case Csts::SEM:
                     csys->Pe[0] = csys->mu-1.0;
                     csys->Pe[1] = 0.0;
                     csys->Pe[2] = 0.0;
@@ -703,8 +703,8 @@ void init_CSYS(CSYS *csys, QBCP_L *qbcp_l, QBCP *qbcp, int coordsys, int li, int
     csys->Ztdot = Ofsc(nf);
     switch(model)
     {
-    case M_RTBP:
-    case M_BCP:
+    case Csts::CRTBP:
+    case Csts::BCP:
     {
         //Perfect circles
         csys->zt.setCoef(1.0+0.0*I, 0);
@@ -712,7 +712,7 @@ void init_CSYS(CSYS *csys, QBCP_L *qbcp_l, QBCP *qbcp, int coordsys, int li, int
         break;
     }
 
-    case M_QBCP:
+    case Csts::QBCP:
     default:
     {
         //Taken from files
@@ -742,13 +742,13 @@ void init_CSYS(CSYS *csys, QBCP_L *qbcp_l, QBCP *qbcp, int coordsys, int li, int
 * qbcp->cr3bp2. So keep in mind that if the configuration is SUN/EARTH/MOON, the result will NOT be (BIG, MEDIUM) in qbcp->cr3bp2.
 *
 **/
-void init_QBCP(QBCP *qbcp, int BIG, int MEDIUM, int SMALL, int model)
+void init_QBCP(QBCP *qbcp, int BIG, int MEDIUM, int SMALL)
 {
     //E.g. Earth-Moon init
     init_CR3BP(&qbcp->cr3bp1, MEDIUM, SMALL);
     //E.g. Sun-Earth+Moon init
-    //WARNING: in the case of the Sun-Earth-Moon system, we need to set EARTH_AND_MOON, instead of EARTH alone.
-    if(MEDIUM ==  EARTH && SMALL == MOON) init_CR3BP(&qbcp->cr3bp2, BIG, EARTH_AND_MOON);
+    //WARNING: in the case of the Sun-Earth-Moon system, we need to set EARTH_AND_MOON, instead of Csts::EARTH alone.
+    if(MEDIUM ==  Csts::EARTH && SMALL == Csts::MOON) init_CR3BP(&qbcp->cr3bp2, BIG, Csts::EARTH_AND_MOON);
     else init_CR3BP(&qbcp->cr3bp2, BIG, MEDIUM);
 }
 
@@ -768,12 +768,12 @@ void init_QBCP_I(QBCP_I *model,
 {
     //Initialize the models
     QBCP qbp1, qbp2;
-    init_QBCP(&qbp1, n1, n2, n3, mod1);
-    init_QBCP(&qbp2, n1, n2, n3, mod2);
+    init_QBCP(&qbp1, n1, n2, n3);
+    init_QBCP(&qbp2, n1, n2, n3);
 
     //Initialize the models around the given li point
-    init_QBCP_L(model1, &qbp1, isNormalized, li_EM, li_SEM, isNew, mod1, frwk, pmStyle, MAN_CENTER, MAN_CENTER);
-    init_QBCP_L(model2, &qbp2, isNormalized, li_EM, li_SEM, isNew, mod2, frwk, pmStyle, MAN_CENTER, MAN_CENTER);
+    init_QBCP_L(model1, &qbp1, isNormalized, li_EM, li_SEM, isNew, mod1, frwk, pmStyle, Csts::MAN_CENTER, Csts::MAN_CENTER);
+    init_QBCP_L(model2, &qbp2, isNormalized, li_EM, li_SEM, isNew, mod2, frwk, pmStyle, Csts::MAN_CENTER, Csts::MAN_CENTER);
 
     //Store in model
     model->model1 = *model1;
@@ -880,7 +880,7 @@ void init_body(Body *body, int name)
     switch(name)
     {
 
-    case MERCURY:
+    case Csts::MERCURY:
 
         //Physical parameters
         body->Req = 2439.7;        //[km]
@@ -895,7 +895,7 @@ void init_body(Body *body, int name)
         strcpy(body->name, "Mercury");
         break;
 
-    case VENUS:
+    case Csts::VENUS:
 
         //Physical parameters
         body->Req = 6051.8;        //[km]
@@ -911,7 +911,7 @@ void init_body(Body *body, int name)
         break;
 
 
-    case EARTH:
+    case Csts::EARTH:
 
         //Physical parameters
         body->Req = 6378.14;        //[km]
@@ -926,7 +926,7 @@ void init_body(Body *body, int name)
         strcpy(body->name, "Earth");
         break;
 
-    case MOON:
+    case Csts::MOON:
 
         //Physical parameters
         body->Req = 1737.5;       //[km]
@@ -941,7 +941,7 @@ void init_body(Body *body, int name)
         strcpy(body->name, "Moon");
         break;
 
-    case MARS:
+    case Csts::MARS:
 
         //Physical parameters
         body->Req = 3396.19;       //[km]
@@ -957,7 +957,7 @@ void init_body(Body *body, int name)
         break;
 
 
-    case JUPITER:
+    case Csts::JUPITER:
 
         //Physical parameters
         body->Req =  71492;      //[km]
@@ -972,7 +972,7 @@ void init_body(Body *body, int name)
         strcpy(body->name, "Jupiter");
         break;
 
-    case SATURN:
+    case Csts::SATURN:
 
         //Physical parameters
         body->Req =  60268;    //[km]
@@ -987,7 +987,7 @@ void init_body(Body *body, int name)
         strcpy(body->name, "Saturn");
         break;
 
-    case URANUS:
+    case Csts::URANUS:
 
         //Physical parameters
         body->Req = 25559;      //[km]
@@ -1002,7 +1002,7 @@ void init_body(Body *body, int name)
         strcpy(body->name, "Uranus");
         break;
 
-    case NEPTUNE:
+    case Csts::NEPTUNE:
 
         //Physical parameters
         body->Req = 24764;      //[km]
@@ -1017,7 +1017,7 @@ void init_body(Body *body, int name)
         strcpy(body->name, "Neptune");
         break;
 
-    case PLUTO:
+    case Csts::PLUTO:
 
         //Physical parameters
         body->Req =  1195;     //[km]
@@ -1033,7 +1033,7 @@ void init_body(Body *body, int name)
         break;
 
 
-    case SUN:
+    case Csts::SUN:
 
         //Physical parameters
         body->Req = 696342;                //[km]
@@ -1048,7 +1048,7 @@ void init_body(Body *body, int name)
         strcpy(body->name, "Sun");
         break;
 
-    case EARTH_AND_MOON:
+    case Csts::EARTH_AND_MOON:
         //Equivalent mass of the Earth+Moon system based at the center of mass
         //additionnal physical properties are those of the Earth for consistency)
         //Physical parameters
@@ -1093,17 +1093,12 @@ void changeCOORDSYS(QBCP_L &qbcp_l, int coordsys)
     qbcp_l.coordsys = coordsys;
     switch(coordsys)
     {
-    case F_EM:
+    case Csts::EM:
         qbcp_l.us = qbcp_l.us_em;
         qbcp_l.cs = qbcp_l.cs_em;
         qbcp_l.li = qbcp_l.li_EM;
         break;
-    case F_SEM:
-        qbcp_l.us = qbcp_l.us_sem;
-        qbcp_l.cs = qbcp_l.cs_sem;
-        qbcp_l.li = qbcp_l.li_SEM;
-        break;
-    case F_SE:
+    case Csts::SEM:
         qbcp_l.us = qbcp_l.us_sem;
         qbcp_l.cs = qbcp_l.cs_sem;
         qbcp_l.li = qbcp_l.li_SEM;
@@ -1125,7 +1120,7 @@ void changeLICOORDSYS(QBCP_L &qbcp_l, int coordsys, int li)
     //Change the coord. system approprietly: "coordsys" around "li"
     switch(coordsys)
     {
-    case F_EM:
+    case Csts::EM:
         switch(li)
         {
         case 1:
@@ -1141,23 +1136,7 @@ void changeLICOORDSYS(QBCP_L &qbcp_l, int coordsys, int li)
         qbcp_l.us = qbcp_l.us_em;
         qbcp_l.cs = qbcp_l.cs_em;
         break;
-    case F_SEM:
-        switch(li)
-        {
-        case 1:
-            qbcp_l.cs_sem  = qbcp_l.cs_sem_l1;
-            break;
-        case 2:
-            qbcp_l.cs_sem  = qbcp_l.cs_sem_l2;
-            break;
-        case 3:
-            qbcp_l.cs_sem  = qbcp_l.cs_sem_l3;
-            break;
-        }
-        qbcp_l.us = qbcp_l.us_sem;
-        qbcp_l.cs = qbcp_l.cs_sem;
-        break;
-    case F_SE:
+    case Csts::SEM:
         switch(li)
         {
         case 1:
@@ -1206,19 +1185,19 @@ string init_F_LI(int li)
 }
 
 /**
- *  \brief Return the string corresponding to the model indix provided (e.g. "QBCP" if model == M_QBCP).
+ *  \brief Return the string corresponding to the model indix provided (e.g. "QBCP" if model == Csts::QBCP).
  **/
 string init_F_MODEL(int model)
 {
     switch(model)
     {
-    case M_QBCP:
+    case Csts::QBCP:
         return "QBCP";
-    case M_BCP:
+    case Csts::BCP:
         return "BCP";
-    case M_RTBP:
+    case Csts::CRTBP:
         return "RTBP";
-    case M_ERTBP:
+    case Csts::ERTBP:
         return "ERTBP";
     default:
         cout << "init_F_MODEL. Warning: unknown model." << endl;
@@ -1227,17 +1206,17 @@ string init_F_MODEL(int model)
 }
 
 /**
- *  \brief Return the string corresponding to the framework (coord. syst.) indix provided (e.g. "EM" if coordsys == F_EM).
+ *  \brief Return the string corresponding to the framework (coord. syst.) indix provided (e.g. "EM" if coordsys == Csts::EM).
  **/
 string init_F_COORDSYS(int coordsys)
 {
     switch(coordsys)
     {
-    case F_EM:
+    case Csts::EM:
         return  "EM";
-    case F_SEM:
+    case Csts::SEM:
         return  "SEM";
-    case F_SE:
+    case Csts::SE:
         return  "SE";
     default:
         cout << "init_F_COORDSYS. Warning: unknown model." << endl;
@@ -1330,13 +1309,13 @@ double cn(QBCP_L& qbcp_l, int n)
     double mu;
     switch(qbcp_l.coordsys)
     {
-        case F_EM:
+        case Csts::EM:
             mu   = qbcp_l.us.mu_EM;
         break;
-        case F_SEM:
+        case Csts::SEM:
             mu   = qbcp_l.us.mu_SEM;
         break;
-        case F_SE:
+        case Csts::SE:
             mu   = qbcp_l.us.mu_SE;
         break;
         default: //EM by default
@@ -1452,5 +1431,33 @@ void polynomialLi(double mu, int number, double y, double *f, double *df)
         *df= 5*pow(y,4.0) + 4*(7+mu)*pow(y,3.0) + 3*(19+6*mu)*pow(y,2.0) -2*(24+13*mu)*pow(y,1.0) +  (12+14*mu);
         //*df = 5*pow(y,4.0) + 4*(2.0+mu)*pow(y,3.0) + 3*(1+2*mu)*pow(y,2.0) + 2*(1+mu)*y +  2*(1-mu);
         break;
+    }
+}
+
+
+/**
+ *  \brief Prompt "Press Enter to go on"
+ **/
+void pressEnter(bool isFlag)
+{
+    if(isFlag)
+        {
+        char ch;
+        printf("Press ENTER to go on\n");
+        scanf("%c",&ch);
+    }
+}
+
+
+/**
+ *  \brief Prompt msg
+ **/
+void pressEnter(bool isFlag, string msg)
+{
+    if(isFlag)
+    {
+        char ch;
+        printf((char*)msg.c_str());
+        scanf("%c",&ch);
     }
 }

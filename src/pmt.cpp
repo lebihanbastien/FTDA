@@ -227,14 +227,14 @@ void pmt(int OutputEachOrder, int Output, int pms, int manType)
     int ims;
     switch(manType)
     {
-    case MAN_CENTER:
+    case Csts::MAN_CENTER:
         ims = 2;
         break;
-    case MAN_CENTER_S:
-    case MAN_CENTER_U:
+    case Csts::MAN_CENTER_S:
+    case Csts::MAN_CENTER_U:
         ims = 2; //6;
         break;
-    case MAN_CENTER_US:
+    case Csts::MAN_CENTER_US:
         ims = 14;
         break;
     default: //CENTER MANIFOLD
@@ -270,8 +270,8 @@ void pmt(int OutputEachOrder, int Output, int pms, int manType)
         //-----------------
         //Jacobian
         //-----------------
-        if(k > 0) for(int i = 0 ; i < NV ; i++) for(int j = 0 ; j < REDUCED_NV; j++) DWhc.tfts_der(Wh[i], j+1, i, j, k);   //in TFC
-        if(k > 0) for(int i = 0 ; i < NV ; i++) for(int j = 0 ; j < REDUCED_NV; j++) DW.tfts_der(W[i], j+1, i, j, k);      //in NC
+        if(k > 0) for(int i = 0 ; i < Csts::NV ; i++) for(int j = 0 ; j < REDUCED_NV; j++) DWhc.tfts_der(Wh[i], j+1, i, j, k);   //in TFC
+        if(k > 0) for(int i = 0 ; i < Csts::NV ; i++) for(int j = 0 ; j < REDUCED_NV; j++) DW.tfts_der(W[i], j+1, i, j, k);      //in NC
 
         //-----------------
         // DWhc x f at order k
@@ -367,7 +367,7 @@ void pmt(int OutputEachOrder, int Output, int pms, int manType)
         //------------------------------------------
         // Update the differential to take into account the new terms @ order m
         //------------------------------------------
-        for(int i = 0 ; i < NV ; i++) for(int j = 0 ; j < REDUCED_NV; j++) DWhc.tfts_der(Wh[i], j+1, i, j, m);
+        for(int i = 0 ; i < Csts::NV ; i++) for(int j = 0 ; j < REDUCED_NV; j++) DWhc.tfts_der(Wh[i], j+1, i, j, m);
 
         //------------------------------------------
         //The potential is updated: Un
@@ -383,7 +383,7 @@ void pmt(int OutputEachOrder, int Output, int pms, int manType)
         //------------------------------------------
         // Differential of Wh
         //------------------------------------------
-        for(int i = 0 ; i < NV ; i++) for(int j = 0 ; j < REDUCED_NV; j++) DW.tfts_der(W[i], j+1, i, j, m);
+        for(int i = 0 ; i < Csts::NV ; i++) for(int j = 0 ; j < REDUCED_NV; j++) DW.tfts_der(W[i], j+1, i, j, m);
 
         //------------------------------------------
         // DWhc times f @order m
@@ -449,14 +449,14 @@ void pmt(int OutputEachOrder, int Output, int pms, int manType)
         //certain directions of the parameterization (0 and 3) can be stored in one-dim
         //series. Moreover, the Jacobian is computed and stored.
         //------------------------------------------
-        if(manType == MAN_CENTER_S || manType == MAN_CENTER_U)
+        if(manType == Csts::MAN_CENTER_S || manType == Csts::MAN_CENTER_U)
         {
             //Init
-            Oftsc W1(1, OFTS_ORDER, OFS_NV, OFS_ORDER);
-            Oftsc DW1(1, OFTS_ORDER, OFS_NV, OFS_ORDER);
+            Oftsc W1(1, OFTS_ORDER, Csts::OFS_NV, OFS_ORDER);
+            Oftsc DW1(1, OFTS_ORDER, Csts::OFS_NV, OFS_ORDER);
 
-            //Read and store
-            fromVOFTStoVOFTS_bin(Wh, W1, DW1, F_PMS+"W/Wh", F_PMS+"W/F");
+            //Transform and store
+            fromVOFTStoVOFTS_bin(Wh, W1, DW1, F_PMS+"W/F");
         }
 
         //--------------------------------------------------------------------------------
@@ -502,9 +502,9 @@ void tfts_initVF(vector<Ofsc> &alpha)
     //Switch on the model to initialize the alphas
     switch(SEML.model)
     {
-    case M_QBCP:
-    case M_BCP:
-    case M_ERTBP:
+    case Csts::QBCP:
+    case Csts::BCP:
+    case Csts::ERTBP:
     {
         //Read from txt files
         ifstream readStream;
@@ -518,7 +518,7 @@ void tfts_initVF(vector<Ofsc> &alpha)
         break;
     }
 
-    case M_RTBP:
+    case Csts::CRTBP:
     {
         cout << "pm. The use of the RTBP has been detected when initializing the alphas." << endl;
         //All coeffs to zero
@@ -619,7 +619,7 @@ void tfts_initOrderOne(gsl_matrix_complex *DB,
     //     | 0   0    0    0   -w2  0   |
     //     | 0   0    0    0    0  -iw3 |
     //------------------------------------------
-    if(SEML.model == M_QBCP || SEML.model == M_BCP)
+    if(SEML.model == Csts::QBCP || SEML.model == Csts::BCP)
     {
         //Reading an OFS from a text file
         string filename = F_COC+"DB";
@@ -691,9 +691,9 @@ void tfts_initOrderOne(gsl_matrix_complex *DB,
     //------------------------------------------
     switch(manType)
     {
-    case MAN_CENTER:
-    case MAN_CENTER_U:
-    case MAN_CENTER_US:
+    case Csts::MAN_CENTER:
+    case Csts::MAN_CENTER_U:
+    case Csts::MAN_CENTER_US:
     {
         gsl_matrix_complex_set(H, 0, 0, gsl_matrix_complex_get(DB, 0, 0));
         gsl_matrix_complex_set(H, 1, 4, gsl_matrix_complex_get(DB, 1, 1));
@@ -754,7 +754,7 @@ void tfts_initOrderOne(gsl_matrix_complex *DB,
 
         break;
     }
-    case MAN_CENTER_S:
+    case Csts::MAN_CENTER_S:
     {
         //------------------------------------------
         // In the case of the Center-Stable manifold,
@@ -892,14 +892,14 @@ void tfts_initPM(vector<Oftsc>& W,
     //------------------------------------------
     switch(manType)
     {
-    case MAN_CENTER:
+    case Csts::MAN_CENTER:
         //Nothing is done, since:
         //----------------------
         //Wh[1] = 0
         //Wh[4] = 0
         break;
 
-    case MAN_CENTER_S:
+    case Csts::MAN_CENTER_S:
         //Only the stable direction is added
         //----------------------
         // Wh[4] = L55*s5 = L[4][4]*s[4]
@@ -908,7 +908,7 @@ void tfts_initPM(vector<Oftsc>& W,
         Wh[4].setCoef0(db, 1, 4);
         break;
 
-    case MAN_CENTER_U:
+    case Csts::MAN_CENTER_U:
         //Only the unstable direction is added
         //----------------------
         // Wh[1] = L25*s5 = L[1][4]*s[4]
@@ -917,7 +917,7 @@ void tfts_initPM(vector<Oftsc>& W,
         Wh[1].setCoef0(db, 1, 4);
         break;
 
-    case MAN_CENTER_US:
+    case Csts::MAN_CENTER_US:
         //Both hyperbolic directions are added
         //----------------------
         // Wh[1] = L25*s5 = L[1][4]*s[4]
@@ -1034,7 +1034,7 @@ void cohomEq(vector<Oftsc>& eta,
 
                 switch(pms)
                 {
-                case PMS_GRAPH:
+                case Csts::GRAPH:
                 {
                     //------------------------------------------
                     // In GRAPH case: fh is updated, xi is kept
@@ -1045,7 +1045,7 @@ void cohomEq(vector<Oftsc>& eta,
                     break;
                 }
 
-                case PMS_NORMFORM:
+                case Csts::NORMFORM:
                 {
                     //------------------------------------------
                     // In NORMFORM case: fh is kept as simple as
@@ -1075,7 +1075,7 @@ void cohomEq(vector<Oftsc>& eta,
                     break;
                 }
 
-                case PMS_MIXED:
+                case Csts::MIXED:
                 {
                     //------------------------------------------
                     // Isolation of some submanifolds defined
@@ -1123,7 +1123,7 @@ void cohomEq(vector<Oftsc>& eta,
     // Last n-d components of eta
     //------------------------------------------
     //Sum on the normal components of eta (last n-d components)
-    for(int p = REDUCED_NV; p<= NV-1; p++)
+    for(int p = REDUCED_NV; p<= Csts::NV-1; p++)
     {
         //Update lap
         lap = gslc_complex(gsl_matrix_complex_get(La, p, p));
@@ -1343,7 +1343,7 @@ void initMS(int **VIs,
 {
     switch(manType)
     {
-    case MAN_CENTER:
+    case Csts::MAN_CENTER:
     {
         //--------------------------
         // Planar family
@@ -1363,8 +1363,8 @@ void initMS(int **VIs,
         break;
     }
 
-    case MAN_CENTER_S:
-    case MAN_CENTER_U:
+    case Csts::MAN_CENTER_S:
+    case Csts::MAN_CENTER_U:
     {
         //--------------------------
         // Hyperbolic normal part
@@ -1428,7 +1428,7 @@ void initMS(int **VIs,
         break;
     }
 
-    case MAN_CENTER_US:
+    case Csts::MAN_CENTER_US:
     {
         //--------------------------
         // Unstable manifold

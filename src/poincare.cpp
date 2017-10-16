@@ -163,13 +163,13 @@ string nameFile(Pmap& pmap, int method)
     string filename;
     switch(SEML.pms)
     {
-    case PMS_GRAPH:
+    case Csts::GRAPH:
         filename = SEML.cs.F_PRINT+type; //default case, so no additionnal notations
         break;
-    case PMS_NORMFORM:
+    case Csts::NORMFORM:
         filename = SEML.cs.F_PRINT+type+"NF_";//Normal form style
         break;
-    case PMS_MIXED:
+    case Csts::MIXED:
         filename = SEML.cs.F_PRINT+type+"MX_";  //Normal form style
         break;
     }
@@ -184,11 +184,10 @@ string nameFile(Pmap& pmap, int method)
 /**
  *   \brief Computes a Poincare map
  *   \param pmap a reference to the Poincare map parameters
- *   \param isPlot if true, the Poincare map is plotted during the computation
  *
  *    Requires initCM and initCOC
  **/
-void pmap_build(Pmap& pmap, int append, int method, bool isPlot, bool isPar)
+void pmap_build(Pmap& pmap, int append, int method, bool isPar)
 {
     cout << "---------------------------------------------------" << endl;
     cout << "                                                   " << endl;
@@ -442,13 +441,13 @@ void pmap_precision(Pmap& pmap, int append, bool isPar)
     string type = "s1eqs3";//s1eqs3fs2";
     switch(SEML.pms)
     {
-    case PMS_GRAPH:
+    case Csts::GRAPH:
         filename = F_PRINT+"eOm_"+type+"_ofs_"+ssOfs+"_order_"+ssOrder; //default case, so no additionnal notations
         break;
-    case PMS_NORMFORM:
+    case Csts::NORMFORM:
         filename = F_PRINT+"eOm_NF_"+type+"_ofs_"+ssOfs+"_order_"+ssOrder; //Normal form style
         break;
-    case PMS_MIXED:
+    case Csts::MIXED:
         filename = F_PRINT+"eOm_MX_"+type+"_ofs_"+ssOfs+"_order_"+ssOrder; //Normal form style
         break;
     }
@@ -641,13 +640,13 @@ void pmap_invariance_error(Pmap& pmap, int append, bool isPar, double hzmax)
 
     switch(SEML.pms)
     {
-    case PMS_GRAPH:
+    case Csts::GRAPH:
         filename = F_PRINT+"eIm_"+type+"_ofs_"+ssOfs+"_order_"+ssOrder+"_hmax_"+ssEnergy; //default case, so no additionnal notations
         break;
-    case PMS_NORMFORM:
+    case Csts::NORMFORM:
         filename = F_PRINT+"eIm_NF_"+type+"_ofs_"+ssOfs+"_order_"+ssOrder+"_hmax_"+ssEnergy; //Normal form style
         break;
-    case PMS_MIXED:
+    case Csts::MIXED:
         filename = F_PRINT+"eIm_MX_"+type+"_ofs_"+ssOfs+"_order_"+ssOrder+"_hmax_"+ssEnergy; //Normal form style
         break;
     }
@@ -751,7 +750,7 @@ void pmap_invariance_error(Pmap& pmap, int append, bool isPar, double hzmax)
                 // eI:
                 // - F(W(s,t)) - DWf(s,t) - Wdot(s,t)
                 //------------------------------
-                for(int p = 1; p < NV; p++)
+                for(int p = 1; p < Csts::NV; p++)
                 {
                     //The vector field was computed in fnc
                     eId = fnc[p]+0.0*I;
@@ -769,7 +768,7 @@ void pmap_invariance_error(Pmap& pmap, int append, bool isPar, double hzmax)
                 //------------------------------------------------------------------------
                 // Set the error in orbit.eOm
                 //------------------------------------------------------------------------
-                orbit.eOm = compute_error(eI, NV);
+                orbit.eOm = compute_error(eI, Csts::NV);
 
                 #pragma omp critical
                 {
@@ -995,7 +994,7 @@ void pmap_invariance_error_random(Pmap& pmap, int append, bool isPar, double hzm
             // eI:
             // - F(W(s,t)) - DWf(s,t) - Wdot(s,t)
             //------------------------------
-            for(int p = 1; p < NV; p++)
+            for(int p = 1; p < Csts::NV; p++)
             {
                 //The vector field was computed in fnc
                 eId = fnc[p]+0.0*I;
@@ -1013,7 +1012,7 @@ void pmap_invariance_error_random(Pmap& pmap, int append, bool isPar, double hzm
             //----------------------------------------------------------------------------
             // Set the error in orbit.eOm
             //----------------------------------------------------------------------------
-            orbit.eOm = compute_error(eI, NV);
+            orbit.eOm = compute_error(eI, Csts::NV);
 
             #pragma omp critical
             {
@@ -1233,7 +1232,7 @@ void pmap_invariance_error_random(Pmap& pmap, int append, bool isPar, double hzm
                 // eI:
                 // - F(W(s,t)) - DWf(s,t) - Wdot(s,t)
                 //------------------------------
-                for(int p = 1; p < NV; p++)
+                for(int p = 1; p < Csts::NV; p++)
                 {
                     //The vector field was computed in fnc
                     eId = fnc[p]+0.0*I;
@@ -1251,7 +1250,7 @@ void pmap_invariance_error_random(Pmap& pmap, int append, bool isPar, double hzm
                 //------------------------------------------------------------------------
                 // Set the error in orbit.eOm
                 //------------------------------------------------------------------------
-                orbit.eOm = compute_error(eI, NV);
+                orbit.eOm = compute_error(eI, Csts::NV);
 
                 #pragma omp critical
                 {
@@ -1470,7 +1469,7 @@ void pmap_invariance_error_random_planar(Pmap& pmap, int append, bool isPar, dou
                 // eI:
                 // - F(W(s,t)) - DWf(s,t) - Wdot(s,t)
                 //------------------------------------------------------------------------
-                for(int p = 1; p < NV; p++)
+                for(int p = 1; p < Csts::NV; p++)
                 {
                     //The vector field was computed in fnc
                     eId = fnc[p]+0.0*I;
@@ -1488,7 +1487,7 @@ void pmap_invariance_error_random_planar(Pmap& pmap, int append, bool isPar, dou
                 //------------------------------------------------------------------------
                 // Set the error in orbit.eOm
                 //------------------------------------------------------------------------
-                orbit.eOm = compute_error(eI, NV);
+                orbit.eOm = compute_error(eI, Csts::NV);
 
                 #pragma omp critical
                 {
@@ -1596,13 +1595,13 @@ void pmap_test_error(Pmap& pmap, int append, bool isPar, double hzmax)
 
     switch(SEML.pms)
     {
-    case PMS_GRAPH:
+    case Csts::GRAPH:
         filename = F_PRINT+"eIm_"+type+"_ofs_"+ssOfs+"_order_"+ssOrder+"_hmax_"+ssEnergy; //default case, so no additionnal notations
         break;
-    case PMS_NORMFORM:
+    case Csts::NORMFORM:
         filename = F_PRINT+"eIm_NF_"+type+"_ofs_"+ssOfs+"_order_"+ssOrder+"_hmax_"+ssEnergy; //Normal form style
         break;
-    case PMS_MIXED:
+    case Csts::MIXED:
         filename = F_PRINT+"eIm_MX_"+type+"_ofs_"+ssOfs+"_order_"+ssOrder+"_hmax_"+ssEnergy; //Normal form style
         break;
     }
@@ -1715,7 +1714,7 @@ void pmap_test_error(Pmap& pmap, int append, bool isPar, double hzmax)
                 // eI:
                 // - F(W(s,t)) - DWf(s,t) - Wdot(s,t)
                 //------------------------------
-                for(int p = 1; p < NV; p++)
+                for(int p = 1; p < Csts::NV; p++)
                 {
                     //Computing DW*Fh(s0, t0)
                     DWFh[p].evaluate(orbit.s0, *orbit.ofs, orbit.pmap->order, orbit.pmap->ofs_order);
@@ -1730,7 +1729,7 @@ void pmap_test_error(Pmap& pmap, int append, bool isPar, double hzmax)
                 //------------------------------------------------------------------------
                 // Set the error in orbit.eOm
                 //------------------------------------------------------------------------
-                orbit.eOm = compute_error(eI, NV);
+                orbit.eOm = compute_error(eI, Csts::NV);
 
 
                 cout << std::noshowpos << resetiosflags(ios::scientific)  << setprecision(4);
@@ -1825,13 +1824,13 @@ void pmap_energy(Pmap& pmap, int append, bool isPar, double hzmax)
     //Get the PM style
     switch(SEML.pms)
     {
-    case PMS_GRAPH:
+    case Csts::GRAPH:
         filename = F_PRINT+type; //default case, so no additionnal notations
         break;
-    case PMS_NORMFORM:
+    case Csts::NORMFORM:
         filename = F_PRINT+type+"NF_";  //Normal form style
         break;
-    case PMS_MIXED:
+    case Csts::MIXED:
         filename = F_PRINT+type+"MX_";  //Normal form style
         break;
     }
@@ -2030,13 +2029,13 @@ void pmap_energy_3d(Pmap& pmap, int append, bool isPar, double hzmax)
     //Get the PM style
     switch(SEML.pms)
     {
-    case PMS_GRAPH:
+    case Csts::GRAPH:
         filename = F_PRINT+type; //default case, so no additionnal notations
         break;
-    case PMS_NORMFORM:
+    case Csts::NORMFORM:
         filename = F_PRINT+type+"NF_";  //Normal form style
         break;
-    case PMS_MIXED:
+    case Csts::MIXED:
         filename = F_PRINT+type+"MX_";  //Normal form style
         break;
     }
@@ -2263,13 +2262,13 @@ void tmap_build(Pmap& pmap, int append, int method, bool isPlot, bool isPar)
     string filename;
     switch(SEML.pms)
     {
-    case PMS_GRAPH:
+    case Csts::GRAPH:
         filename = F_PRINT+type; //default case, so no additionnal notations
         break;
-    case PMS_NORMFORM:
+    case Csts::NORMFORM:
         filename = F_PRINT+type+"NF_";//Normal form style
         break;
-    case PMS_MIXED:
+    case Csts::MIXED:
         filename = F_PRINT+type+"MX_";  //Normal form style
         break;
     }
@@ -3175,7 +3174,7 @@ void header_fprint_bin(string filename)
 void update_s0(Orbit* orbit, double st0[], double sr)
 {
     //Set the current state
-    if(SEML.model == M_RTBP) //if model = RTBP
+    if(SEML.model == Csts::CRTBP) //if model = RTBP
     {
         switch(orbit->vdim)
         {
@@ -3221,7 +3220,7 @@ void update_s0(Orbit* orbit, double st0[], double sr)
     }
     else //if model = QBCP
     {
-        //If coordsys = F_SEM
+        //If coordsys = Csts::SEM
         //The starting condition z(t0) = 0 is s2 == s4
         //AND there is not root of P36(nt)
         switch(orbit->vdim)
@@ -3381,17 +3380,8 @@ void orbit_update_ic(Orbit& orbit, const double si[], double t0)
     // 4. Update z0
     //------------------------------------------------------------------------------------
     //z0 = W(si, 0.0)
-    RCMtoNCbyTFC(si,
-                 t0,
-                 orbit.qbcp_l->us.n,
-                 orbit.pmap->order,
-                 orbit.pmap->ofs_order,
-                 *orbit.Wh,
-                 *orbit.ofs,
-                 *orbit.PC,
-                 *orbit.V,
-                 orbit.z0,
-                 orbit.pmap->isGS);
+    RCMtoNCbyTFC(si, t0, orbit.qbcp_l->us.n, orbit.pmap->order, orbit.pmap->ofs_order,
+                 *orbit.Wh, *orbit.PC, *orbit.V, orbit.z0, orbit.pmap->isGS);
 
     //------------------------------------------------------------------------------------
     // 5. Update zh0
@@ -3427,7 +3417,8 @@ double orbit_ham(Pmap& pmap, double st0[])
     //------------------------------------------------------------------------------------
     // RCM to NC
     //------------------------------------------------------------------------------------
-    RCMtoNCbyTFC(st0, pmap.t0, SEML.us.n, pmap.order, pmap.ofs_order, CMh, AUX, Mcoc, Vcoc, z0d, pmap.isGS);
+    RCMtoNCbyTFC(st0, pmap.t0, SEML.us.n, pmap.order, pmap.ofs_order,
+                 CMh, Mcoc, Vcoc, z0d, pmap.isGS);
 
     //------------------------------------------------------------------------------------
     // Computation
@@ -3499,7 +3490,7 @@ int gslc_proj_step(Orbit* orbit,
         //Get the closest point on the center manifold
         NCprojCCM(yv, *t, SEML.us_em.n, OFS_ORDER, MIcoc, Vcoc, omega1, omega3, scp, REDUCED_NV);
         //Update the state
-        CCMtoNCbyTFC(scp, *t, orbit->qbcp_l->us.n, orbit->pmap->order,  orbit->pmap->ofs_order,  *orbit->Wh,  *orbit->ofs, Mcoc, Vcoc,  yvp,  orbit->pmap->isGS);
+        CCMtoNCbyTFC(scp, *t, orbit->qbcp_l->us.n, orbit->pmap->order,  orbit->pmap->ofs_order,  *orbit->Wh, Mcoc, Vcoc,  yvp,  orbit->pmap->isGS);
         //For comparison
         for(int i = 0; i <6; i++) yvi[i] = yv[i];
         // Copy of yvp in current state
@@ -3660,7 +3651,6 @@ int dual_pmap(Orbit* orbit)
     cdouble zh1[6];                         //for integration purposes, current state in complex form (TFC)
     double z1[6];                           //for integration purposes, current state in real form (NC)
     double previous_si[4], si[4];           //for event detection purposes, configuration at step n and n-1 (RCM)
-    double eO[6];                                      //orbit error between z1 and W(s1, t)
     double yv_mat[6][orbit->pmap->max_events+1];         //buffer to store the events (configuration right before the event)
     double sv_mat[4][orbit->pmap->max_events+1];         //buffer to store the events (configuration right before the event)
     double  t_mat[2][orbit->pmap->max_events+1];         //buffer to store the time of the events by pair of 2 (time before and after the event)
@@ -3709,7 +3699,7 @@ int dual_pmap(Orbit* orbit)
         for(i=0; i<4; i++) previous_si[i] = si[i];  //RCM
 
         //Evolve one step (dual integration)
-        status = gslc_dual_step(orbit, yv, sv, eO, z1, &t, &tr, tf, 1);
+        status = gslc_dual_step(orbit, yv, sv, z1, &t, &tr, tf, 1);
         CCM8toRCM(sv, si); //From CCM to RCM
 
         //Event detection
@@ -3836,7 +3826,9 @@ int dual_pmap(Orbit* orbit)
             NCtoSYS(t, yv, ys, (QBCP_L*) orbit->ode_s_6->d->sys->params);
             orbit->hz[k] = qbfbp_H(t, ys, orbit->ode_s_6->d->sys->params);
             //Evaluate pm at s1 and store it in yv
-            RCMtoNCbyTFC(si, t, orbit->qbcp_l->us.n, orbit->pmap->order,  orbit->pmap->ofs_order,  *orbit->Wh,  *orbit->ofs, Mcoc, Vcoc,  yv,  orbit->pmap->isGS);
+            RCMtoNCbyTFC(si, t, orbit->qbcp_l->us.n, orbit->pmap->order,
+                         orbit->pmap->ofs_order, *orbit->Wh, Mcoc, Vcoc,
+                         yv,  orbit->pmap->isGS);
             //NC to EM coordinates
             NCtoSYS(t, yv, ys, (QBCP_L*) orbit->ode_s_6->d->sys->params);
             orbit->hw[k] = qbfbp_H(t, ys, orbit->ode_s_6->d->sys->params);
@@ -3873,7 +3865,6 @@ int dual_pmap_stepped(Orbit* orbit)
     double previous_t, t, tr, tf;           //times (event and integration)
     double z1[6];                           //for integration purposes, current state in real form (NC)
     double previous_si[4], si[4];           //for event detection purposes, configuration at step n and n-1 (RCM)
-    double eO[6];                           //orbit error between z1 and W(s1, t)
     double yv_mat[6];                       //buffer to store the events (configuration right before the event)
     double sv_mat[4];                       //buffer to store the events (configuration right before the event)
     double  t_mat[2];                       //buffer to store the time of the events by pair of 2 (time before and after the event)
@@ -3914,7 +3905,7 @@ int dual_pmap_stepped(Orbit* orbit)
         for(int i=0; i<4; i++) previous_si[i] = si[i];  //RCM
 
         //Evolve one step (dual integration)
-        gslc_dual_step(orbit, yv, sv, eO, z1, &t, &tr, tf, 1);
+        gslc_dual_step(orbit, yv, sv, z1, &t, &tr, tf, 1);
         CCM8toRCM(sv, si); //From CCM8 to RCM
 
         //Event detection
@@ -3937,7 +3928,7 @@ int dual_pmap_stepped(Orbit* orbit)
             //-----------------
             //Refine root so that yv is really on the z=0 plane
             //-----------------
-            refine_root_dual(orbit, yv_c, si_c, s1_c, &t_c, yv_mat, sv_mat, t_mat, events);
+            refine_root_dual(orbit, yv_c, si_c, s1_c, &t_c, yv_mat, sv_mat, t_mat);
 
             //-----------------
             //Storage in orbit
@@ -3961,7 +3952,9 @@ int dual_pmap_stepped(Orbit* orbit)
             //-----------------
             //Energy (2)
             //-----------------
-            RCMtoNCbyTFC(si_c, t, orbit->qbcp_l->us.n, orbit->pmap->order,  orbit->pmap->ofs_order,  *orbit->Wh,  *orbit->ofs, Mcoc, Vcoc,  yv_c,  orbit->pmap->isGS);
+            RCMtoNCbyTFC(si_c, t, orbit->qbcp_l->us.n, orbit->pmap->order,
+                         orbit->pmap->ofs_order, *orbit->Wh, Mcoc, Vcoc,
+                         yv_c, orbit->pmap->isGS);
             NCtoSYS(t, yv_c, ys_c, (QBCP_L*) orbit->ode_s_6->d->sys->params);
             orbit->hw[events] = qbfbp_H(t, ys_c, orbit->ode_s_6->d->sys->params);
             orbit->nevent[events] = events+1; //number of the event
@@ -4023,7 +4016,6 @@ int dual_pmap_stepped_plot(Orbit* orbit)
     double previous_t, t, tr, tf;           //times (event and integration)
     double z1[6];                           //for integration purposes, current state in real form (NC)
     double previous_si[4], si[4];           //for event detection purposes, configuration at step n and n-1 (RCM)
-    double eO[6];                           //orbit error between z1 and W(s1, t)
     double yv_mat[6];                       //buffer to store the events (configuration right before the event)
     double sv_mat[4];                       //buffer to store the events (configuration right before the event)
     double  t_mat[2];                       //buffer to store the time of the events by pair of 2 (time before and after the event)
@@ -4064,7 +4056,7 @@ int dual_pmap_stepped_plot(Orbit* orbit)
         for(int i=0; i<4; i++) previous_si[i] = si[i];  //RCM
 
         //Evolve one step (dual integration)
-        gslc_dual_step(orbit, yv, sv, eO, z1, &t, &tr, tf, 1);
+        gslc_dual_step(orbit, yv, sv, z1, &t, &tr, tf, 1);
         CCM8toRCM(sv, si); //From CCM8 to RCM
 
         //Event detection
@@ -4087,7 +4079,7 @@ int dual_pmap_stepped_plot(Orbit* orbit)
             //-----------------
             //Refine root so that yv is really on the z=0 plane
             //-----------------
-            refine_root_dual(orbit, yv_c, si_c, s1_c, &t_c, yv_mat, sv_mat, t_mat, events);
+            refine_root_dual(orbit, yv_c, si_c, s1_c, &t_c, yv_mat, sv_mat, t_mat);
 
             //-----------------
             //Storage in orbit
@@ -4111,7 +4103,9 @@ int dual_pmap_stepped_plot(Orbit* orbit)
             //-----------------
             //Energy (2)
             //-----------------
-            RCMtoNCbyTFC(si_c, t, orbit->qbcp_l->us.n, orbit->pmap->order,  orbit->pmap->ofs_order,  *orbit->Wh,  *orbit->ofs, Mcoc, Vcoc,  yv_c,  orbit->pmap->isGS);
+            RCMtoNCbyTFC(si_c, t, orbit->qbcp_l->us.n, orbit->pmap->order,
+                         orbit->pmap->ofs_order, *orbit->Wh, Mcoc, Vcoc,
+                         yv_c,  orbit->pmap->isGS);
             NCtoSYS(t, yv_c, ys_c, (QBCP_L*) orbit->ode_s_6->d->sys->params);
             orbit->hw[events] = qbfbp_H(t, ys_c, orbit->ode_s_6->d->sys->params);
             orbit->nevent[events] = events+1; //number of the event
@@ -4579,8 +4573,7 @@ int refine_root_dual(Orbit* orbit,
                      double* t,
                      double* yv_mat,
                      double* sv_mat,
-                     double* t_mat,
-                     int events)
+                     double* t_mat)
 {
     gsl_function F;             //called function in the root finding routine
     struct OdeParams params;    //params for F
@@ -4740,7 +4733,7 @@ int refine_root(Orbit* orbit,
     //Project on the center manifold
     cdouble scp[4];
     NCprojCCM(yv, r, SEML.us_em.n, OFS_ORDER, MIcoc, Vcoc, omega1, omega3, scp, 4);
-    CCMtoNCbyTFC(scp, r, orbit->qbcp_l->us.n, orbit->pmap->order,  orbit->pmap->ofs_order,  *orbit->Wh,  *orbit->ofs, Mcoc, Vcoc,  yv,  orbit->pmap->isGS);
+    CCMtoNCbyTFC(scp, r, orbit->qbcp_l->us.n, orbit->pmap->order,  orbit->pmap->ofs_order,  *orbit->Wh,  Mcoc, Vcoc,  yv,  orbit->pmap->isGS);
 
     //Compute projected state in RCM coordinates
     CCMtoRCM(scp, s1, REDUCED_NV);
@@ -4790,8 +4783,6 @@ int dual_tmap(Orbit* orbit)
     cdouble zh1[6];         //for integration purposes, current state in complex form (TFC)
     double z1[6];           //for integration purposes, current state in real form (NC)
     double si[4];           //for event detection purposes, configuration at step n and n-1 (RCM)
-    double eO[6];           //orbit error between z1 and W(s1, t)
-
 
     //------------------------------------------------------------------------------
     //Initialization of the state & time
@@ -4815,7 +4806,7 @@ int dual_tmap(Orbit* orbit)
         do
         {
             //Evolve one step (dual integration)
-            gslc_dual_step(orbit, yv, sv, eO, z1, &t, &tr, ti, 1);
+            gslc_dual_step(orbit, yv, sv, z1, &t, &tr, ti, 1);
         }
         while(fabs(t)<fabs(ti));
 
@@ -4845,7 +4836,9 @@ int dual_tmap(Orbit* orbit)
         //-----------------
         //Energy (2)
         //-----------------
-        RCMtoNCbyTFC(si, t, orbit->qbcp_l->us.n, orbit->pmap->order,  orbit->pmap->ofs_order,  *orbit->Wh,  *orbit->ofs, Mcoc, Vcoc,  yv,  orbit->pmap->isGS);
+        RCMtoNCbyTFC(si, t, orbit->qbcp_l->us.n, orbit->pmap->order,
+                     orbit->pmap->ofs_order,  *orbit->Wh,  Mcoc, Vcoc,
+                     yv,  orbit->pmap->isGS);
         NCtoSYS(t, yv, ys, (QBCP_L*) orbit->ode_s_6->d->sys->params);
         orbit->hw[events] = qbfbp_H(t, ys, orbit->ode_s_6->d->sys->params);
         orbit->nevent[events] = events+1; //number of the event
@@ -4934,7 +4927,7 @@ int single_tmap(Orbit* orbit)
                 gsl_odeiv2_driver_apply (orbit->ode_s_6->d, &tp, ti, yv);
                 //Project on the center manifold
                 NCprojCCM(yv, ti, SEML.us_em.n, OFS_ORDER, MIcoc, Vcoc, omega1, omega3, scp, 4);
-                CCMtoNCbyTFC(scp, ti, orbit->qbcp_l->us.n, orbit->pmap->order,  orbit->pmap->ofs_order,  *orbit->Wh,  *orbit->ofs, Mcoc, Vcoc,  yvp,  orbit->pmap->isGS);
+                CCMtoNCbyTFC(scp, ti, orbit->qbcp_l->us.n, orbit->pmap->order,  orbit->pmap->ofs_order, *orbit->Wh,  Mcoc, Vcoc,  yvp,  orbit->pmap->isGS);
                 //Reset ode structure for next step
                 reset_ode_structure(orbit->ode_s_6);
                 //------------------------------------------------------------------------------
@@ -5077,14 +5070,14 @@ int single_tmap_tested(Orbit* orbit)
                 //------------------------------------------------------------------------------
                 gsl_odeiv2_driver_apply (orbit->ode_s_8->d, &tr, ti, sv);
                 //Copy in yvc
-                CCM8toNCbyTFC(sv, ti, orbit->qbcp_l->us.n, orbit->pmap->order,  orbit->pmap->ofs_order,  *orbit->Wh,  *orbit->ofs, Mcoc, Vcoc,  yvc,  orbit->pmap->isGS);
+                CCM8toNCbyTFC(sv, ti, orbit->qbcp_l->us.n, orbit->pmap->order,  orbit->pmap->ofs_order, *orbit->Wh, Mcoc, Vcoc,  yvc,  orbit->pmap->isGS);
                 //------------------------------------------------------------------------------
                 //Evolve the yv integration
                 //------------------------------------------------------------------------------
                 gsl_odeiv2_driver_apply (orbit->ode_s_6->d, &tp, ti, yv);
                 //Project on the center manifold
                 NCprojCCM(yv, ti, SEML.us_em.n, OFS_ORDER, MIcoc, Vcoc, omega1, omega3, scp, 4);
-                CCMtoNCbyTFC(scp, ti, orbit->qbcp_l->us.n, orbit->pmap->order,  orbit->pmap->ofs_order,  *orbit->Wh,  *orbit->ofs, Mcoc, Vcoc,  yvp,  orbit->pmap->isGS);
+                CCMtoNCbyTFC(scp, ti, orbit->qbcp_l->us.n, orbit->pmap->order,  orbit->pmap->ofs_order, *orbit->Wh,  Mcoc, Vcoc,  yvp,  orbit->pmap->isGS);
                 //Reset ode structure for next step
                 reset_ode_structure(orbit->ode_s_6);
 
@@ -5136,7 +5129,9 @@ int single_tmap_tested(Orbit* orbit)
         //-----------------
         //Energy (2)
         //-----------------
-        RCMtoNCbyTFC(si, tr, orbit->qbcp_l->us.n, orbit->pmap->order,  orbit->pmap->ofs_order,  *orbit->Wh,  *orbit->ofs, Mcoc, Vcoc,  yve,  orbit->pmap->isGS);
+        RCMtoNCbyTFC(si, tr, orbit->qbcp_l->us.n, orbit->pmap->order,
+                     orbit->pmap->ofs_order, *orbit->Wh, Mcoc, Vcoc,  yve,
+                     orbit->pmap->isGS);
         NCtoSYS(tr, yv, ys, (QBCP_L*) orbit->ode_s_6->d->sys->params);
         orbit->hw[events] = qbfbp_H(tr, ys, orbit->ode_s_6->d->sys->params);
         orbit->nevent[events] = events+1; //number of the event
@@ -5181,7 +5176,6 @@ int dual_emap(Orbit* orbit)
     double sv[8];           //for integration purposes, CCM coordinates (dim = 8)
     double t, tr, tf;       //times (event and integration)
     double z1[6];          //for integration purposes, current state in real form (NC)
-    double eO[6];           //orbit error between z1 and W(s1, t)
 
     //------------------------------------------------------------------------------
     //Initialization of the state & time
@@ -5203,7 +5197,7 @@ int dual_emap(Orbit* orbit)
     do
     {
         //Evolve one step (dual integration)
-        orbit->eOm = gslc_dual_step(orbit, yv, sv, eO, z1, &t, &tr, tf, 0); //no reset at this step!
+        orbit->eOm = gslc_dual_step(orbit, yv, sv, z1, &t, &tr, tf, 0); //no reset at this step!
     }
     while(fabs(t)<fabs(tf));
 
@@ -5222,7 +5216,6 @@ int dual_emap(Orbit* orbit)
 double gslc_dual_step( Orbit* orbit,
                        double yv[],
                        double sv[],
-                       double eO[],
                        double zr1[],
                        double* t,
                        double* tr,
@@ -5254,13 +5247,13 @@ double gslc_dual_step( Orbit* orbit,
     //----------------------
     //z1 = W(s1);
     //----------------------
-    CCM8toNCbyTFC(sv, *t, orbit->qbcp_l->us.n, orbit->pmap->order, orbit->pmap->ofs_order, *orbit->Wh, *orbit->ofs, Mcoc, Vcoc, zr1, orbit->pmap->isGS);
+    CCM8toNCbyTFC(sv, *t, orbit->qbcp_l->us.n, orbit->pmap->order, orbit->pmap->ofs_order, *orbit->Wh, Mcoc, Vcoc, zr1, orbit->pmap->isGS);
 
     //----------------------
     //Orbit error (infty norm)
     //----------------------
     eOm = fabs(zr1[0] - yv[0]);
-    for(int p = 1; p < NV; p++) if(fabs(zr1[p] - yv[p]) > eOm) eOm = fabs(zr1[p] - yv[p]);
+    for(int p = 1; p < Csts::NV; p++) if(fabs(zr1[p] - yv[p]) > eOm) eOm = fabs(zr1[p] - yv[p]);
     orbit->eOm = eOm;
 
     //----------------------
@@ -5269,7 +5262,7 @@ double gslc_dual_step( Orbit* orbit,
     if(resetOn && eOm > orbit->pmap->threshold)
     {
         //cout << "Reset is detected @t  = " << *t << ", z = " << creal(z1[2]) << endl;
-        for(int p = 0; p < NV; p++) yv[p] = zr1[p];
+        for(int p = 0; p < Csts::NV; p++) yv[p] = zr1[p];
         (orbit->reset_number)++;
         //Reset ode structure
         reset_ode_structure(orbit->ode_s_6);
@@ -5285,17 +5278,15 @@ double gslc_dual_step( Orbit* orbit,
 int gslc_dual_evolve(Orbit* orbit,
                      double yv[],
                      double sv[],
-                     double eO[],
                      double z1[],
                      double* t,
-                     double t1,
-                     double threshold)
+                     double t1)
 {
     int status;
     double tr = *t;
     do
     {
-        status = gslc_dual_step(orbit, yv, sv, eO, z1, t, &tr, t1, 1);
+        status = gslc_dual_step(orbit, yv, sv, z1, t, &tr, t1, 1);
     }
     while(fabs(*t)<fabs(t1));
 
@@ -5310,7 +5301,7 @@ int gslc_dual_evolve(Orbit* orbit,
 //
 //----------------------------------------------------------------------------------------
 //Plot one orbit
-void orbit_plot(Orbit* orbit, gnuplot_ctrl* h1, int type, int points, OdeStruct* ode_s_6, OdeStruct* ode_s_8)
+void orbit_plot(Orbit* orbit, gnuplot_ctrl* h1, int type, int points, OdeStruct* ode_s_6)
 {
     //Checking initialization of h1
     if(h1 == NULL) h1 = gnuplot_init();
@@ -5326,7 +5317,6 @@ void orbit_plot(Orbit* orbit, gnuplot_ctrl* h1, int type, int points, OdeStruct*
 
     double y[6];
     double s[8];
-    double eO[6];
     int i;
 
     //Initial conditions in NC and TFC
@@ -5338,11 +5328,11 @@ void orbit_plot(Orbit* orbit, gnuplot_ctrl* h1, int type, int points, OdeStruct*
     //------------------------------------------------------------------------------------
     //First value
     //------------------------------------------------------------------------------------
-    CCM8toNCbyTFC(s, 0.0, orbit->qbcp_l->us.n, orbit->pmap->order, orbit->pmap->ofs_order, *orbit->Wh, *orbit->ofs, Mcoc, Vcoc, z1, orbit->pmap->isGS);
+    CCM8toNCbyTFC(s, 0.0, orbit->qbcp_l->us.n, orbit->pmap->order, orbit->pmap->ofs_order, *orbit->Wh, Mcoc, Vcoc, z1, orbit->pmap->isGS);
 
     switch(type)
     {
-    case XY:
+    case Csts::XY:
         x1[0] = y[0];
         x2[0] = y[1];
 
@@ -5357,7 +5347,7 @@ void orbit_plot(Orbit* orbit, gnuplot_ctrl* h1, int type, int points, OdeStruct*
 
 
         break;
-    case XZ:
+    case Csts::XZ:
         x1[0] = y[0];
         x2[0] = y[2];
 
@@ -5372,7 +5362,7 @@ void orbit_plot(Orbit* orbit, gnuplot_ctrl* h1, int type, int points, OdeStruct*
 
 
         break;
-    case YZ:
+    case Csts::YZ:
         x1[0] = y[1];
         x2[0] = y[2];
 
@@ -5402,27 +5392,26 @@ void orbit_plot(Orbit* orbit, gnuplot_ctrl* h1, int type, int points, OdeStruct*
         ti = i * t1 / points;
         //gsl_odeiv2_driver_apply (ode_s_6->d, &t, ti, y);
         //gsl_odeiv2_driver_apply (ode_s_8->d, &tr, ti, s);
-        gslc_dual_evolve(orbit, y, s, eO, z1, &t, ti, orbit->pmap->threshold);
-
+        gslc_dual_evolve(orbit, y, s, z1, &t, ti);
 
         //current condition updated
-        CCM8toNCbyTFC(s, ti, orbit->qbcp_l->us.n, orbit->pmap->order, orbit->pmap->ofs_order, *orbit->Wh, *orbit->ofs, Mcoc, Vcoc, z1, orbit->pmap->isGS);
+        CCM8toNCbyTFC(s, ti, orbit->qbcp_l->us.n, orbit->pmap->order, orbit->pmap->ofs_order, *orbit->Wh, Mcoc, Vcoc, z1, orbit->pmap->isGS);
 
         switch(type)
         {
-        case XY:
+        case Csts::XY:
             x1[i] = y[0];
             x2[i] = y[1];
             xr1[i] = creal(z1[0]);
             xr2[i] = creal(z1[1]);
             break;
-        case XZ:
+        case Csts::XZ:
             x1[i] = y[0];
             x2[i] = y[2];
             xr1[i] = creal(z1[0]);
             xr2[i] = creal(z1[2]);
             break;
-        case YZ:
+        case Csts::YZ:
             x1[i] = y[1];
             x2[i] = y[2];
             xr1[i] = creal(z1[1]);
@@ -5434,15 +5423,15 @@ void orbit_plot(Orbit* orbit, gnuplot_ctrl* h1, int type, int points, OdeStruct*
     //Plotting
     switch(type)
     {
-    case XY:
+    case Csts::XY:
         gnuplot_set_xlabel (h1, (char*) "X");
         gnuplot_set_ylabel (h1, (char*) "Y");
         break;
-    case XZ:
+    case Csts::XZ:
         gnuplot_set_xlabel (h1, (char*) "X");
         gnuplot_set_ylabel (h1, (char*) "Z");
         break;
-    case YZ:
+    case Csts::YZ:
         gnuplot_set_xlabel (h1, (char*) "Y");
         gnuplot_set_ylabel (h1, (char*) "Z");
         break;
@@ -5456,7 +5445,7 @@ void orbit_plot(Orbit* orbit, gnuplot_ctrl* h1, int type, int points, OdeStruct*
 }
 
 //Plot one orbit (3D)
-void orbit_plot_3d(Orbit* orbit, gnuplot_ctrl* h1, int points, OdeStruct* ode_s_6, OdeStruct* ode_s_8)
+void orbit_plot_3d(Orbit* orbit, gnuplot_ctrl* h1, int points, OdeStruct* ode_s_6)
 {
     //Checking initialization of h1
     if(h1 == NULL) h1 = gnuplot_init();
@@ -5471,7 +5460,6 @@ void orbit_plot_3d(Orbit* orbit, gnuplot_ctrl* h1, int points, OdeStruct* ode_s_
     double xe3[orbit->last_indix+1];
     double y[6];
     double s[8];
-    double eO[6];
     int i;
 
     //Initial conditions in NC and TFC
@@ -5511,12 +5499,12 @@ void orbit_plot_3d(Orbit* orbit, gnuplot_ctrl* h1, int points, OdeStruct* ode_s_
         cout << "ti/tf = " << ti/t1 << endl;
         do
         {
-            gslc_dual_step(orbit, y, s, eO, z1, &t, &tr, ti, 1);
+            gslc_dual_step(orbit, y, s, z1, &t, &tr, ti, 1);
         }
         while(fabs(t) < fabs(ti));
 
         //current condition updated
-        CCM8toNCbyTFC(s, ti, orbit->qbcp_l->us.n, orbit->pmap->order, orbit->pmap->ofs_order, *orbit->Wh, *orbit->ofs, Mcoc, Vcoc, z1, orbit->pmap->isGS);
+        CCM8toNCbyTFC(s, ti, orbit->qbcp_l->us.n, orbit->pmap->order, orbit->pmap->ofs_order, *orbit->Wh, Mcoc, Vcoc, z1, orbit->pmap->isGS);
 
         x1[i] = y[0];
         x2[i] = y[1];

@@ -9,6 +9,8 @@
 #include "ofs_test.h"
 #define VAR 2.0
 
+using namespace std;
+
 /**
  * \fn void ofs_test()
  * \brief Main routine for Ofs class test.

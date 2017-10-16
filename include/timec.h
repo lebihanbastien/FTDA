@@ -12,7 +12,6 @@
 #include <stdio.h>
 #include <time.h>
 
-using namespace std;
 
 extern struct timespec TIC_TIME;
 

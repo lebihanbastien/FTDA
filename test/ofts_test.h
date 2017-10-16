@@ -18,10 +18,9 @@
 #include <sstream>
 
 //custom
-#include "oftsh.h"
 #include "ofts.h"
 
-using namespace std;
+
 
 /**
  * \fn void ofts_test()

@@ -49,8 +49,8 @@ template<typename T> Ots<T>::Ots(int newOrder)
 {
     int i, index;
 
-    nv     = REDUCED_NV;
-    order  = newOrder;
+    nv       = REDUCED_NV;
+    order    = newOrder;
     T *coefs = new T[binomial(nv+order, nv)]();
 
 

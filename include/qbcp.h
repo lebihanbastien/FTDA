@@ -124,7 +124,6 @@ int vf_stm(const double y[], gsl_matrix *Q, double alpha[],
  **/
 int vfn_stm_lin_trans(const double y[], gsl_matrix *Q, double alpha[],
                      double ps[], double pe[], double pm[],
-                     double qps2, double qpe2, double qpm2,
                      double ms, double me, double mm,
                      double gamma);
 

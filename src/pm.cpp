@@ -110,9 +110,9 @@ void pm(int OutputEachOrder, int Output)
     //Switch on the model to initialize the alphas
     switch(SEML.model)
     {
-    case M_QBCP:
-    case M_BCP:
-    case M_ERTBP:
+    case Csts::QBCP:
+    case Csts::BCP:
+    case Csts::ERTBP:
     {
         //Read from txt files
         ifstream readStream;
@@ -126,7 +126,7 @@ void pm(int OutputEachOrder, int Output)
         break;
     }
 
-    case M_RTBP:
+    case Csts::CRTBP:
     {
         cout << "pm. The use of the RTBP has been detected when initializing the alphas." << endl;
         //All coeffs to zero
@@ -161,7 +161,7 @@ void pm(int OutputEachOrder, int Output)
     //     | 0   0    0    0   -w2  0   |
     //     | 0   0    0    0    0  -iw3 |
     gsl_matrix_complex *DB = gsl_matrix_complex_calloc(6, 6);
-    if(SEML.model == M_QBCP || SEML.model == M_BCP)
+    if(SEML.model == Csts::QBCP || SEML.model == Csts::BCP)
     {
         //Reading an OFS from a text file
         string filename = F_COC+"DB";
@@ -549,8 +549,8 @@ void pm(int OutputEachOrder, int Output)
         for(int i = 0; i < 6; i++) C_Wdot[i].dot(W[i], SEML.us.n, k);     //in NC, complete contribution
 
         //----------------------
-        if(k > 0) for(int i = 0 ; i < NV ; i++) for(int j = 0 ; j < REDUCED_NV; j++) DWh.der(Wh[i], j+1, i, j, k);   //in NC
-        if(k > 0) for(int i = 0 ; i < NV ; i++) for(int j = 0 ; j < REDUCED_NV; j++) C_DW.der(W[i], j+1, i, j, k);   //in NC, complete contribution
+        if(k > 0) for(int i = 0 ; i < Csts::NV ; i++) for(int j = 0 ; j < REDUCED_NV; j++) DWh.der(Wh[i], j+1, i, j, k);   //in NC
+        if(k > 0) for(int i = 0 ; i < Csts::NV ; i++) for(int j = 0 ; j < REDUCED_NV; j++) C_DW.der(W[i], j+1, i, j, k);   //in NC, complete contribution
 
         // DWh times f @order k
         //----------------------
@@ -643,7 +643,7 @@ void pm(int OutputEachOrder, int Output)
         // Last two components of eta
         //------------------------------------------
         //Sum on the normal components of eta (last n-d components)
-        for(int p = REDUCED_NV; p<= NV-1; p++)
+        for(int p = REDUCED_NV; p<= Csts::NV-1; p++)
         {
             //Update lap
             lap = gslc_complex(gsl_matrix_complex_get(La, p, p));
@@ -712,13 +712,13 @@ void pm(int OutputEachOrder, int Output)
         //------------------------------------------
         // Update the differential to take into account the new terms @ order m
         //------------------------------------------
-        for(int i = 0 ; i < NV ; i++) for(int j = 0 ; j < REDUCED_NV; j++) DWh.der(Wh[i], j+1, i, j, m);
+        for(int i = 0 ; i < Csts::NV ; i++) for(int j = 0 ; j < REDUCED_NV; j++) DWh.der(Wh[i], j+1, i, j, m);
 
 
         //------------------------------------------
         // Update the potential expansions at order m
         //------------------------------------------
-        initLegendrePoly(Wt, Rho2, En, Mn, Sn, Un, Enx, Eny, Enz, Mnx, Mny, Mnz, Snx, Sny, Snz, Unx, Uny, Unz, Xe, Xm, Xs, ILe, ILm, ILs, SEML, m);
+        initLegendrePoly(Wt, En, Mn, Sn, Un, Enx, Eny, Enz, Mnx, Mny, Mnz, Snx, Sny, Snz, Unx, Uny, Unz, Xe, Xm, Xs, ILe, ILm, ILs, SEML, m);
 
         //------------------------------------------------------------------------------------
         //
@@ -740,7 +740,7 @@ void pm(int OutputEachOrder, int Output)
         //------------------------------------------
         // Differential of Wh
         //------------------------------------------
-        for(int i = 0 ; i < NV ; i++) for(int j = 0 ; j < REDUCED_NV; j++) C_DW.der(W[i], j+1, i, j, m);
+        for(int i = 0 ; i < Csts::NV ; i++) for(int j = 0 ; j < REDUCED_NV; j++) C_DW.der(W[i], j+1, i, j, m);
 
         //------------------------------------------
         // DWh times f @order m
@@ -922,9 +922,9 @@ void pmTested()
     //Switch on the model to initialize the alphas
     switch(SEML.model)
     {
-    case M_QBCP:
-    case M_BCP:
-    case M_ERTBP:
+    case Csts::QBCP:
+    case Csts::BCP:
+    case Csts::ERTBP:
     {
         //Read from txt files
         ifstream readStream;
@@ -938,7 +938,7 @@ void pmTested()
         break;
     }
 
-    case M_RTBP:
+    case Csts::CRTBP:
     {
         cout << "pm. The use of the RTBP has been detected when initializing the alphas." << endl;
         //All coeffs to zero
@@ -966,7 +966,7 @@ void pmTested()
     // Getting DB from files
     //------------------------------------------
     gsl_matrix_complex *DB = gsl_matrix_complex_calloc(6, 6);
-    if(SEML.model == M_QBCP || SEML.model == M_BCP)
+    if(SEML.model == Csts::QBCP || SEML.model == Csts::BCP)
     {
         //Reading an OFS from a text file
         string filename = F_COC+"DB";
@@ -1429,8 +1429,8 @@ void pmTested()
 
 
         //----------------------
-        if(k > 0) for(int i = 0 ; i < NV ; i++) for(int j = 0 ; j < REDUCED_NV; j++) DWh.der(Wh[i], j+1, i, j, k);   //in NC
-        if(k > 0) for(int i = 0 ; i < NV ; i++) for(int j = 0 ; j < REDUCED_NV; j++) C_DW.der(W[i], j+1, i, j, k);   //in NC, complete contribution
+        if(k > 0) for(int i = 0 ; i < Csts::NV ; i++) for(int j = 0 ; j < REDUCED_NV; j++) DWh.der(Wh[i], j+1, i, j, k);   //in NC
+        if(k > 0) for(int i = 0 ; i < Csts::NV ; i++) for(int j = 0 ; j < REDUCED_NV; j++) C_DW.der(W[i], j+1, i, j, k);   //in NC, complete contribution
 
         // DWh times f @order k
         //----------------------
@@ -1445,7 +1445,7 @@ void pmTested()
         //dot(W)
         for(int i = 0; i < 6; i++) T_Whdot[i].dot(Wh[i], SEML.us.n, k);
         // Differential of Wh
-        if(k > 0) for(int i = 0 ; i < NV ; i++) for(int j = 0 ; j < REDUCED_NV; j++) T_DWh.der(Wh[i], j+1, i, j, k);
+        if(k > 0) for(int i = 0 ; i < Csts::NV ; i++) for(int j = 0 ; j < REDUCED_NV; j++) T_DWh.der(Wh[i], j+1, i, j, k);
         // DWh times f @order k
         smvprod_t(T_DWh, fh, T_DWfh, k);
 
@@ -1548,7 +1548,7 @@ void pmTested()
         // Last two components of eta
         //------------------------------------------
         //Sum on the normal components of eta (last n-d components)
-        for(int p = REDUCED_NV; p<= NV-1; p++)
+        for(int p = REDUCED_NV; p<= Csts::NV-1; p++)
         {
             //Update lap
             lap = gslc_complex(gsl_matrix_complex_get(La, p, p));
@@ -1657,15 +1657,15 @@ void pmTested()
         //Wh1 = DF(0)Wh @ order m
         smvprod_u(DF0, Wh, Wh1, m);
         //Wh2(p,j) = dWh[p]/dx[j] at order m
-        for(int p = 0; p < NV; p++) for(int j = 0 ; j < REDUCED_NV; j++) Wh2.der(Wh[p], j+1, p, j, m);
+        for(int p = 0; p < Csts::NV; p++) for(int j = 0 ; j < REDUCED_NV; j++) Wh2.der(Wh[p], j+1, p, j, m);
         //Wh3 = Wh2*LaLs
         smvprod_t(Wh2, LaLs, Wh3, m);
         //Wh4 = L*fh
         smvprod_u(L2, fh, Wh4, m);
         //Wh5 = dot(Wh)
-        for(int p = 0; p < NV; p++) Wh5[p].dot(Wh[p], SEML.us.n, m);
+        for(int p = 0; p < Csts::NV; p++) Wh5[p].dot(Wh[p], SEML.us.n, m);
         //Wh6 = Wh1 - Wh3 - - Wh4 - Wh5 - E
-        for(int p = 0; p < NV; p++)
+        for(int p = 0; p < Csts::NV; p++)
         {
             Wh6[p].ofts_smult_u(Wh1[p],   1.0+0.0*I, m);
             Wh6[p].ofts_smult_u(Wh3[p],  -1.0+0.0*I, m);
@@ -1685,15 +1685,15 @@ void pmTested()
         //------------------------------------------
         // Update the differential to take into account the new terms @ order m
         //------------------------------------------
-        for(int i = 0 ; i < NV ; i++) for(int j = 0 ; j < REDUCED_NV; j++) DWh.der(Wh[i], j+1, i, j, m);
-//        for(int i = 0 ; i < NV ; i++) for(int j = 0 ; j < REDUCED_NV; j++) DW.der(W[i], j+1, i, j, m);
+        for(int i = 0 ; i < Csts::NV ; i++) for(int j = 0 ; j < REDUCED_NV; j++) DWh.der(Wh[i], j+1, i, j, m);
+//        for(int i = 0 ; i < Csts::NV ; i++) for(int j = 0 ; j < REDUCED_NV; j++) DW.der(W[i], j+1, i, j, m);
 
         //------------------------------------------------------------------------------------
         //
         // Note: after this point, only necessary for testing, can be discarded for speed
         //
         //------------------------------------------------------------------------------------
-        initLegendrePoly(Wt, Rho2, En, Mn, Sn, Un, Enx, Eny, Enz, Mnx, Mny, Mnz, Snx, Sny, Snz, Unx, Uny, Unz, Xe, Xm, Xs, ILe, ILm, ILs, SEML, m);
+        initLegendrePoly(Wt, En, Mn, Sn, Un, Enx, Eny, Enz, Mnx, Mny, Mnz, Snx, Sny, Snz, Unx, Uny, Unz, Xe, Xm, Xs, ILe, ILm, ILs, SEML, m);
 
         //------------------------------------------
         // update the VF
@@ -1715,8 +1715,8 @@ void pmTested()
         //------------------------------------------
         // Differential of Wh
         //------------------------------------------
-        for(int i = 0 ; i < NV ; i++) for(int j = 0 ; j < REDUCED_NV; j++) T_DWh.der(Wh[i], j+1, i, j, m);
-        for(int i = 0 ; i < NV ; i++) for(int j = 0 ; j < REDUCED_NV; j++) C_DW.der(W[i], j+1, i, j, m);
+        for(int i = 0 ; i < Csts::NV ; i++) for(int j = 0 ; j < REDUCED_NV; j++) T_DWh.der(Wh[i], j+1, i, j, m);
+        for(int i = 0 ; i < Csts::NV ; i++) for(int j = 0 ; j < REDUCED_NV; j++) C_DW.der(W[i], j+1, i, j, m);
 
         //------------------------------------------
         // DWh times f @order m
@@ -1894,9 +1894,9 @@ void pm_normalform(int OutputEachOrder, int Output)
     //Switch on the model to initialize the alphas
     switch(SEML.model)
     {
-    case M_QBCP:
-    case M_BCP:
-    case M_ERTBP:
+    case Csts::QBCP:
+    case Csts::BCP:
+    case Csts::ERTBP:
     {
         //Read from txt files
         ifstream readStream;
@@ -1910,7 +1910,7 @@ void pm_normalform(int OutputEachOrder, int Output)
         break;
     }
 
-    case M_RTBP:
+    case Csts::CRTBP:
     {
         cout << "pm. The use of the RTBP has been detected when initializing the alphas." << endl;
         //All coeffs to zero
@@ -1945,7 +1945,7 @@ void pm_normalform(int OutputEachOrder, int Output)
     //     | 0   0    0    0   -w2  0   |
     //     | 0   0    0    0    0  -iw3 |
     gsl_matrix_complex *DB = gsl_matrix_complex_calloc(6, 6);
-    if(SEML.model == M_QBCP || SEML.model == M_BCP)
+    if(SEML.model == Csts::QBCP || SEML.model == Csts::BCP)
     {
         //Reading an OFS from a text file
         string filename = F_COC+"DB";
@@ -2343,8 +2343,8 @@ void pm_normalform(int OutputEachOrder, int Output)
         for(int i = 0; i < 6; i++) C_Wdot[i].dot(W[i], SEML.us.n, k);     //in NC, complete contribution
 
         //----------------------
-        if(k > 0) for(int i = 0 ; i < NV ; i++) for(int j = 0 ; j < REDUCED_NV; j++) DWh.der(Wh[i], j+1, i, j, k);   //in NC
-        if(k > 0) for(int i = 0 ; i < NV ; i++) for(int j = 0 ; j < REDUCED_NV; j++) C_DW.der(W[i], j+1, i, j, k);   //in NC, complete contribution
+        if(k > 0) for(int i = 0 ; i < Csts::NV ; i++) for(int j = 0 ; j < REDUCED_NV; j++) DWh.der(Wh[i], j+1, i, j, k);   //in NC
+        if(k > 0) for(int i = 0 ; i < Csts::NV ; i++) for(int j = 0 ; j < REDUCED_NV; j++) C_DW.der(W[i], j+1, i, j, k);   //in NC, complete contribution
 
         // DWh times f @order k
         //----------------------
@@ -2439,7 +2439,7 @@ void pm_normalform(int OutputEachOrder, int Output)
         // Last two components of eta
         //------------------------------------------
         //Sum on the normal components of eta (last n-d components)
-        for(int p = REDUCED_NV; p<= NV-1; p++)
+        for(int p = REDUCED_NV; p<= Csts::NV-1; p++)
         {
             //Update lap
             lap = gslc_complex(gsl_matrix_complex_get(La, p, p));
@@ -2548,7 +2548,7 @@ void pm_normalform(int OutputEachOrder, int Output)
         //------------------------------------------
         // Update the differential to take into account the new terms @ order m
         //------------------------------------------
-        for(int i = 0 ; i < NV ; i++) for(int j = 0 ; j < REDUCED_NV; j++) DWh.der(Wh[i], j+1, i, j, m);
+        for(int i = 0 ; i < Csts::NV ; i++) for(int j = 0 ; j < REDUCED_NV; j++) DWh.der(Wh[i], j+1, i, j, m);
 
 
         //------------------------------------------------------------------------------------
@@ -2556,7 +2556,7 @@ void pm_normalform(int OutputEachOrder, int Output)
         // Note: after this point, only necessary for testing, can be discarded for speed
         //
         //------------------------------------------------------------------------------------
-        initLegendrePoly(Wt, Rho2, En, Mn, Sn, Un, Enx, Eny, Enz, Mnx, Mny, Mnz, Snx, Sny, Snz, Unx, Uny, Unz, Xe, Xm, Xs, ILe, ILm, ILs, SEML, m);
+        initLegendrePoly(Wt, En, Mn, Sn, Un, Enx, Eny, Enz, Mnx, Mny, Mnz, Snx, Sny, Snz, Unx, Uny, Unz, Xe, Xm, Xs, ILe, ILm, ILs, SEML, m);
 
         //------------------------------------------
         // update the VF
@@ -2573,7 +2573,7 @@ void pm_normalform(int OutputEachOrder, int Output)
         //------------------------------------------
         // Differential of Wh
         //------------------------------------------
-        for(int i = 0 ; i < NV ; i++) for(int j = 0 ; j < REDUCED_NV; j++) C_DW.der(W[i], j+1, i, j, m);
+        for(int i = 0 ; i < Csts::NV ; i++) for(int j = 0 ; j < REDUCED_NV; j++) C_DW.der(W[i], j+1, i, j, m);
 
         //------------------------------------------
         // DWh times f @order m
@@ -2756,9 +2756,9 @@ void pm_mixedstyle(int OutputEachOrder, int Output)
     //Switch on the model to initialize the alphas
     switch(SEML.model)
     {
-    case M_QBCP:
-    case M_BCP:
-    case M_ERTBP:
+    case Csts::QBCP:
+    case Csts::BCP:
+    case Csts::ERTBP:
     {
         //Read from txt files
         ifstream readStream;
@@ -2772,7 +2772,7 @@ void pm_mixedstyle(int OutputEachOrder, int Output)
         break;
     }
 
-    case M_RTBP:
+    case Csts::CRTBP:
     {
         cout << "pm. The use of the RTBP has been detected when initializing the alphas." << endl;
         //All coeffs to zero
@@ -2807,7 +2807,7 @@ void pm_mixedstyle(int OutputEachOrder, int Output)
     //     | 0   0    0    0   -w2  0   |
     //     | 0   0    0    0    0  -iw3 |
     gsl_matrix_complex *DB = gsl_matrix_complex_calloc(6, 6);
-    if(SEML.model == M_QBCP || SEML.model == M_BCP)
+    if(SEML.model == Csts::QBCP || SEML.model == Csts::BCP)
     {
         //Reading an OFS from a text file
         string filename = F_COC+"DB";
@@ -3336,8 +3336,8 @@ void pm_mixedstyle(int OutputEachOrder, int Output)
         for(int i = 0; i < 6; i++) C_Wdot[i].dot(W[i], SEML.us.n, k);     //in NC, complete contribution
 
         //----------------------
-        if(k > 0) for(int i = 0 ; i < NV ; i++) for(int j = 0 ; j < REDUCED_NV; j++) DWh.der(Wh[i], j+1, i, j, k);   //in NC
-        if(k > 0) for(int i = 0 ; i < NV ; i++) for(int j = 0 ; j < REDUCED_NV; j++) C_DW.der(W[i], j+1, i, j, k);   //in NC, complete contribution
+        if(k > 0) for(int i = 0 ; i < Csts::NV ; i++) for(int j = 0 ; j < REDUCED_NV; j++) DWh.der(Wh[i], j+1, i, j, k);   //in NC
+        if(k > 0) for(int i = 0 ; i < Csts::NV ; i++) for(int j = 0 ; j < REDUCED_NV; j++) C_DW.der(W[i], j+1, i, j, k);   //in NC, complete contribution
 
         // DWh times f @order k
         //----------------------
@@ -3431,7 +3431,7 @@ void pm_mixedstyle(int OutputEachOrder, int Output)
         // First four components of eta
         //------------------------------------------
         //Sum on the tangential components of eta (first d components)
-        for(int p = 0; p< NV; p++)
+        for(int p = 0; p< Csts::NV; p++)
         {
             //Update lap
             lap = gslc_complex(gsl_matrix_complex_get(La, p, p));
@@ -3504,7 +3504,7 @@ void pm_mixedstyle(int OutputEachOrder, int Output)
         //------------------------------------------
         // Update the differential to take into account the new terms @ order m
         //------------------------------------------
-        for(int i = 0 ; i < NV ; i++) for(int j = 0 ; j < REDUCED_NV; j++) DWh.der(Wh[i], j+1, i, j, m);
+        for(int i = 0 ; i < Csts::NV ; i++) for(int j = 0 ; j < REDUCED_NV; j++) DWh.der(Wh[i], j+1, i, j, m);
 
 
         //------------------------------------------------------------------------------------
@@ -3512,7 +3512,7 @@ void pm_mixedstyle(int OutputEachOrder, int Output)
         // Note: after this point, only necessary for testing, can be discarded for speed
         //
         //------------------------------------------------------------------------------------
-        initLegendrePoly(Wt, Rho2, En, Mn, Sn, Un, Enx, Eny, Enz, Mnx, Mny, Mnz, Snx, Sny, Snz, Unx, Uny, Unz, Xe, Xm, Xs, ILe, ILm, ILs, SEML, m);
+        initLegendrePoly(Wt, En, Mn, Sn, Un, Enx, Eny, Enz, Mnx, Mny, Mnz, Snx, Sny, Snz, Unx, Uny, Unz, Xe, Xm, Xs, ILe, ILm, ILs, SEML, m);
 
         //------------------------------------------
         // update the VF
@@ -3529,7 +3529,7 @@ void pm_mixedstyle(int OutputEachOrder, int Output)
         //------------------------------------------
         // Differential of Wh
         //------------------------------------------
-        for(int i = 0 ; i < NV ; i++) for(int j = 0 ; j < REDUCED_NV; j++) C_DW.der(W[i], j+1, i, j, m);
+        for(int i = 0 ; i < Csts::NV ; i++) for(int j = 0 ; j < REDUCED_NV; j++) C_DW.der(W[i], j+1, i, j, m);
 
         //------------------------------------------
         // DWh times f @order m
@@ -3759,7 +3759,6 @@ void applyVF(vector<Ofsc>  &alpha,
  *          Since they are linear in the variable W[i], we always have the good value in it.
  **/
 void initLegPrim(vector<Oftsc> &Wt,   //vector of size 6
-                 Oftsc &Rho2,         //Ofts containing Wt[0]^2+Wt[1]^2+Wt[2]^2
                  vector<Oftsc> &En,   //vector of size OFTS_ORDER
                  vector<Oftsc> &Enx,  //vector of size OFTS_ORDER
                  vector<Oftsc> &Eny,  //vector of size OFTS_ORDER
@@ -3894,7 +3893,6 @@ void initLegPrim(vector<Oftsc> &Wt,   //vector of size 6
  *          Since they are linear in the variable W[i], we always have the good value in it.
  **/
 void initLegendrePoly( vector<Oftsc> &Wt,   //vector of size 6
-                       Oftsc &Rho2,         //Ofts containing Wt[0]^2+Wt[1]^2+Wt[2]^2
                        vector<Oftsc> &En,   //vector of size OFTS_ORDER
                        vector<Oftsc> &Mn,   //vector of size OFTS_ORDER
                        vector<Oftsc> &Sn,   //vector of size OFTS_ORDER
@@ -3939,17 +3937,17 @@ void initLegendrePoly( vector<Oftsc> &Wt,   //vector of size 6
     //------------------------------------------
     //Earth potential
     //------------------------------------------
-    initLegPrim(Wt, Rho2, En,  Enx,  Eny, Enz, Xe, ILe, Ke, AUX, BUX, CUX, DUX,  m);
+    initLegPrim(Wt, En,  Enx,  Eny, Enz, Xe, ILe, Ke, AUX, BUX, CUX, DUX,  m);
 
     //------------------------------------------
     //Moon potential
     //------------------------------------------
-    initLegPrim(Wt, Rho2, Mn,  Mnx,  Mny, Mnz, Xm, ILm, Km, AUX, BUX, CUX, DUX, m);
+    initLegPrim(Wt, Mn,  Mnx,  Mny, Mnz, Xm, ILm, Km, AUX, BUX, CUX, DUX, m);
 
     //------------------------------------------
     //Sun potential
     //------------------------------------------
-    initLegPrim(Wt, Rho2, Sn,  Snx,  Sny, Snz, Xs, ILs, Ks, AUX, BUX, CUX, DUX, m);
+    initLegPrim(Wt, Sn,  Snx,  Sny, Snz, Xs, ILs, Ks, AUX, BUX, CUX, DUX, m);
 
     //--------------------------------
     //Earth+Moon+Sum
@@ -3983,16 +3981,14 @@ void initLegendrePoly( vector<Oftsc> &Wt,   //vector of size 6
  *   \brief Apply the Legendre-derived recurrence for the potential of one given primary.
  *          No reset here, since we may add other terms afterwards.
  **/
-void applyLegRec(vector<Oftsc> &Wt,   //tilde state vector (xt, yt,..)
-                 Oftsc &Rho2,         //Ofts containing W[0]^2+W[1]^2+W[2]^2
+void applyLegRec(Oftsc &Rho2,         //Ofts containing W[0]^2+W[1]^2+W[2]^2
                  vector<Oftsc> &En,   //vector of size OFTS_ORDER
-                 vector<Ofsc>  &Xe,   //modified position of the primary
                  Ofsc &ILe,           //modified inverse orbit radius of the Primary
                  Oftsc &xse,          //=xe*xt+ye*yt @order m
                  Ofsc &AUX,           //spare OFS object
                  Ofsc &temp,          //spare OFS object
-                 int m,                  //current order of the W expansion
-                 int k)                  //current En[k] that needs to be updated
+                 int m,               //current order of the W expansion
+                 int k)               //current En[k] that needs to be updated
 {
     //AUX = ILe^2*(2*k-1)/k
     AUX.ofs_mprod(ILe, ILe, (2.0*k - 1.0)/(double)k+0.0*I);
@@ -4094,9 +4090,7 @@ void updateLegPoly(vector<Oftsc> &Wt,   //vector of size 6: tilde state vector (
                    Oftsc &xss,          //=xs*xt+ys*yt
                    Ofsc &AUX,           //Temporary variables
                    Ofsc &BUX,           //Temporary variables
-                   Ofsc &CUX,           //Temporary variables
                    Ofsc &temp,          //Temporary variables
-                   QBCP_L& qbcp_l,      //current QBCP
                    int m,               //current order of the W expansion
                    int k)               //current En[k] (and Enx[k+1]) that needs to be updated
 {
@@ -4111,7 +4105,7 @@ void updateLegPoly(vector<Oftsc> &Wt,   //vector of size 6: tilde state vector (
     //For the Earth potential
     //------------------------------------------
     //Update En[k] @order m
-    applyLegRec(Wt, Rho2, En, Xe, ILe, xse, AUX, temp, m, k);
+    applyLegRec(Rho2, En, ILe, xse, AUX, temp, m, k);
     //Update Enx, Eny, Enz[k+1] @order m
     applyLegRecDer(Wt, Rho2, En, Enx, Eny, Enz, Xe, ILe, xse, AUX, BUX, temp, m, k+1);
 
@@ -4120,7 +4114,7 @@ void updateLegPoly(vector<Oftsc> &Wt,   //vector of size 6: tilde state vector (
     //For the Moon potential
     //------------------------------------------
     //Update Mn[k] @order m
-    applyLegRec(Wt, Rho2, Mn, Xm, ILm, xsm, AUX, temp, m, k);
+    applyLegRec(Rho2, Mn, ILm, xsm, AUX, temp, m, k);
     //Update Mnx, Mny, Mnz[k+1] @order m
     applyLegRecDer(Wt, Rho2, Mn, Mnx, Mny, Mnz, Xm, ILm, xsm, AUX, BUX, temp, m, k+1);
 
@@ -4128,7 +4122,7 @@ void updateLegPoly(vector<Oftsc> &Wt,   //vector of size 6: tilde state vector (
     //For the Sun potential
     //------------------------------------------
     //Update Sn[k] @order m
-    applyLegRec(Wt, Rho2, Sn, Xs, ILs, xss, AUX, temp, m, k);
+    applyLegRec(Rho2, Sn, ILs, xss, AUX, temp, m, k);
     //Update Snx, Sny, Snz[k+1] @order m
     applyLegRecDer(Wt, Rho2, Sn, Snx, Sny, Snz, Xs, ILs, xss, AUX, BUX, temp, m, k+1);
 
@@ -4202,8 +4196,8 @@ void updatePotentialExpansion(vector<Oftsc> &Wt,    //vector of size 6
     //Update Enx[0, 1, 2],... and Snz[0, 1, 2] at order m-1
     //Note: the update is at order m-1 because En[1] and Enx[2] are linear in the W[i]
     //------------------------------------------
-    if(m == 2) initLegendrePoly(Wt, Rho2, En, Mn, Sn, Un, Enx, Eny, Enz, Mnx, Mny, Mnz, Snx, Sny, Snz, Unx, Uny, Unz, Xe, Xm, Xs, ILe, ILm, ILs, qbcp_l, m-2);
-    initLegendrePoly(Wt, Rho2, En, Mn, Sn, Un, Enx, Eny, Enz, Mnx, Mny, Mnz, Snx, Sny, Snz, Unx, Uny, Unz, Xe, Xm, Xs, ILe, ILm, ILs, qbcp_l, m-1);
+    if(m == 2) initLegendrePoly(Wt, En, Mn, Sn, Un, Enx, Eny, Enz, Mnx, Mny, Mnz, Snx, Sny, Snz, Unx, Uny, Unz, Xe, Xm, Xs, ILe, ILm, ILs, qbcp_l, m-2);
+    initLegendrePoly(Wt, En, Mn, Sn, Un, Enx, Eny, Enz, Mnx, Mny, Mnz, Snx, Sny, Snz, Unx, Uny, Unz, Xe, Xm, Xs, ILe, ILm, ILs, qbcp_l, m-1);
 
     if(m == 2)
     {
@@ -4255,8 +4249,8 @@ void updatePotentialExpansion(vector<Oftsc> &Wt,    //vector of size 6
                       Xe, Xm, Xs,
                       ILe, ILm, ILs,
                       xse, xsm, xss,
-                      AUX, BUX, CUX, temp,
-                      qbcp_l, m, k);
+                      AUX, BUX, temp,
+                      m, k);
     }
 
     //At this step:
@@ -4281,8 +4275,8 @@ void updatePotentialExpansion(vector<Oftsc> &Wt,    //vector of size 6
                   Xe, Xm, Xs,
                   ILe, ILm, ILs,
                   xse, xsm, xss,
-                  AUX, BUX, CUX, temp,
-                  qbcp_l, m, m);
+                  AUX, BUX, temp,
+                  m, m);
 
     cout << "updatePotentialExpansion. end of updateLegPoly @order m." << " in " << toc() << " s. " << endl;
 
@@ -4474,7 +4468,7 @@ void pmTestPrec(double smax)
             //For plotting purposes
             //------------------------------------------
             VF1cmax[k] = cabs(VF1[0] - VF2[0]);
-            for(int p = 0; p< NV; p++)
+            for(int p = 0; p< Csts::NV; p++)
             {
                 VF1c[p][k] = cabs(VF1[p] - VF2[p]);
                 if(VF1cmax[k] < VF1c[p][k]) VF1cmax[k] = VF1c[p][k];
@@ -4513,7 +4507,7 @@ void pmTestPrec(double smax)
     //gnuplot_cmd(h1,"set terminal postscript eps size 3.5,2.62 enhanced solid color font 'Helvetica,20' linewidth 2");
     //gnuplot_cmd(h1, "set terminal postscript eps solid color enhanced");
 
-    if(SEML.model == M_RTBP)
+    if(SEML.model == Csts::CRTBP)
     {
         gnuplot_cmd(h1,"set terminal postscript eps enhanced dashed color font 'Helvetica,20' dl 4 linewidth 3");
         gnuplot_cmd(h2,"set terminal postscript eps enhanced dashed color font 'Helvetica,20' dl 4 linewidth 3");
@@ -5197,36 +5191,36 @@ void testLegendreRecurrence_OFS()
     // Initialisation of the Legendre objects
     //------------------------------------------
     //Potential
-    vector<Ofsc> En(POTENTIAL_ORDER+1);
-    vector<Ofsc> Sn(POTENTIAL_ORDER+1);
-    vector<Ofsc> Mn(POTENTIAL_ORDER+1);
+    vector<Ofsc> En(Csts::POTENTIAL_ORDER+1);
+    vector<Ofsc> Sn(Csts::POTENTIAL_ORDER+1);
+    vector<Ofsc> Mn(Csts::POTENTIAL_ORDER+1);
     //Potential derivatives
-    vector<Ofsc> Enx(POTENTIAL_ORDER+1);
-    vector<Ofsc> Eny(POTENTIAL_ORDER+1);
-    vector<Ofsc> Enz(POTENTIAL_ORDER+1);
-    vector<Ofsc> Mnx(POTENTIAL_ORDER+1);
-    vector<Ofsc> Mny(POTENTIAL_ORDER+1);
-    vector<Ofsc> Mnz(POTENTIAL_ORDER+1);
-    vector<Ofsc> Snx(POTENTIAL_ORDER+1);
-    vector<Ofsc> Sny(POTENTIAL_ORDER+1);
-    vector<Ofsc> Snz(POTENTIAL_ORDER+1);
+    vector<Ofsc> Enx(Csts::POTENTIAL_ORDER+1);
+    vector<Ofsc> Eny(Csts::POTENTIAL_ORDER+1);
+    vector<Ofsc> Enz(Csts::POTENTIAL_ORDER+1);
+    vector<Ofsc> Mnx(Csts::POTENTIAL_ORDER+1);
+    vector<Ofsc> Mny(Csts::POTENTIAL_ORDER+1);
+    vector<Ofsc> Mnz(Csts::POTENTIAL_ORDER+1);
+    vector<Ofsc> Snx(Csts::POTENTIAL_ORDER+1);
+    vector<Ofsc> Sny(Csts::POTENTIAL_ORDER+1);
+    vector<Ofsc> Snz(Csts::POTENTIAL_ORDER+1);
 
     //Init within the vectors
-    for(int j = 0; j < POTENTIAL_ORDER;  j++) En[j]  = Ofsc(OFS_ORDER);
-    for(int j = 0; j < POTENTIAL_ORDER;  j++) Sn[j]  = Ofsc(OFS_ORDER);
-    for(int j = 0; j < POTENTIAL_ORDER;  j++) Mn[j]  = Ofsc(OFS_ORDER);
-    for(int j = 0; j < POTENTIAL_ORDER;  j++) Enx[j] = Ofsc(OFS_ORDER);
-    for(int j = 0; j < POTENTIAL_ORDER;  j++) Eny[j] = Ofsc(OFS_ORDER);
-    for(int j = 0; j < POTENTIAL_ORDER;  j++) Enz[j] = Ofsc(OFS_ORDER);
-    for(int j = 0; j < POTENTIAL_ORDER;  j++) Mnx[j] = Ofsc(OFS_ORDER);
-    for(int j = 0; j < POTENTIAL_ORDER;  j++) Mny[j] = Ofsc(OFS_ORDER);
-    for(int j = 0; j < POTENTIAL_ORDER;  j++) Mnz[j] = Ofsc(OFS_ORDER);
-    for(int j = 0; j < POTENTIAL_ORDER;  j++) Snx[j] = Ofsc(OFS_ORDER);
-    for(int j = 0; j < POTENTIAL_ORDER;  j++) Sny[j] = Ofsc(OFS_ORDER);
-    for(int j = 0; j < POTENTIAL_ORDER;  j++) Snz[j] = Ofsc(OFS_ORDER);
+    for(int j = 0; j < Csts::POTENTIAL_ORDER;  j++) En[j]  = Ofsc(OFS_ORDER);
+    for(int j = 0; j < Csts::POTENTIAL_ORDER;  j++) Sn[j]  = Ofsc(OFS_ORDER);
+    for(int j = 0; j < Csts::POTENTIAL_ORDER;  j++) Mn[j]  = Ofsc(OFS_ORDER);
+    for(int j = 0; j < Csts::POTENTIAL_ORDER;  j++) Enx[j] = Ofsc(OFS_ORDER);
+    for(int j = 0; j < Csts::POTENTIAL_ORDER;  j++) Eny[j] = Ofsc(OFS_ORDER);
+    for(int j = 0; j < Csts::POTENTIAL_ORDER;  j++) Enz[j] = Ofsc(OFS_ORDER);
+    for(int j = 0; j < Csts::POTENTIAL_ORDER;  j++) Mnx[j] = Ofsc(OFS_ORDER);
+    for(int j = 0; j < Csts::POTENTIAL_ORDER;  j++) Mny[j] = Ofsc(OFS_ORDER);
+    for(int j = 0; j < Csts::POTENTIAL_ORDER;  j++) Mnz[j] = Ofsc(OFS_ORDER);
+    for(int j = 0; j < Csts::POTENTIAL_ORDER;  j++) Snx[j] = Ofsc(OFS_ORDER);
+    for(int j = 0; j < Csts::POTENTIAL_ORDER;  j++) Sny[j] = Ofsc(OFS_ORDER);
+    for(int j = 0; j < Csts::POTENTIAL_ORDER;  j++) Snz[j] = Ofsc(OFS_ORDER);
 
     //Update the potential
-    updatePotentialExpansion_OFS(W, Rho2, En, Mn, Sn, Enx, Eny, Enz, Mnx, Mny, Mnz, Snx, Sny, Snz, Xe, Xm, Xs, ILe, ILm, ILs, SEML, POTENTIAL_ORDER);
+    updatePotentialExpansion_OFS(W, Rho2, En, Mn, Sn, Enx, Eny, Mnx, Mny, Mnz, Snx, Sny, Snz, Xe, Xm, Xs, ILe, ILm, ILs, SEML);
 
     //---------------------------------------------------
     //Test
@@ -5239,7 +5233,7 @@ void testLegendreRecurrence_OFS()
     //---------------------------------------------------
     cdouble Epn = EarthPotential(t, W, Xe, SEML);
     cdouble Ep  = 0.0+0.0*I;
-    for(int i = 0; i<= POTENTIAL_ORDER; i++) Ep+= En[i].evaluate(SEML.us.n*t);
+    for(int i = 0; i<= Csts::POTENTIAL_ORDER; i++) Ep+= En[i].evaluate(SEML.us.n*t);
 
     cout << setprecision(3);
     cout << "-------------------------------------------------------------------" << endl;
@@ -5256,7 +5250,7 @@ void testLegendreRecurrence_OFS()
     //---------------------------------------------------
     Epn = MoonPotential(t, W, Xm, SEML);
     Ep = 0.0+0.0*I;
-    for(int i = 0; i<= POTENTIAL_ORDER; i++) Ep+= creal(Mn[i].evaluate(SEML.us.n*t));
+    for(int i = 0; i<= Csts::POTENTIAL_ORDER; i++) Ep+= creal(Mn[i].evaluate(SEML.us.n*t));
     cout << "Moon    " << cabs(Ep-Epn)/cabs(Ep) << endl;
 
     //---------------------------------------------------
@@ -5264,7 +5258,7 @@ void testLegendreRecurrence_OFS()
     //---------------------------------------------------
     Epn = SunPotential(t, W, Xs, SEML);
     Ep = 0.0+0.0*I;
-    for(int i = 0; i<= POTENTIAL_ORDER; i++) Ep+= creal(Sn[i].evaluate(SEML.us.n*t));
+    for(int i = 0; i<= Csts::POTENTIAL_ORDER; i++) Ep+= creal(Sn[i].evaluate(SEML.us.n*t));
     cout << "Sun     " << cabs(Ep-Epn)/cabs(Ep) << endl;
     //cout << "Sun potential = " << cabs(Ep) << endl;
 
@@ -5291,7 +5285,7 @@ void testLegendreRecurrence_OFS()
     h3 = gnuplot_init();
     string ss, ssd;
     int iter = 1;
-    for(int nPot = 10 ; nPot <= POTENTIAL_ORDER ; nPot+=10)
+    for(int nPot = 10 ; nPot <= Csts::POTENTIAL_ORDER ; nPot+=10)
     {
 
         //Grid
@@ -5337,7 +5331,7 @@ void testLegendreRecurrence_OFS()
 
             //Update the analytical expansion of the potential
             tic();
-            updatePotentialExpansion_OFS(W, Rho2, En, Mn, Sn, Enx, Eny, Enz, Mnx, Mny, Mnz, Snx, Sny, Snz, Xe, Xm, Xs, ILe, ILm, ILs, SEML, nPot);
+            updatePotentialExpansion_OFS(W, Rho2, En, Mn, Sn, Enx, Eny, Mnx, Mny, Mnz, Snx, Sny, Snz, Xe, Xm, Xs, ILe, ILm, ILs, SEML);
             duration = toc();
 
             //---------------------------------------------------
@@ -5444,25 +5438,21 @@ void testLegendreRecurrence_OFS()
 
 //Init the recurrence on Legendre-derived objects
 void initLegendrePoly_OFS( vector<Ofsc> &W,    //vector of size 6
-                           Ofsc &Rho2,          //Ofts containing W[0]^2+W[1]^2+W[2]^2
                            vector<Ofsc> &En,   //vector of size OFTS_ORDER
                            vector<Ofsc> &Mn,   //vector of size OFTS_ORDER
                            vector<Ofsc> &Sn,   //vector of size OFTS_ORDER
                            vector<Ofsc> &Enx,  //vector of size OFTS_ORDER
                            vector<Ofsc> &Eny,  //vector of size OFTS_ORDER
-                           vector<Ofsc> &Enz,  //vector of size OFTS_ORDER
                            vector<Ofsc> &Mnx,  //vector of size OFTS_ORDER
                            vector<Ofsc> &Mny,  //vector of size OFTS_ORDER
-                           vector<Ofsc> &Mnz,  //vector of size OFTS_ORDER
                            vector<Ofsc> &Snx,  //vector of size OFTS_ORDER
                            vector<Ofsc> &Sny,  //vector of size OFTS_ORDER
-                           vector<Ofsc> &Snz,  //vector of size OFTS_ORDER
-                           vector<Ofsc> &Xe,    //modified position of the Earth
-                           vector<Ofsc> &Xm,    //modified position of the Moon
-                           vector<Ofsc> &Xs,    //modified position of the Sun
-                           Ofsc &ILe,           //modified inverse orbit radius of the Earth
-                           Ofsc &ILm,           //modified inverse orbit radius of the Moon
-                           Ofsc &ILs,           //modified inverse orbit radius of the Sun
+                           vector<Ofsc> &Xe,   //modified position of the Earth
+                           vector<Ofsc> &Xm,   //modified position of the Moon
+                           vector<Ofsc> &Xs,   //modified position of the Sun
+                           Ofsc &ILe,          //modified inverse orbit radius of the Earth
+                           Ofsc &ILm,          //modified inverse orbit radius of the Moon
+                           Ofsc &ILs,          //modified inverse orbit radius of the Sun
                            QBCP_L& qbcp_l)
 {
     //------------------------------------------
@@ -5510,9 +5500,6 @@ void initLegendrePoly_OFS( vector<Ofsc> &W,    //vector of size 6
 //    p1 = En[1].evaluate(n*1.0);
 //    p2 = cpow(ILe.evaluate(n*1.0), 3.0)*Ke*(Xe[0].evaluate(n*1.0)*W[0].evaluate(n*1.0)+Xe[1].evaluate(n*1.0)*W[1].evaluate(n*1.0));
 //    cout << "Earth  " << cabs(p1-p2) << endl;
-
-
-
 
     //------------------------------------------
     //For the derivatives of the Earth potential
@@ -5614,22 +5601,12 @@ void updateLegPoly_OFS(vector<Ofsc> &W,    //vector of size 6
                        vector<Ofsc> &En,   //vector of size OFTS_ORDER
                        vector<Ofsc> &Mn,   //vector of size OFTS_ORDER
                        vector<Ofsc> &Sn,   //vector of size OFTS_ORDER
-                       vector<Ofsc> &Enx,  //vector of size OFTS_ORDER
-                       vector<Ofsc> &Eny,  //vector of size OFTS_ORDER
-                       vector<Ofsc> &Enz,  //vector of size OFTS_ORDER
-                       vector<Ofsc> &Mnx,  //vector of size OFTS_ORDER
-                       vector<Ofsc> &Mny,  //vector of size OFTS_ORDER
-                       vector<Ofsc> &Mnz,  //vector of size OFTS_ORDER
-                       vector<Ofsc> &Snx,  //vector of size OFTS_ORDER
-                       vector<Ofsc> &Sny,  //vector of size OFTS_ORDER
-                       vector<Ofsc> &Snz,  //vector of size OFTS_ORDER
                        vector<Ofsc> &Xe,    //modified position of the Earth
                        vector<Ofsc> &Xm,    //modified position of the Moon
                        vector<Ofsc> &Xs,    //modified position of the Sun
                        Ofsc &ILe,           //modified inverse orbit radius of the Earth
                        Ofsc &ILm,           //modified inverse orbit radius of the Moon
                        Ofsc &ILs,           //modified inverse orbit radius of the Sun
-                       QBCP_L& qbcp_l,
                        int k)
 {
     //At this step, En[0, .., k-1] are at order m
@@ -5736,7 +5713,6 @@ void updatePotentialExpansion_OFS(vector<Ofsc> &W,    //vector of size 6
                                   vector<Ofsc> &Sn,   //vector of size OFTS_ORDER+1
                                   vector<Ofsc> &Enx,  //vector of size OFTS_ORDER+1
                                   vector<Ofsc> &Eny,  //vector of size OFTS_ORDER+1
-                                  vector<Ofsc> &Enz,  //vector of size OFTS_ORDER+1
                                   vector<Ofsc> &Mnx,  //vector of size OFTS_ORDER+1
                                   vector<Ofsc> &Mny,  //vector of size OFTS_ORDER+1
                                   vector<Ofsc> &Mnz,  //vector of size OFTS_ORDER+1
@@ -5749,8 +5725,7 @@ void updatePotentialExpansion_OFS(vector<Ofsc> &W,    //vector of size 6
                                   Ofsc &ILe,           //modified inverse orbit radius of the Earth
                                   Ofsc &ILm,           //modified inverse orbit radius of the Moon
                                   Ofsc &ILs,           //modified inverse orbit radius of the Sun
-                                  QBCP_L& qbcp_l,        //QBFPB on a given Li
-                                  int nPot)               //partial potential order (2 <= nPot <= POTENTIAL_ORDER)
+                                  QBCP_L& qbcp_l)      //QBFPB on a given Li
 {
 
     //------------------------------------------
@@ -5764,7 +5739,7 @@ void updatePotentialExpansion_OFS(vector<Ofsc> &W,    //vector of size 6
     //Clear
     //------------------------------------------
     Rho2.zero();
-    for(int i = 0; i<= POTENTIAL_ORDER; i++)
+    for(int i = 0; i<= Csts::POTENTIAL_ORDER; i++)
     {
         En[i].zero();
         Mn[i].zero();
@@ -5780,7 +5755,6 @@ void updatePotentialExpansion_OFS(vector<Ofsc> &W,    //vector of size 6
     }
 
 
-
     //------------------------------------------
     //Update Rho2
     //------------------------------------------
@@ -5791,14 +5765,14 @@ void updatePotentialExpansion_OFS(vector<Ofsc> &W,    //vector of size 6
     //------------------------------------------
     //Initialisation of the recurrence
     //------------------------------------------
-    initLegendrePoly_OFS(W, Rho2, En, Mn, Sn, Enx, Eny, Enz, Mnx, Mny, Mnz, Snx, Sny, Snz, Xe, Xm, Xs, ILe, ILm, ILs, qbcp_l);
+    initLegendrePoly_OFS(W, En, Mn, Sn, Enx, Eny, Mnx, Mny, Snx, Sny, Xe, Xm, Xs, ILe, ILm, ILs, qbcp_l);
 
     //-----------------------------------------------------------------
     //Aplly the recurrence OFTS_ORDER times
     //-----------------------------------------------------------------
-    for(int k = 2; k <= POTENTIAL_ORDER; k++)
+    for(int k = 2; k <= Csts::POTENTIAL_ORDER; k++)
     {
-        updateLegPoly_OFS(W, Rho2, En, Mn, Sn, Enx, Eny, Enz, Mnx, Mny, Mnz, Snx, Sny, Snz, Xe, Xm, Xs, ILe, ILm, ILs, qbcp_l, k);
+        updateLegPoly_OFS(W, Rho2, En, Mn, Sn, Xe, Xm, Xs, ILe, ILm, ILs, k);
     }
 
 }

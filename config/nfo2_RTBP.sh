@@ -20,7 +20,7 @@ COMPTYPE=$NFO2
 # MODEL
 # RTBP = 0; QBCP = 1; BCP = 2; ERTBP = 3
 #------------------------------------
-MODEL=$RTBP
+MODEL=$CRTBP
 
 #------------------------------------
 # COORDINATE SYSTEM

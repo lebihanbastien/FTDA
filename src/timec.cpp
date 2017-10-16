@@ -1,5 +1,7 @@
 #include "timec.h"
 
+using namespace std;
+
 /**
  * \file timec.cpp
  * \brief Time manipulation similar to MATLAB routines.

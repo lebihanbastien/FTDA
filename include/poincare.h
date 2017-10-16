@@ -166,7 +166,7 @@ struct Orbit
  *
  *    Requires initCM and initCOC
  **/
-void pmap_build(Pmap &pmap, int append, int return_method,  bool isPlot, bool isPar);
+void pmap_build(Pmap &pmap, int append, int return_method, bool isPar);
 
 /**
  *   \brief Computes a Stroboscopic map
@@ -355,8 +355,7 @@ int refine_root_dual(Orbit *orbit,
                      double *t,
                      double *yv_mat,
                      double *sv_mat,
-                     double *t_mat,
-                     int events);
+                     double *t_mat);
 
 /**
  *   \brief Computes the poincare map of one given orbit, with a single method: only the Nc vector field is computed. The distance with respect to the
@@ -455,7 +454,6 @@ void orbit_energy_fprint_bin(Orbit *orbit, string filename, int append);
 double gslc_dual_step( Orbit *orbit,
                        double yv[],
                        double sv[],
-                       double eO[],
                        double zr1[],
                        double *t,
                        double *tr,
@@ -469,11 +467,9 @@ double gslc_dual_step( Orbit *orbit,
 int gslc_dual_evolve(Orbit *orbit,
                      double yv[],
                      double sv[],
-                     double eO[],
                      double z1[],
                      double *t,
-                     double t1,
-                     double threshold);
+                     double t1);
 
 
 //----------------------------------------------------------------------------------------
@@ -482,9 +478,9 @@ int gslc_dual_evolve(Orbit *orbit,
 //
 //----------------------------------------------------------------------------------------
 //Plot one orbit
-void orbit_plot(Orbit *orbit, gnuplot_ctrl *h1, int type, int points, OdeStruct *ode_s_6, OdeStruct *ode_s_8);
+void orbit_plot(Orbit *orbit, gnuplot_ctrl *h1, int type, int points, OdeStruct *ode_s_6);
 //Plot one orbit (3D)
-void orbit_plot_3d(Orbit *orbit, gnuplot_ctrl *h1, int points, OdeStruct *ode_s_6, OdeStruct *ode_s_8);
+void orbit_plot_3d(Orbit *orbit, gnuplot_ctrl *h1, int points, OdeStruct *ode_s_6);
 //Plot poincare map for one orbit
 void orbit_poincare_plot(Orbit *orbit, gnuplot_ctrl *h1, gnuplot_ctrl *h2, int color);
 //Plot T map for one orbit

@@ -13,6 +13,7 @@
 #include "ftda.h"
 #include "otsh.h"
 #include "parameters.h"
+#include "Config.h"
 
 /**
  * \file ots.h

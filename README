@@ -1,0 +1,61 @@
+# OOFTDA stands for Object-Oriented Fourier Taylor Differential Algebra
+#=========================================================================
+
+This C/C++ programm allows to compute high-order Fourier-Taylor expansions of the invariant manifolds 
+about the libration points of the Sun-Earth-Moon system, either modeled by the QBCP or the CRTBP
+(an extension to other problems is clearly possible).
+To do so, it implements the Parameterization Method in the case of T-periodic orbits of a T-periodic Hamiltonian.
+
+# How to use it 
+======================
+Once in the OOFTDA folder, run one of the following command:
+
+$ ooftda.sh config/my_configuration_script.sh
+where  my_configuration_script.sh
+
+$ ooftda.sh 
+If ooftda.sh is run without any argument, the OOFTDA Graphic User Interface (GUI) is launched, providing that YAD is installed.
+
+# Depencencies 
+======================
+* OOFTDA depends on the GNU Scientific Library (GSL) a C library available here: https://www.gnu.org/software/gsl/.
+* For on-the-fly plotting, it also requires Gnuplot, via gnuplot_i.cpp, an extension of the C interface to Gnuplot by N. Devillard. 
+* It also uses an extension of nrutils.h/nrutils.cpp from Numerical Recipes in C for the implementation of C vectors, matrices, and tensors.
+* The GUI (optional) requires YAD, a program that allows to display GTK+ dialog boxes 
+from command line or shell scripts, and available here: https://sourceforge.net/projects/yad-dialog/.
+The GUI is optional since OOFTDA can be launched from the command line with a configuration script.
+
+# Building 
+======================
+
+
+# Issues & Remarks (in order of importance)
+======================
+1. A memory leak might occur in the destructor of Oftsh class. 
+This is not a big deal as long as Ofts objects (that require the construction of quite a lot of Oftsh objects)
+are not massively created. This is currently the case in the code (no temporary Ofts object).
+Of course, a more stable version of the code would require to deal with this issue. 
+
+2. The GSL is used mainly for two aspects:
+* Some algebraic manipulation, performed by the BLAS implementation in the GSL.
+* Numerical integration of ODE.
+The GSL being a C library, it has driven the code to be a C/C++ mix rather than a pure C++ software. 
+Consequently, C pointers and C++ vectors and references are cohabitating in a suboptimal way.
+At the bear minimum, one should think of a clean interface between the C libraries (GSL, gnuplot_i) and the C++ core.
+
+3. The complex numbers are implemented as 'double complex' from C (typedef cdouble in the code), 
+instead of the std::complex class from the standard C++ library.
+This currently clashes with some C++ libraries such as boost, hence preventing their use in OOFTDA.
+This questionable choice has been made at the very beginning of the project in order to be able to use the GSL. 
+One may consider the possibility to switch from (GSL, complex double) to (Boost, std::complex).
+This would also help clarify the boundary between the C and the C++;
+
+4. We might want to consider finding a new name, for two reasons:
+* The code is not fully Object-Oriented (it is not even pure C++);
+* It does allow to manipulate Multivariate Polynomials and use Automatic Differentiation tools 
+in order to compute high-order Fourier-Taylor expansions of vector fields.
+However, it does not contain any "systematic" tool since it has been specifically crafted 
+for the Parameterization Method about the libration points of the CRTBP and the QBCP. 
+Hence the "Differential Algebra" terminology might be too large for the current implementation.
+
+

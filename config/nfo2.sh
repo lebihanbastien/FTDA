@@ -26,7 +26,7 @@ MODEL=$QBCP
 # COORDINATE SYSTEM
 # EM = 0; SEM = 1; SE = 2
 #------------------------------------
-CS=$SEM  
+CS=$EM  
 
 #------------------------------------
 # Normalization
@@ -37,7 +37,7 @@ ISNORM=$TRUE
 #------------------------------------
 # DEFAULT LIBRATION POINT FOR EM & SEM SYSTEM
 #------------------------------------
-LI_EM=2
+LI_EM=1
 LI_SEM=2
 
 #------------------------------------

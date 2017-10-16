@@ -21,7 +21,7 @@ template<typename T> Ofts<T>::Ofts()
     int i, index;
     nv     = REDUCED_NV;
     order  = OFTS_ORDER;
-    cnv    = OFS_NV;
+    cnv    = Csts::OFS_NV;
     corder = OFS_ORDER;
 
     //New array of coefficients
@@ -1007,6 +1007,11 @@ template<typename T> Ofts<T>& Ofts<T>::ofts_smprod_t(Ofts<T> const& a, Ofts<T> c
  *  \param  a: a reference to an Ofts object
  *  \param  b: a reference to an Ofts object
  *  \param  c: a reference to a subcoefficient
+ *
+ *  NOTE: ofts_smprod_u currently uses a temporary Ofts<T> object, which is not recommended.
+ *  This should be changed to match ofts_smprod_t standards (no temporary object to Ofts level).
+ *  However, the routine is currently only used in tests routines (ofts_test.cpp), hence this
+ *  matter is not critical.
  */
 template<typename T> template<typename U> Ofts<T>& Ofts<T>::ofts_smprod_u(Ofts<T> const& a, Ofts<T> const& b, U const& c)
 {
@@ -1026,7 +1031,10 @@ template<typename T> template<typename U> Ofts<T>& Ofts<T>::ofts_smprod_u(Ofts<T
  *  \param  m: a reference to a coefficient
  *  \param  n: a reference to the order to update
  *
- * NOTE: we test smprod at all order. If the test is good, then we change smprod at order n
+ *  NOTE: ofts_smprod_u currently uses a temporary Ofts<T> object, which is not recommended.
+ *  This should be changed to match ofts_smprod_t standards (no temporary object to Ofts level).
+ *  However, the routine is currently only used in tests routines (ofts_test.cpp), hence this
+ *  matter is not critical.
  */
 template<typename T> template<typename U> Ofts<T>& Ofts<T>::ofts_smprod_u(Ofts<T> const& a, Ofts<T> const& b, U const& c, int const& n)
 {
@@ -2174,7 +2182,7 @@ inline void readOFS_bin(Ofsc  &xFFT, fstream &myfile)
 /**
  * \brief Reads a given \c Ofts<Ofsc >  object, in bin format.
  **/
-inline int readOFTS_bin(Ofts<Ofsc > &W, string filename, int fftN)
+inline int readOFTS_bin(Ofts<Ofsc > &W, string filename)
 {
     //Init
     fstream myfile;
@@ -2221,7 +2229,7 @@ inline void readVOFTS_bin(vector<Ofts<Ofsc > >  &W, string filename, int fftN)
         ss1 = static_cast<ostringstream*>( &(ostringstream() << i) )->str();
 
         //Read binary format
-        status = readOFTS_bin(W[i], (filename+"["+ss1+"].bin"), fftN);
+        status = readOFTS_bin(W[i], (filename+"["+ss1+"].bin"));
 
         //Try txt format if failure
         if(status != GSL_SUCCESS)
@@ -2327,7 +2335,7 @@ inline int fromOFTStoOFTS_bin(Oftsc &W, Oftsc &W1, int dim)
  *        This routine makes use of fromOFTStoOFTS_bin to read and store into the less dimensions objects.
  *        Then, the results are stored in binary files.
  **/
-inline void fromVOFTStoVOFTS_bin(vector<Oftsc> &W, Oftsc &W1, Oftsc &DW1, string filein, string fileout)
+inline void fromVOFTStoVOFTS_bin(vector<Oftsc> &W, Oftsc &W1, Oftsc &DW1, string fileout)
 {
     //====================================================================================
     //Init

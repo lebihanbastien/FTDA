@@ -175,11 +175,11 @@ void ertbp(int li_EM, int li_SEM, int coordsys)
     //--------------------------------------------------------------------
     //Init the ERTBP
     QBCP fbp;
-    init_QBCP(&fbp, SUN, EARTH, MOON, M_ERTBP);
+    init_QBCP(&fbp, Csts::SUN, Csts::EARTH, Csts::MOON);
 
     //Init the ERTBP focused on one libration point
     QBCP_L qbcp_l;
-    init_QBCP_L(&qbcp_l, &fbp, 1, li_EM, li_SEM, true, M_ERTBP, coordsys, PMS_GRAPH, MAN_CENTER, MAN_CENTER);  //Note: PM style is NOT used
+    init_QBCP_L(&qbcp_l, &fbp, 1, li_EM, li_SEM, true, Csts::ERTBP, coordsys, Csts::GRAPH, Csts::MAN_CENTER, Csts::MAN_CENTER);  //Note: PM style is NOT used
 
     //Parameters
     int nf       = qbcp_l.nf;

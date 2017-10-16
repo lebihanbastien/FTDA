@@ -3,12 +3,16 @@
 
 /**
  * \file define_env.h
- * \brief Define the working environment (the primaries). All values taken from JPL and Goddard Space Flight Center websites.
- * \author BLB.
- * \date May 2015
- * \version 1.0
+ * \brief Define the working environment (primaries, CRTBP, QBCP).
+ *        All constants taken from JPL and Goddard Space Flight Center websites,
+ *        Except for the mass of the Moon, which has been slightly modified in order
+ *        for the Earth-Moon mass ratio to mach the value used in Andreu (1998, 2002)
+ * \author BLB
+ * \date 2017
+ * \version 2.0
  */
 
+//Std
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -20,6 +24,7 @@
 #include <math.h>
 #include <string.h>
 
+//Gsl
 #include <gsl_complex_math.h>
 
 //Custom
@@ -28,27 +33,9 @@
 #include "ofs.h"
 #include "Config.h"
 
-//Type of unit systems
-#define USYS_EM  0 //Earth-Moon      system
-#define USYS_SEM 1 //Sun-Earth+Moon  system
-
-//Type of Param Style
-#define PMS_GRAPH 0
-#define PMS_NORMFORM 1
-#define PMS_MIXED 2
-
-//Type of Manifolds
-#define MAN_CENTER    0
-#define MAN_CENTER_S  1
-#define MAN_CENTER_U  2
-#define MAN_CENTER_US 3
-
-
-using namespace std;
-
-//-----------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 //            Structures
-//-----------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 /**
  * \struct LibrationPoint
  * \brief Structure to describe a Libration point (position, energy...).
@@ -282,9 +269,9 @@ struct QBCP_I
     double epsilon;
 };
 
-//-----------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 //            Init routines
-//-----------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 /**
 * \brief Initialize one celestial body
 * \param body pointer on the current body
@@ -321,7 +308,7 @@ void SYStoNC_prim(double Zc[3], double zc[3], double c1, double gamma);
  * \param csys pointer on the CSYS structure to initialize.
  * \param qbcp_l pointer on the QBCP_L structure that contains csys.
  * \param qbcp pointer on the QBCP structure that contains parameters specific to each libration points (namely, gamma)
- * \param coordsys indix of the coordinate system to use (F_EM, F_SEM).
+ * \param coordsys indix of the coordinate system to use (Csts::EM, Csts::SEM).
  * \param li number of the libration point to focus on (L1, L2).
  * \param coefNumber the number of vector field coefficients to initialize. It has been set in the QBCP_init function.
  * \param isNew boolean. if true, the qbtbp has not been computed via the qbtbp() routine, so the vector field coefficients cannot be initialized.
@@ -340,7 +327,7 @@ void init_CSYS(CSYS *csys, QBCP_L *qbcp_l, QBCP *qbcp, int coordsys, int li, int
 *
 * NEEDS TO BE MODIFIED TO GET RID OF THE HARD CODED VALUES
 **/
-void init_QBCP(QBCP *qbcp, int n1, int n2, int n3, int model);
+void init_QBCP(QBCP *qbcp, int n1, int n2, int n3);
 
 /**
 * \brief Initialize a QBCP_L structure, i.e. a QBCP focused on one libration point. The libration point must be L1 or L2 of qbcp.cr3bp1.
@@ -387,12 +374,12 @@ void changeLICOORDSYS(QBCP_L &qbcp_l, int coordsys, int li);
 string init_F_LI(int li);
 
 /**
- *  \brief Return the string corresponding to the model indix provided (e.g. "QBCP" if model == M_QBCP).
+ *  \brief Return the string corresponding to the model indix provided (e.g. "QBCP" if model == Csts::QBCP).
  **/
 string init_F_MODEL(int model);
 
 /**
- *  \brief Return the string corresponding to the framework (coord. syst.) indix provided (e.g. "EM" if coordsys == F_EM).
+ *  \brief Return the string corresponding to the framework (coord. syst.) indix provided (e.g. "EM" if coordsys == Csts::EM).
  **/
 string init_F_COORDSYS(int coordsys);
 
@@ -472,6 +459,14 @@ double rtnewt(void (*funcd)(double, int, double, double *, double *), double x1,
 **/
 void polynomialLi(double mu, int number, double y, double *f, double *df);
 
+/**
+ *  \brief Prompt "Press Enter to go on"
+ **/
+void pressEnter(bool isFlag);
 
+/**
+ *  \brief Prompt msg
+ **/
+void pressEnter(bool isFlag, string msg);
 
 #endif // DEFINE_ENV_H_INCLUDED

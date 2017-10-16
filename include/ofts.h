@@ -941,7 +941,7 @@ inline void readOFS_bin(Ofsc  &xFFT, fstream &myfile);
 /**
  * \brief Reads a given \c Ofts<Ofsc >  object, in bin format.
  **/
-inline int readOFTS_bin(Ofts<Ofsc > &W, string filename, int fftN);
+inline int readOFTS_bin(Ofts<Ofsc > &W, string filename);
 
 /**
  * \brief Reads a given vector W of type \c Ofts<Ofsc >  in binary files of the form "filename+i.bin", with i = 0, length(W)-1.

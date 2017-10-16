@@ -9,6 +9,10 @@
  * \version 1.0
  */
 
+//Std
+#include <stdio.h>
+#include <iostream>
+
 //GSL
 #include <gsl/gsl_matrix.h>
 #include <gsl/gsl_blas.h>
@@ -25,18 +29,16 @@
 #include "define_env.h"
 #include "parameters.h"
 #include "lpdyneq.h"
-
-#include <stdio.h>
-#include <iostream>
-using namespace std;
-
-#define INVERSE_SYMP 1
-#define INVERSE_GSL 2
+#include "init.h"
 
 
-//-------------------------------------------------------------------------------------------------------
+
+
+//----------------------------------------------------------------------------------------
 // Main routine
-//-------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
+void nfo2_2(QBCP_L &qbcp_l, int isStored);
+
 /**
  *  \brief Main routine. Compute the complete change of coordinates.
  */
@@ -254,7 +256,6 @@ void nfo2Int(gsl_odeiv2_driver *d,
              const double y0[],
              const double n,
              QBCP_L *qbcp_l,
-             gsl_matrix* Br,
              gsl_matrix* R,
              gsl_matrix* JB,
              int N,
@@ -274,12 +275,12 @@ void nfo2Int(gsl_odeiv2_driver *d,
 /**
  *  \brief FFT of the coefficients of a given matrix P obtained on a N points grid
  */
-void nfo2FFT(Ofsc& xFFT, QBCP_L *qbcp_l, gsl_matrix** P, gsl_matrix** Pt, double n, int N, int fftN, int fftPlot, string filename, int flag, int isStored);
+void nfo2FFT(Ofsc& xFFT, gsl_matrix** P, gsl_matrix** Pt, double n, int N, int fftN, int fftPlot, string filename, int flag, int isStored);
 
 /**
  *  \brief Test of the validity of the FFT on a fftPlot points grid.
  */
-void nfo2Test(Ofsc& xFFT, QBCP_L *qbcp_l, gsl_matrix** P, double n, int fftPlot, int i0, int j0);
+void nfo2Test(Ofsc& xFFT, gsl_matrix** P, double n, int fftPlot, int i0, int j0);
 
 
 //-------------------------------------------------------------------------------------------------------
@@ -288,12 +289,12 @@ void nfo2Test(Ofsc& xFFT, QBCP_L *qbcp_l, gsl_matrix** P, double n, int fftPlot,
 /**
  *  \brief Periodicity test of P.
  */
-void nfo2PerTest(gsl_odeiv2_driver *d, const double y0[], double n, QBCP_L *qbcp_l, gsl_matrix* R);
+void nfo2PerTest(gsl_odeiv2_driver *d, const double y0[], double n, gsl_matrix* R);
 
 /**
  *  \brief Symmetry test on P.
  */
-void nfo2SymTest(gsl_odeiv2_driver *d, const double y0[],  double n, QBCP_L *qbcp_l, gsl_matrix* R, int p, int N);
+void nfo2SymTest(gsl_odeiv2_driver *d, const double y0[],  double n, gsl_matrix* R, int p, int N);
 
 /**
  *  \brief Test of the symplectic character of a given complex matrix.
@@ -313,7 +314,7 @@ void eigenSystemTest(gsl_matrix_complex *Dm, gsl_matrix_complex *S, gsl_matrix_c
 /**
  *  \brief Symplectic test of P.
  */
-void nfo2SympTest(gsl_odeiv2_driver *d, const double y0[], double t1, QBCP_L *qbcp_l, gsl_matrix* R);
+void nfo2SympTest(gsl_odeiv2_driver *d, const double y0[], double t1, gsl_matrix* R);
 
 //-------------------------------------------------------------------------------------------------------
 // Change of base:
@@ -361,11 +362,82 @@ void wielandt_deflation(gsl_matrix_complex *MMc,
                         gsl_matrix_complex *evecr,
                         gsl_vector_complex *evalr);
 
+//-----------------------------------------------------------------------------------------
+// Manipulation of the matrix S, which contains the eigenvectors of the monodromy matrix,
+// in columns
+//----------------------------------------------------------------------------------------
+/**
+ *  \brief Normalisation of the matrix S in order to get a symplectic matrix.
+ *
+ *         Theory shows that
+ *                    BUX = | B1  0  |   with B1 diagonal.
+ *                          | 0   B1 |
+ *         Normalization to obtain a true symplectic matrix S:
+ *                  S = S x | B1  0 |^(-1)    then S^T x J x S = J
+ *                          | 0   I |
+ *
+ *      See "Lectures on celestial mechanics", Siegel & Moser, p. 101
+ **/
+void normS(gsl_matrix_complex *S);
+
+/**
+ *  \brief Prenormalisation of the matrix S. Used to enforce a decoupling between the real and imag parts
+ *         of the vectors that bear the ELLIPTIC motion.
+ *         Mainly here for reference, not used in current implementation. Use with care, hard coded values inside!
+ **/
+void prenormS(gsl_matrix_complex *S);
+
+/**
+ *  \brief Update the matrices S and Dm using the center directions in evecr, evalr, and the hyperbolic directions in eigenVu/Vs.
+ *         Before this step:
+ *              - evecr contains the center eigenvectors of the mon. matrix, at positions (1,2,3,4): vxy, conj(vxy), vz, conj(vz)
+ *              - evalr contains the center eigenvalues  of the mon. matrix, at positions (1,2,3,4)
+ *              - eigenVu/Lu contains the unstable couple of the mon. matrix.
+ *              - eigenVs/Ls contains the stable couple of the mon. matrix.
+ *         After this step:
+ *              - S contains the eigenvector in the following order:
+ *                                          (vxy, vu, vz, conj(vxy), vs, conj(vz))
+ *              - Dm contains the corresponding eigenvalues.
+ **/
+void updateS(gsl_matrix_complex *S,
+             gsl_matrix_complex *Dm,
+             gsl_matrix_complex *evecr,
+             gsl_vector_complex *evalr,
+             gsl_vector_complex* eigenVu,
+             gsl_vector_complex* eigenVs,
+             gsl_complex eigenLu,
+             gsl_complex eigenLs);
+
+/**
+ *  \brief Perform a permutation within S and Dm.
+ *
+ *  Storage of:
+ *  - The hyperbolic directions (input in eigenVu/Lu and eigenVs/Ls)
+ *  - The central directions (input in evecr, evalr)
+ *  Used in monoDecomp to ensure that the eigenvectors
+ *  that bear the vertical motion are at the right position in S (and Dm)
+ *
+ */
+void permutationS(gsl_matrix_complex *S,
+                  gsl_matrix_complex *Dm,
+                  gsl_matrix_complex *evecr,
+                  gsl_vector_complex *evalr,
+                  gsl_vector_complex *eigenVu,
+                  gsl_vector_complex *eigenVs,
+                  gsl_complex eigenLu,
+                  gsl_complex eigenLs,
+                  int *keymap);
+
+/**
+ *  \brief Checks that R is symplectic (real version of S). If not, performs an additional permutation/normalization on the couple (S,Dm)
+ **/
+void symplecticR(gsl_matrix_complex *S, gsl_matrix_complex *Dm, gsl_matrix *R);
+
 //-------------------------------------------------------------------------------------------------------
 // Multimin (DEPRECATED)
 //-------------------------------------------------------------------------------------------------------
 //Evaluate ||y - My/l||
-double eigenfunk(double p[], double b[], double c, void * params);
+double eigenfunk(double p[], double b[], void * params);
 //deigenfunk/dxi
-void deigenfunk(double p[], double df[], double b[], double c, void *params );
+void deigenfunk(double p[], double df[], double b[], void *params );
 #endif // NFO2_H_INCLUDED

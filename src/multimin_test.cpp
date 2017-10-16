@@ -1,5 +1,5 @@
 #include "multimin_test.h"
-
+using namespace std;
 
 
 //function to evaluate

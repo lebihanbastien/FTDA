@@ -22,8 +22,6 @@
  */
 
 
-using namespace std;
-
 //--------------------------------------------------------------------------
 // matrix<T> class
 //--------------------------------------------------------------------------
@@ -164,7 +162,7 @@ void writeMOFTS_bin(matrix<Ofts<Ofsc > > &W, string filename);
  * \brief Reads a given matrix W of type \c Ofts<Ofsc >  in a binary files of the form "filename+i+j.bin", with i = 0, size1(W)-1
  *        and j = 0, size2(W)-1.
  **/
-inline void readMOFTS_bin(matrix<Ofts<Ofsc > > &W, string filename, int fftN);
+inline void readMOFTS_bin(matrix<Ofts<Ofsc > > &W, string filename);
 
 //DEPRECATED
 void readMOFTS(matrix<Ofts<Ofsc > > &W, string filename, int fftN);

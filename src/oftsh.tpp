@@ -1348,7 +1348,7 @@ template<typename T> template<typename U> Oftsh< Ofs<U> >& Oftsh<T>::tftsh_smult
         for (int i=0 ; i <  FTDA::nmon(nv, order); i++) coef[i].ofs_smult(a.coef[i], c);
         return *this;
     }
-};
+}
 
 /**
  *  \brief  An operation. Sets the product: \c this \f$  = m a \f$ with m a subcoefficient. Oftsh< Ofs<U> > case.
@@ -1366,7 +1366,7 @@ template<typename T> template<typename U> Oftsh< Ofs<U> >& Oftsh<T>::tftsh_mult_
         for (int i=0 ; i <  FTDA::nmon(nv, order); i++) coef[i].ofs_mult(a.coef[i], c);
         return *this;
     }
-};
+}
 
 /**
  *  \brief  An operation. Adds the product: \c this \f$  += c a \f$ with c a coefficient. Warning: set for Ofs coefficient by default.
@@ -1438,7 +1438,7 @@ template<typename T> template<typename U> Oftsh< Ofs<U> >& Oftsh<T>::tftsh_smult
         for (int i=0 ; i <  FTDA::nmon(nv, order); i++) coef[i].tfs_smprod(a.coef[i], ra, c);  //sprod(a.coef[i], c*ra)
         return *this;
     }
-};
+}
 
 //------------------
 // derh
@@ -2055,8 +2055,8 @@ template<typename T> void Oftsh<T>::sevaluate_conjugate(double X[], T& z)
 template<typename T> double Oftsh<T>::l1norm()
 {
     double l1n = 0.0;
-    if(MODEL_TYPE == M_QBCP) for(int k =0; k < FTDA::nmon(nv, order); k++) l1n += cabs(this->getCoef(k).l1norm());
-    else if(MODEL_TYPE == M_RTBP) for(int k =0; k < FTDA::nmon(nv, order); k++) l1n += cabs(this->getCoef(k).ofs_getCoef(0));
+    if(MODEL_TYPE == Csts::QBCP) for(int k =0; k < FTDA::nmon(nv, order); k++) l1n += cabs(this->getCoef(k).l1norm());
+    else if(MODEL_TYPE == Csts::CRTBP) for(int k =0; k < FTDA::nmon(nv, order); k++) l1n += cabs(this->getCoef(k).ofs_getCoef(0));
     return l1n;
 }
 
@@ -2079,7 +2079,7 @@ template<typename T> int Oftsh<T>::nsd(int odmax, double sdmax)
 template<typename T> double Oftsh<T>::linfnorm()
 {
     double lin = 0.0;
-    if(MODEL_TYPE == M_QBCP)
+    if(MODEL_TYPE == Csts::QBCP)
     {
         lin = cabs(this->getCoef(0).l1norm()+0.0*I);
         for(int k =1; k < FTDA::nmon(nv, order); k++)
@@ -2087,7 +2087,7 @@ template<typename T> double Oftsh<T>::linfnorm()
             if(lin < fabs(this->getCoef(k).l1norm())) lin = fabs(this->getCoef(k).l1norm());
         }
     }
-    else if(MODEL_TYPE == M_RTBP)
+    else if(MODEL_TYPE == Csts::CRTBP)
     {
         lin = cabs(this->getCoef(0).ofs_getCoef(0));
         for(int k =1; k < FTDA::nmon(nv, order); k++)

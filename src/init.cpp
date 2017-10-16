@@ -39,11 +39,11 @@ QBCP_L SEML_SEM;       //global structure that describes the Sun-Earth-Moon syst
 void init_env(int li_EM, int li_SEM, int isNormalized, int model, int pmStyle, int manType_EM, int manType_SEM)
 {
     //Init the Sun-Earth-Moon problem
-    init_QBCP(&SEM, SUN, EARTH, MOON, model);
+    init_QBCP(&SEM, Csts::SUN, Csts::EARTH, Csts::MOON);
     //Init the Sun-Earth-Moon problem focused on one libration point: li_EM
-    init_QBCP_L(&SEML, &SEM, isNormalized, li_EM, li_SEM, false, model, F_EM, pmStyle, manType_EM, manType_SEM);
+    init_QBCP_L(&SEML, &SEM, isNormalized, li_EM, li_SEM, false, model, Csts::EM, pmStyle, manType_EM, manType_SEM);
     //Init the Sun-Earth-Moon problem focused on one libration point: li_SEM
-    init_QBCP_L(&SEML_SEM, &SEM, isNormalized, li_EM, li_SEM, false, model, F_SEM, pmStyle, manType_EM, manType_SEM);
+    init_QBCP_L(&SEML_SEM, &SEM, isNormalized, li_EM, li_SEM, false, model, Csts::SEM, pmStyle, manType_EM, manType_SEM);
 }
 
 
@@ -73,12 +73,12 @@ vector<Oftsc>  DWFh;   //JCM * Fh
 void initCM(QBCP_L &qbcp)
 {
     //Memory allocation
-    CM     = vector<Oftsc>(NV);
-    CMdot  = vector<Oftsc>(NV);
-    CMh    = vector<Oftsc>(NV);
-    DWFh   = vector<Oftsc>(NV);
+    CM     = vector<Oftsc>(Csts::NV);
+    CMdot  = vector<Oftsc>(Csts::NV);
+    CMh    = vector<Oftsc>(Csts::NV);
+    DWFh   = vector<Oftsc>(Csts::NV);
     Fh     = vector<Oftsc>(REDUCED_NV);
-    JCM    = matrix<Oftsc>(NV,REDUCED_NV);
+    JCM    = matrix<Oftsc>(Csts::NV,REDUCED_NV);
 
     //Update
     updateCM(qbcp);
@@ -106,7 +106,7 @@ void updateCM(QBCP_L &qbcp)
     readVOFTS_bin(DWFh,  qbcp.cs.F_PMS+"DWf/C_DWf",   OFS_ORDER);
     readVOFTS_bin(CMdot, qbcp.cs.F_PMS+"Wdot/C_Wdot", OFS_ORDER);
     //Building the Jacobian
-    for(int i = 0 ; i < NV ; i++) for(int j = 0 ; j < REDUCED_NV; j++) JCM.der(CM[i], j+1, i, j);   //in NC
+    for(int i = 0 ; i < Csts::NV ; i++) for(int j = 0 ; j < REDUCED_NV; j++) JCM.der(CM[i], j+1, i, j);   //in NC
 }
 
 
@@ -134,11 +134,11 @@ void updateCOC(QBCP_L &qbcp)
 void initCOC(QBCP_L &qbcp)
 {
     //Memory allocation
-    Pcoc  = matrix<Ofsc>(NV,NV);
-    Mcoc  = matrix<Ofsc>(NV,NV);
-    PIcoc = matrix<Ofsc>(NV,NV);
-    MIcoc = matrix<Ofsc>(NV,NV);
-    Vcoc  = vector<Ofsc>(NV);
+    Pcoc  = matrix<Ofsc>(Csts::NV,Csts::NV);
+    Mcoc  = matrix<Ofsc>(Csts::NV,Csts::NV);
+    PIcoc = matrix<Ofsc>(Csts::NV,Csts::NV);
+    MIcoc = matrix<Ofsc>(Csts::NV,Csts::NV);
+    Vcoc  = vector<Ofsc>(Csts::NV);
 
     //Read from files
     updateCOC(qbcp);
@@ -182,12 +182,12 @@ void initCOC(matrix<Ofsc> &P,
     //----------------------------
     //Switch RTBP/QBCP/BCP
     //----------------------------
-    if(qbcp_l.model == M_QBCP || qbcp_l.model == M_BCP)
+    if(qbcp_l.model == Csts::QBCP || qbcp_l.model == Csts::BCP)
     {
         //Recovering the data: matrix P
-        for(int i = 0; i < NV ; i++) for(int j = 0; j < NV ; j++) readCOC(*P.getCA(i,j), F_COC+"P",  i+1, j+1);
+        for(int i = 0; i < Csts::NV ; i++) for(int j = 0; j < Csts::NV ; j++) readCOC(*P.getCA(i,j), F_COC+"P",  i+1, j+1);
         //Recovering the data: matrix Q
-        for(int i = 0; i < NV ; i++) for(int j = 0; j < NV ; j++) readCOC(*Q.getCA(i,j), F_COC+"Q",  i+1, j+1);
+        for(int i = 0; i < Csts::NV ; i++) for(int j = 0; j < Csts::NV ; j++) readCOC(*Q.getCA(i,j), F_COC+"Q",  i+1, j+1);
 
         //Recovering the data: vector V
         //V = [G1_11 G1_12 0 G1_21 G1_22 0]^T
@@ -243,12 +243,12 @@ void initCOC(matrix<Ofsc> &P,
         //Q = inv(P) (gsl lib)
         //--------------------
         int s;
-        gsl_matrix* Pc   = gsl_matrix_calloc (NV, NV);
-        gsl_matrix* Qc   = gsl_matrix_calloc (NV, NV);
-        gsl_permutation * p6 = gsl_permutation_alloc (NV);
+        gsl_matrix* Pc   = gsl_matrix_calloc (Csts::NV, Csts::NV);
+        gsl_matrix* Qc   = gsl_matrix_calloc (Csts::NV, Csts::NV);
+        gsl_permutation * p6 = gsl_permutation_alloc (Csts::NV);
 
         //Init Pc
-        for(int i =0; i < NV; i++) for(int j =0; j < NV; j++) gsl_matrix_set(Pc, i, j, creal(P.getCA(i,j)->ofs_getCoef(0)));
+        for(int i =0; i < Csts::NV; i++) for(int j =0; j < Csts::NV; j++) gsl_matrix_set(Pc, i, j, creal(P.getCA(i,j)->ofs_getCoef(0)));
         //Use of GSL library
         gsl_linalg_LU_decomp (Pc, p6, &s);
         gsl_linalg_LU_invert (Pc, p6, Qc);
@@ -256,7 +256,7 @@ void initCOC(matrix<Ofsc> &P,
         //--------------------
         // Init Q
         //--------------------
-        for(int i =0; i < NV; i++) for(int j =0; j < NV; j++) Q.setCoef(gsl_matrix_get(Qc, i, j), i, j);
+        for(int i =0; i < Csts::NV; i++) for(int j =0; j < Csts::NV; j++) Q.setCoef(gsl_matrix_get(Qc, i, j), i, j);
     }
 
     //----------------------------

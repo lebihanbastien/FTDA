@@ -152,11 +152,11 @@ void pmErrorvsOrderTest(int nkm, int km[], double si[])
     //------------------------------------------------------------------------------------
     // Maximum time
     //------------------------------------------------------------------------------------
-    double tmax = (SEML.model == M_RTBP)? 2*M_PI: SEML.us.T;
-    tmax *= (SEML.coordsys == F_SEM && SEML.model != M_RTBP)? 10.0: 1.0;
+    double tmax = (SEML.model == Csts::CRTBP)? 2*M_PI: SEML.us.T;
+    tmax *= (SEML.coordsys == Csts::SEM && SEML.model != Csts::CRTBP)? 10.0: 1.0;
     switch(SEML.cs.manType)
     {
-        case MAN_CENTER_S:
+        case Csts::MAN_CENTER_S:
             //If we are in the center-stable manifold, we set negative time.
             tmax = -fabs(tmax);
     }
@@ -281,7 +281,7 @@ void pmEOvsOrderTest(int nkm, int km[], double si[])
     //------------------------------------------------------------------------------------
     // Maximum time
     //------------------------------------------------------------------------------------
-    double tmax = (SEML.model == M_RTBP)? 2*M_PI: SEML.us.T;
+    double tmax = (SEML.model == Csts::CRTBP)? 2*M_PI: SEML.us.T;
 
     //------------------------------------------------------------------------------------
     // Initial conditions
@@ -310,7 +310,7 @@ void pmEOvsOrderTest(int nkm, int km[], double si[])
         rvf.order = order;
         tic();
         eOPlot(st0, CMh, Mcoc, Vcoc, tmax, d, d_fh, 500, SEML, order, ofs_order, ht, color++);
-        cout << "errorPlot ended in: " << toc() << endl;
+        cout << "eOPlot ended in: " << toc() << endl;
     }
 
 
@@ -447,7 +447,7 @@ void pmOfsOrderTest(int order)
         rvf.ofs_order = ofs_order;
         tic();
         eOPlot(st0, CMh, PC, V, theta1/SEML.us.n, d, d_fh, 500, SEML, order, ofs_order, ht, color++);
-        cout << "errorPlot in: " << toc() << endl;
+        cout << "eOPlot in: " << toc() << endl;
     }
 
 
@@ -566,7 +566,7 @@ void pmNorms()
     {
         kc[k] = k;
         l1nMax[k] = 0.0;
-        for(int p = 0; p < NV; p++)
+        for(int p = 0; p < Csts::NV; p++)
         {
             //l1n[k] = Wh[p].linfnorm(k);
             //l1n[k] = W[p].l1norm(k);
@@ -611,7 +611,7 @@ void pmSmallDivisors(double sdmax)
     for(int k = 2; k <= OFTS_ORDER; k++)
     {
         cout << k << " ";
-        for(int p = 0; p < NV; p++)
+        for(int p = 0; p < Csts::NV; p++)
         {
             cout <<  smallDiv[p].nsd(k, OFS_ORDER, sdmax) - smallDiv[p].nsd(k, 0, sdmax) << " ";
 
@@ -627,7 +627,7 @@ void pmSmallDivisors(double sdmax)
     for(int k = 2; k <= OFTS_ORDER; k++)
     {
         cout << k << " ";
-        for(int p = 0; p < NV; p++)
+        for(int p = 0; p < Csts::NV; p++)
         {
             cout <<  smallDiv[p].nsd(k, 0, sdmax) << " ";
 
@@ -737,7 +737,6 @@ int errorPlot(const double st0[],      //RCM initial conditions
     string F_COC   = qbcp_l.cs.F_COC;
 
 
-
     //------------------------------------------------------------------------------------
     //Reset integrator
     //------------------------------------------------------------------------------------
@@ -792,14 +791,14 @@ int errorPlot(const double st0[],      //RCM initial conditions
     //------------------------------------------------------------------------------------
     double stLi[REDUCED_NV];
     for(int i = 0; i < REDUCED_NV; i++) stLi[i] = 0.0;
-    RCMtoNCbyTFC(stLi, 0.0, n, order, ofs_order, Wh, AUX, PC, V, z0ncr, false);
+    RCMtoNCbyTFC(stLi, 0.0, n, order, ofs_order, Wh, PC, V, z0ncr, false);
     NCtoSYS(0.0, z0ncr, z0em, (QBCP_L*) dnc->sys->params);  //Hamiltonian in sys coordinates (for reference)
     double HLi = qbfbp_H(0.0, z0em, dnc->sys->params);
 
     //------------------------------------------------------------------------------------
     // RCM to NC for NC initial conditions
     //------------------------------------------------------------------------------------
-    RCMtoNCbyTFC(st0, 0.0, n, order, ofs_order, Wh, AUX, PC, V, z1ncr, false);
+    RCMtoNCbyTFC(st0, 0.0, n, order, ofs_order, Wh, PC, V, z1ncr, false);
 
     //------------------------------------------------------------------------------------
     // RCM to CCM8 for CCM initial conditions
@@ -880,13 +879,13 @@ int errorPlot(const double st0[],      //RCM initial conditions
         //CCM8 to CCM
         CCM8toCCM(s1ccm8, s1ccm);
         //z1ncr2 = W(s1rcm, ti)
-        RCMtoNCbyTFC(s1rcm, ti, n, order, ofs_order, Wh, AUX, PC, V, z1ncr2, false);
+        RCMtoNCbyTFC(s1rcm, ti, n, order, ofs_order, Wh, PC, V, z1ncr2, false);
 
         //Evaluating the vector field at z1ncr2 = W(s1rcm, ti)
         qbfbp_vfn_novar(ti, z1ncr2, fnc, dnc->sys->params);
 
         //Hamiltonian, at the origin
-        RCMtoNCbyTFC(stLi, ti, n, order, ofs_order, Wh, AUX, PC, V, z0ncr, false);
+        RCMtoNCbyTFC(stLi, ti, n, order, ofs_order, Wh, PC, V, z0ncr, false);
         NCtoSYS(ti, z0ncr, z0em, (QBCP_L*) dnc->sys->params);  //Hamiltonian in sys coordinates (for reference)
         HLi = qbfbp_H(ti, z0em, dnc->sys->params);
 
@@ -899,7 +898,7 @@ int errorPlot(const double st0[],      //RCM initial conditions
         //---------------------
         //Error computation
         //---------------------
-        for(int p = 0; p < NV; p++)
+        for(int p = 0; p < Csts::NV; p++)
         {
             //eO = |z(t) - W(s(t), t)|
             eO[p] = cabs(z1ncr[p] - z1ncr2[p]);
@@ -925,7 +924,7 @@ int errorPlot(const double st0[],      //RCM initial conditions
         //Taking the maximum (infinity norm)
         eOm = eO[0];
         eIm = eI[0];
-        for(int p = 1; p < NV; p++)
+        for(int p = 1; p < Csts::NV; p++)
         {
             if(eO[p] > eOm) eOm = eO[p];
             if(eI[p] > eIm) eIm = eI[p];
@@ -963,7 +962,7 @@ int errorPlot(const double st0[],      //RCM initial conditions
     string ss1, ssW, st0s;
     ss1  = static_cast<ostringstream*>( &(ostringstream() << order) )->str();
     ssW  = static_cast<ostringstream*>( &(ostringstream() << W0) )->str();
-    if(SEML.cs.manType == MAN_CENTER)
+    if(SEML.cs.manType == Csts::MAN_CENTER)
     {
         st0s = static_cast<ostringstream*>( &(ostringstream() << creal(st0[0]+st0[1]+st0[2]+st0[3])) )->str();
     }
@@ -1167,7 +1166,7 @@ int eOPlot(const double st0[],         //RCM initial conditions
     //------------------------------------------------------------------------------------
     // RCM to NC for NC initial conditions
     //------------------------------------------------------------------------------------
-    RCMtoNCbyTFC(st0, t0, n, order, ofs_order, Wh, AUX, PC, V, z1ncr, false);
+    RCMtoNCbyTFC(st0, t0, n, order, ofs_order, Wh, PC, V, z1ncr, false);
 
     //------------------------------------------------------------------------------------
     // RCM to CCM8 for CCM initial conditions
@@ -1237,14 +1236,14 @@ int eOPlot(const double st0[],         //RCM initial conditions
         //CCM8 to CCM
         CCM8toCCM(s1ccm8, s1ccm);
         //z1ncr2 = W(s1rcm, ti)
-        RCMtoNCbyTFC(s1rcm, ti, n, order, ofs_order, Wh, AUX, PC, V, z1ncr2, false);
+        RCMtoNCbyTFC(s1rcm, ti, n, order, ofs_order, Wh, PC, V, z1ncr2, false);
         //Evaluating the vector field at z1ncr2 = W(s1rcm, ti)
         qbfbp_vfn_novar(ti, z1ncr2, fnc, dnc->sys->params);
 
         //---------------------
         //Error computation
         //---------------------
-        for(int p = 0; p < NV; p++)
+        for(int p = 0; p < Csts::NV; p++)
         {
             //eO = |z(t) - W(s(t), t)|
             eO[p] = cabs(z1ncr[p] - z1ncr2[p]);
@@ -1253,7 +1252,7 @@ int eOPlot(const double st0[],         //RCM initial conditions
 
         //Taking the maximum (infinity norm)
         eOm = eO[0];
-        for(int p = 1; p < NV; p++) if(eO[p] > eOm) eOm = eO[p];
+        for(int p = 1; p < Csts::NV; p++) if(eO[p] > eOm) eOm = eO[p];
 
         //------------------------------------------------------------------------------------
         //Store for plotting

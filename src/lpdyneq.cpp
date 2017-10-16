@@ -9,34 +9,37 @@
  */
 
 
-//==============================================================================
-//Dynamical equivalents to the Libration points
-//==============================================================================
+
+//========================================================================================
+//         Dynamical equivalents to the Libration points
+//========================================================================================
 /**
  *  \brief Computation of the dynamical equivalents of the libration points. Test function.
  *
- *         - This function makes use of the subroutine lpdyneq that is the true heart of the computation. In particular, it contains the initialization of the first guess (the geometrical positions of the CRTBP libration points) + the differential corrector.
+ *         - This function makes use of the subroutine lpdyneq that is the true heart of the computation.
+ *         In particular, it contains the initialization of the first guess
+ *          (the geometrical positions of the CRTBP libration points)
+ *          + the differential corrector.
  *         - After lpdyneq, the resulting initial conditions are integrated and plotted on a full orbit.
  *         - Finally, a test of the periodicity of the orbit is performed, via the computation of the error |y(0) - y(T)|.
  *         - If isStored is true, the results (x(t), y(t)) in synodical coordinates are stored in txt files of the form: "./plot/QBCP/DYNEQ/DYNEQ_QBCP_EM_L1.txt".
  **/
 void compute_dyn_eq_lib_point(QBCP_L &qbcp_l, int isStored)
 {
-    //===================================================================================
+    //====================================================================================
     // 1. Initialization
-    //===================================================================================
-    //-------------------------------------------------
+    //====================================================================================
+    //------------------------------------------------------------------------------------
     //Plotting devices
-    //-------------------------------------------------
-    char ch;            //Used to close the gnuplot windows at the very end of the program
+    //------------------------------------------------------------------------------------
     gnuplot_ctrl  *h1;
     h1 = gnuplot_init();
 
-    //-------------------------------------------------
+    //------------------------------------------------------------------------------------
     // Integration tools
     // Initial vector field include nonlinear variationnal equations
     // to get the periodic orbit
-    //-------------------------------------------------
+    //------------------------------------------------------------------------------------
     //System
     gsl_odeiv2_system sys;
     sys.function      = qbcp_l.isNormalized? qbfbp_vfn_varnonlin:qbfbp_vf;
@@ -58,9 +61,9 @@ void compute_dyn_eq_lib_point(QBCP_L &qbcp_l, int isStored)
     string f_norm   = qbcp_l.isNormalized?"_NC":"";
     string filename = "plot/"+f_model+"/DYNEQ/DYNEQ_"+f_model+"_"+f_csys+"_"+f_li+f_norm+".txt";
 
-    //===================================================================================
+    //====================================================================================
     // 2. Display
-    //===================================================================================
+    //====================================================================================
     cout << endl;
     cout << "===============================================" << endl;
     cout << "Computation of a dynamical equivalent of a     " << endl;
@@ -72,44 +75,70 @@ void compute_dyn_eq_lib_point(QBCP_L &qbcp_l, int isStored)
     cout << " - Saved in: " << filename << endl;
     cout << "===============================================" << endl;
 
-    //===================================================================================
-    // 3. Differential correction to get the dynamical equivalent of the libration point (lpdyneq)
-    //===================================================================================
+    //====================================================================================
+    // 3. Single shooting to get the dynamical equivalent of the libration point (lpdyneq)
+    //====================================================================================
+    cout << "First, a single shooting procedure is used.    " << endl;
+    cout << "===============================================" << endl;
     double y0[42];
-    lpdyneq(d, y0, h1);
+    lpdyneq(d, y0);
 
-    //===================================================================================
+    //====================================================================================
     // 4. Plot & Print in file if necessary
-    //===================================================================================
-    int Npoints = 5000;
-    //Building the solution and printing in file
-    odePlot2(y0, 42, qbcp_l.us.T, d, h1, Npoints, 6, qbcp_l.isNormalized, isStored, filename.c_str());
+    //====================================================================================
+    int Npoints = 500;
 
-    //===================================================================================
-    // 5. Periodicity condition
-    //===================================================================================
+    //Building the solution and printing in file
+    odePlot2(y0, 42, qbcp_l.us.T, d, h1, Npoints, 6, qbcp_l.isNormalized, isStored, "From single shooting", filename.c_str());
+
+    //====================================================================================
+    // 5. Periodicity condition for single shooting
+    //====================================================================================
     periodicity_condition(y0, 42, 6, qbcp_l.us.T, d, qbcp_l.isNormalized);
 
+    //====================================================================================
+    // 6. Multiple shooting
+    //====================================================================================
+    int M = 16;
+    cout << "Second, a multiple shooting procedure is used,  " << endl;
+    cout << "with " << 16 << " patch points.                 " << endl;
+    cout << " Note that the multiple shooting procedure      " << endl;
+    cout << " is used here only for the sake of completeness." << endl;
+    cout << " In particular, it is not used in nfo2.cpp      " << endl;
+    cout << " since it did not improve the results.          " << endl;
+    cout << "=============================================== " << endl;
+    double **ymd  = dmatrix(0, 41, 0, M);
+    double *tmd   = dvector(0, M);
 
-    printf("Press ENTER to close the gnuplot window(s)\n");
-    scanf("%c",&ch);
+    //Building the patch points
+    lpdyneq_patch_points(y0, d, qbcp_l.us.T, ymd, tmd, M);
+
+    //Multiple shooting procedure
+    lpdyneq_multiple_shooting(ymd, tmd, ymd, tmd, d, 42, M, 1e-14, false, h1, false);
+
+    //Plot
+    odePlotvec(ymd, tmd, 42, M, d, h1, Npoints, 3, true, "From multiple shooting");
+
+    //====================================================================================
+    // 7. Close window
+    //====================================================================================
+    pressEnter(true, "Press ENTER to close the gnuplot window(s)\n");
     gnuplot_close(h1);
 }
 
 /**
  *  \brief Main routine for the computation of the dynamical equivalent to the Libration points.
  *         The results are given in the form of the initial conditions (42 dimensions) updated in the array y0[].
- *         The resulting orbit is plotted via the handle gnuplot_ctrl *h1.
  *
  *          €€TODO: BCP case is a work in progress. works only for EML1, in NC coordinates.
  **/
-void lpdyneq(gsl_odeiv2_driver *d, double y0[], gnuplot_ctrl *h1)
+void lpdyneq(gsl_odeiv2_driver *d, double y0[])
 {
-    //==============================================================================
+    //====================================================================================
     // 0. Misc init.
-    //==============================================================================
+    //====================================================================================
     //Settings for iostd
-    coutlp();
+    Config::configManager().coutlp();
 
     //Retrieving the parameters
     QBCP_L* qbp      = (QBCP_L *) d->sys->params;
@@ -117,57 +146,22 @@ void lpdyneq(gsl_odeiv2_driver *d, double y0[], gnuplot_ctrl *h1)
     int li           =  qbp->cs.li;
     double tend      =  qbp->us.T;
 
-    //==============================================================================
+    //====================================================================================
     // 1. Initial guess
-    //==============================================================================
+    //====================================================================================
     //Position & Velocity
-    double yv[6], yf[6];
+    double yv[6];
 
-    //--------------------
+    //------------------------------------------------------------------------------------
     //Approximated position from CR3BP
-    //--------------------
+    //------------------------------------------------------------------------------------
     if(isNormalized)
     {
-        //Approximated position from CR3BP
-        for(int i =0; i<6; i++) yv[i] = 0.0;
-        switch(li) //note that the positions are inversed in the cr3bp structure (US convention).
-        {
-        case 1:
-            yv[0] = -SEML.cs.cr3bp.l1.position[0];
-            break;
-        case 2:
-            yv[0] = -SEML.cs.cr3bp.l2.position[0];
-            break;
-        case 3:
-            yv[0] = -SEML.cs.cr3bp.l3.position[0];
-            break;
-        }
-
-        //Results are set in NC coordinates (normalized)
-        switch(qbp->coordsys)
-        {
-        case F_EM:
-        {
-            //To momenta
-            EMvtoEMm(0.0, yv, yf, qbp);
-            //To NC
-            EMtoNC(0.0, yf, y0, qbp);
-            break;
-        }
-
-        case F_SEM:
-        {
-            //To momenta
-            SEMvtoSEMm(0.0, yv, yf, qbp);
-            //To NC
-            SEMtoNC(0.0, yf, y0, qbp);
-            break;
-        }
-
-        }
+        //Approximated position from CR3BP: null vector
+        for(int i =0; i<6; i++) y0[i] = 0.0;
 
         //€€TODO: BCP case is a work in progress. works only for EML1
-        if(qbp->model == M_BCP && qbp->coordsys == F_EM && qbp->li_EM == 1)
+        if(qbp->model == Csts::BCP && qbp->coordsys == Csts::EM && qbp->li_EM == 1)
         {
             //Forced IC
             y0[0] = +4.584016186756542e-03;
@@ -198,14 +192,14 @@ void lpdyneq(gsl_odeiv2_driver *d, double y0[], gnuplot_ctrl *h1)
 
         switch(SEML.coordsys)
         {
-        case F_EM:
+        case Csts::EM:
         {
             //To momenta
             EMvtoEMm(0.0, yv, y0, qbp);
             break;
         }
 
-        case F_SEM:
+        case Csts::SEM:
         {
             //To momenta
             SEMvtoSEMm(0.0, yv, y0, qbp);
@@ -215,6 +209,9 @@ void lpdyneq(gsl_odeiv2_driver *d, double y0[], gnuplot_ctrl *h1)
         }
     }
 
+    //------------------------------------------------------------------------------------
+    // STM is appened to y0 (STM = eye(6) at t = t0)
+    //------------------------------------------------------------------------------------
     //Identity matrix eye(6)
     gsl_matrix *Id = gsl_matrix_calloc(6,6);
     gsl_matrix_set_identity (Id);
@@ -222,33 +219,32 @@ void lpdyneq(gsl_odeiv2_driver *d, double y0[], gnuplot_ctrl *h1)
     //Storing eye(6) into the initial vector
     gslc_matrixToVector(y0, Id, 6, 6, 6);
 
-    //==============================================================================
+    //====================================================================================
     // 2. Differential correction scheme
-    //==============================================================================
+    //====================================================================================
     //Initial IC
     cout << "lpdyneq. initial IC:" << endl;
     for(int i =0; i < 6; i++) cout << y0[i] << endl;
 
-    double prec = 5e-15;
-    //if(!isNormalized) prec *= qbp->cs.gamma;
-    if(qbp->model != M_ERTBP)
+    double prec = 2e-14;
+    if(qbp->model != Csts::ERTBP)
     {
         cout << "lpdyneq. Starting differential correction..." << endl;
         differential_correction(y0, 0.5*tend, prec, d, 42, 0);
         cout << "lpdyneq. End of differential correction." << endl;
     }
 
-    //==============================================================================
+    //====================================================================================
     // 3. Print result
-    //==============================================================================
+    //====================================================================================
     //Final IC
     cout << "lpdyneq. final IC:" << endl;
     for(int i =0; i<6; i++) cout << y0[i] << endl;
 }
 
-//==============================================================================
+//========================================================================================
 // Dynamical equivalents via continuation procedures
-//==============================================================================
+//========================================================================================
 /**
  *  \brief Computation of the dynamical equivalents of the libration points via continuation between two models. WORK IN PROGRESS.
  *         This routine make use of a pseudo-arclength continuation to perform a continuation procedure from the dynamical equivalent
@@ -279,9 +275,9 @@ void lpdyneq_cont_2(gsl_odeiv2_driver *d, gsl_odeiv2_control * loose_control, gs
     gnuplot_set_xlabel(h2, (char*) "X [synodical coordinates]");
     gnuplot_set_ylabel(h2, (char*) "Epsilon (continuation)");
 
-    //-------------------------------------------------
+    //------------------------------------------------------------------------------------
     //Retrieving the parameters
-    //-------------------------------------------------
+    //------------------------------------------------------------------------------------
     QBCP_I* qbpi     =  (QBCP_I *) d->sys->params;
     QBCP_L* qbp1     =  &qbpi->model1;              //First model, full model when qpbi->epsilon = 0.0, at the beginning of the process.
     QBCP_L* qbp2     =  &qbpi->model2;              //First model, full model when qpbi->epsilon = 1.0, at the end of the process.
@@ -290,9 +286,9 @@ void lpdyneq_cont_2(gsl_odeiv2_driver *d, gsl_odeiv2_control * loose_control, gs
     //Full period of the Sun
     double tend = 2*M_PI/qbp2->us.n;
 
-    //-------------------------------------------------
+    //------------------------------------------------------------------------------------
     // Evaluate the alphas
-    //-------------------------------------------------
+    //------------------------------------------------------------------------------------
     double alphaf[8];
     evaluateCoef(alphaf, 0.0, qbp1->us.n,  qbp1->nf, qbp1->cs.coeffs, 8);
 
@@ -301,17 +297,17 @@ void lpdyneq_cont_2(gsl_odeiv2_driver *d, gsl_odeiv2_control * loose_control, gs
     //============================================================
     //CR3BPs
     CR3BP EM, SE;
-    init_CR3BP(&EM, EARTH, MOON);
-    init_CR3BP(&SE, SUN, EARTH_AND_MOON);
+    init_CR3BP(&EM, Csts::EARTH, Csts::MOON);
+    init_CR3BP(&SE, Csts::SUN, Csts::EARTH_AND_MOON);
 
-    //-------------------------------------------------
+    //------------------------------------------------------------------------------------
     //Period that we seek: To = fT*Ts
-    //-------------------------------------------------
+    //------------------------------------------------------------------------------------
     double fT = 0.5;
 
-    //-------------------------------------------------
+    //------------------------------------------------------------------------------------
     // Initial conditions
-    //-------------------------------------------------
+    //------------------------------------------------------------------------------------
     //Position & Velocity
     double yv[6];
     double yf[6];
@@ -320,7 +316,7 @@ void lpdyneq_cont_2(gsl_odeiv2_driver *d, gsl_odeiv2_control * loose_control, gs
     //Switch on the coordinate system
     switch(qbp1->coordsys)
     {
-    case F_EM:
+    case Csts::EM:
         switch(li)
         {
         case 1:
@@ -337,7 +333,7 @@ void lpdyneq_cont_2(gsl_odeiv2_driver *d, gsl_odeiv2_control * loose_control, gs
         EMvtoEMm(0.0, yv, yf, qbp1);
 
         break;
-    case F_SEM:
+    case Csts::SEM:
 
         switch(li)
         {
@@ -357,9 +353,9 @@ void lpdyneq_cont_2(gsl_odeiv2_driver *d, gsl_odeiv2_control * loose_control, gs
     }
 
 
-    //-------------------------------------------------
+    //------------------------------------------------------------------------------------
     //Transform into y0 if NC coordinates are used
-    //-------------------------------------------------
+    //------------------------------------------------------------------------------------
     if(isNormalized)
     {
         //To NC
@@ -371,9 +367,9 @@ void lpdyneq_cont_2(gsl_odeiv2_driver *d, gsl_odeiv2_control * loose_control, gs
         for(int i =0; i<6; i++) y0[i] = yf[i];
     }
 
-    //-------------------------------------------------
+    //------------------------------------------------------------------------------------
     // 36 variables for variational equations
-    //-------------------------------------------------
+    //------------------------------------------------------------------------------------
     //Identity matrix eye(6)
     gsl_matrix *Id = gsl_matrix_calloc(6,6);
     gsl_matrix_set_identity (Id);
@@ -381,10 +377,10 @@ void lpdyneq_cont_2(gsl_odeiv2_driver *d, gsl_odeiv2_control * loose_control, gs
     //Storing eye(6) into the initial vector
     gslc_matrixToVector(y0, Id, 6, 6, 6);
 
-    //-------------------------------------------------
+    //------------------------------------------------------------------------------------
     //The last 6 components of y0 contain
     // the variational equations for epsilon
-    //-------------------------------------------------
+    //------------------------------------------------------------------------------------
     for(int i = 42; i< 48; i++) y0[i] = 0.0;
 
     //============================================================
@@ -551,7 +547,7 @@ void lpdyneq_cont_2(gsl_odeiv2_driver *d, gsl_odeiv2_control * loose_control, gs
  *  This routine makes use of the subroutine lpdyneq_cont_2 to perform a continuation procedure from the dynamical equivalent
  *         computed in a from_model to its counterpart in a to_model.
  */
-void continuation_dyn_eq_lib_point(QBCP_L &qbcp_l, int from_model, int to_model, int isStored)
+void continuation_dyn_eq_lib_point(QBCP_L &qbcp_l, int from_model, int to_model)
 {
     //============================================================
     // 1. Initialization
@@ -563,18 +559,18 @@ void continuation_dyn_eq_lib_point(QBCP_L &qbcp_l, int from_model, int to_model,
         return;
     }
 
-    //-------------------------------------------------
+    //------------------------------------------------------------------------------------
     //Structures for continuation
-    //-------------------------------------------------
+    //------------------------------------------------------------------------------------
     QBCP_I model;
     QBCP_L model1, model2;
-    init_QBCP_I(&model, &model1, &model2, SUN, EARTH, MOON, qbcp_l.isNormalized, SEML.li_EM, SEML.li_SEM, 0, from_model, to_model, SEML.coordsys, SEML.pms);
+    init_QBCP_I(&model, &model1, &model2, Csts::SUN, Csts::EARTH, Csts::MOON, qbcp_l.isNormalized, SEML.li_EM, SEML.li_SEM, 0, from_model, to_model, SEML.coordsys, SEML.pms);
 
-    //-------------------------------------------------
+    //------------------------------------------------------------------------------------
     // Integration tools
     // Initial vector field include nonlinear variationnal equations
     // to get the periodic orbit
-    //-------------------------------------------------
+    //------------------------------------------------------------------------------------
     //System
     gsl_odeiv2_system sys;
     sys.function      = qbfbp_vfn_cont;
@@ -632,7 +628,7 @@ void lpdyneq_cont(gsl_odeiv2_driver *d, gsl_odeiv2_control * loose_control, gsl_
     //----------------------------------------------------------------------------------------------------------
     //CR3BPs
     CR3BP EM;
-    init_CR3BP(&EM, EARTH, MOON);
+    init_CR3BP(&EM, Csts::EARTH, Csts::MOON);
     //Position & Velocity
     double yv[6];
     double yf[6];
@@ -809,9 +805,9 @@ void lpdyneq_cont(gsl_odeiv2_driver *d, gsl_odeiv2_control * loose_control, gsl_
     for(int i =0; i<6; i++) cout << y0[i] << endl;
 }
 
-//==============================================================================
+//========================================================================================
 // Continuation procedures for resonant orbits. Ex: 2T/5 resonnance at EML1
-//==============================================================================
+//========================================================================================
 /**
  *  \brief Computation of resonant orbits via continuation between two models. WORK IN PROGRESS.
  *         This routine make use of a pseudo-arclength continuation to perform a continuation procedure from a resonant orbit
@@ -830,9 +826,9 @@ void res_orbit_cont(gsl_odeiv2_driver *d, gsl_odeiv2_control * loose_control, gs
     //Settings for iostd
     cout << std::showpos << setiosflags(ios::scientific)  << setprecision(15);
 
-    //-------------------------------------------------
+    //------------------------------------------------------------------------------------
     //Plotting devices
-    //-------------------------------------------------
+    //------------------------------------------------------------------------------------
     char ch;                //Used to close the gnuplot windows at the very end of the program
     gnuplot_ctrl  *h1, *h2;
     h1 = gnuplot_init();
@@ -845,9 +841,9 @@ void res_orbit_cont(gsl_odeiv2_driver *d, gsl_odeiv2_control * loose_control, gs
     gnuplot_set_xlabel(h2, (char*) "X [synodical coordinates]");
     gnuplot_set_ylabel(h2, (char*) "Epsilon (continuation)");
 
-    //-------------------------------------------------
+    //------------------------------------------------------------------------------------
     //Retrieving the parameters
-    //-------------------------------------------------
+    //------------------------------------------------------------------------------------
     QBCP_I* qbpi     =  (QBCP_I *) d->sys->params;
     QBCP_L* qbp1     =  &qbpi->model1;              //First model, full model when qpbi->epsilon = 0.0, at the beginning of the process.
     QBCP_L* qbp2     =  &qbpi->model2;              //First model, full model when qpbi->epsilon = 1.0, at the end of the process.
@@ -856,9 +852,9 @@ void res_orbit_cont(gsl_odeiv2_driver *d, gsl_odeiv2_control * loose_control, gs
     //Full period of the Sun
     double tend = 2*M_PI/qbp2->us.n;
 
-    //-------------------------------------------------
+    //------------------------------------------------------------------------------------
     // Evaluate the alphas
-    //-------------------------------------------------
+    //------------------------------------------------------------------------------------
     double alphaf[8];
     evaluateCoef(alphaf, 0.0, qbp1->us.n,  qbp1->nf, qbp1->cs.coeffs, 8);
 
@@ -866,9 +862,9 @@ void res_orbit_cont(gsl_odeiv2_driver *d, gsl_odeiv2_control * loose_control, gs
     //============================================================
     // 2. Initialization
     //============================================================
-    //-------------------------------------------------
+    //------------------------------------------------------------------------------------
     // Initial conditions + period of the resonant orbit
-    //-------------------------------------------------
+    //------------------------------------------------------------------------------------
     double yv[6];
     double yf[6];
     for(int i =0; i<6; i++) yv[i] = 0.0;
@@ -881,7 +877,7 @@ void res_orbit_cont(gsl_odeiv2_driver *d, gsl_odeiv2_control * loose_control, gs
     //Switch on the coordinate system
     switch(qbp1->coordsys)
     {
-    case F_EM:
+    case Csts::EM:
         //Switch on the libration point
         switch(li)
         {
@@ -903,15 +899,15 @@ void res_orbit_cont(gsl_odeiv2_driver *d, gsl_odeiv2_control * loose_control, gs
         EMvtoEMm(0.0, yv, yf, qbp1);
         break;
 
-    case F_SEM:
-        cout << "res_orbit_cont. F_SEM coordinate system is currently not supported. end." << endl;
+    case Csts::SEM:
+        cout << "res_orbit_cont. Csts::SEM coordinate system is currently not supported. end." << endl;
         return;
         break;
     }
 
-    //-------------------------------------------------
+    //------------------------------------------------------------------------------------
     //Transform into y0 if NC coordinates are used
-    //-------------------------------------------------
+    //------------------------------------------------------------------------------------
     if(isNormalized)
     {
         //To NC
@@ -923,9 +919,9 @@ void res_orbit_cont(gsl_odeiv2_driver *d, gsl_odeiv2_control * loose_control, gs
         for(int i =0; i<6; i++) y0[i] = yf[i];
     }
 
-    //-------------------------------------------------
+    //------------------------------------------------------------------------------------
     // 36 variables for variational equations
-    //-------------------------------------------------
+    //------------------------------------------------------------------------------------
     //Identity matrix eye(6)
     gsl_matrix *Id = gsl_matrix_calloc(6,6);
     gsl_matrix_set_identity (Id);
@@ -933,10 +929,10 @@ void res_orbit_cont(gsl_odeiv2_driver *d, gsl_odeiv2_control * loose_control, gs
     //Storing eye(6) into the initial vector
     gslc_matrixToVector(y0, Id, 6, 6, 6);
 
-    //-------------------------------------------------
+    //------------------------------------------------------------------------------------
     //The last 6 components of y0 contain
     // the variational equations for epsilon
-    //-------------------------------------------------
+    //------------------------------------------------------------------------------------
     for(int i = 42; i< 48; i++) y0[i] = 0.0;
 
     //============================================================
@@ -1112,32 +1108,32 @@ void res_orbit_cont(gsl_odeiv2_driver *d, gsl_odeiv2_control * loose_control, gs
  *                   - A 2T/5-resonant orbit at EML1
  *                   - A T/2-resonant orbit at EML2
  */
-void continuation_res_orbit(QBCP_L &qbcp_l, int from_model, int to_model, int isStored)
+void continuation_res_orbit(QBCP_L &qbcp_l, int from_model, int to_model)
 {
     //============================================================
     // 1. Initialization
     //============================================================
-    //-------------------------------------------------
+    //------------------------------------------------------------------------------------
     //Model must be normalized.
-    //-------------------------------------------------
+    //------------------------------------------------------------------------------------
     if(!qbcp_l.isNormalized)
     {
         cout << "continuation_res_orbit. Warning: selected model is not normalized. Premature ending." << endl;
         return;
     }
 
-    //-------------------------------------------------
+    //------------------------------------------------------------------------------------
     //Structures for continuation
-    //-------------------------------------------------
+    //------------------------------------------------------------------------------------
     QBCP_I model;
     QBCP_L model1, model2;
-    init_QBCP_I(&model, &model1, &model2, SUN, EARTH, MOON, qbcp_l.isNormalized, SEML.li_EM, SEML.li_SEM, 0, from_model, to_model, SEML.coordsys, SEML.pms);
+    init_QBCP_I(&model, &model1, &model2, Csts::SUN, Csts::EARTH, Csts::MOON, qbcp_l.isNormalized, SEML.li_EM, SEML.li_SEM, 0, from_model, to_model, SEML.coordsys, SEML.pms);
 
-    //-------------------------------------------------
+    //------------------------------------------------------------------------------------
     // Integration tools
     // Initial vector field include nonlinear variationnal equations
     // to get the periodic orbit
-    //-------------------------------------------------
+    //------------------------------------------------------------------------------------
     //System
     gsl_odeiv2_system sys;
     sys.function      = qbfbp_vfn_cont;
@@ -1162,9 +1158,9 @@ void continuation_res_orbit(QBCP_L &qbcp_l, int from_model, int to_model, int is
     res_orbit_cont(d, loose_control, hard_control, y0c);
 }
 
-//==============================================================================
+//====================================================================================
 // Periodicity Condition
-//==============================================================================
+//====================================================================================
 /**
  *  \brief Test the periodicity condition y(0) = y(t1), with initial condition y, for the vector field contained in the driver d.
  *
@@ -1173,9 +1169,9 @@ void continuation_res_orbit(QBCP_L &qbcp_l, int from_model, int to_model, int is
  **/
 int periodicity_condition(const double y[], int Nvar, int NvarTest, double t1, gsl_odeiv2_driver *d, int isNormalized)
 {
-    //------------------------------------------
+    //------------------------------------------------------------------------------------
     // Init
-    //------------------------------------------
+    //------------------------------------------------------------------------------------
     gsl_odeiv2_driver_reset(d);
 
     //Retrieving the parameters
@@ -1192,15 +1188,15 @@ int periodicity_condition(const double y[], int Nvar, int NvarTest, double t1, g
     //First point in native coordinates
     for(int i=0; i< Nvar; i++) y0_nat[i] = ys[i];
 
-    //------------------------------------------
+    //------------------------------------------------------------------------------------
     //Integration
-    //------------------------------------------
+    //------------------------------------------------------------------------------------
     double t = 0.0;
     gsl_odeiv2_driver_apply (d, &t, t1, ys);
 
-    //------------------------------------------
+    //------------------------------------------------------------------------------------
     //Final state
-    //------------------------------------------
+    //------------------------------------------------------------------------------------
     // In system coordinates
     if(isNormalized) NCtoSYS(t, ys, y1, qbp);
     else for(int i=0; i< Nvar; i++) y1[i] = ys[i];
@@ -1210,9 +1206,9 @@ int periodicity_condition(const double y[], int Nvar, int NvarTest, double t1, g
 
     if(t1 <0) d->h = -d->h;
 
-    //------------------------------------------
+    //------------------------------------------------------------------------------------
     //Comparison
-    //------------------------------------------
+    //------------------------------------------------------------------------------------
     // Norm |y(0) - y(T)|
     double yNorm = 0.0, yNorm_nat = 0.0;
     for(int i = 0; i < NvarTest; i++) yNorm += (y0[i] - y1[i])*(y0[i] - y1[i]);
@@ -1220,21 +1216,59 @@ int periodicity_condition(const double y[], int Nvar, int NvarTest, double t1, g
     yNorm = sqrt(yNorm);
     yNorm_nat = sqrt(yNorm_nat);
 
-    cout << "----------------------------------------" << endl;
-    cout << "Periodicity condition:                  " << endl;
+    cout << "===============================================" << endl;
+    cout << "Periodicity condition after single shooting:   " << endl;
     cout << "Norm |y(0) - y(T)| in system coordinates = " << yNorm << endl;
     cout << "Norm |y(0) - y(T)| in native coordinates = " << yNorm_nat << endl;
-    cout << "----------------------------------------" << endl;
-
+    cout << "===============================================" << endl;
 
     return GSL_SUCCESS;
 }
 
 
 
-//==============================================================================
+//====================================================================================
 // Subroutines
-//==============================================================================
+//====================================================================================
+/**
+ *   \brief Computes M+1 patch points, indexed between 0 and M,
+ *          along the T-periodic orbit starting at y0 = [x0, y0, z0, vx0, vy0, vz0, eye(6)]
+ *          Each STM is initialized with the identity matrix.
+ **/
+void lpdyneq_patch_points(const double *y0, gsl_odeiv2_driver *d, double T, double **ym, double *tm, int M)
+{
+    //====================================================================================
+    //Initial conditions + eye(6)
+    //====================================================================================
+    double ys[42], t = 0.0;
+    for(int i = 0; i < 42; i++) ys[i] = y0[i];
+
+    //First patch point is y0
+    for(int i = 0; i < 42; i++) ym[i][0] = y0[i];
+    tm[0] = 0.0;
+
+    //====================================================================================
+    //Loop on the grid [1...M]
+    //====================================================================================
+    for(int k = 1; k <= M; k++)
+    {
+        //Time
+        tm[k] = 1.0*k*T/M;
+        gsl_odeiv2_driver_reset(d);
+
+        //Integration
+        gsl_odeiv2_driver_apply (d, &t, tm[k], ys);
+
+        //Storage in ym - each STM is initialized with the identity matrix
+        for(int i= 0; i < 6;  i++)  ym[i][k] = ys[i];
+        for(int i= 6; i < 42;  i++) ym[i][k] = y0[i];
+
+        //The STM is restarded: STM(tk) = eye(6);
+        for(int j=6; j<42; j++) ys[j] = y0[j];
+    }
+}
+
+
 /**
  *  \brief Inverse a 2x2 matrix. Used in lpdyneq_cont.
  **/

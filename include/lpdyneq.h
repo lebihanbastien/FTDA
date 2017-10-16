@@ -23,11 +23,10 @@ void compute_dyn_eq_lib_point(QBCP_L &qbcp_l, int isStored);
 /**
  *  \brief Main routine for the computation of the dynamical equivalent to the Libration points.
  *         The results are given in the form of the initial conditions (42 dimensions) updated in the array y0[].
- *         The resulting orbit is plotted via the handle gnuplot_ctrl *h1.
  *
  *          €€TODO: BCP case is a work in progress. works only for EML1, in NC coordinates.
  **/
-void lpdyneq(gsl_odeiv2_driver *d, double y0[], gnuplot_ctrl *h1);
+void lpdyneq(gsl_odeiv2_driver *d, double y0[]);
 
 //==============================================================================
 // Dynamical equivalents via continuation procedures
@@ -45,12 +44,12 @@ void lpdyneq_cont_2(gsl_odeiv2_driver *d, gsl_odeiv2_control * loose_control, gs
 /**
  *  \brief Continuation routine for the dynamical equivalents of the libration points.
  */
-void continuation_dyn_eq_lib_point(QBCP_L &qbcp_l, int from_model, int to_model, int isStored);
+void continuation_dyn_eq_lib_point(QBCP_L &qbcp_l, int from_model, int to_model);
 
 /**
  *  \brief Continuation routine for other orbits than the libration points.
  */
-void continuation_res_orbit(QBCP_L &qbcp_l, int from_model, int to_model, int isStored);
+void continuation_res_orbit(QBCP_L &qbcp_l, int from_model, int to_model);
 
 //------------------------------------------------------------------------------------------------------------
 // Periodicity Condition
@@ -67,6 +66,13 @@ int periodicity_condition(const double y[], int Nvar, int NvarTest, double t1, g
 //==============================================================================
 // Subroutines
 //==============================================================================
+/**
+ *   \brief Computes M+1 patch points, indexed between 0 and M,
+ *          along the T-periodic orbit starting at y0.
+ *          Each STM is initialized with the identity matrix.
+ **/
+void lpdyneq_patch_points(const double *y0, gsl_odeiv2_driver *d, double T, double **ym, double *tm, int M);
+
 /**
  *  \brief Inverse a 2x2 matrix. Used in lpdyneq_cont.
  **/

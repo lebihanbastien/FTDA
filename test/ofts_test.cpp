@@ -10,6 +10,8 @@
 #include "ofts_test.h"
 #define VAR 2.0
 
+using namespace std;
+
 /**
  * \fn void ofts_test()
  * \brief Main routine for Ofts class test.

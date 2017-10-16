@@ -22,6 +22,18 @@ extern "C"{
 #include "nrutil.h"
 }
 
+//----------------------------------------------------------------------------------------
+//          Multiple shooting
+//----------------------------------------------------------------------------------------
+/**
+ * \brief Multiple shooting scheme with no boundary conditions.
+ *        Contrary to multiple_shooting_gomez, no recursive scheme is used to compute the correction vector.
+ **/
+int lpdyneq_multiple_shooting(double** ymd, double* tmd, double** ymdn, double* tmdn,
+                              gsl_odeiv2_driver* d, int N, int mgs, double prec,
+                              int isPlotted, gnuplot_ctrl* h1, int strConv);
+
+
 //------------------------------------------------------------------------------------------------------------
 //Differential correction
 //------------------------------------------------------------------------------------------------------------
@@ -50,7 +62,6 @@ int differential_correction_deps(double ystart[], double t1, double eps_diff, gs
  *        The state is 7-dimensional. The last component is deps, where eps is the continuation parameter. DEPRECATED.
  **/
 int differential_correction_deps_mns(double ystart[], double nullvector[], double fvv[], double t1, double eps_diff, gsl_odeiv2_driver *d, int N, int isPlotted, int isFirst);
-
 /**
  *  \brief Performs a differential correction procedure on ystart in order to get a periodic orbit of period t1.
  *
@@ -71,7 +82,17 @@ int differential_correction_T(double ystart[], double t1, double eps_diff, gsl_o
  *  \brief Integrate the state y[] up to t = t1 on a Npoints grid, in either NC or SYS coordinates, and plot the corresponding result in SYS coordinates (e.g. EM or SEM coord.).
  *         Then the results are plotted on a temporary gnuplot window via the handle *h1. Print in txt files is included vis \c isStored integer.
  **/
-int odePlot2(const double y[], int N, double t1, gsl_odeiv2_driver *d, gnuplot_ctrl  *h1, int Npoints, int color, int isNormalized, int isStored, string filename);
+int odePlot2(const double y[], int N, double t1, gsl_odeiv2_driver *d,
+             gnuplot_ctrl  *h1, int Npoints, int color, int isNormalized, int isStored,
+             string legend, string filename);
+
+/**
+ *  \brief Integrate the states (ymdn**, tmdn*), in either NC or SYS coordinates,
+ *         and plot the corresponding result in SYS coordinates (e.g. EM or SEM coord.).
+ *         Then the results are plotted on a temporary gnuplot window via the handle *h1.
+ **/
+int odePlotvec(double **ymdn, double *tmdn, int N, int mgs, gsl_odeiv2_driver *d,
+               gnuplot_ctrl  *h1, int Npoints, int color, int isNormalized, string legend);
 
 //------------------------------------------------------------------------------------------------------------
 // ODE PLOT

@@ -554,7 +554,6 @@ void RCMtoNCbyTFC(const double st0[],
                   const int order,
                   const int ofs_order,
                   vector<Oftsc> &Wh,
-                  Ofsc &ofs,
                   matrix<Ofsc> &PC,
                   vector<Ofsc> &V,
                   double z1[],
@@ -603,7 +602,6 @@ void CCM8toNCbyTFC(const double s0d[],
                   const int order,
                   const int ofs_order,
                   vector<Oftsc> &Wh,
-                  Ofsc &ofs,
                   matrix<Ofsc> &PC,
                   vector<Ofsc> &V,
                   double z1[],
@@ -655,7 +653,6 @@ void CCMtoNCbyTFC(cdouble s0[],
                   const int order,
                   const int ofs_order,
                   vector<Oftsc> &Wh,
-                  Ofsc &ofs,
                   matrix<Ofsc> &PC,
                   vector<Ofsc> &V,
                   double z1[],
@@ -796,7 +793,7 @@ void testRCMtoNC()
     //RCM to NC with general routine
     RCMtoNC(st0, 1.0, SEML.us.n, order, ofs_order, CM, ofs, z1, false);
     //RCM to NC for QBCP
-    RCMtoNCbyTFC(st0, 1.0, SEML.us.n, order, ofs_order, CMh, ofs, PC, V, z1_QBCP, false);
+    RCMtoNCbyTFC(st0, 1.0, SEML.us.n, order, ofs_order, CMh, PC, V, z1_QBCP, false);
 
     //----------------------------------------------
     //Results
@@ -878,7 +875,7 @@ void pmProjTest(double si[4])
     // First test: NC projected in RCM
     //----------------------------------------
     //RCM to NC
-    RCMtoNCbyTFC(si, 1.0, SEML.us_em.n, OFTS_ORDER, OFS_ORDER, CMh, AUX, Mcoc, Vcoc, z, 1);
+    RCMtoNCbyTFC(si, 1.0, SEML.us_em.n, OFTS_ORDER, OFS_ORDER, CMh, Mcoc, Vcoc, z, 1);
 
     //NC proj in CCM
     double omega1 = cimag(Fh[0].getCoef(1,0)->ofs_getCoef(0));

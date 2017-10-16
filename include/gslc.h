@@ -28,17 +28,12 @@
 
 //Custom
 #include "parameters.h"
-
-using namespace std;
-
-#define STABLE_DIR_COMP 1
-#define STABLE_DIR_SYM 2
-#define STABLE_DIR_SINGLE 3
+#include "Config.h"
 
 
-//---------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 // Matrix and vectors
-//---------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 /**
  * \brief Transform a vector into a matrix with a given shift in the initial vector
  **/
@@ -59,9 +54,11 @@ void gslc_matrixToVector(double y[], const gsl_matrix *m, int rows, int columns,
  **/
 void gslc_complexMatrixToVector(double y[], const gsl_matrix_complex  *m, int rows, int columns, int shift);
 
-//---------------------------------------------------------------------------------------
+
+
+//----------------------------------------------------------------------------------------
 // Complex numbers
-//---------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 /**
  * \brief Create a gsl_complex from 2 doubles
  **/
@@ -77,9 +74,10 @@ gsl_complex gslc_complex(cdouble x);
  **/
 cdouble gslc_complex(gsl_complex c);
 
-//---------------------------------------------------------------------------------------
+
+//----------------------------------------------------------------------------------------
 // Printing a real matrix
-//---------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 /**
  * \brief Print a real matrix
  **/
@@ -95,9 +93,9 @@ void gslc_matrix_printf_approx(const gsl_matrix *M);
  **/
 void gslc_matrix_fprintf(const gsl_matrix *M, char* fileName);
 
-//---------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 // Printing a complex matrix
-//---------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 /**
  * \brief Print a complex matrix.
  **/
@@ -133,9 +131,9 @@ void gslc_matrix_complex_fprintf_pretty(const gsl_matrix_complex *M, char* fileN
  **/
 void gslc_matrix_complex_fprintf_real(const gsl_matrix_complex *M, char* fileName);
 
-//---------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 // Printing a complex vector
-//---------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 /**
  * \brief Print a complex vector into a txt file.
  **/
@@ -146,17 +144,17 @@ void gslc_vector_complex_fprintf(const gsl_vector_complex *V, char* fileName);
  **/
 void gslc_vector_complex_printf(const gsl_vector_complex *V);
 
-//---------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 // Printing a vector
-//---------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 /**
  * \brief Print a real vector.
  **/
 void gslc_vector_printf(const gsl_vector *V);
 
-//---------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 // Printing an eigensystem
-//---------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 /**
  * \brief Print an eigensystem with the eigenvalues given as a complex vector.
  **/
@@ -177,17 +175,17 @@ void gslc_eigensystem_fprintf(gsl_vector_complex *eval, gsl_matrix_complex *evec
  **/
 void gslc_eigensystem_fprintf(gsl_matrix_complex *eval, gsl_matrix_complex *evec, int M, char* fileName);
 
-//---------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 // Reading GSL objects
-//--------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 /**
  * \brief Read a complex vector from a txt file, obtained with the routine gslc_matrix_complex_fprintf(const gsl_matrix_complex *M, char* fileName).
  **/
-void glsc_matrix_complex_read(gsl_matrix_complex *M, string filename);
+void glsc_matrix_complex_read(gsl_matrix_complex *M, std::string filename);
 
-//---------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 // Views of a matrix
-//--------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 /**
  * \brief Set the kth column of the complex matrix M in the complex vector V using the GSL "views" structures.
  **/
@@ -204,9 +202,9 @@ void gslc_matrix_complex_row(gsl_vector_complex *V, gsl_matrix_complex *M, int k
 void gslc_matrix_complex_column_V(gsl_matrix_complex *M, gsl_vector_complex *V, int k);
 
 
-//---------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 // Misc manipulations
-//---------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 /**
  * \brief Gives the infinity norm of a complex matrix M
  **/
@@ -227,9 +225,9 @@ void gslc_matrix_complex_real(gsl_matrix *Mr, gsl_matrix_complex *M);
  **/
 void gslc_vector_complex_conjugate_memcpy(gsl_vector_complex *xc, gsl_vector_complex *xm);
 
-//---------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 // Specific routines for Monodromy and STM matrices manipulations
-//---------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 /**
  * \brief Delete one raw and one column of a given square GSL matrix
  **/
@@ -336,9 +334,41 @@ void gslc_matrix_complex_product_free(gsl_matrix_complex ** P, int M);
 gsl_matrix ** gslc_matrix_array_alloc(int size1, int size2, int M);
 
 /**
+ * \brief Initialize and return an array of GSL matrices
+ **/
+gsl_matrix** gslc_matrix_array_calloc(int size1, int size2, int M);
+
+/**
  * \brief Free a matrix as a product of real (DAT)
  *        NO shift in this routine, contrary to gslc_matrix_complex_product_alloc
  **/
 void gslc_matrix_array_free(gsl_matrix ** P, int M);
+
+
+//----------------------------------------------------------------------------------------
+// Utilitary routines for C vector are also grouped here
+//----------------------------------------------------------------------------------------
+/**
+ *  \brief Prints an array of double using cout.
+ **/
+void vector_printf(double *y, int n);
+
+/**
+ *  \brief Prints an array of complex double using cout.
+ **/
+void vector_complex_printf(cdouble *y, int n);
+
+/**
+ *  Euclidian norm computed on the first k components of a complex vector: \f$ ENorm(z_0, k) = \left( \sum_{p = 0}^{k-1}  z_0[p] ^2 \right)^{-1/2} \f$
+ **/
+double ENorm(cdouble z0[], int k);
+
+/**
+ *  Euclidian norm computed on the first k components of a double vector: \f$ ENorm(z_0, k) = \left( \sum_{p = 0}^{k-1}  z_0[p] ^2 \right)^{-1/2} \f$
+ **/
+double ENorm(double z0[], int k);
+
+
+
 
 #endif // GSLC_H_INCLUDED

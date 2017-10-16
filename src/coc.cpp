@@ -106,12 +106,12 @@ void tfts_initCOC(matrix<Ofsc> &P,
     //----------------------------
     //Switch RTBP/QBCP/BCP
     //----------------------------
-    if(qbcp_l.model == M_QBCP || qbcp_l.model == M_BCP)
+    if(qbcp_l.model == Csts::QBCP || qbcp_l.model == Csts::BCP)
     {
         //Recovering the data: matrix P
-        for(int i = 0; i < NV ; i++) for(int j = 0; j < NV ; j++) readCOC(*P.getCA(i,j), F_COC+"P",  i+1, j+1);
+        for(int i = 0; i < Csts::NV ; i++) for(int j = 0; j < Csts::NV ; j++) readCOC(*P.getCA(i,j), F_COC+"P",  i+1, j+1);
         //Recovering the data: matrix Q
-        for(int i = 0; i < NV ; i++) for(int j = 0; j < NV ; j++) readCOC(*Q.getCA(i,j), F_COC+"Q",  i+1, j+1);
+        for(int i = 0; i < Csts::NV ; i++) for(int j = 0; j < Csts::NV ; j++) readCOC(*Q.getCA(i,j), F_COC+"Q",  i+1, j+1);
 
         //Recovering the data: vector V
         //V = [G1_11 G1_12 0 G1_21 G1_22 0]^T
@@ -198,7 +198,7 @@ void tfts_initCOC(matrix<Ofsc> &P,
                 gsl_matrix_set(Ps, i, j, creal(P.getCoef(i,j).ofs_getCoef(0)));
             }
         }
-        realSymplecticMatrixTest(Ps, INVERSE_GSL);
+        realSymplecticMatrixTest(Ps, Csts::INVERSE_GSL);
         gsl_matrix_free(Ps);
         //*/
 
@@ -206,12 +206,12 @@ void tfts_initCOC(matrix<Ofsc> &P,
         //Q = inv(P) (gsl lib)
         //--------------------
         int s;
-        gsl_matrix* Pc   = gsl_matrix_calloc (NV, NV);
-        gsl_matrix* Qc   = gsl_matrix_calloc (NV, NV);
-        gsl_permutation * p6 = gsl_permutation_alloc (NV);
+        gsl_matrix* Pc   = gsl_matrix_calloc (Csts::NV, Csts::NV);
+        gsl_matrix* Qc   = gsl_matrix_calloc (Csts::NV, Csts::NV);
+        gsl_permutation * p6 = gsl_permutation_alloc (Csts::NV);
 
         //Init Pc
-        for(int i =0; i < NV; i++) for(int j =0; j < NV; j++) gsl_matrix_set(Pc, i, j, creal(P.getCA(i,j)->ofs_getCoef(0)));
+        for(int i =0; i < Csts::NV; i++) for(int j =0; j < Csts::NV; j++) gsl_matrix_set(Pc, i, j, creal(P.getCA(i,j)->ofs_getCoef(0)));
         //Use of GSL library
         gsl_linalg_LU_decomp (Pc, p6, &s);
         gsl_linalg_LU_invert (Pc, p6, Qc);
@@ -220,13 +220,13 @@ void tfts_initCOC(matrix<Ofsc> &P,
         //--------------------
         // Init Q
         //--------------------
-        for(int i =0; i < NV; i++) for(int j =0; j < NV; j++) Q.setCoef(gsl_matrix_get(Qc, i, j), i, j);
+        for(int i =0; i < Csts::NV; i++) for(int j =0; j < Csts::NV; j++) Q.setCoef(gsl_matrix_get(Qc, i, j), i, j);
 
 
         double gamma = qbcp_l.cs.gamma;
         switch(qbcp_l.coordsys)
         {
-        case F_EM:
+        case Csts::EM:
             //Sun does not exist
             Xs[0].setCoef(  0.0+0.0*I, 0);
             Xs[1].setCoef(  0.0+0.0*I, 0);
@@ -255,7 +255,7 @@ void tfts_initCOC(matrix<Ofsc> &P,
             }
             break;
 
-        case F_SEM:
+        case Csts::SEM:
             //Moon does not exist
             Xm[0].setCoef(  0.0+0.0*I, 0);
             Xm[1].setCoef(  0.0+0.0*I, 0);
@@ -346,7 +346,7 @@ void tfts_initCOC(matrix<Ofsc> &P,
     //----------------------------
     // Building Vdot
     //----------------------------
-    for(int i = 0; i < NV; i++)
+    for(int i = 0; i < Csts::NV; i++)
     {
         Vdot[i].dot(V[i], qbcp_l.us.n);
     }
@@ -409,12 +409,12 @@ void initCOC(matrix<Ofsc> &P,
     //----------------------------
     //Switch RTBP/QBCP/BCP
     //----------------------------
-    if(qbcp_l.model == M_QBCP || qbcp_l.model == M_BCP)
+    if(qbcp_l.model == Csts::QBCP || qbcp_l.model == Csts::BCP)
     {
         //Recovering the data: matrix P
-        for(int i = 0; i < NV ; i++) for(int j = 0; j < NV ; j++) readCOC(*P.getCA(i,j), F_COC+"P",  i+1, j+1);
+        for(int i = 0; i < Csts::NV ; i++) for(int j = 0; j < Csts::NV ; j++) readCOC(*P.getCA(i,j), F_COC+"P",  i+1, j+1);
         //Recovering the data: matrix Q
-        for(int i = 0; i < NV ; i++) for(int j = 0; j < NV ; j++) readCOC(*Q.getCA(i,j), F_COC+"Q",  i+1, j+1);
+        for(int i = 0; i < Csts::NV ; i++) for(int j = 0; j < Csts::NV ; j++) readCOC(*Q.getCA(i,j), F_COC+"Q",  i+1, j+1);
 
         //Recovering the data: vector V
         //V = [G1_11 G1_12 0 G1_21 G1_22 0]^T
@@ -501,7 +501,7 @@ void initCOC(matrix<Ofsc> &P,
                 gsl_matrix_set(Ps, i, j, creal(P.getCoef(i,j).ofs_getCoef(0)));
             }
         }
-        realSymplecticMatrixTest(Ps, INVERSE_GSL);
+        realSymplecticMatrixTest(Ps, Csts::INVERSE_GSL);
         gsl_matrix_free(Ps);
         //*/
 
@@ -509,12 +509,12 @@ void initCOC(matrix<Ofsc> &P,
         //Q = inv(P) (gsl lib)
         //--------------------
         int s;
-        gsl_matrix* Pc   = gsl_matrix_calloc (NV, NV);
-        gsl_matrix* Qc   = gsl_matrix_calloc (NV, NV);
-        gsl_permutation * p6 = gsl_permutation_alloc (NV);
+        gsl_matrix* Pc   = gsl_matrix_calloc (Csts::NV, Csts::NV);
+        gsl_matrix* Qc   = gsl_matrix_calloc (Csts::NV, Csts::NV);
+        gsl_permutation * p6 = gsl_permutation_alloc (Csts::NV);
 
         //Init Pc
-        for(int i =0; i < NV; i++) for(int j =0; j < NV; j++) gsl_matrix_set(Pc, i, j, creal(P.getCA(i,j)->ofs_getCoef(0)));
+        for(int i =0; i < Csts::NV; i++) for(int j =0; j < Csts::NV; j++) gsl_matrix_set(Pc, i, j, creal(P.getCA(i,j)->ofs_getCoef(0)));
         //Use of GSL library
         gsl_linalg_LU_decomp (Pc, p6, &s);
         gsl_linalg_LU_invert (Pc, p6, Qc);
@@ -523,13 +523,13 @@ void initCOC(matrix<Ofsc> &P,
         //--------------------
         // Init Q
         //--------------------
-        for(int i =0; i < NV; i++) for(int j =0; j < NV; j++) Q.setCoef(gsl_matrix_get(Qc, i, j), i, j);
+        for(int i =0; i < Csts::NV; i++) for(int j =0; j < Csts::NV; j++) Q.setCoef(gsl_matrix_get(Qc, i, j), i, j);
 
 
         double gamma = qbcp_l.cs.gamma;
         switch(qbcp_l.coordsys)
         {
-        case F_EM:
+        case Csts::EM:
             //Sun does not exist
             Xs[0].setCoef(  0.0+0.0*I, 0);
             Xs[1].setCoef(  0.0+0.0*I, 0);
@@ -558,7 +558,7 @@ void initCOC(matrix<Ofsc> &P,
             }
             break;
 
-        case F_SEM:
+        case Csts::SEM:
             //Moon does not exist
             Xm[0].setCoef(  0.0+0.0*I, 0);
             Xm[1].setCoef(  0.0+0.0*I, 0);
@@ -649,7 +649,7 @@ void initCOC(matrix<Ofsc> &P,
     //----------------------------
     // Building Vdot
     //----------------------------
-    for(int i = 0; i < NV; i++)
+    for(int i = 0; i < Csts::NV; i++)
     {
         Vdot[i].dot(V[i], qbcp_l.us.n);
     }
@@ -921,12 +921,12 @@ void initCOC_OFS(matrix<Ofsc> &P,
     //Retrieve folder
     string F_COC = qbcp_l.cs.F_COC;
     //Switch RTBP/QBCP
-    if(qbcp_l.model == M_QBCP || qbcp_l.model == M_BCP)
+    if(qbcp_l.model == Csts::QBCP || qbcp_l.model == Csts::BCP)
     {
         //Recovering the data: matrix P
-        for(int i = 0; i < NV ; i++) for(int j = 0; j < NV ; j++) readCOC(*P.getCA(i,j), F_COC+"P", i+1, j+1);
+        for(int i = 0; i < Csts::NV ; i++) for(int j = 0; j < Csts::NV ; j++) readCOC(*P.getCA(i,j), F_COC+"P", i+1, j+1);
         //Recovering the data: matrix Q
-        for(int i = 0; i < NV ; i++) for(int j = 0; j < NV ; j++) readCOC(*Q.getCA(i,j), F_COC+"Q", i+1, j+1);
+        for(int i = 0; i < Csts::NV ; i++) for(int j = 0; j < Csts::NV ; j++) readCOC(*Q.getCA(i,j), F_COC+"Q", i+1, j+1);
 
         //Recovering the data: vector V
         //V = [G1_11 G1_12 0 G1_21 G1_22 0]^T
@@ -1000,12 +1000,12 @@ void initCOC_OFS(matrix<Ofsc> &P,
         //Q = inv(P) (gsl lib)
         //--------------------
         int s;
-        gsl_matrix* Pc   = gsl_matrix_calloc (NV, NV);
-        gsl_matrix* Qc   = gsl_matrix_calloc (NV, NV);
-        gsl_permutation * p6 = gsl_permutation_alloc (NV);
+        gsl_matrix* Pc   = gsl_matrix_calloc (Csts::NV, Csts::NV);
+        gsl_matrix* Qc   = gsl_matrix_calloc (Csts::NV, Csts::NV);
+        gsl_permutation * p6 = gsl_permutation_alloc (Csts::NV);
 
         //Init Pc
-        for(int i =0; i < NV; i++) for(int j =0; j < NV; j++) gsl_matrix_set(Pc, i, j, creal(P.getCA(i,j)->ofs_getCoef(0)));
+        for(int i =0; i < Csts::NV; i++) for(int j =0; j < Csts::NV; j++) gsl_matrix_set(Pc, i, j, creal(P.getCA(i,j)->ofs_getCoef(0)));
         //Use of GSL library
         gsl_linalg_LU_decomp (Pc, p6, &s);
         gsl_linalg_LU_invert (Pc, p6, Qc);
@@ -1014,7 +1014,7 @@ void initCOC_OFS(matrix<Ofsc> &P,
         //--------------------
         // Init Q
         //--------------------
-        for(int i =0; i < NV; i++) for(int j =0; j < NV; j++) Q.setCoef(gsl_matrix_get(Qc, i, j), i, j);
+        for(int i =0; i < Csts::NV; i++) for(int j =0; j < Csts::NV; j++) Q.setCoef(gsl_matrix_get(Qc, i, j), i, j);
 
 
         //--------------------
@@ -1091,7 +1091,7 @@ void applyModifiedCOC_OFS(matrix<Ofsc> &P, vector<Ofsc> &V, vector<Ofsc> &zIn, v
     Ofsc x2(OFS_ORDER);
     //-----------------------------------------
 
-    for(int i = 0; i < NV ; i ++)
+    for(int i = 0; i < Csts::NV ; i ++)
     {
         if(i== 2 || i == 5) //z variables are decoupled from the others (beware of the C++ shift!)
         {
@@ -1313,11 +1313,11 @@ void testCOC()
     // Initialization of the COC
     //------------------------------------------
     //The matrix P of the c.o.c. (Floquet part)
-    matrix<Ofsc> P(NV,NV);
-    matrix<Ofsc> Q(NV,NV);
+    matrix<Ofsc> P(Csts::NV,Csts::NV);
+    matrix<Ofsc> Q(Csts::NV,Csts::NV);
 
     //The vector V of the c.o.c. (Translation part)
-    vector<Ofsc> V(NV);
+    vector<Ofsc> V(Csts::NV);
 
     //The vectors Xe, Xm, Xs, modified position of the primaries used to compute the potential
     vector<Ofsc> Xe(3);
@@ -1330,13 +1330,13 @@ void testCOC()
     Ofsc ILs(OFS_ORDER);
 
     //PC=P(theta)*C
-    matrix<Ofsc> PC(NV,NV);
+    matrix<Ofsc> PC(Csts::NV,Csts::NV);
     //PCdot=dot(P*C)=dot(P)C
-    matrix<Ofsc> PCdot(NV,NV);
+    matrix<Ofsc> PCdot(Csts::NV,Csts::NV);
     //CQ=Cinv*Pinv=inv(PC)
-    matrix<Ofsc> CQ(NV,NV);
+    matrix<Ofsc> CQ(Csts::NV,Csts::NV);
     //Vdot=dot(V)
-    vector<Ofsc> Vdot(NV);
+    vector<Ofsc> Vdot(Csts::NV);
 
     //Init routine
     initCOC(P, Q, PC, PCdot, CQ, Xe, Xm, Xs, V, Vdot, ILe, ILm, ILs, SEML);
@@ -1351,13 +1351,13 @@ void testCOC()
 
     double maxAbs[2];
     double xMax = 1;          //arbitrary value
-    vector<Ofsc> Xo(NV);      //coordinates in NC framework
-    vector<Ofsc> Xoc(NV);     //coordinates in diagonalized framework
-    vector<Ofsc> Xod(NV);     //coordinates in diagonalized framework
-    vector<Ofsc> DeltaXo(NV); //coordinates in diagonalized framework
+    vector<Ofsc> Xo(Csts::NV);      //coordinates in NC framework
+    vector<Ofsc> Xoc(Csts::NV);     //coordinates in diagonalized framework
+    vector<Ofsc> Xod(Csts::NV);     //coordinates in diagonalized framework
+    vector<Ofsc> DeltaXo(Csts::NV); //coordinates in diagonalized framework
 
     //All coordinates to xMax
-    for(int i = 0; i < NV; i++) Xoc[i].setCoef(xMax+0.0*I, 0);
+    for(int i = 0; i < Csts::NV; i++) Xoc[i].setCoef(xMax+0.0*I, 0);
 
     cout << " All coordinates in diagonalized framework are set to " << xMax << endl;
     cout << " We apply the COC and the COC^{-1} " << endl;
@@ -1372,7 +1372,7 @@ void testCOC()
     applyInvCOC_OFS(Q, V, Xo, Xod);   //Xod = COC^(-1)(Xo)
 
     //Checking the numerical discrepancy
-    for(int i = 0; i<NV; i++)
+    for(int i = 0; i<Csts::NV; i++)
     {
 
         DeltaXo[i].ofs_fsum(Xoc[i], 1.0+0.0*I, Xod[i], -1.0+0.0*I);
@@ -1397,14 +1397,14 @@ void testCOC()
     cout << " Discrepancy at order zero and maximal value:"       << endl;
     cout << " Component      Order zero          Max coef"        << endl;
 
-    vector<Oftsc> W(NV);       //coordinates in NC framework
-    vector<Oftsc> Wc(NV);      //coordinates in diagonalized framework
-    vector<Oftsc> Wd(NV);      //coordinates in diagonalized framework
-    vector<Oftsc> DeltaW(NV);  //coordinates in diagonalized framework
-    vector<Oftsc> ztp(NV);     //spare vector<OFTS>
+    vector<Oftsc> W(Csts::NV);       //coordinates in NC framework
+    vector<Oftsc> Wc(Csts::NV);      //coordinates in diagonalized framework
+    vector<Oftsc> Wd(Csts::NV);      //coordinates in diagonalized framework
+    vector<Oftsc> DeltaW(Csts::NV);  //coordinates in diagonalized framework
+    vector<Oftsc> ztp(Csts::NV);     //spare vector<OFTS>
 
     //All components set to random coefficients
-    for(int i = 0; i < NV; i++) Wc[i].setRandomCoefs();
+    for(int i = 0; i < Csts::NV; i++) Wc[i].setRandomCoefs();
 
     //Applying the COC
     applyCOC(PC,  V,  Wc, W);          //order zero is added
@@ -1413,7 +1413,7 @@ void testCOC()
     //applyInvCOC(Q, V, W, Wd, ztp);     //Xod = COC^(-1)(Xo)
 
     //Checking the numerical discrepancy
-    for(int i = 0; i<NV; i++)
+    for(int i = 0; i<Csts::NV; i++)
     {
         DeltaW[i].ofts_fsum_u(Wc[i], 1.0+0.0*I, Wd[i], -1.0+0.0*I);
         DeltaW[i].getCoef(0, 0)->getCoefMaxNorm(maxAbs);
@@ -1434,10 +1434,10 @@ void testDotCOC()
     // Initialization of the COC
     //------------------------------------------
     //The matrix P of the c.o.c. (Floquet part)
-    matrix<Ofsc> P(NV,NV);
-    matrix<Ofsc> Q(NV,NV);
+    matrix<Ofsc> P(Csts::NV,Csts::NV);
+    matrix<Ofsc> Q(Csts::NV,Csts::NV);
     //The vector V of the c.o.c. (Translation part)
-    vector<Ofsc> V(NV);
+    vector<Ofsc> V(Csts::NV);
     //The vectors Xe, Xm, Xs, modified position of the primaries used to compute the potential
     vector<Ofsc> Xe(3);
     vector<Ofsc> Xm(3);
@@ -1449,13 +1449,13 @@ void testDotCOC()
     Ofsc ILs(OFS_ORDER);
 
     //PC=P(theta)*C
-    matrix<Ofsc> PC(NV,NV);
+    matrix<Ofsc> PC(Csts::NV,Csts::NV);
     //PCdot=dot(P*C)=dot(P)C
-    matrix<Ofsc> PCdot(NV,NV);
+    matrix<Ofsc> PCdot(Csts::NV,Csts::NV);
     //CQ=Cinv*Pinv=inv(PC)
-    matrix<Ofsc> CQ(NV,NV);
+    matrix<Ofsc> CQ(Csts::NV,Csts::NV);
     //Vdot=dot(V)
-    vector<Ofsc> Vdot(NV);
+    vector<Ofsc> Vdot(Csts::NV);
 
     //Init routine
     initCOC(P, Q, PC, PCdot, CQ, Xe, Xm, Xs, V, Vdot, ILe, ILm, ILs, SEML);
@@ -1474,18 +1474,18 @@ void testDotCOC()
     cout << " Discrepancy at order zero and maximal value:"       << endl;
     cout << " Component      Order zero          Max coef"        << endl;
 
-    vector<Oftsc> z(NV);      //NC
-    vector<Oftsc> zdot(NV);   //NC
-    vector<Oftsc> zdot2(NV);  //NC
-    vector<Oftsc> zh(NV);     //TFC
-    vector<Oftsc> zhdot(NV);  //TFC
-    vector<Oftsc> DeltaW(NV); //Delta in NC
-    vector<Oftsc> ztp1(NV);    //spare vector<OFTS>
-    vector<Oftsc> ztp2(NV);    //spare vector<OFTS>
+    vector<Oftsc> z(Csts::NV);      //NC
+    vector<Oftsc> zdot(Csts::NV);   //NC
+    vector<Oftsc> zdot2(Csts::NV);  //NC
+    vector<Oftsc> zh(Csts::NV);     //TFC
+    vector<Oftsc> zhdot(Csts::NV);  //TFC
+    vector<Oftsc> DeltaW(Csts::NV); //Delta in NC
+    vector<Oftsc> ztp1(Csts::NV);    //spare vector<OFTS>
+    vector<Oftsc> ztp2(Csts::NV);    //spare vector<OFTS>
 
     //All components set random coefficients
-    for(int i = 0; i < NV; i++) z[i].setRandomCoefs();
-    for(int i = 0; i < NV; i++) zdot[i].setRandomCoefs();
+    for(int i = 0; i < Csts::NV; i++) z[i].setRandomCoefs();
+    for(int i = 0; i < Csts::NV; i++) zdot[i].setRandomCoefs();
 
     //zh = inCOC(z)
     applyInvCOC(CQ,  V,  z,  zh, ztp1);
@@ -1500,7 +1500,7 @@ void testDotCOC()
 
     double maxAbs[2];
     //Checking the numerical discrepancy
-    for(int i = 0; i<NV; i++)
+    for(int i = 0; i<Csts::NV; i++)
     {
         DeltaW[i].ofts_fsum_u(zdot[i], 1.0+0.0*I, zdot2[i], -1.0+0.0*I);
         DeltaW[i].getCoef(0, 0)->getCoefMaxNorm(maxAbs);
@@ -1541,10 +1541,10 @@ void testIntCOC()
     // Initialization of the COC
     //------------------------------------------
     //The matrix P of the c.o.c. (Floquet part)
-    matrix<Ofsc> P(NV,NV);
-    matrix<Ofsc> Q(NV,NV);
+    matrix<Ofsc> P(Csts::NV,Csts::NV);
+    matrix<Ofsc> Q(Csts::NV,Csts::NV);
     //The vector V of the c.o.c. (Translation part)
-    vector<Ofsc> V(NV);
+    vector<Ofsc> V(Csts::NV);
     //The vectors Xe, Xm, Xs, modified position of the primaries used to compute the potential
     vector<Ofsc> Xe(3);
     vector<Ofsc> Xm(3);
@@ -1556,13 +1556,13 @@ void testIntCOC()
     Ofsc ILs(OFS_ORDER);
 
     //PC=P(theta)*C
-    matrix<Ofsc> PC(NV,NV);
+    matrix<Ofsc> PC(Csts::NV,Csts::NV);
     //PCdot=dot(P*C)=dot(P)C
-    matrix<Ofsc> PCdot(NV,NV);
+    matrix<Ofsc> PCdot(Csts::NV,Csts::NV);
     //CQ=Cinv*Pinv=inv(PC)
-    matrix<Ofsc> CQ(NV,NV);
+    matrix<Ofsc> CQ(Csts::NV,Csts::NV);
     //Vdot=dot(V)
-    vector<Ofsc> Vdot(NV);
+    vector<Ofsc> Vdot(Csts::NV);
 
     //Init routine
     initCOC(P, Q, PC, PCdot, CQ, Xe, Xm, Xs, V, Vdot, ILe, ILm, ILs, SEML);
@@ -1573,9 +1573,9 @@ void testIntCOC()
     //For dot(z) = F(z)
     //-------------------
     gsl_odeiv2_system sys;
-    sys.function = qbfbp_vfn_novar;
-    sys.jacobian = NULL;
-    sys.dimension = NV;
+    sys.function  = qbfbp_vfn_novar;
+    sys.jacobian  = NULL;
+    sys.dimension = Csts::NV;
     sys.params = &SEML;
     const gsl_odeiv2_step_type *T = gsl_odeiv2_step_rk8pd;
     gsl_odeiv2_driver* d = gsl_odeiv2_driver_alloc_y_new (&sys, T,
@@ -1837,10 +1837,10 @@ double pij(int ii, int jj)
     // Initialization of the COC
     //------------------------------------------
     //The matrix P of the c.o.c. (Floquet part)
-    matrix<Ofsc> P(NV,NV);
-    matrix<Ofsc> Q(NV,NV);
+    matrix<Ofsc> P(Csts::NV,Csts::NV);
+    matrix<Ofsc> Q(Csts::NV,Csts::NV);
     //The vector V of the c.o.c. (Translation part)
-    vector<Ofsc> V(NV);
+    vector<Ofsc> V(Csts::NV);
     //The vectors Xe, Xm, Xs, modified position of the primaries used to compute the potential
     vector<Ofsc> Xe(3);
     vector<Ofsc> Xm(3);
@@ -1852,13 +1852,13 @@ double pij(int ii, int jj)
     Ofsc ILs(OFS_ORDER);
 
     //PC=P(theta)*C
-    matrix<Ofsc> PC(NV,NV);
+    matrix<Ofsc> PC(Csts::NV,Csts::NV);
     //PCdot=dot(P*C)=dot(P)C
-    matrix<Ofsc> PCdot(NV,NV);
+    matrix<Ofsc> PCdot(Csts::NV,Csts::NV);
     //CQ=Cinv*Pinv=inv(PC)
-    matrix<Ofsc> CQ(NV,NV);
+    matrix<Ofsc> CQ(Csts::NV,Csts::NV);
     //Vdot=dot(V)
-    vector<Ofsc> Vdot(NV);
+    vector<Ofsc> Vdot(Csts::NV);
 
     //Init routine
     initCOC(P, Q, PC, PCdot, CQ, Xe, Xm, Xs, V, Vdot, ILe, ILm, ILs, SEML);
@@ -1950,10 +1950,10 @@ void pij_plot(gnuplot_ctrl  *h1)
     // Initialization of the COC
     //------------------------------------------
     //The matrix P of the c.o.c. (Floquet part)
-    matrix<Ofsc> P(NV,NV);
-    matrix<Ofsc> Q(NV,NV);
+    matrix<Ofsc> P(Csts::NV,Csts::NV);
+    matrix<Ofsc> Q(Csts::NV,Csts::NV);
     //The vector V of the c.o.c. (Translation part)
-    vector<Ofsc> V(NV);
+    vector<Ofsc> V(Csts::NV);
     //The vectors Xe, Xm, Xs, modified position of the primaries used to compute the potential
     vector<Ofsc> Xe(3);
     vector<Ofsc> Xm(3);
@@ -1965,13 +1965,13 @@ void pij_plot(gnuplot_ctrl  *h1)
     Ofsc ILs(OFS_ORDER);
 
     //PC=P(theta)*C
-    matrix<Ofsc> PC(NV,NV);
+    matrix<Ofsc> PC(Csts::NV,Csts::NV);
     //PCdot=dot(P*C)=dot(P)C
-    matrix<Ofsc> PCdot(NV,NV);
+    matrix<Ofsc> PCdot(Csts::NV,Csts::NV);
     //CQ=Cinv*Pinv=inv(PC)
-    matrix<Ofsc> CQ(NV,NV);
+    matrix<Ofsc> CQ(Csts::NV,Csts::NV);
     //Vdot=dot(V)
-    vector<Ofsc> Vdot(NV);
+    vector<Ofsc> Vdot(Csts::NV);
 
     //Init routine
     initCOC(P, Q, PC, PCdot, CQ, Xe, Xm, Xs, V, Vdot, ILe, ILm, ILs, SEML);
@@ -2056,10 +2056,10 @@ void pij_plot(int ii, int jj, gnuplot_ctrl  *h1)
     // Initialization of the COC
     //------------------------------------------
     //The matrix P of the c.o.c. (Floquet part)
-    matrix<Ofsc> P(NV,NV);
-    matrix<Ofsc> Q(NV,NV);
+    matrix<Ofsc> P(Csts::NV,Csts::NV);
+    matrix<Ofsc> Q(Csts::NV,Csts::NV);
     //The vector V of the c.o.c. (Translation part)
-    vector<Ofsc> V(NV);
+    vector<Ofsc> V(Csts::NV);
     //The vectors Xe, Xm, Xs, modified position of the primaries used to compute the potential
     vector<Ofsc> Xe(3);
     vector<Ofsc> Xm(3);
@@ -2071,13 +2071,13 @@ void pij_plot(int ii, int jj, gnuplot_ctrl  *h1)
     Ofsc ILs(OFS_ORDER);
 
     //PC=P(theta)*C
-    matrix<Ofsc> PC(NV,NV);
+    matrix<Ofsc> PC(Csts::NV,Csts::NV);
     //PCdot=dot(P*C)=dot(P)C
-    matrix<Ofsc> PCdot(NV,NV);
+    matrix<Ofsc> PCdot(Csts::NV,Csts::NV);
     //CQ=Cinv*Pinv=inv(PC)
-    matrix<Ofsc> CQ(NV,NV);
+    matrix<Ofsc> CQ(Csts::NV,Csts::NV);
     //Vdot=dot(V)
-    vector<Ofsc> Vdot(NV);
+    vector<Ofsc> Vdot(Csts::NV);
 
     //Init routine
     initCOC(P, Q, PC, PCdot, CQ, Xe, Xm, Xs, V, Vdot, ILe, ILm, ILs, SEML);

@@ -22,7 +22,7 @@
 #include "ofs.h"
 #include "timec.h"
 
-using namespace std;
+
 
 /**
  * \fn void ofs_test()

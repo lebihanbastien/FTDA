@@ -21,7 +21,7 @@ extern "C"
     #include "multimin.h"
 }
 
-using namespace std;
+
 
 //Test function of the routine frprmn of multimin.c
 void test_frprmn();

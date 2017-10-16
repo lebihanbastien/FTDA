@@ -6,6 +6,8 @@
  * \version 1.0
  */
 #include "qbtbp.h"
+using namespace std;
+
 
 //-----------------------------------------------------------------------------
 // Main routine: computation of the QBTBP
@@ -34,11 +36,11 @@ void qbtbp(int li_EM, int li_SEM, int isTestOn, int coordsys)
     //-------------------------------------
     //Init the qbcp
     QBCP qbcp;
-    init_QBCP(&qbcp, SUN, EARTH, MOON, M_QBCP);
+    init_QBCP(&qbcp, Csts::SUN, Csts::EARTH, Csts::MOON);
 
     //Init the qbcp focused on one libration point
     QBCP_L qbcp_l;
-    init_QBCP_L(&qbcp_l, &qbcp, true, li_EM, li_SEM, true, M_QBCP, coordsys, PMS_GRAPH, MAN_CENTER, MAN_CENTER); //note PM style and type are not used
+    init_QBCP_L(&qbcp_l, &qbcp, true, li_EM, li_SEM, true, Csts::QBCP, coordsys, Csts::GRAPH, Csts::MAN_CENTER, Csts::MAN_CENTER); //note PM style and type are not used
 
     //Init of the internal/external motions
     Ofts<Ofsd> ofts_z(1,OFS_ORDER,2,OFS_ORDER);
@@ -50,7 +52,7 @@ void qbtbp(int li_EM, int li_SEM, int isTestOn, int coordsys)
     //Computation of the QBTBP
     //-------------------------------------
     tic();
-    qbtbp_ofs(ofts_z, ofts_Z, qbcp_l, coordsys);
+    qbtbp_ofs(ofts_z, ofts_Z, qbcp_l);
     cout << " qbtbp. end of computation in: " << toc() << "s." << endl;
 
     //If the user wants to test the results
@@ -679,11 +681,11 @@ void bcp(int li_EM, int li_SEM, int coordsys)
     //--------------------------------------------------------------------
     //Init the fbp
     QBCP fbp;
-    init_QBCP(&fbp, SUN, EARTH, MOON, M_BCP);
+    init_QBCP(&fbp, Csts::SUN, Csts::EARTH, Csts::MOON);
 
     //Init the fbp focused on one libration point
     QBCP_L qbcp_l;
-    init_QBCP_L(&qbcp_l, &fbp, 1, li_EM, li_SEM, true, M_BCP, coordsys, PMS_GRAPH, MAN_CENTER, MAN_CENTER);  //Note: PM style is NOT used
+    init_QBCP_L(&qbcp_l, &fbp, 1, li_EM, li_SEM, true, Csts::BCP, coordsys, Csts::GRAPH, Csts::MAN_CENTER, Csts::MAN_CENTER);  //Note: PM style is NOT used
 
     //--------------------------------------------------------------------
     // 2. Splash
@@ -720,7 +722,7 @@ void bcp(int li_EM, int li_SEM, int coordsys)
  *   \f$ \beta_i \f$ (from the Sun-(Earth+Moon) p.o.v) are computed in stored in txt files.
  *   These functions are computed both through operations on Fourier series and FFT of the integrated motion.
  */
-void qbtbp_ofs (Ofts< Ofsd > &zr_ofts, Ofts< Ofsd > &Zr_ofts, QBCP_L& qbcp_l, int coordsys)
+void qbtbp_ofs(Ofts< Ofsd > &zr_ofts, Ofts< Ofsd > &Zr_ofts, QBCP_L& qbcp_l)
 {
     //---------------------------------------------------------
     //Parameters
@@ -1795,9 +1797,9 @@ void qbtbp_ofs_recurrence(Ofts< Ofsd > &zr_ofts, //zr_ofts = normalized Earth-Mo
 
     if(m == 0)
     {
-        //---------------------------------------------------------
+        //--------------------------------------------------------------------------------
         //Order 0 of the recurrence
-        //---------------------------------------------------------
+        //--------------------------------------------------------------------------------
         z1.ccopy(zr_ofts, m);
         //z1 = \bar{zr_ofts}
         z1.conjugate(m);
@@ -1866,9 +1868,9 @@ void qbtbp_ofs_recurrence(Ofts< Ofsd > &zr_ofts, //zr_ofts = normalized Earth-Mo
     }
     else
     {
-        //---------------------------------------------------------
+        //--------------------------------------------------------------------------------
         //Order m of the recurrence
-        //---------------------------------------------------------
+        //--------------------------------------------------------------------------------
         //z1 = zr_ofts at order m-1
         z1.ccopy(zr_ofts, m-1);
         //z1 = \bar{z1} at order m-1
@@ -2173,9 +2175,7 @@ void qbtbp_test(double t1, Ofsc &bjc, Ofsc &cjc, OdeStruct ode_s, QBCP_L &qbcp_l
 /**
  *  \brief Test function used inside qbtbp_test_IN_EM_SEM.
  */
-void qbpcomp(Ofsc &bjc,
-             Ofsc &cjc,
-             const double xe0_SEM[],
+void qbpcomp(const double xe0_SEM[],
              const double xe0_EM[],
              const double ye0_IN[],
              double t0,
@@ -2303,7 +2303,7 @@ void qbtbp_test_IN_EM_SEM(double t1, Ofsc &bjc, Ofsc &cjc)
     ye0_IN[4] = -us_em.ms/(1.0+us_em.ms)*cimag(Zdot0) + us_em.mu_EM*cimag(zdot0);
     ye0_IN[5] = 0.0;
     //Comparison
-    qbpcomp(bjc, cjc, xe0_SEM, xe0_EM, ye0_IN, t0, t0c);
+    qbpcomp(xe0_SEM, xe0_EM, ye0_IN, t0, t0c);
 
     cout << "---------------------------------------------------" << endl;
     cout << "Moon  " << endl;
@@ -2332,7 +2332,7 @@ void qbtbp_test_IN_EM_SEM(double t1, Ofsc &bjc, Ofsc &cjc)
     ym0_IN[4] = -us_em.ms/(1.0+us_em.ms)*cimag(Zdot0) - (1-us_em.mu_EM)*cimag(zdot0);
     ym0_IN[5] = 0.0;
     //Comparison
-    qbpcomp(bjc, cjc, xm0_SEM, xm0_EM, ym0_IN, t0, t0c);
+    qbpcomp(xm0_SEM, xm0_EM, ym0_IN, t0, t0c);
 
 
     cout << "---------------------------------------------------" << endl;
@@ -2362,7 +2362,7 @@ void qbtbp_test_IN_EM_SEM(double t1, Ofsc &bjc, Ofsc &cjc)
     ys0_IN[4] = 1.0/(1.0+us_em.ms)*cimag(Zdot0);
     ys0_IN[5] = 0.0;
     //Comparison
-    qbpcomp(bjc, cjc, xs0_SEM, xs0_EM, ys0_IN, t0, t0c);
+    qbpcomp(xs0_SEM, xs0_EM, ys0_IN, t0, t0c);
 
 }
 
@@ -2650,8 +2650,8 @@ void evaluateCoef(double *alpha, double t, double omega, int order, double *para
     for(l = 0, header = params; l < number ; l++, header+=(order+1))
     {
         alpha[l] = 0.0;
-        if(l==1 || l== 4 || l==7 || l==9 || l==11 || l==13) alpha[l] = evaluateOdd(t, omega , order, header, sR);    //Odd funtions (alpha_2,5,8,10,12,14)
-        else  alpha[l] = evaluateEven(t, omega, order, header, cR);                                                  //Even functions
+        if(l==1 || l== 4 || l==7 || l==9 || l==11 || l==13) alpha[l] = evaluateOdd(order, header, sR);    //Odd funtions (alpha_2,5,8,10,12,14)
+        else  alpha[l] = evaluateEven(order, header, cR);                                                  //Even functions
     }
 }
 
@@ -2679,9 +2679,9 @@ void evaluateCoefDerivatives(double *alpha, double t, double omega, int order, d
         alpha[l] = 0.0;
         if(l==1 || l== 4 || l==7 || l==9 || l==11 || l==13)
         {
-            alpha[l] = evaluateOddDerivative(t, omega , order, header, cR); //Odd funtions (alpha_2,5,8,10,12,14)
+            alpha[l] = evaluateOddDerivative(omega , order, header, cR); //Odd funtions (alpha_2,5,8,10,12,14)
         }
-        else  alpha[l] = evaluateEvenDerivative(t, omega, order, header, sR);   //Even functions
+        else  alpha[l] = evaluateEvenDerivative(omega, order, header, sR);   //Even functions
     }
 }
 
@@ -2693,7 +2693,7 @@ void evaluateCoefDerivatives(double *alpha, double t, double omega, int order, d
 /**
  *  \brief Evaluate the sum \f$ \sum_{k = 0}^N coef(k) cos(k \omega t)  \f$.
  */
-double evaluateEven(double t, double omega, int order, double *coef, double *cR)
+double evaluateEven(int order, double *coef, double *cR)
 {
     double result = 0.0;
     for(int i= order; i>=1; i--) result += coef[i]*cR[i-1];//even type
@@ -2704,7 +2704,7 @@ double evaluateEven(double t, double omega, int order, double *coef, double *cR)
 /**
  *  \brief Evaluate the sum \f$ \sum_{k = 0}^N - k \omega coef(k) sin(k \omega t)  \f$.
  */
-double evaluateEvenDerivative(double t, double omega,  int order, double *coef, double *sR)
+double evaluateEvenDerivative(double omega,  int order, double *coef, double *sR)
 {
     double result = 0.0;
     for(int i= order; i>=1; i--) result += -omega*i*coef[i]*sR[i-1];//even type
@@ -2714,7 +2714,7 @@ double evaluateEvenDerivative(double t, double omega,  int order, double *coef, 
 /**
  *  \brief Evaluate the sum \f$ \sum_{k = 0}^N coef(k) sin(k \omega t)  \f$.
  */
-double evaluateOdd(double t, double omega,  int order, double *coef, double *sR)
+double evaluateOdd(int order, double *coef, double *sR)
 {
     double result = 0.0;
     for(int i= order; i>=1; i--) result += coef[i]*sR[i-1]; //odd type
@@ -2724,7 +2724,7 @@ double evaluateOdd(double t, double omega,  int order, double *coef, double *sR)
 /**
  *  \brief Evaluate the sum \f$ \sum_{k = 0}^N  k \omega coef(k) cos(k \omega t)  \f$.
  */
-double evaluateOddDerivative(double t, double omega,  int order, double *coef, double *cR)
+double evaluateOddDerivative( double omega,  int order, double *coef, double *cR)
 {
     double result = 0.0;
     for(int i= order; i>=1; i--) result += omega*i*coef[i]*cR[i-1];//odd type
@@ -2741,8 +2741,8 @@ double evaluateOddDerivative(double t, double omega,  int order, double *coef, d
  *         These computations are performed via algebraic manipulation on the Fourier series, contrary to other similar routines
  *         Such as qbtbp_ofs_fft_alpha (for the alpha coefficients) that makes use of FFT procedures.
  **/
-void qbtbp_ofs_storage(   Ofts< Ofsd > &zr_ofts,     //zr_ofts = normalized Earth-Moon motion
-                          Ofts< Ofsd > &Zr_ofts,     //Zr_ofts = normalized Sun-(Earth+Moon) motion
+void qbtbp_ofs_storage(   Ofts< Ofsd > &zr_ofts,//zr_ofts = normalized Earth-Moon motion
+                          Ofts< Ofsd > &Zr_ofts,//Zr_ofts = normalized Sun-(Earth+Moon) motion
                           Ofts< Ofsd > &z1,     //z1 = \bar{zr_ofts}
                           Ofts< Ofsd > &z2,     //z2 = \bar{zr_ofts}^(-3/2)
                           Ofts< Ofsd > &z3,     //z3 = zr_ofts^(-1/2)

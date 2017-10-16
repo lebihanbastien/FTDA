@@ -38,10 +38,11 @@
 //----------------------------------------------------------------------------------------
 
 
-
 //----------------------------------------------------------------------------------------
 // Include
 //----------------------------------------------------------------------------------------
+//Constants
+#include "Config.h"
 //Parallel computing
 #include <omp.h>
 //Custom
@@ -58,7 +59,7 @@
 #include "ofts_test.h"
 //C routines and files
 extern "C" {
-#include "gnuplot_i.h"
+    #include "gnuplot_i.h"
     void fortfunc_(int *ii, float *ff);
     void saxpy_(int *n, double *alpha, double *x, double *y);
     void matvec_(int *n, double **A, double *x, double *y, int *lda);
@@ -84,16 +85,17 @@ int main(int argc, char *argv[])
     cout << "                    OOFTDA                         " << endl;
     cout << "                                                   " << endl;
     cout << "---------------------------------------------------" << endl;
+    cout << argc << " arguments have been passed to OOFTDA"       << endl;
 
     //------------------------------------------------------------------------------------
     // Initialization of static FTDA objects. Mandatory.
     // Note that, for now, the default order of the OFS and OFTS objects are set at
     // compilation
     //------------------------------------------------------------------------------------
-    int OFS_ORDER_0  = 30;
-    int OFTS_ORDER_0 = 30;
+    int OFS_ORDER_0  = 30;  //The default OFS_ORDER (Fourier series) is 30
+    int OFTS_ORDER_0 = 30;  //The default OFTS_ORDER (Taylor series) is 30
     int nr = max(2*OFS_ORDER_0, OFTS_ORDER_0);
-    int nv = NV;
+    int nv = Csts::NV;
     FTDA::init(nv, nr);
 
     //------------------------------------------------------------------------------------
@@ -136,8 +138,7 @@ int main(int argc, char *argv[])
     int li_EM     = atoi(argv[index++]);
     int li_SEM    = atoi(argv[index++]);
     int pms       = atoi(argv[index++]);
-    int mType_EM  = atoi(argv[index++]);
-    int mType_SEM = atoi(argv[index++]);
+    int mType     = atoi(argv[index++]);
     int storage   = atoi(argv[index++]);
 
     //Check
@@ -150,8 +151,7 @@ int main(int argc, char *argv[])
     cout << "li_EM     = "   << li_EM << endl;
     cout << "li_SEM    = "   << li_SEM << endl;
     cout << "pms       = "   << pms << endl;
-    cout << "mType_EM  = "   << mType_EM << endl;
-    cout << "mType_SEM = "   << mType_SEM << endl;
+    cout << "mType     = "   << mType << endl;
     cout << "storage   = "   << storage << endl;
     cout << "---------------------------------------------------" << endl;
 
@@ -164,7 +164,7 @@ int main(int argc, char *argv[])
     // Initialization of the environnement
     // Mandatory to perform any computation except qbtbp(int)
     //------------------------------------------------------------------------------------
-    init_env(li_EM, li_SEM, isNorm, model, pms, mType_EM, mType_SEM);
+    init_env(li_EM, li_SEM, isNorm, model, pms, mType, mType);
 
     //------------------------------------------
     // Which default CS?
@@ -181,10 +181,10 @@ int main(int argc, char *argv[])
     //------------------------------------------------------------------------------------
     switch(compType)
     {
-    //-------------------------------------
+    //------------------------------------------------------------------------------------
     // Sun-Earth-Moon three-body motion resolution up to OFS_ORDER.
-    //-------------------------------------
-    case 0:
+    //------------------------------------------------------------------------------------
+    case Csts::QBTBP:
     {
         switch(model)
         {
@@ -194,7 +194,7 @@ int main(int argc, char *argv[])
             // the results are tested on
             // one full period
             //----------------------------------------------------------------------------
-        case M_QBCP:
+        case Csts::QBCP:
             qbtbp(li_EM, li_SEM, true, coordsys);
             break;
 
@@ -202,7 +202,7 @@ int main(int argc, char *argv[])
             // BCP resolution in OFS format.
             // Storage in txt file.
             //----------------------------------------------------------------------------
-        case M_BCP:
+        case Csts::BCP:
             bcp(li_EM, li_SEM, coordsys);
             break;
 
@@ -210,7 +210,7 @@ int main(int argc, char *argv[])
             // ERTBP resolution in OFS format.
             // Storage in txt file.
             //----------------------------------------------------------------------------
-        case M_ERTBP:
+        case Csts::ERTBP:
             ertbp(li_EM, li_SEM, coordsys);
             break;
 
@@ -225,29 +225,28 @@ int main(int argc, char *argv[])
     // of the Hamiltonian of the QBCP
     // Results are stored in the folder data/COC
     //------------------------------------------------------------------------------------
-    case 1:
+    case Csts::NFO2:
     {
         switch(model)
         {
-        case M_QBCP:
-        case M_ERTBP:
+        case Csts::QBCP:
+        case Csts::ERTBP:
             nfo2(SEML, storage);
             break;
-        case M_BCP:
+        case Csts::BCP:
             nfo2_QBP(SEML, storage); //€€TODO WORK IN PROGRESS
             break;
-        case M_RTBP:
+        case Csts::CRTBP:
             nfo2_RTBP(SEML, storage);
             break;
         }
         break;
     }
 
-
     //------------------------------------------------------------------------------------
     // Parameterization method
     //------------------------------------------------------------------------------------
-    case 2:
+    case Csts::PM:
     {
         pmt(0, storage, pms, SEML.cs.manType);
         break;
@@ -256,7 +255,7 @@ int main(int argc, char *argv[])
     //------------------------------------------------------------------------------------
     // Test of the parameterization method
     //------------------------------------------------------------------------------------
-    case 3:
+    case Csts::PM_TEST:
     {
         //--------------------------------------------------------------------------------
         // Additionnal parameters in bash
@@ -320,7 +319,7 @@ int main(int argc, char *argv[])
     //------------------------------------------------------------------------------------
     // Poincare maps
     //------------------------------------------------------------------------------------
-    case 4:
+    case Csts::COMPMAP:
     {
         //--------------------------------------------------------------------------------
         // Additionnal parameters in bash
@@ -367,7 +366,7 @@ int main(int argc, char *argv[])
         // Bash line for parallel computation: export OMP_SET_NUM_THREADS=5
         //--------------------------------------------------------------------------------
         Pmap pmap;
-        if(MODEL_TYPE == M_RTBP)
+        if(MODEL_TYPE == Csts::CRTBP)
         {
             //Quite stable parameters
             //------------------------
@@ -403,7 +402,7 @@ int main(int argc, char *argv[])
         //  - tf is the final time of integration (useful only for PMAP/TMAP).
         //  - isGS: force some simplifications in the evaluation
         //    of the manifolds. The parameterization style of the manifold at hand must be
-        //    the graph style (PMS_GRAPH) for isGS to be active.
+        //    the graph style (Csts::GRAPH) for isGS to be active.
         //  - order: the effective order of the Taylor expansions on the map.
         //  - ofs_order: the effective order of the Fourier expansions on the map.
         //  - max_events: the maximum number of events on the map. Typically,
@@ -420,7 +419,7 @@ int main(int argc, char *argv[])
         //isGS and graph style?
         //helps enhance computation
         int isGS     =  atoi(argv[index++]);
-        if(isGS == 1 && SEML.pms == PMS_GRAPH) pmap.isGS = 1;
+        if(isGS == 1 && SEML.pms == Csts::GRAPH) pmap.isGS = 1;
         else pmap.isGS = 0;
 
         pmap.order      =  atoi(argv[index++]);
@@ -480,7 +479,7 @@ int main(int argc, char *argv[])
         case PMAP:
         {
             pmap.tt =  1.0/pmap.projFreq*SEML.us.T; //for pmaps, pmap.tt is the period of projection
-            pmap_build(pmap, append, method, isPlot, isPar);
+            pmap_build(pmap, append, method, isPar);
             break;
         }
 
@@ -551,7 +550,7 @@ int main(int argc, char *argv[])
     //------------------------------------------------------------------------------------
     // COCs
     //------------------------------------------------------------------------------------
-    case 5:
+    case Csts::COC:
     {
         //-----------------------------
         // EM <--> IN <--> SEM
@@ -583,14 +582,14 @@ int main(int argc, char *argv[])
     //------------------------------------------------------------------------------------
     // Compute the dynamical equivalent of the libration point, and other resonant orbits
     //------------------------------------------------------------------------------------
-    case 6:
+    case Csts::DYNEQ:
     {
         //-----------------------------
         // Direction computation of the lpdyneq. Works for:
         // - EML1, EML2 in QBCP
         // - SEML1, SEML2 in QBCP
         //-----------------------------
-        //compute_dyn_eq_lib_point(SEML, storage);
+        compute_dyn_eq_lib_point(SEML, storage);
 
         //-----------------------------
         // Continuation procedures for the computation of the lpdyneq
@@ -599,7 +598,7 @@ int main(int argc, char *argv[])
         // - Seems to work for SEML1,2 of the BCP,
         //   but equations of motion need to be checked.
         //-----------------------------
-        continuation_dyn_eq_lib_point(SEML, M_RTBP, M_BCP, storage);
+        //continuation_dyn_eq_lib_point(SEML, Csts::CRTBP, Csts::BCP);
 
         //-----------------------------
         // Continuation procedures for the computation of other resonant orbits
@@ -607,7 +606,17 @@ int main(int argc, char *argv[])
         // - A 2T/5-resonant orbit at EML1
         // - A T/2-resonant orbit at EML2
         //-----------------------------
-        //continuation_res_orbit(SEML, M_RTBP, M_QBCP, storage);
+        //continuation_res_orbit(SEML, Csts::CRTBP, Csts::QBCP);
+    }
+
+    //------------------------------------------------------------------------------------
+    // Unitary tests of routines
+    //------------------------------------------------------------------------------------
+    case Csts::FT_TEST:
+    {
+        ofs_test();
+        oftsh_test();
+        ofts_test();
     }
 
 
@@ -639,12 +648,7 @@ int main(int argc, char *argv[])
     //testDotCOC();
     //testIntCOC();
 
-    //------------------------------------------------------------------------------------
-    // Unitary tests of routines
-    //------------------------------------------------------------------------------------
-    //ofs_test();
-    //oftsh_test();
-    //ofts_test();
+
 
     //------------------------------------------------------------------------------------
     // Retrieving the Hamiltonian from the VF (not working)
@@ -655,23 +659,23 @@ int main(int argc, char *argv[])
     vector<Oftsc> H = vector<Oftsc>(4);
     vector<Oftsc> Ham = vector<Oftsc>(1);
 
-    Oftsc *F1     = new Oftsc(REDUCED_NV, OFTS_ORDER, OFS_NV, OFS_ORDER);
+    Oftsc *F1     = new Oftsc(REDUCED_NV, OFTS_ORDER, Csts::OFS_NV, OFS_ORDER);
 
-    Oftsc *dF1dp2 = new Oftsc(REDUCED_NV, OFTS_ORDER, OFS_NV, OFS_ORDER);
-    Oftsc *dF1dq1 = new Oftsc(REDUCED_NV, OFTS_ORDER, OFS_NV, OFS_ORDER);
-    Oftsc *dF1dq2 = new Oftsc(REDUCED_NV, OFTS_ORDER, OFS_NV, OFS_ORDER);
+    Oftsc *dF1dp2 = new Oftsc(REDUCED_NV, OFTS_ORDER, Csts::OFS_NV, OFS_ORDER);
+    Oftsc *dF1dq1 = new Oftsc(REDUCED_NV, OFTS_ORDER, Csts::OFS_NV, OFS_ORDER);
+    Oftsc *dF1dq2 = new Oftsc(REDUCED_NV, OFTS_ORDER, Csts::OFS_NV, OFS_ORDER);
 
-    Oftsc *dGdp2  = new Oftsc(REDUCED_NV, OFTS_ORDER, OFS_NV, OFS_ORDER);
-    Oftsc *G2     = new Oftsc(REDUCED_NV, OFTS_ORDER, OFS_NV, OFS_ORDER);
-    Oftsc *dG2dq1 = new Oftsc(REDUCED_NV, OFTS_ORDER, OFS_NV, OFS_ORDER);
-    Oftsc *dG2dq2 = new Oftsc(REDUCED_NV, OFTS_ORDER, OFS_NV, OFS_ORDER);
+    Oftsc *dGdp2  = new Oftsc(REDUCED_NV, OFTS_ORDER, Csts::OFS_NV, OFS_ORDER);
+    Oftsc *G2     = new Oftsc(REDUCED_NV, OFTS_ORDER, Csts::OFS_NV, OFS_ORDER);
+    Oftsc *dG2dq1 = new Oftsc(REDUCED_NV, OFTS_ORDER, Csts::OFS_NV, OFS_ORDER);
+    Oftsc *dG2dq2 = new Oftsc(REDUCED_NV, OFTS_ORDER, Csts::OFS_NV, OFS_ORDER);
 
-    Oftsc *dJdq1  = new Oftsc(REDUCED_NV, OFTS_ORDER, OFS_NV, OFS_ORDER);
-    Oftsc *J1     = new Oftsc(REDUCED_NV, OFTS_ORDER, OFS_NV, OFS_ORDER);
-    Oftsc *dJ1dq2 = new Oftsc(REDUCED_NV, OFTS_ORDER, OFS_NV, OFS_ORDER);
+    Oftsc *dJdq1  = new Oftsc(REDUCED_NV, OFTS_ORDER, Csts::OFS_NV, OFS_ORDER);
+    Oftsc *J1     = new Oftsc(REDUCED_NV, OFTS_ORDER, Csts::OFS_NV, OFS_ORDER);
+    Oftsc *dJ1dq2 = new Oftsc(REDUCED_NV, OFTS_ORDER, Csts::OFS_NV, OFS_ORDER);
 
-    Oftsc *dKdq2  = new Oftsc(REDUCED_NV, OFTS_ORDER, OFS_NV, OFS_ORDER);
-    Oftsc *K2     = new Oftsc(REDUCED_NV, OFTS_ORDER, OFS_NV, OFS_ORDER);
+    Oftsc *dKdq2  = new Oftsc(REDUCED_NV, OFTS_ORDER, Csts::OFS_NV, OFS_ORDER);
+    Oftsc *K2     = new Oftsc(REDUCED_NV, OFTS_ORDER, Csts::OFS_NV, OFS_ORDER);
 
 
     //Fh[0] =  dH/ds3 = dH/dp1

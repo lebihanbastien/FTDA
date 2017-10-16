@@ -21,7 +21,7 @@ COMPTYPE=6
 # MODEL
 # RTBP = 0; QBCP = 1; BCP = 2
 #------------------------------------
-MODEL=$RTBP 
+MODEL=$CRTBP 
 
 #------------------------------------
 # COORDINATE SYSTEM

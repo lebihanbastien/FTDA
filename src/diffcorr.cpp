@@ -8,9 +8,416 @@
 
 #include "diffcorr.h"
 
-//------------------------------------------------------------------------------------------------------------
+
+//----------------------------------------------------------------------------------------
+//          Multiple shooting
+//----------------------------------------------------------------------------------------
+/**
+ *  \brief Solve a definite-positive linear system:
+ *         - Decompose a ncs x ncs matrix M that is definite-positive, using GSL routines.
+ *         - Then inverse the system Fv = M*K3.
+ **/
+int ftc_inv_dfls(gsl_matrix* M, gsl_vector*Fv, gsl_vector* K3, int ncs)
+{
+    //Name of the routine
+    string fname = "ftc_inv_dfls";
+
+    //====================================================================================
+    //We start by turning off the handler in the next chunk of code, so that we can test
+    //if M is truly definite-positive.
+    //We will restore it at the end of the decomposition + inversion process.
+    //====================================================================================
+    gsl_error_handler_t* error_handler = gsl_set_error_handler_off();
+
+    //====================================================================================
+    //Since M is in theory definite-positive,
+    //a Cholesky decomposition can be used, instead of a LU decomposition.
+    //====================================================================================
+    int status = gsl_linalg_cholesky_decomp (M);
+
+    //====================================================================================
+    //If the decomposition went bad, status is different from GSL_SUCCESS. For example,
+    //if M is not strictly definite-positive, the constant GSL_EDOM is returned by
+    //gsl_linalg_cholesky_decomp. In any case, we try a LU decomposition.
+    //====================================================================================
+    if(status)
+    {
+        cerr << fname << ". Cholesky decomposition failed. A LU decomposition is tested. ref_errno = " << gsl_strerror(status) << endl;
+        int s;
+        gsl_permutation* p = gsl_permutation_alloc (ncs);
+        status = gsl_linalg_LU_decomp (M, p, &s);
+        if(!status) status = gsl_linalg_LU_solve(M, p, Fv, K3);
+        gsl_permutation_free (p);
+
+        //--------------------------------------------------------------------------------
+        //If the decomposition or solving went bad, status is different from GSL_SUCCESS.
+        //--------------------------------------------------------------------------------
+        if(status)
+        {
+            cerr << fname << ". The LU decomposition failed. ref_errno = " << gsl_strerror(status) << endl;
+            //Finally, we return an error to the user
+            gsl_set_error_handler (error_handler);
+            return GSL_FAILURE;
+        }
+
+    }
+    else  //if not, the decomposition went fine, and we can go on with the inversion.
+    {
+        status = gsl_linalg_cholesky_solve(M, Fv, K3);
+        //--------------------------------------------------------------------------------
+        //If the solving went bad, status is different from GSL_SUCCESS.
+        //--------------------------------------------------------------------------------
+        if(status)
+        {
+            cerr << fname << ". Cholesky solving failed. ref_errno = " << gsl_strerror(status) << endl;
+            //Finally, we return an error to the user
+            gsl_set_error_handler (error_handler);
+            return GSL_FAILURE;
+        }
+    }
+
+    //We check that the result is not undefined
+    if(gsl_isnan(gsl_vector_max(K3)))
+    {
+        cerr << fname << ". The decomposition + solving failed, result contains NaN" << endl;
+        //Finally, we return an error to the user
+        gsl_set_error_handler (error_handler);
+        return GSL_FAILURE;
+    }
+
+
+    //====================================================================================
+    //We restore the error handler at the end
+    //====================================================================================
+    gsl_set_error_handler (error_handler);
+    return GSL_SUCCESS;
+}
+
+/**
+ *  \brief Computes the correction vector associated to the minimum norm solution.
+ *         Given:
+ *              - an ncs x 1   error vector Fv
+ *              - an nfv x ncs Jacobian DF,
+ *         This routine computes the correction vector associated to
+ *         the minimum norm solution:
+ *
+ *              DQv = DF^T x (DF x DF^T)^{-1} Fv.
+ **/
+int ftc_corrvec_mn(gsl_vector* DQv, gsl_vector *Fv, gsl_matrix* DF, int nfv, int ncs)
+{
+    //Name of the routine
+    string fname = "ftc_corrvec_mn";
+
+    //====================================================================================
+    // Initialize the local GSL objects
+    //====================================================================================
+    gsl_matrix *M   = gsl_matrix_calloc(ncs, ncs);
+    gsl_vector *K3  = gsl_vector_calloc(ncs);
+
+    //====================================================================================
+    // Update M = DF x DF^T
+    //====================================================================================
+    int status = gsl_blas_dgemm(CblasNoTrans, CblasTrans, 1.0, DF , DF, 0.0, M);
+    if(status)
+    {
+        cerr << fname << ". The computation of M failed. ref_errno = " << gsl_strerror(status) << endl;
+        gsl_matrix_free(M);
+        gsl_vector_free(K3);
+        return GSL_FAILURE;
+    }
+
+    //====================================================================================
+    // Update correction vector DQv = DF^T x (DF x DF^T)^{-1} Fv
+    //====================================================================================
+    //Inverse Fv = M*K3 via Cholesky decomposition of M
+    status = ftc_inv_dfls(M, Fv, K3, ncs);
+    //We check that the inversing went well
+    if(status)
+    {
+        cerr << fname << ". The decomposition + solving failed. ref_errno = " << gsl_strerror(status) << endl;
+        gsl_matrix_free(M);
+        gsl_vector_free(K3);
+        return GSL_FAILURE;
+    }
+    //Then, DQv = DF^T*K3
+    status = gsl_blas_dgemv(CblasTrans, -1.0, DF, K3, 0.0, DQv);
+    if(status)
+    {
+        cerr << fname << ". The computation of DQv failed. ref_errno = " << gsl_strerror(status) << endl;
+        gsl_matrix_free(M);
+        gsl_vector_free(K3);
+        return GSL_FAILURE;
+    }
+
+    //====================================================================================
+    // Kill the local GSL objects and return GSL_SUCCESS
+    //====================================================================================
+    gsl_matrix_free(M);
+    gsl_vector_free(K3);
+    return GSL_SUCCESS;
+}
+
+/**
+ *  \brief Computes the correction vector for a square system.
+ *         Given:
+ *              - an ncs x 1   error vector Fv
+ *              - an ncs x ncs Jacobian DF,
+ *         This routine computes the correction vector given by:
+ *
+ *              DQv = DF^{-1} x Fv.
+ **/
+int ftc_corrvec_square(gsl_vector* DQv, gsl_vector *Fv, gsl_matrix* DF, int ncs)
+{
+    //Name of the routine
+    string fname = "ftc_corrvec_square";
+
+    //====================================================================================
+    // Initialize the local GSL objects
+    //====================================================================================
+    gsl_matrix *M   = gsl_matrix_calloc(ncs, ncs);
+    gsl_permutation* p = gsl_permutation_alloc (ncs);
+    int s;
+
+
+    //M = DF
+    gsl_matrix_memcpy(M, DF);
+
+    //====================================================================================
+    // Update correction vector DQv = DF^{-1} x Fv
+    //====================================================================================
+    //Inverse Fv = M*DQv via LU decomposition of M
+    int status = gsl_linalg_LU_decomp (M, p, &s);
+    if(!status) status = gsl_linalg_LU_solve(M, p, Fv, DQv);
+
+    //--------------------------------------------------------------------------------
+    //If the decomposition or solving went bad, status is different from GSL_SUCCESS.
+    //--------------------------------------------------------------------------------
+    if(status)
+    {
+        cerr << fname << ". The LU decomposition failed. ref_errno = " << gsl_strerror(status) << endl;
+        gsl_permutation_free (p);
+        gsl_matrix_free(M);
+        return GSL_FAILURE;
+    }
+
+    //====================================================================================
+    // Kill the local GSL objects and return FTC_SUCCESS
+    //====================================================================================
+    gsl_permutation_free (p);
+    gsl_matrix_free(M);
+    return GSL_SUCCESS;
+}
+
+
+/**
+ * \brief Multiple shooting scheme with no boundary conditions.
+ *        Contrary to multiple_shooting_gomez, no recursive scheme is used to compute the correction vector.
+ **/
+int lpdyneq_multiple_shooting(double** ymd, double* tmd, double** ymdn, double* tmdn,
+                              gsl_odeiv2_driver* d, int N, int mgs, double prec,
+                              int isPlotted, gnuplot_ctrl* h1, int strConv)
+{
+    //====================================================================================
+    // 1. Initialization
+    //====================================================================================
+    //Name of the routine
+    string fname = "lpdyneq_multiple_shooting";
+
+    //Cumulated norm of the error
+    double normC = 0.0, normC_old = 1e5;
+    int status = GSL_SUCCESS;
+
+    //------------------------------------------------------------------------------------
+    // GSL matrices and vectors
+    //------------------------------------------------------------------------------------
+    int nfv = 6*(mgs+1);  //free variables
+    int ncs = 6*(mgs);  //constraints
+
+    // Correction vector at patch points
+    gsl_vector *DQv = gsl_vector_calloc(nfv);
+    // Error vector at patch points
+    gsl_vector *Fv  = gsl_vector_calloc(ncs);
+    //Jacobian at patch points
+    gsl_matrix **Ji = gslc_matrix_array_calloc(6, 6, mgs);
+    gsl_matrix *DF  = gsl_matrix_calloc(ncs, nfv);
+    gsl_matrix *M   = gsl_matrix_calloc(ncs, ncs);
+
+    //Identity matrix eye(6)
+    gsl_matrix *Id = gsl_matrix_calloc(6,6);
+    gsl_matrix_set_identity (Id);
+
+    //Intermediate variables
+    gsl_vector *K3  = gsl_vector_calloc(ncs);
+
+    //------------------------------------------------------------------------------------
+    // Copy the departure state in ymdn
+    //------------------------------------------------------------------------------------
+    for(int k = 0; k <= mgs; k++)
+    {
+        for(int i = 0; i < N; i++) ymdn[i][k] = ymd[i][k];
+        tmdn[k] = tmd[k];
+    }
+
+    //====================================================================================
+    // 2. Loop correction
+    //====================================================================================
+    //Maximum number of iterations is retrieved from config manager
+    int itermax = Config::configManager().G_DC_ITERMAX();
+    int iter = 0;
+    gsl_odeiv2_driver_reset(d);
+    while(iter < itermax)
+    {
+        //--------------------------------------------------------------------------------
+        //Trajectory plot
+        //--------------------------------------------------------------------------------
+        //gnuplot_plot_xyz(h1, ymdn[0], ymdn[1], ymdn[2], mgs+1, (char*)"", "points", "1", "4", 4);
+
+        //--------------------------------------------------------------------------------
+        // Build the Jacobian and other useful matrices
+        //--------------------------------------------------------------------------------
+        //#pragma omp parallel for if(isPar)
+        for(int k = 0; k <= mgs-1; k++)
+        {
+            //----------------------------------------------------------------------------
+            // Initialization for // computing
+            //----------------------------------------------------------------------------
+            double ye[N], tv = 0;
+
+            //----------------------------------------------------------------------------
+            // Integration
+            //----------------------------------------------------------------------------
+            for(int i = 0; i < N; i++) ye[i] = ymdn[i][k];
+            tv = tmdn[k];
+
+            //Storing eye(6) into the initial vector
+            gslc_matrixToVector(ye, Id, 6, 6, 6);
+
+            //Integration in [tmdn[k], tmdn[k+1]]
+            gsl_odeiv2_driver_apply (d, &tv, tmdn[k+1], ye);
+
+            //----------------------------------------------------------------------------
+            // Update the Jacobian
+            //----------------------------------------------------------------------------
+            gslc_vectorToMatrix(Ji[k], ye, 6, 6, 6);
+
+            //----------------------------------------------------------------------------
+            // Update the error vector: F[k] = [ye[k] - ymdn[k+1]]
+            //----------------------------------------------------------------------------
+            for(int i = 0; i < 6; i++)
+            {
+                if(k != mgs-1) gsl_vector_set(Fv, i + 6*k, ye[i] - ymdn[i][k+1]);
+                else gsl_vector_set(Fv, i + 6*k, ye[i] - ymdn[i][0]);
+            }
+
+            //----------------------------------------------------------------------------
+            // Update DF
+            //----------------------------------------------------------------------------
+            for(int i = 0; i < 6; i++)
+            {
+                if(k != mgs-1)
+                {
+                    for(int j = 0; j < 6; j++)
+                    {
+                        gsl_matrix_set(DF, i + 6*k, j + 6*k,      gsl_matrix_get(Ji[k], i, j));
+                        gsl_matrix_set(DF, i + 6*k, j + 6*(k+1), -gsl_matrix_get(Id, i, j));
+                    }
+                }
+                else
+                {
+                    for(int j = 0; j < 6; j++)
+                    {
+                        gsl_matrix_set(DF, i + 6*k, j + 6*k,      gsl_matrix_get(Ji[k], i, j));
+                        gsl_matrix_set(DF, i + 6*k, j      ,     -gsl_matrix_get(Id, i, j));
+                    }
+
+
+                }
+            }
+        }
+
+        //================================================================================
+        //Termination condition: if the desired precision is met,
+        //the process is terminated.
+        //================================================================================
+        normC  = gsl_blas_dnrm2(Fv);
+
+
+        //--------------------------------------------------------------------------------
+        // Check that all points are under a given threshold
+        //--------------------------------------------------------------------------------
+        cout << fname << ". n° " << iter+1 << "/" << itermax << ". nerror = " << normC << endl;
+        if(normC < prec)
+        {
+            cout << fname << ". Desired precision was reached. " << endl; cout << "nerror = " << normC << endl;
+            break;
+        }
+
+
+        //--------------------------------------------------------------------------------
+        // If a strong convergence is desired, check that we are always decreasing the error
+        //--------------------------------------------------------------------------------
+        if(strConv && normC_old < normC)
+        {
+            cout << fname << ". error[n+1] < error[n]. " << endl;
+            return GSL_FAILURE;
+        }
+        normC_old = normC;
+
+
+        //================================================================================
+        //Compute the correction vector
+        //================================================================================
+        status = ftc_corrvec_mn(DQv, Fv, DF, nfv, ncs);
+        //status = ftc_corrvec_square(DQv, Fv, DF, ncs);
+        if(status)
+        {
+            cerr << fname << ". The computation of the correction vector failed."  << endl;
+            return GSL_FAILURE;
+        }
+
+        //================================================================================
+        // Update the free variables
+        //================================================================================
+        for(int k = 0; k <= mgs; k++)
+        {
+            for(int i = 0; i < 6; i++) ymdn[i][k] += gsl_vector_get(DQv, 6*k+i);
+        }
+
+        //--------------------------------------------------------------------------------
+        // Update number of iterations
+        //--------------------------------------------------------------------------------
+        iter++;
+    }
+
+    //====================================================================================
+    // Check that the desired condition was met
+    //====================================================================================
+    if(normC > prec)
+    {
+        cerr << fname << ". The desired precision was not reached."  << endl;
+        return GSL_FAILURE;
+    }
+
+
+    //====================================================================================
+    // Free
+    //====================================================================================
+    gslc_matrix_array_free(Ji , mgs);
+    gsl_vector_free(DQv);
+    gsl_vector_free(Fv);
+    gsl_vector_free(K3);
+    gsl_matrix_free(DF);
+    gsl_matrix_free(M);
+    gsl_matrix_free(Id);
+
+
+    return GSL_SUCCESS;
+}
+
+
+//----------------------------------------------------------------------------------------
 //Differential correction
-//------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 /**
  *  \brief Performs a differential correction procedure on ystart in order to get a periodic orbit of period t1.
  *         The algorithm assumes that the orbit is in the xy plane, is symmetric wrt to the x-axis, and has a period T = t1.
@@ -77,7 +484,7 @@ int differential_correction(double ystart[], double t1, double eps_diff, gsl_ode
         //Optionnal plotting
         if(isPlotted)
         {
-            odePlotGen(y, N, t1, d, hc, 5000, "DiffCorr", "lines", "1", "2", 8);
+            odePlotGen(y, N, t1, d, hc, 500, "DiffCorr", "lines", "1", "2", 8);
         }
 
         //================================================================================
@@ -125,7 +532,6 @@ int differential_correction(double ystart[], double t1, double eps_diff, gsl_ode
         {
             eps_m = eps_c;
             for(i=0; i< N; i++) ystart[i] = yc[i];
-            cout << eps_m << endl;
         }
 
         //================================================================================
@@ -624,14 +1030,16 @@ int differential_correction_T(double ystart[], double t1, double eps_diff, gsl_o
     return GSL_SUCCESS;
 }
 
-//------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 // ODE PLOT - NEW VERSION
-//------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 /**
  *  \brief Integrate the state y[] up to t = t1 on a Npoints grid, in either NC or SYS coordinates, and plot the corresponding result in SYS coordinates (e.g. EM or SEM coord.).
  *         Then the results are plotted on a temporary gnuplot window via the handle *h1. Print in txt files is included vis \c isStored integer.
  **/
-int odePlot2(const double y[], int N, double t1, gsl_odeiv2_driver *d, gnuplot_ctrl  *h1, int Npoints, int color, int isNormalized, int isStored, string filename)
+int odePlot2(const double y[], int N, double t1, gsl_odeiv2_driver *d,
+             gnuplot_ctrl  *h1, int Npoints, int color, int isNormalized, int isStored,
+             string legend, string filename)
 {
     //------------------------------------------
     // Init
@@ -693,21 +1101,112 @@ int odePlot2(const double y[], int N, double t1, gsl_odeiv2_driver *d, gnuplot_c
     gnuplot_setstyle(h1, (char*)"lines");
     gnuplot_set_xlabel(h1, (char*)"x [-]");
     gnuplot_set_ylabel(h1, (char*)"y [-]");
-    gnuplot_plot_xy(h1, xEM, yEM, Npoints, (char*)"", "lines", "1", "4", color);
+    gnuplot_plot_xy(h1, xEM, yEM, Npoints, (char*)legend.c_str(), "lines", "1", "4", color);
 
 
     //------------------------------------------
     //In txt files
     //------------------------------------------
+    if(isStored)
     gnuplot_fplot_xy(xEM, yEM, Npoints, filename.c_str());   //orbit
 
     return GSL_SUCCESS;
 }
 
 
-//------------------------------------------------------------------------------------------------------------
+/**
+ *  \brief Integrate the states (ymdn**, tmdn*), in either NC or SYS coordinates,
+ *         and plot the corresponding result in SYS coordinates (e.g. EM or SEM coord.).
+ *         Then the results are plotted on a temporary gnuplot window via the handle *h1.
+ **/
+int odePlotvec(double **ymdn, double *tmdn, int N, int mgs, gsl_odeiv2_driver *d,
+               gnuplot_ctrl  *h1, int Npoints, int color, int isNormalized, string legend)
+{
+    //------------------------------------------------------------------------------------
+    // Init
+    //------------------------------------------------------------------------------------
+    gsl_odeiv2_driver_reset(d);
+
+    //EM state on a Npoints grid
+    double xEM[Npoints];
+    double yEM[Npoints];
+
+    //Retrieving the parameters
+    QBCP_L* qbp = (QBCP_L *) d->sys->params;
+
+    //Initial conditions
+    double ys[N], ye[N];
+
+    //------------------------------------------------------------------------------------
+    //Loop and integration
+    //------------------------------------------------------------------------------------
+    double ts, ti;
+    for(int k = 0; k < mgs; k++)
+    {
+        for(int i= 0; i < N; i++) ys[i] = ymdn[i][k];
+        ts  = tmdn[k];
+
+        //Update the SYS state
+        if(isNormalized)
+        {
+            NCtoSYS(ts, ys, ye, qbp);
+            xEM[0] = ye[0];
+            yEM[0] = ye[1];
+        }
+        else
+        {
+            xEM[0] = ys[0];
+            yEM[0] = ys[1];
+        }
+
+        if(tmdn[mgs] < 0) d->h = -d->h;
+        for(int i = 1; i <= Npoints; i++)
+        {
+            ti = tmdn[k] + 1.0*i/Npoints*(tmdn[k+1] - tmdn[k]);
+
+            //Integration
+            gsl_odeiv2_driver_apply (d, &ts, ti, ys);
+
+            //Update the SYS state
+            if(isNormalized)
+            {
+                NCtoSYS(ts, ys, ye, qbp);
+                xEM[i] = ye[0];
+                yEM[i] = ye[1];
+            }
+            else
+            {
+                xEM[i] = ys[0];
+                yEM[i] = ys[1];
+            }
+        }
+        if(tmdn[mgs] < 0) d->h = -d->h;
+
+        //--------------------------------------------------------------------------------
+        //Plotting
+        //--------------------------------------------------------------------------------
+        // Of each leg
+        if(k == 0) gnuplot_plot_xy(h1, xEM, yEM, Npoints, (char*)legend.c_str(), "lines", "2", "2", color);
+        else gnuplot_plot_xy(h1, xEM, yEM, Npoints, (char*)"", "lines", "2", "2", color);
+
+        // Of each point
+        gnuplot_plot_xy(h1, &xEM[0], &yEM[0], 1, (char*)"", "points", "2", "2", color);
+    }
+
+    //------------------------------------------------------------------------------------
+    // Aesthetics
+    //------------------------------------------------------------------------------------
+    gnuplot_set_xlabel(h1, (char*)"x [-]");
+    gnuplot_set_ylabel(h1, (char*)"y [-]");
+
+    return GSL_SUCCESS;
+}
+
+
+
+//----------------------------------------------------------------------------------------
 // ODE PLOT: Kept for consistency
-//------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 /**
  *  \brief Integrate the state y[] up to t = t1 on a Npoints grid, in NC coordinates, and plot the corresponding result in SYS coordinates (e.g. EM or SEM coord.).
  *         Then the results are plotted on a temporary gnuplot window via the handle *h1.
@@ -975,9 +1474,9 @@ int odePrintGen(const double y[],
     return GSL_SUCCESS;
 }
 
-//------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 //Differential correction: not used
-//------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 /**
  * \brief Differential correction with a fixed final time used in the continutation procedures from a model to another (e.g CRTBP to BCP).
  *        The state is 7-dimensional. The last component is deps, where eps is the continuation parameter. DEPRECATED.

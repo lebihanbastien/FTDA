@@ -277,7 +277,7 @@ int qbfbp_vfn_varlin_trans(double t, const double y[], double f[], void *params_
     //------------------------------------------------------------------------------------
     //Phase space derivatives: x', y', z', px', py', pz'
     //------------------------------------------------------------------------------------
-    if(qbp->model == M_ERTBP)
+    if(qbp->model == Csts::ERTBP)
     {
         for(int i = 0; i < 6; i++) f[i] = 0.0;
     }
@@ -286,7 +286,7 @@ int qbfbp_vfn_varlin_trans(double t, const double y[], double f[], void *params_
     //------------------------------------------------------------------------------------
     // STM derivatives, linearized case
     //------------------------------------------------------------------------------------
-    vfn_stm_lin_trans(y, Q, alpha, ps, pe, pm, qps2, qpe2, qpm2, ms, me, mm, gamma);
+    vfn_stm_lin_trans(y, Q, alpha, ps, pe, pm, ms, me, mm, gamma);
 
     //------------------------------------------------------------------------------------
     //STM update & dot(STM) computation
@@ -685,7 +685,6 @@ int vf_stm(const double y[], gsl_matrix *Q, double alpha[],
  **/
 int vfn_stm_lin_trans(const double y[], gsl_matrix *Q, double alpha[],
                      double ps[], double pe[], double pm[],
-                     double qps2, double qpe2, double qpm2,
                      double ms, double me, double mm,
                      double gamma)
 {
@@ -1036,7 +1035,7 @@ int qbfbp_vfn_varlin_trans_P(double t, const double y[], double f[], void *param
     //------------------------------------------------------------------------------------
     //Phase space derivatives: x', y', z', px', py', pz'
     //------------------------------------------------------------------------------------
-    if(qbp->model == M_ERTBP)
+    if(qbp->model == Csts::ERTBP)
     {
         for(int i = 0; i < 6; i++) f[i] = 0.0;
     }
@@ -1045,7 +1044,7 @@ int qbfbp_vfn_varlin_trans_P(double t, const double y[], double f[], void *param
     //------------------------------------------------------------------------------------
     // STM derivatives, linearized case
     //------------------------------------------------------------------------------------
-    vfn_stm_lin_trans(y, Q, alpha, ps, pe, pm, qps2, qpe2, qpm2, ms, me, mm, gamma);
+    vfn_stm_lin_trans(y, Q, alpha, ps, pe, pm, ms, me, mm, gamma);
 
     //------------------------------------------------------------------------------------
     // Derivatives of P
@@ -1120,15 +1119,15 @@ int qbfbp_Q(double t, const double y[], gsl_matrix *Q1, gsl_matrix *Q2, gsl_matr
     //------------------------------------------------------------------------------------
     // Distances to 2nd power
     //------------------------------------------------------------------------------------
-    double qpe2 = (y[0]-pe[0])*(y[0]-pe[0]) + (y[1]-pe[1])*(y[1]-pe[1]) + (y[2]-pe[2])*(y[2]-pe[2]);
-    double qps2 = (y[0]-ps[0])*(y[0]-ps[0]) + (y[1]-ps[1])*(y[1]-ps[1]) + (y[2]-ps[2])*(y[2]-ps[2]);
-    double qpm2 = (y[0]-pm[0])*(y[0]-pm[0]) + (y[1]-pm[1])*(y[1]-pm[1]) + (y[2]-pm[2])*(y[2]-pm[2]);
+    //    double qpe2 = (y[0]-pe[0])*(y[0]-pe[0]) + (y[1]-pe[1])*(y[1]-pe[1]) + (y[2]-pe[2])*(y[2]-pe[2]);
+    //    double qps2 = (y[0]-ps[0])*(y[0]-ps[0]) + (y[1]-ps[1])*(y[1]-ps[1]) + (y[2]-ps[2])*(y[2]-ps[2]);
+    //    double qpm2 = (y[0]-pm[0])*(y[0]-pm[0]) + (y[1]-pm[1])*(y[1]-pm[1]) + (y[2]-pm[2])*(y[2]-pm[2]);
 
 
     //------------------------------------------------------------------------------------
     // STM derivatives, linearized case
     //------------------------------------------------------------------------------------
-    vfn_stm_lin_trans(y, Q, alpha, ps, pe, pm, qps2, qpe2, qpm2, ms, me, mm, gamma);
+    vfn_stm_lin_trans(y, Q, alpha, ps, pe, pm, ms, me, mm, gamma);
 
 
     //------------------------------------------------------------------------------------
@@ -1817,8 +1816,8 @@ void dynTest_SEMtoEM()
 
     //CR3BPs
     CR3BP SE, EM;
-    init_CR3BP(&SE, SUN, EARTH_AND_MOON);
-    init_CR3BP(&EM, EARTH, MOON);
+    init_CR3BP(&SE, Csts::SUN, Csts::EARTH_AND_MOON);
+    init_CR3BP(&EM, Csts::EARTH, Csts::MOON);
 
     //-------------------------------------------------
     //Plotting devices
@@ -1831,7 +1830,7 @@ void dynTest_SEMtoEM()
     //-------------------------------------------------
     // SEML focused on the SEM system
     //-------------------------------------------------
-    changeCOORDSYS(SEML, F_SEM);
+    changeCOORDSYS(SEML, Csts::SEM);
 
     //-------------------------------------------------
     //Integration tools
@@ -1919,7 +1918,7 @@ void dynTest_SEMtoEM()
     //-------------------------------------------------
     //Using EM frame
     //-------------------------------------------------
-    changeCOORDSYS(SEML, F_EM);
+    changeCOORDSYS(SEML, Csts::EM);
 
     //-------------------------------
     //SNC to ENC
@@ -1963,8 +1962,8 @@ void dynTest_EMtoSEM()
 
     //CR3BPs
     CR3BP SE, EM;
-    init_CR3BP(&SE, SUN, EARTH_AND_MOON);
-    init_CR3BP(&EM, EARTH, MOON);
+    init_CR3BP(&SE, Csts::SUN, Csts::EARTH_AND_MOON);
+    init_CR3BP(&EM, Csts::EARTH, Csts::MOON);
 
     //Identity matrix eye(6)
     gsl_matrix *Id = gsl_matrix_calloc(6,6);
@@ -1981,7 +1980,7 @@ void dynTest_EMtoSEM()
     //-------------------------------------------------
     //Using EM frame
     //-------------------------------------------------
-    changeCOORDSYS(SEML, F_EM);
+    changeCOORDSYS(SEML, Csts::EM);
 
     //-------------------------------------------------
     //Integration tools
@@ -2064,7 +2063,7 @@ void dynTest_EMtoSEM()
     //-------------------------------------------------
     //Using SEM frame
     //-------------------------------------------------
-    changeCOORDSYS(SEML, F_SEM);
+    changeCOORDSYS(SEML, Csts::SEM);
 
     //-----------------
     //ENC to SNC
@@ -2086,7 +2085,7 @@ void dynTest_EMtoSEM()
     //Diff Corr in SNC
     differential_correction(ySNC, T_SE, 1e-14, d, 42, 0);
     //Change framework for integration
-    changeCOORDSYS(SEML, F_EM);
+    changeCOORDSYS(SEML, Csts::EM);
     //SNC to ENC coordinates for IC
     NCSEMmtoNCEMm(0.0, ySNC, yENC, &SEML);
     //Plot

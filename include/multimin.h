@@ -17,11 +17,11 @@
 #define MULTIMIN_FRPRMN   2  //Fletcher-Reeves-Polak-Ribiere minimization
 #define MULTIMIN_DFRPRMN  3  //Fletcher-Reeves-Polak-Ribiere minimization with gradient
 
-//-----------------------------------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 //
 //  Simplex method
 //
-//-----------------------------------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 /*
 Multidimensional minimization of the function funk(x) where x[0..ndim-1] is a vector in ndim
 dimensions, by the downhill simplex method of Nelder and Mead. The matrix p[0..ndim]
@@ -44,11 +44,11 @@ it, and replaces the high point if the new point is better.
 double amotry(double z1[], double t, void *params, double **p, double y[], double psum[], int ndim,
              double (*funk)(double [], double[], double, void *), int ihi, double fac);
 
-//-----------------------------------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 //
 //  Fletcher-Reeves-Polak-Ribiere minimization
 //
-//-----------------------------------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 /*
 Given a starting point p[0..n-1] , Fletcher-Reeves-Polak-Ribiere minimization is performed on a
 function func , using its gradient as calculated by a routine dfunc . The convergence tolerance

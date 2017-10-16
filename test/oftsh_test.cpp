@@ -8,7 +8,10 @@
 
 #include "timec.h"
 #include "oftsh_test.h"
-#define VAR 2.0
+#define VAR 2.
+
+using namespace std;
+
 
 /**
  * \fn void oftsh_test()

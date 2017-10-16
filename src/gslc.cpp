@@ -1,4 +1,5 @@
 #include "gslc.h"
+using namespace std;
 
 /**
  * \file gslc.cpp
@@ -1001,5 +1002,59 @@ void gslc_matrix_array_free(gsl_matrix ** P, int M)
 
 
 
+//----------------------------------------------------------------------------------------
+// Allocation
+//----------------------------------------------------------------------------------------
+/**
+ * \brief Initialize and return an array of GSL matrices
+ **/
+gsl_matrix** gslc_matrix_array_calloc(int size1, int size2, int M)
+{
+    gsl_matrix **DAT = (gsl_matrix**) malloc((M)*sizeof(gsl_matrix*));
+    for(int i = 0; i< M; i++) DAT[i] = gsl_matrix_calloc(size1,size2);
+    return DAT;
+}
 
+
+//---------------------------------------------------------------------------------------
+// Utilitary routines on C vectors are gathered here
+//---------------------------------------------------------------------------------------
+/**
+ *  \brief Prints an array of double using cout.
+ **/
+void vector_printf(double *y, int n)
+{
+    Config::configManager().coutmp();
+    for(int i = 0; i < n; i ++) cout << i << "  " << y[i] << endl;
+}
+
+/**
+ *  \brief Prints an array of complex double using cout.
+ **/
+void vector_complex_printf(cdouble *y, int n)
+{
+    Config::configManager().coutmp();
+    for(int i = 0; i < n; i ++) cout << i << "  " << creal(y[i]) << "  " << cimag(y[i]) << endl;
+}
+
+
+/**
+ *  Euclidian norm computed on the first k components of a complex vector: \f$ ENorm(z_0, k) = \left( \sum_{p = 0}^{k-1}  z_0[p] ^2 \right)^{-1/2} \f$
+ **/
+double ENorm(cdouble z0[], int k)
+{
+    double res = cabs(z0[0])*cabs(z0[0]);
+    for(int p = 1; p < k; p++) res += cabs(z0[p])*cabs(z0[p]);
+    return(sqrt(res));
+}
+
+/**
+ *  Euclidian norm computed on the first k components of a double vector: \f$ ENorm(z_0, k) = \left( \sum_{p = 0}^{k-1}  z_0[p] ^2 \right)^{-1/2} \f$
+ **/
+double ENorm(double z0[], int k)
+{
+    double res = cabs(z0[0])*cabs(z0[0]);
+    for(int p = 1; p < k; p++) res += cabs(z0[p])*cabs(z0[p]);
+    return(sqrt(res));
+}
 

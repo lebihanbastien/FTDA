@@ -8,6 +8,7 @@
 #include <cstdlib>
 #include <math.h>
 
+
 /**
  * \file ftda.h
  * \brief Basic operations for algebraic manipulation (exponents in reverse lexicographic order, number of coefficient in homogeneous polynomials...).
