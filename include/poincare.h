@@ -4,13 +4,11 @@
 extern "C"
 {
     #include "nrutil.h"
-    #include "multimin.h"
 }
 
 
 #include "pmode.h"
 #include "init.h"
-#include "parameters.h"
 
 //Integration methods
 #define DUAL_INT          1
@@ -95,7 +93,7 @@ struct Orbit
     //Parent
     //------------------------------------------------------------------------------------
     Pmap     *pmap;         //Poincare map (parent)
-    QBCP_L   *qbcp_l;       //QBCP around a given Li point (parent)
+    FBPL   *fbpl;       //QBCP around a given Li point (parent)
 
     //------------------------------------------------------------------------------------
     //Parameterization (common to all orbits)
@@ -489,49 +487,6 @@ void orbit_Tmap_plot(Orbit *orbit, gnuplot_ctrl *h1, gnuplot_ctrl *h2, int color
 
 //----------------------------------------------------------------------------------------
 //
-//  Square distance & minimization of it (deprecated)
-//
-//----------------------------------------------------------------------------------------
-/**
-    \brief Given an initial guess st0, computes the min argument of square distance between a given configuraton z1 and z = W(g(st), t) (see sqdist).
-    i.e. st1 = argmin sqdist(st, z1, t, &orbit)
-
-    \param Orbit a reference to the current orbit
-    \param z1 the target NC configuration (dim 6)
-    \param t the current time
-    \param st0 the initial guess in real TFC configuration (dim REDUCED_NV)
-    \param st1 the min argument to update real TFC configuration (dim REDUCED_NV)
-    \param multimin_method an integer to select a multidimensionnal minimization method
-**/
-void argmin_sqdist(Orbit &orbit, double z1[], double t, double st0[], double st1[], int multimin_method);
-
-
-/**
-    \brief Computes the square distance between a given configuraton z1 and z0 = W(g(st0), t)
-
-    \param st0 an array of REDUCED_NV double which gives the configuration to study in real TFC coordinates
-    \param z1 the target NC configuration (dim 6)
-    \param t the current time
-    \param params a set of parameters needed to perform evaluations of W and g
-    \return a double, the square distance between a given configuraton z1 and z0 = W(g(st0), t)
-**/
-double sqdist(double st0[], double z1[], double t, void *params);
-
-
-/**
-    \brief Computes the gradient square distance between a given configuraton z1 and z0 = W(g(st0), t) (see sqdist)
-
-    \param st0 an array of REDUCED_NV double which gives the configuration to study in real TFC coordinates
-    \param df the gradient to update
-    \param z1 the target NC configuration (dim 6)
-    \param t the current time
-    \param params a set of parameters needed to perform evaluations of W and g
-**/
-void dsqdist(double st0[], double df[], double z1[], double t, void *params);
-
-
-//----------------------------------------------------------------------------------------
-//
 //  Orbit C structure handling
 //
 //----------------------------------------------------------------------------------------
@@ -545,7 +500,7 @@ void init_orbit(Orbit *orbit,
                 matrix<Ofsc>*  PC,
                 vector<Ofsc>*  V,
                 Pmap *pmap,
-                QBCP_L *qbcp_l,
+                FBPL *fbpl,
                 Ofsc* orbit_ofs,
                 int vdim,
                 int label);
@@ -565,7 +520,7 @@ void init_orbit(Orbit *orbit,
                 OdeStruct *ode_s_6_root,
                 OdeStruct *ode_s_8_root,
                 Pmap *pmap,
-                QBCP_L *qbcp_l,
+                FBPL *fbpl,
                 Ofsc* orbit_ofs,
                 int vdim,
                 int label);

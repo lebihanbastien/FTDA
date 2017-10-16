@@ -18,7 +18,7 @@ extern "C" {
  *         - Finally, a test of the periodicity of the orbit is performed, via the computation of the error |y(0) - y(T)|.
  *         - If isStored is true, the results (x(t), y(t)) in synodical coordinates are stored in txt files of the form: "./plot/QBCP/DYNEQ/DYNEQ_QBCP_EM_L1.txt".
  **/
-void compute_dyn_eq_lib_point(QBCP_L &qbcp_l, int isStored);
+void compute_dyn_eq_lib_point(FBPL &fbpl, int isStored);
 
 /**
  *  \brief Main routine for the computation of the dynamical equivalent to the Libration points.
@@ -44,12 +44,12 @@ void lpdyneq_cont_2(gsl_odeiv2_driver *d, gsl_odeiv2_control * loose_control, gs
 /**
  *  \brief Continuation routine for the dynamical equivalents of the libration points.
  */
-void continuation_dyn_eq_lib_point(QBCP_L &qbcp_l, int from_model, int to_model);
+void continuation_dyn_eq_lib_point(FBPL &fbpl, int from_model, int to_model);
 
 /**
  *  \brief Continuation routine for other orbits than the libration points.
  */
-void continuation_res_orbit(QBCP_L &qbcp_l, int from_model, int to_model);
+void continuation_res_orbit(FBPL &fbpl, int from_model, int to_model);
 
 //------------------------------------------------------------------------------------------------------------
 // Periodicity Condition
@@ -60,7 +60,7 @@ void continuation_res_orbit(QBCP_L &qbcp_l, int from_model, int to_model);
  *  Note that the integer N is the number of variables associated to the driver d, and should be also the number of variables in y. However, the periodicity condition is tested only on
  *  NvarTest variables (a usual example is Nvar = 42 but NvarTest = 6).
  **/
-int periodicity_condition(const double y[], int Nvar, int NvarTest, double t1, gsl_odeiv2_driver *d, int isNormalized);
+int periodicity_condition(const double y[], int Nvar, int NvarTest, double t1, gsl_odeiv2_driver *d, int isNorm);
 
 
 //==============================================================================

@@ -1,12 +1,20 @@
 #ifndef CSTS_H
 #define CSTS_H
 
+
 /**
  * \file   Constants.h
  * \brief  Definition of the class Csts, a simple class of numerical constants.
  * \author BLB
  * \date   2017
  */
+
+#include <complex.h>
+
+//----------------------------------------------------------------------------------------
+//   typedef
+//----------------------------------------------------------------------------------------
+typedef complex double cdouble;
 
 
 /**
@@ -19,7 +27,7 @@ private:
 public:
     //====================================================================================
     // Configuration of OOFTDA: argument passed to the main routine (must agree with the
-    // BASH constants defined in OOFTDA/config/constants.h
+    // BASH constants defined in OOFTDA/config/constants.sh
     //====================================================================================
 
     //------------------------------------------------------------------------------------

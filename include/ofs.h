@@ -17,9 +17,6 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-//custom
-#include "ots.h"
-#include "parameters.h"
 //GSL
 #include <gsl/gsl_vector.h>
 #include <gsl/gsl_fft_complex.h>
@@ -417,11 +414,6 @@ public:
      */
     bool isEqual(Ofs<T> const& b) const;
 
-    /**
-     *  \brief  Performs the transformation from an Ots object (Object Taylor Serie).
-     *  \param  ts: a reference to an Ots object
-     */
-    void ts2fs(Ots<T> const& ts);
 
     /**
      *  \brief  Evaluates the Ofs object at time t.
@@ -549,13 +541,6 @@ template<typename T> Ofs<T> operator * (T const& c, Ofs<T> const& a);
  */
 template<typename T> Ofs<T> operator *  (Ofs<T> const& a, Ofs<T> const& b);
 
-/**
- * \fn template<typename T> Ots<T>& fs2ts(Ots<T> & ts, Ofs<T> const& fs)
- * \brief Performs the transformation from an Ofs object (fs) to an Ots object (ts).
- * \param ts: a reference to the Ots object to transform.
- * \param fs: a reference to the Ofs object to update.
- */
-template<typename T> void fs2ts(Ots<T> & ts, Ofs<T> const& fs);
 
 /**
  * \fn void inline readOFS_txt(Ofsc& xFFT, string filename, int fftN)

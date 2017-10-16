@@ -10,7 +10,7 @@
 #include <stdlib.h>
 #include <complex.h>
 
-#include "ftda.h"
+#include "Ftda.h"
 #include "otsh.h"
 #include "parameters.h"
 #include "Config.h"

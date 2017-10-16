@@ -34,13 +34,13 @@ void qbtbp(int li_EM, int li_SEM, int isTestOn, int coordsys)
     //-------------------------------------
     //Initialization the integration tools
     //-------------------------------------
-    //Init the qbcp
-    QBCP qbcp;
-    init_QBCP(&qbcp, Csts::SUN, Csts::EARTH, Csts::MOON);
+    //Init the fbp
+    FBP fbp;
+    init_FBP(&fbp, Csts::SUN, Csts::EARTH, Csts::MOON);
 
-    //Init the qbcp focused on one libration point
-    QBCP_L qbcp_l;
-    init_QBCP_L(&qbcp_l, &qbcp, true, li_EM, li_SEM, true, Csts::QBCP, coordsys, Csts::GRAPH, Csts::MAN_CENTER, Csts::MAN_CENTER); //note PM style and type are not used
+    //Init the fbp focused on one libration point
+    FBPL fbpl;
+    init_FBPL(&fbpl, &fbp, li_EM, li_SEM, Csts::QBCP, coordsys, Csts::GRAPH, Csts::MAN_CENTER, Csts::MAN_CENTER, true, true); //note PM style and type are not used
 
     //Init of the internal/external motions
     Ofts<Ofsd> ofts_z(1,OFS_ORDER,2,OFS_ORDER);
@@ -52,7 +52,7 @@ void qbtbp(int li_EM, int li_SEM, int isTestOn, int coordsys)
     //Computation of the QBTBP
     //-------------------------------------
     tic();
-    qbtbp_ofs(ofts_z, ofts_Z, qbcp_l);
+    qbtbp_ofs(ofts_z, ofts_Z, fbpl);
     cout << " qbtbp. end of computation in: " << toc() << "s." << endl;
 
     //If the user wants to test the results
@@ -68,8 +68,8 @@ void qbtbp(int li_EM, int li_SEM, int isTestOn, int coordsys)
         const gsl_root_fsolver_type *T_root = gsl_root_fsolver_brent; //Brent-Dekker root finding method
         //Ode solver parameters
         double param[2];
-        param[0] = qbcp_l.us_em.mu_EM; //note that the qbtbp is computed in EM framework
-        param[1] = qbcp_l.us_em.ms;    //note that the qbtbp is computed in EM framework
+        param[0] = fbpl.us_em.mu_EM; //note that the qbtbp is computed in EM framework
+        param[1] = fbpl.us_em.ms;    //note that the qbtbp is computed in EM framework
         //General structures
         init_ode_structure(&ode_s, T, T_root, Config::configManager().G_PREC_ABS(),
         Config::configManager().G_PREC_REL(), Config::configManager().G_PREC_ROOT(),
@@ -86,7 +86,7 @@ void qbtbp(int li_EM, int li_SEM, int isTestOn, int coordsys)
         Ofsc cjc(OFS_ORDER);
 
         //The epsilon paramater
-        double eps = 1.0/qbcp_l.us_em.as;  //note that the qbtbp is computed in EM framework
+        double eps = 1.0/fbpl.us_em.as;  //note that the qbtbp is computed in EM framework
 
         //From ots to ofs
         fts2fs(&bj, ofts_z, eps);
@@ -101,10 +101,10 @@ void qbtbp(int li_EM, int li_SEM, int isTestOn, int coordsys)
         //----------------------------
         char ch;
         cout << " qbtbp. The test is performed on one full period by default." << endl;
-        qbtbp_test(2*M_PI, bjc, cjc, ode_s, qbcp_l);
+        qbtbp_test(2*M_PI, bjc, cjc, ode_s, fbpl);
         cout << "Press Enter to proceed with the tests." << endl;
         scanf("%c",&ch);
-        qbtbp_test_FFT_vs_OFS(bjc, cjc, OFS_ORDER, 500, 1, ode_s, qbcp_l);
+        qbtbp_test_FFT_vs_OFS(bjc, cjc, OFS_ORDER, 500, 1, ode_s, fbpl);
         cout << "Press Enter to proceed with the tests." << endl;
         scanf("%c",&ch);
         qbtbp_test_IN_EM_SEM(0.0*M_PI, bjc, cjc);
@@ -117,17 +117,17 @@ void qbtbp(int li_EM, int li_SEM, int isTestOn, int coordsys)
 //-----------------------------------------------------------------------------
 // Main routine: computation of the BCP
 //-----------------------------------------------------------------------------
-void bcp_alpha(QBCP_L &qbcp_l)
+void bcp_alpha(FBPL &fbpl)
 {
     //--------------------------------------------------------------------
     //Parameters for one specific libration point
     //--------------------------------------------------------------------
-    double mu_EM = qbcp_l.us_em.mu_EM;
-    double gamma = qbcp_l.cs_em.gamma;
-    double c1    = qbcp_l.cs_em.c1;
-    double ms    = qbcp_l.us_em.ms;
-    double as    = qbcp_l.us_em.as;
-    int nf       = qbcp_l.nf;
+    double mu_EM = fbpl.us_em.mu_EM;
+    double gamma = fbpl.cs_em.gamma;
+    double c1    = fbpl.cs_em.c1;
+    double ms    = fbpl.us_em.ms;
+    double as    = fbpl.us_em.as;
+    int nf       = fbpl.nf;
 
     //--------------------------------------------------------------------
     // 3. Set all alpha functions
@@ -236,41 +236,41 @@ void bcp_alpha(QBCP_L &qbcp_l)
     //Put in data file
     //--------------------------
     cout << "bcp. storage in txt files. " << endl;
-    ofs_sst(alpha1c, qbcp_l.cs_em.F_COEF+"alpha1", 1, "_fft");
-    ofs_sst(alpha2c, qbcp_l.cs_em.F_COEF+"alpha2", 0, "_fft");
-    ofs_sst(alpha3c, qbcp_l.cs_em.F_COEF+"alpha3", 1, "_fft");
-    ofs_sst(alpha4c, qbcp_l.cs_em.F_COEF+"alpha4", 1, "_fft");
-    ofs_sst(alpha5c, qbcp_l.cs_em.F_COEF+"alpha5", 0, "_fft");
-    ofs_sst(alpha6c, qbcp_l.cs_em.F_COEF+"alpha6", 1, "_fft");
+    ofs_sst(alpha1c, fbpl.cs_em.F_COEF+"alpha1", 1, "_fft");
+    ofs_sst(alpha2c, fbpl.cs_em.F_COEF+"alpha2", 0, "_fft");
+    ofs_sst(alpha3c, fbpl.cs_em.F_COEF+"alpha3", 1, "_fft");
+    ofs_sst(alpha4c, fbpl.cs_em.F_COEF+"alpha4", 1, "_fft");
+    ofs_sst(alpha5c, fbpl.cs_em.F_COEF+"alpha5", 0, "_fft");
+    ofs_sst(alpha6c, fbpl.cs_em.F_COEF+"alpha6", 1, "_fft");
      //Sun
-    ofs_sst(alpha7c, qbcp_l.cs_em.F_COEF+"alpha7", 1, "_fft");
-    ofs_sst(alpha8c, qbcp_l.cs_em.F_COEF+"alpha8", 0, "_fft");
+    ofs_sst(alpha7c, fbpl.cs_em.F_COEF+"alpha7", 1, "_fft");
+    ofs_sst(alpha8c, fbpl.cs_em.F_COEF+"alpha8", 0, "_fft");
     //Earth
-    ofs_sst(alpha9c,  qbcp_l.cs_em.F_COEF+"alpha9",  1, "_fft");
-    ofs_sst(alpha10c, qbcp_l.cs_em.F_COEF+"alpha10", 0, "_fft");
+    ofs_sst(alpha9c,  fbpl.cs_em.F_COEF+"alpha9",  1, "_fft");
+    ofs_sst(alpha10c, fbpl.cs_em.F_COEF+"alpha10", 0, "_fft");
     //Moon
-    ofs_sst(alpha11c, qbcp_l.cs_em.F_COEF+"alpha11", 1, "_fft");
-    ofs_sst(alpha12c, qbcp_l.cs_em.F_COEF+"alpha12", 0, "_fft");
+    ofs_sst(alpha11c, fbpl.cs_em.F_COEF+"alpha11", 1, "_fft");
+    ofs_sst(alpha12c, fbpl.cs_em.F_COEF+"alpha12", 0, "_fft");
     //NC additional coeffs
-    ofs_sst(alpha13c, qbcp_l.cs_em.F_COEF+"alpha13", 1, "_fft");
-    ofs_sst(alpha14c, qbcp_l.cs_em.F_COEF+"alpha14", 0, "_fft");
+    ofs_sst(alpha13c, fbpl.cs_em.F_COEF+"alpha13", 1, "_fft");
+    ofs_sst(alpha14c, fbpl.cs_em.F_COEF+"alpha14", 0, "_fft");
 
     //---------------
     //Primary, EM coordinates
     //Note that, at this step, the vertical motion of the primaries is undefined,
     //so we can put either Even or Odd in the ofs_sst option of gsl_Zc without much difference
     //---------------
-    ofs_sst(Xs, qbcp_l.cs_em.F_COEF+"Ps1", 1, "_fft");
-    ofs_sst(Ys, qbcp_l.cs_em.F_COEF+"Ps2", 0, "_fft");
-    ofs_sst(Zs, qbcp_l.cs_em.F_COEF+"Ps3", 1, "_fft");
+    ofs_sst(Xs, fbpl.cs_em.F_COEF+"Ps1", 1, "_fft");
+    ofs_sst(Ys, fbpl.cs_em.F_COEF+"Ps2", 0, "_fft");
+    ofs_sst(Zs, fbpl.cs_em.F_COEF+"Ps3", 1, "_fft");
 
-    ofs_sst(Xm, qbcp_l.cs_em.F_COEF+"Pm1", 1, "_fft");
-    ofs_sst(Ym, qbcp_l.cs_em.F_COEF+"Pm2", 0, "_fft");
-    ofs_sst(Zm, qbcp_l.cs_em.F_COEF+"Pm3", 1, "_fft");
+    ofs_sst(Xm, fbpl.cs_em.F_COEF+"Pm1", 1, "_fft");
+    ofs_sst(Ym, fbpl.cs_em.F_COEF+"Pm2", 0, "_fft");
+    ofs_sst(Zm, fbpl.cs_em.F_COEF+"Pm3", 1, "_fft");
 
-    ofs_sst(Xe, qbcp_l.cs_em.F_COEF+"Pe1", 1, "_fft");
-    ofs_sst(Ye, qbcp_l.cs_em.F_COEF+"Pe2", 0, "_fft");
-    ofs_sst(Ze, qbcp_l.cs_em.F_COEF+"Pe3", 1, "_fft");
+    ofs_sst(Xe, fbpl.cs_em.F_COEF+"Pe1", 1, "_fft");
+    ofs_sst(Ye, fbpl.cs_em.F_COEF+"Pe2", 0, "_fft");
+    ofs_sst(Ze, fbpl.cs_em.F_COEF+"Pe3", 1, "_fft");
 
 
     //---------------
@@ -278,30 +278,30 @@ void bcp_alpha(QBCP_L &qbcp_l)
     //Note that, at this step, the vertical motion of the primaries is undefined,
     //so we can put either Even or Odd in the ofs_sst option of gsl_zc without much difference
     //---------------
-    ofs_sst(xs, qbcp_l.cs_em.F_COEF+"ps1", 1, "_fft");
-    ofs_sst(ys, qbcp_l.cs_em.F_COEF+"ps2", 0, "_fft");
-    ofs_sst(zs, qbcp_l.cs_em.F_COEF+"ps3", 1, "_fft");
+    ofs_sst(xs, fbpl.cs_em.F_COEF+"ps1", 1, "_fft");
+    ofs_sst(ys, fbpl.cs_em.F_COEF+"ps2", 0, "_fft");
+    ofs_sst(zs, fbpl.cs_em.F_COEF+"ps3", 1, "_fft");
 
-    ofs_sst(xm, qbcp_l.cs_em.F_COEF+"pm1", 1, "_fft");
-    ofs_sst(ym, qbcp_l.cs_em.F_COEF+"pm2", 0, "_fft");
-    ofs_sst(zm, qbcp_l.cs_em.F_COEF+"pm3", 1, "_fft");
+    ofs_sst(xm, fbpl.cs_em.F_COEF+"pm1", 1, "_fft");
+    ofs_sst(ym, fbpl.cs_em.F_COEF+"pm2", 0, "_fft");
+    ofs_sst(zm, fbpl.cs_em.F_COEF+"pm3", 1, "_fft");
 
-    ofs_sst(xe, qbcp_l.cs_em.F_COEF+"pe1", 1, "_fft");
-    ofs_sst(ye, qbcp_l.cs_em.F_COEF+"pe2", 0, "_fft");
-    ofs_sst(ze, qbcp_l.cs_em.F_COEF+"pe3", 1, "_fft");
+    ofs_sst(xe, fbpl.cs_em.F_COEF+"pe1", 1, "_fft");
+    ofs_sst(ye, fbpl.cs_em.F_COEF+"pe2", 0, "_fft");
+    ofs_sst(ze, fbpl.cs_em.F_COEF+"pe3", 1, "_fft");
 }
 
-void bcp_delta(QBCP_L &qbcp_l)
+void bcp_delta(FBPL &fbpl)
 {
     //--------------------------------------------------------------------
     //Parameters for one specific libration point
     //--------------------------------------------------------------------
-    double mu_SE  = qbcp_l.us_sem.mu_SEM;
-    double gamma  = qbcp_l.cs_sem.gamma;
-    double c1     = qbcp_l.cs_sem.c1;
-    //double mm     = qbcp_l.us_sem.mm;
-    double am     = qbcp_l.us_sem.ai;
-    int nf        = qbcp_l.nf;
+    double mu_SE  = fbpl.us_sem.mu_SEM;
+    double gamma  = fbpl.cs_sem.gamma;
+    double c1     = fbpl.cs_sem.c1;
+    //double mm     = fbpl.us_sem.mm;
+    double am     = fbpl.us_sem.ai;
+    int nf        = fbpl.nf;
 
     //--------------------------------------------------------------------
     // 3. Set all delta functions
@@ -412,41 +412,41 @@ void bcp_delta(QBCP_L &qbcp_l)
     //Put in data file
     //--------------------------
     cout << "bcp. storage in txt files. " << endl;
-    ofs_sst(delta1c, qbcp_l.cs_sem.F_COEF+"alpha1", 1, "_fft");
-    ofs_sst(delta2c, qbcp_l.cs_sem.F_COEF+"alpha2", 0, "_fft");
-    ofs_sst(delta3c, qbcp_l.cs_sem.F_COEF+"alpha3", 1, "_fft");
-    ofs_sst(delta4c, qbcp_l.cs_sem.F_COEF+"alpha4", 1, "_fft");
-    ofs_sst(delta5c, qbcp_l.cs_sem.F_COEF+"alpha5", 0, "_fft");
-    ofs_sst(delta6c, qbcp_l.cs_sem.F_COEF+"alpha6", 1, "_fft");
+    ofs_sst(delta1c, fbpl.cs_sem.F_COEF+"alpha1", 1, "_fft");
+    ofs_sst(delta2c, fbpl.cs_sem.F_COEF+"alpha2", 0, "_fft");
+    ofs_sst(delta3c, fbpl.cs_sem.F_COEF+"alpha3", 1, "_fft");
+    ofs_sst(delta4c, fbpl.cs_sem.F_COEF+"alpha4", 1, "_fft");
+    ofs_sst(delta5c, fbpl.cs_sem.F_COEF+"alpha5", 0, "_fft");
+    ofs_sst(delta6c, fbpl.cs_sem.F_COEF+"alpha6", 1, "_fft");
      //Sun
-    ofs_sst(delta7c, qbcp_l.cs_sem.F_COEF+"alpha7", 1, "_fft");
-    ofs_sst(delta8c, qbcp_l.cs_sem.F_COEF+"alpha8", 0, "_fft");
+    ofs_sst(delta7c, fbpl.cs_sem.F_COEF+"alpha7", 1, "_fft");
+    ofs_sst(delta8c, fbpl.cs_sem.F_COEF+"alpha8", 0, "_fft");
     //Earth
-    ofs_sst(delta9c,  qbcp_l.cs_sem.F_COEF+"alpha9",  1, "_fft");
-    ofs_sst(delta10c, qbcp_l.cs_sem.F_COEF+"alpha10", 0, "_fft");
+    ofs_sst(delta9c,  fbpl.cs_sem.F_COEF+"alpha9",  1, "_fft");
+    ofs_sst(delta10c, fbpl.cs_sem.F_COEF+"alpha10", 0, "_fft");
     //Moon
-    ofs_sst(delta11c, qbcp_l.cs_sem.F_COEF+"alpha11", 1, "_fft");
-    ofs_sst(delta12c, qbcp_l.cs_sem.F_COEF+"alpha12", 0, "_fft");
+    ofs_sst(delta11c, fbpl.cs_sem.F_COEF+"alpha11", 1, "_fft");
+    ofs_sst(delta12c, fbpl.cs_sem.F_COEF+"alpha12", 0, "_fft");
     //NC additional coeffs
-    ofs_sst(delta13c, qbcp_l.cs_sem.F_COEF+"alpha13", 1, "_fft");
-    ofs_sst(delta14c, qbcp_l.cs_sem.F_COEF+"alpha14", 0, "_fft");
+    ofs_sst(delta13c, fbpl.cs_sem.F_COEF+"alpha13", 1, "_fft");
+    ofs_sst(delta14c, fbpl.cs_sem.F_COEF+"alpha14", 0, "_fft");
 
     //---------------
     //Primary, EM coordinates
     //Note that, at this step, the vertical motion of the primaries is undefined,
     //so we can put either Even or Odd in the ofs_sst option of gsl_Zc without much difference
     //---------------
-    ofs_sst(Xs, qbcp_l.cs_sem.F_COEF+"Ps1", 1, "_fft");
-    ofs_sst(Ys, qbcp_l.cs_sem.F_COEF+"Ps2", 0, "_fft");
-    ofs_sst(Zs, qbcp_l.cs_sem.F_COEF+"Ps3", 1, "_fft");
+    ofs_sst(Xs, fbpl.cs_sem.F_COEF+"Ps1", 1, "_fft");
+    ofs_sst(Ys, fbpl.cs_sem.F_COEF+"Ps2", 0, "_fft");
+    ofs_sst(Zs, fbpl.cs_sem.F_COEF+"Ps3", 1, "_fft");
 
-    ofs_sst(Xm, qbcp_l.cs_sem.F_COEF+"Pm1", 1, "_fft");
-    ofs_sst(Ym, qbcp_l.cs_sem.F_COEF+"Pm2", 0, "_fft");
-    ofs_sst(Zm, qbcp_l.cs_sem.F_COEF+"Pm3", 1, "_fft");
+    ofs_sst(Xm, fbpl.cs_sem.F_COEF+"Pm1", 1, "_fft");
+    ofs_sst(Ym, fbpl.cs_sem.F_COEF+"Pm2", 0, "_fft");
+    ofs_sst(Zm, fbpl.cs_sem.F_COEF+"Pm3", 1, "_fft");
 
-    ofs_sst(Xe, qbcp_l.cs_sem.F_COEF+"Pe1", 1, "_fft");
-    ofs_sst(Ye, qbcp_l.cs_sem.F_COEF+"Pe2", 0, "_fft");
-    ofs_sst(Ze, qbcp_l.cs_sem.F_COEF+"Pe3", 1, "_fft");
+    ofs_sst(Xe, fbpl.cs_sem.F_COEF+"Pe1", 1, "_fft");
+    ofs_sst(Ye, fbpl.cs_sem.F_COEF+"Pe2", 0, "_fft");
+    ofs_sst(Ze, fbpl.cs_sem.F_COEF+"Pe3", 1, "_fft");
 
 
     //---------------
@@ -454,32 +454,32 @@ void bcp_delta(QBCP_L &qbcp_l)
     //Note that, at this step, the vertical motion of the primaries is undefined,
     //so we can put either Even or Odd in the ofs_sst option of gsl_zc without much difference
     //---------------
-    ofs_sst(xs, qbcp_l.cs_sem.F_COEF+"ps1", 1, "_fft");
-    ofs_sst(ys, qbcp_l.cs_sem.F_COEF+"ps2", 0, "_fft");
-    ofs_sst(zs, qbcp_l.cs_sem.F_COEF+"ps3", 1, "_fft");
+    ofs_sst(xs, fbpl.cs_sem.F_COEF+"ps1", 1, "_fft");
+    ofs_sst(ys, fbpl.cs_sem.F_COEF+"ps2", 0, "_fft");
+    ofs_sst(zs, fbpl.cs_sem.F_COEF+"ps3", 1, "_fft");
 
-    ofs_sst(xm, qbcp_l.cs_sem.F_COEF+"pm1", 1, "_fft");
-    ofs_sst(ym, qbcp_l.cs_sem.F_COEF+"pm2", 0, "_fft");
-    ofs_sst(zm, qbcp_l.cs_sem.F_COEF+"pm3", 1, "_fft");
+    ofs_sst(xm, fbpl.cs_sem.F_COEF+"pm1", 1, "_fft");
+    ofs_sst(ym, fbpl.cs_sem.F_COEF+"pm2", 0, "_fft");
+    ofs_sst(zm, fbpl.cs_sem.F_COEF+"pm3", 1, "_fft");
 
-    ofs_sst(xe, qbcp_l.cs_sem.F_COEF+"pe1", 1, "_fft");
-    ofs_sst(ye, qbcp_l.cs_sem.F_COEF+"pe2", 0, "_fft");
-    ofs_sst(ze, qbcp_l.cs_sem.F_COEF+"pe3", 1, "_fft");
+    ofs_sst(xe, fbpl.cs_sem.F_COEF+"pe1", 1, "_fft");
+    ofs_sst(ye, fbpl.cs_sem.F_COEF+"pe2", 0, "_fft");
+    ofs_sst(ze, fbpl.cs_sem.F_COEF+"pe3", 1, "_fft");
 }
 
-void bcp_delta_2(QBCP_L &qbcp_l)
+void bcp_delta_2(FBPL &fbpl)
 {
     //--------------------------------------------------------------------
     //Parameters for one specific libration point
     //--------------------------------------------------------------------
-    double mu_EM  = qbcp_l.us_sem.mu_EM;
-    double mu_SE  = qbcp_l.us_sem.mu_SEM;
-    double gamma  = qbcp_l.cs_sem.gamma;
-    double c1     = qbcp_l.cs_sem.c1;
-    //double mm     = qbcp_l.us_sem.mm;
-    //double me     = qbcp_l.us_sem.me;
-    double ai     = qbcp_l.us_sem.ai;
-    int nf        = qbcp_l.nf;
+    double mu_EM  = fbpl.us_sem.mu_EM;
+    double mu_SE  = fbpl.us_sem.mu_SEM;
+    double gamma  = fbpl.cs_sem.gamma;
+    double c1     = fbpl.cs_sem.c1;
+    //double mm     = fbpl.us_sem.mm;
+    //double me     = fbpl.us_sem.me;
+    double ai     = fbpl.us_sem.ai;
+    int nf        = fbpl.nf;
     //Distance of Earth & Moon from their barycenter
     double am = (1- mu_EM)*ai;
     double ae = mu_EM*ai;
@@ -614,41 +614,41 @@ void bcp_delta_2(QBCP_L &qbcp_l)
     //Put in data file
     //--------------------------
     cout << "bcp. storage in txt files. " << endl;
-    ofs_sst(delta1c, qbcp_l.cs_sem.F_COEF+"alpha1", 1, "_fft");
-    ofs_sst(delta2c, qbcp_l.cs_sem.F_COEF+"alpha2", 0, "_fft");
-    ofs_sst(delta3c, qbcp_l.cs_sem.F_COEF+"alpha3", 1, "_fft");
-    ofs_sst(delta4c, qbcp_l.cs_sem.F_COEF+"alpha4", 1, "_fft");
-    ofs_sst(delta5c, qbcp_l.cs_sem.F_COEF+"alpha5", 0, "_fft");
-    ofs_sst(delta6c, qbcp_l.cs_sem.F_COEF+"alpha6", 1, "_fft");
+    ofs_sst(delta1c, fbpl.cs_sem.F_COEF+"alpha1", 1, "_fft");
+    ofs_sst(delta2c, fbpl.cs_sem.F_COEF+"alpha2", 0, "_fft");
+    ofs_sst(delta3c, fbpl.cs_sem.F_COEF+"alpha3", 1, "_fft");
+    ofs_sst(delta4c, fbpl.cs_sem.F_COEF+"alpha4", 1, "_fft");
+    ofs_sst(delta5c, fbpl.cs_sem.F_COEF+"alpha5", 0, "_fft");
+    ofs_sst(delta6c, fbpl.cs_sem.F_COEF+"alpha6", 1, "_fft");
      //Sun
-    ofs_sst(delta7c, qbcp_l.cs_sem.F_COEF+"alpha7", 1, "_fft");
-    ofs_sst(delta8c, qbcp_l.cs_sem.F_COEF+"alpha8", 0, "_fft");
+    ofs_sst(delta7c, fbpl.cs_sem.F_COEF+"alpha7", 1, "_fft");
+    ofs_sst(delta8c, fbpl.cs_sem.F_COEF+"alpha8", 0, "_fft");
     //Earth
-    ofs_sst(delta9c,  qbcp_l.cs_sem.F_COEF+"alpha9",  1, "_fft");
-    ofs_sst(delta10c, qbcp_l.cs_sem.F_COEF+"alpha10", 0, "_fft");
+    ofs_sst(delta9c,  fbpl.cs_sem.F_COEF+"alpha9",  1, "_fft");
+    ofs_sst(delta10c, fbpl.cs_sem.F_COEF+"alpha10", 0, "_fft");
     //Moon
-    ofs_sst(delta11c, qbcp_l.cs_sem.F_COEF+"alpha11", 1, "_fft");
-    ofs_sst(delta12c, qbcp_l.cs_sem.F_COEF+"alpha12", 0, "_fft");
+    ofs_sst(delta11c, fbpl.cs_sem.F_COEF+"alpha11", 1, "_fft");
+    ofs_sst(delta12c, fbpl.cs_sem.F_COEF+"alpha12", 0, "_fft");
     //NC additional coeffs
-    ofs_sst(delta13c, qbcp_l.cs_sem.F_COEF+"alpha13", 1, "_fft");
-    ofs_sst(delta14c, qbcp_l.cs_sem.F_COEF+"alpha14", 0, "_fft");
+    ofs_sst(delta13c, fbpl.cs_sem.F_COEF+"alpha13", 1, "_fft");
+    ofs_sst(delta14c, fbpl.cs_sem.F_COEF+"alpha14", 0, "_fft");
 
     //---------------
     //Primary, EM coordinates
     //Note that, at this step, the vertical motion of the primaries is undefined,
     //so we can put either Even or Odd in the ofs_sst option of gsl_Zc without much difference
     //---------------
-    ofs_sst(Xs, qbcp_l.cs_sem.F_COEF+"Ps1", 1, "_fft");
-    ofs_sst(Ys, qbcp_l.cs_sem.F_COEF+"Ps2", 0, "_fft");
-    ofs_sst(Zs, qbcp_l.cs_sem.F_COEF+"Ps3", 1, "_fft");
+    ofs_sst(Xs, fbpl.cs_sem.F_COEF+"Ps1", 1, "_fft");
+    ofs_sst(Ys, fbpl.cs_sem.F_COEF+"Ps2", 0, "_fft");
+    ofs_sst(Zs, fbpl.cs_sem.F_COEF+"Ps3", 1, "_fft");
 
-    ofs_sst(Xm, qbcp_l.cs_sem.F_COEF+"Pm1", 1, "_fft");
-    ofs_sst(Ym, qbcp_l.cs_sem.F_COEF+"Pm2", 0, "_fft");
-    ofs_sst(Zm, qbcp_l.cs_sem.F_COEF+"Pm3", 1, "_fft");
+    ofs_sst(Xm, fbpl.cs_sem.F_COEF+"Pm1", 1, "_fft");
+    ofs_sst(Ym, fbpl.cs_sem.F_COEF+"Pm2", 0, "_fft");
+    ofs_sst(Zm, fbpl.cs_sem.F_COEF+"Pm3", 1, "_fft");
 
-    ofs_sst(Xe, qbcp_l.cs_sem.F_COEF+"Pe1", 1, "_fft");
-    ofs_sst(Ye, qbcp_l.cs_sem.F_COEF+"Pe2", 0, "_fft");
-    ofs_sst(Ze, qbcp_l.cs_sem.F_COEF+"Pe3", 1, "_fft");
+    ofs_sst(Xe, fbpl.cs_sem.F_COEF+"Pe1", 1, "_fft");
+    ofs_sst(Ye, fbpl.cs_sem.F_COEF+"Pe2", 0, "_fft");
+    ofs_sst(Ze, fbpl.cs_sem.F_COEF+"Pe3", 1, "_fft");
 
 
     //---------------
@@ -656,17 +656,17 @@ void bcp_delta_2(QBCP_L &qbcp_l)
     //Note that, at this step, the vertical motion of the primaries is undefined,
     //so we can put either Even or Odd in the ofs_sst option of gsl_zc without much difference
     //---------------
-    ofs_sst(xs, qbcp_l.cs_sem.F_COEF+"ps1", 1, "_fft");
-    ofs_sst(ys, qbcp_l.cs_sem.F_COEF+"ps2", 0, "_fft");
-    ofs_sst(zs, qbcp_l.cs_sem.F_COEF+"ps3", 1, "_fft");
+    ofs_sst(xs, fbpl.cs_sem.F_COEF+"ps1", 1, "_fft");
+    ofs_sst(ys, fbpl.cs_sem.F_COEF+"ps2", 0, "_fft");
+    ofs_sst(zs, fbpl.cs_sem.F_COEF+"ps3", 1, "_fft");
 
-    ofs_sst(xm, qbcp_l.cs_sem.F_COEF+"pm1", 1, "_fft");
-    ofs_sst(ym, qbcp_l.cs_sem.F_COEF+"pm2", 0, "_fft");
-    ofs_sst(zm, qbcp_l.cs_sem.F_COEF+"pm3", 1, "_fft");
+    ofs_sst(xm, fbpl.cs_sem.F_COEF+"pm1", 1, "_fft");
+    ofs_sst(ym, fbpl.cs_sem.F_COEF+"pm2", 0, "_fft");
+    ofs_sst(zm, fbpl.cs_sem.F_COEF+"pm3", 1, "_fft");
 
-    ofs_sst(xe, qbcp_l.cs_sem.F_COEF+"pe1", 1, "_fft");
-    ofs_sst(ye, qbcp_l.cs_sem.F_COEF+"pe2", 0, "_fft");
-    ofs_sst(ze, qbcp_l.cs_sem.F_COEF+"pe3", 1, "_fft");
+    ofs_sst(xe, fbpl.cs_sem.F_COEF+"pe1", 1, "_fft");
+    ofs_sst(ye, fbpl.cs_sem.F_COEF+"pe2", 0, "_fft");
+    ofs_sst(ze, fbpl.cs_sem.F_COEF+"pe3", 1, "_fft");
 }
 
 
@@ -680,12 +680,12 @@ void bcp(int li_EM, int li_SEM, int coordsys)
     // 1. Init
     //--------------------------------------------------------------------
     //Init the fbp
-    QBCP fbp;
-    init_QBCP(&fbp, Csts::SUN, Csts::EARTH, Csts::MOON);
+    FBP fbp;
+    init_FBP(&fbp, Csts::SUN, Csts::EARTH, Csts::MOON);
 
     //Init the fbp focused on one libration point
-    QBCP_L qbcp_l;
-    init_QBCP_L(&qbcp_l, &fbp, 1, li_EM, li_SEM, true, Csts::BCP, coordsys, Csts::GRAPH, Csts::MAN_CENTER, Csts::MAN_CENTER);  //Note: PM style is NOT used
+    FBPL fbpl;
+    init_FBPL(&fbpl, &fbp, li_EM, li_SEM, Csts::BCP, coordsys, Csts::GRAPH, Csts::MAN_CENTER, Csts::MAN_CENTER, true, true);  //Note: PM style is NOT used
 
     //--------------------------------------------------------------------
     // 2. Splash
@@ -695,21 +695,21 @@ void bcp(int li_EM, int li_SEM, int coordsys)
     cout << "              Storage of the                       " << endl;
     cout << "    Bicircular Three-Body Problem (BCP)            " << endl;
     cout << "                                                   " << endl;
-    cout << "      save in " << qbcp_l.cs_em.F_COEF               << endl;
-    cout << "      save in " << qbcp_l.cs_sem.F_COEF              << endl;
+    cout << "      save in " << fbpl.cs_em.F_COEF               << endl;
+    cout << "      save in " << fbpl.cs_sem.F_COEF              << endl;
     cout << "---------------------------------------------------" << endl;
     cout << std::showpos << setiosflags(ios::scientific)  << setprecision(15);
 
     //--------------------------------------------------------------------
     // 3. Alphas
     //--------------------------------------------------------------------
-    bcp_alpha(qbcp_l);
+    bcp_alpha(fbpl);
 
     //--------------------------------------------------------------------
     // 4. Deltas
     //--------------------------------------------------------------------
-    //bcp_delta(qbcp_l); //libration point on the Earth-Sun line
-    bcp_delta_2(qbcp_l); //libration points on the Sun-Bem line
+    //bcp_delta(fbpl); //libration point on the Earth-Sun line
+    bcp_delta_2(fbpl); //libration points on the Sun-Bem line
 }
 
 //-----------------------------------------------------------------------------
@@ -722,7 +722,7 @@ void bcp(int li_EM, int li_SEM, int coordsys)
  *   \f$ \beta_i \f$ (from the Sun-(Earth+Moon) p.o.v) are computed in stored in txt files.
  *   These functions are computed both through operations on Fourier series and FFT of the integrated motion.
  */
-void qbtbp_ofs(Ofts< Ofsd > &zr_ofts, Ofts< Ofsd > &Zr_ofts, QBCP_L& qbcp_l)
+void qbtbp_ofs(Ofts< Ofsd > &zr_ofts, Ofts< Ofsd > &Zr_ofts, FBPL& fbpl)
 {
     //---------------------------------------------------------
     //Parameters
@@ -733,9 +733,9 @@ void qbtbp_ofs(Ofts< Ofsd > &zr_ofts, Ofts< Ofsd > &Zr_ofts, QBCP_L& qbcp_l)
     int cnv    = zr_ofts.getCVariables();    //number of variables of the Fourier coefficient
 
     //Physical param
-    double n  = qbcp_l.us_em.n;  //mean angular motion in EM units
-    double as = qbcp_l.us_em.as; //Sun-(Earth+Moon barycenter) average distance in EM units
-    double ms = qbcp_l.us_em.ms; //Sun mass in EM units
+    double n  = fbpl.us_em.n;  //mean angular motion in EM units
+    double as = fbpl.us_em.as; //Sun-(Earth+Moon barycenter) average distance in EM units
+    double ms = fbpl.us_em.ms; //Sun mass in EM units
 
     //---------------------------------------------------------
     //Declaration of the variables
@@ -814,7 +814,7 @@ void qbtbp_ofs(Ofts< Ofsd > &zr_ofts, Ofts< Ofsd > &Zr_ofts, QBCP_L& qbcp_l)
                          a1, a2, a3, a4, a5, a6, a7,
                          b1, b2, b3, b4, b5, b6, b7,
                          Pm, Qm, epsilon, Pfm, Qfm, ufm, vfm,
-                         sigma1, sigma2, m, nf, qbcp_l);
+                         sigma1, sigma2, m, nf, fbpl);
 
     //---------------------------------------------------------
     //Recurrence: m = 1 to zr_ofts.getOrder()
@@ -825,7 +825,7 @@ void qbtbp_ofs(Ofts< Ofsd > &zr_ofts, Ofts< Ofsd > &Zr_ofts, QBCP_L& qbcp_l)
                              a1, a2, a3, a4, a5, a6, a7,
                              b1, b2, b3, b4, b5, b6, b7,
                              Pm, Qm, epsilon, Pfm, Qfm, ufm, vfm,
-                             sigma1, sigma2, m, nf, qbcp_l);
+                             sigma1, sigma2, m, nf, fbpl);
     }
     cout << "   qbtbp_ofs. end of recursive computation." << endl;
 
@@ -834,19 +834,19 @@ void qbtbp_ofs(Ofts< Ofsd > &zr_ofts, Ofts< Ofsd > &Zr_ofts, QBCP_L& qbcp_l)
     //---------------------------------------------------------
 
     //---------------------
-    //Computation of the vector field coefficient for the EMLi libration point of qbcp_l
+    //Computation of the vector field coefficient for the EMLi libration point of fbpl
     //---------------------
-    qbtbp_ofs_fft_alpha(zr_ofts, Zr_ofts, nf, qbcp_l);
+    qbtbp_ofs_fft_alpha(zr_ofts, Zr_ofts, nf, fbpl);
 
     //---------------------
-    //Computation of the vector field coefficient for the SEMLi libration point of qbcp_l
+    //Computation of the vector field coefficient for the SEMLi libration point of fbpl
     //---------------------
-    qbtbp_ofs_fft_delta(zr_ofts, Zr_ofts, nf, qbcp_l);
+    qbtbp_ofs_fft_delta(zr_ofts, Zr_ofts, nf, fbpl);
 
     //---------------------
     // DEPRECATED.
     // - Computation of the vector field coefficient
-    // for the EMLi libration point of qbcp_l through OFS manipulation.
+    // for the EMLi libration point of fbpl through OFS manipulation.
     // - Storage in data files of the general QBTBP.
     // - Note that ONLY the element stored in qbtbp folder can be used
     // the rest is DEPRECATED. Use FFT coefficients instead.
@@ -856,7 +856,7 @@ void qbtbp_ofs(Ofts< Ofsd > &zr_ofts, Ofts< Ofsd > &Zr_ofts, QBCP_L& qbcp_l)
                       a1, a2, a3, a4, a5, a6, a7,
                       b1, b2, b3, b4, b5, b6, b7,
                       Pm, Qm, Pfm, Qfm, ufm, vfm,
-                      sigma1, sigma2, nf, qbcp_l);
+                      sigma1, sigma2, nf, fbpl);
 
 
     cout << "   qbtbp_ofs. end of the computation of the alphas and betas" << endl;
@@ -954,28 +954,28 @@ void qbtbp_ofs_fft_unpack(gsl_vector *xGSL0, string filename, int nf, int N, int
 void qbtbp_ofs_fft_alpha( Ofts< Ofsd > &zt,     //zt = normalized Earth-Moon motion
                           Ofts< Ofsd > &Zt,     //Zt = normalized Sun-(Earth+Moon) motion
                           int nf,               //order of the Fourier expansions
-                          QBCP_L& qbcp_l)       //QBCP
+                          FBPL& fbpl)       //QBCP
 {
     //--------------------------
-    //Physical params specific to the QBCP_L
+    //Physical params specific to the FBPL
     //--------------------------
-    double c1    = qbcp_l.cs_em.c1;
-    double gamma = qbcp_l.cs_em.gamma;
+    double c1    = fbpl.cs_em.c1;
+    double gamma = fbpl.cs_em.gamma;
 
     //--------------------------
     //Mass ratio
     //--------------------------
-    double mu_EM = qbcp_l.us_em.mu_EM;
+    double mu_EM = fbpl.us_em.mu_EM;
 
     //--------------------------
     //Physical params in EM units
     //--------------------------
-    double ns = qbcp_l.us_em.ns;  //Sun-(Earth+Moon) mean angular motion
-    double ni = qbcp_l.us_em.ni;  //Earth-Moon mean angular motion
-    double n  = qbcp_l.us_em.n;   //n = ni - ns
-    double as = qbcp_l.us_em.as;  //Sun-(Earth+Moon) mean distance
-    double ai = qbcp_l.us_em.ai;  //Earth-Moon mean distance
-    double ms = qbcp_l.us_em.ms;  //Sun mass
+    double ns = fbpl.us_em.ns;  //Sun-(Earth+Moon) mean angular motion
+    double ni = fbpl.us_em.ni;  //Earth-Moon mean angular motion
+    double n  = fbpl.us_em.n;   //n = ni - ns
+    double as = fbpl.us_em.as;  //Sun-(Earth+Moon) mean distance
+    double ai = fbpl.us_em.ai;  //Earth-Moon mean distance
+    double ms = fbpl.us_em.ms;  //Sun mass
 
     //--------------------------
     //FFT params
@@ -1243,28 +1243,28 @@ void qbtbp_ofs_fft_alpha( Ofts< Ofsd > &zt,     //zt = normalized Earth-Moon mot
     //--------------------------
     //Unpack the FFT and put in data file
     //--------------------------
-    qbtbp_ofs_fft_unpack(gsl_alpha1, qbcp_l.cs_em.F_COEF+"alpha1", nf, N, 1);
-    qbtbp_ofs_fft_unpack(gsl_alpha2, qbcp_l.cs_em.F_COEF+"alpha2", nf, N, 0);
-    qbtbp_ofs_fft_unpack(gsl_alpha3, qbcp_l.cs_em.F_COEF+"alpha3", nf, N, 1);
-    qbtbp_ofs_fft_unpack(gsl_alpha4, qbcp_l.cs_em.F_COEF+"alpha4", nf, N, 1);
-    qbtbp_ofs_fft_unpack(gsl_alpha5, qbcp_l.cs_em.F_COEF+"alpha5", nf, N, 0);
-    qbtbp_ofs_fft_unpack(gsl_alpha6, qbcp_l.cs_em.F_COEF+"alpha6", nf, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_alpha1, fbpl.cs_em.F_COEF+"alpha1", nf, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_alpha2, fbpl.cs_em.F_COEF+"alpha2", nf, N, 0);
+    qbtbp_ofs_fft_unpack(gsl_alpha3, fbpl.cs_em.F_COEF+"alpha3", nf, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_alpha4, fbpl.cs_em.F_COEF+"alpha4", nf, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_alpha5, fbpl.cs_em.F_COEF+"alpha5", nf, N, 0);
+    qbtbp_ofs_fft_unpack(gsl_alpha6, fbpl.cs_em.F_COEF+"alpha6", nf, N, 1);
     //Sun
-    qbtbp_ofs_fft_unpack(gsl_alpha7, qbcp_l.cs_em.F_COEF+"alpha7", nf, N, 1);
-    qbtbp_ofs_fft_unpack(gsl_alpha8, qbcp_l.cs_em.F_COEF+"alpha8", nf, N, 0);
+    qbtbp_ofs_fft_unpack(gsl_alpha7, fbpl.cs_em.F_COEF+"alpha7", nf, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_alpha8, fbpl.cs_em.F_COEF+"alpha8", nf, N, 0);
     //Earth
-    qbtbp_ofs_fft_unpack(gsl_alpha9,  qbcp_l.cs_em.F_COEF+"alpha9",  nf, N, 1);
-    qbtbp_ofs_fft_unpack(gsl_alpha10, qbcp_l.cs_em.F_COEF+"alpha10", nf, N, 0);
+    qbtbp_ofs_fft_unpack(gsl_alpha9,  fbpl.cs_em.F_COEF+"alpha9",  nf, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_alpha10, fbpl.cs_em.F_COEF+"alpha10", nf, N, 0);
     //Moon
-    qbtbp_ofs_fft_unpack(gsl_alpha11, qbcp_l.cs_em.F_COEF+"alpha11", nf, N, 1);
-    qbtbp_ofs_fft_unpack(gsl_alpha12, qbcp_l.cs_em.F_COEF+"alpha12", nf, N, 0);
+    qbtbp_ofs_fft_unpack(gsl_alpha11, fbpl.cs_em.F_COEF+"alpha11", nf, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_alpha12, fbpl.cs_em.F_COEF+"alpha12", nf, N, 0);
     //NC additional coef
-    qbtbp_ofs_fft_unpack(gsl_alpha13, qbcp_l.cs_em.F_COEF+"alpha13",  nf, N, 1);
-    qbtbp_ofs_fft_unpack(gsl_alpha14, qbcp_l.cs_em.F_COEF+"alpha14",  nf, N, 0);
+    qbtbp_ofs_fft_unpack(gsl_alpha13, fbpl.cs_em.F_COEF+"alpha13",  nf, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_alpha14, fbpl.cs_em.F_COEF+"alpha14",  nf, N, 0);
     //VF with velocity additional coef
-    qbtbp_ofs_fft_unpack(gsl_alpha16, qbcp_l.cs_em.F_COEF+"alpha16",  nf, N, 1);
-    qbtbp_ofs_fft_unpack(gsl_alpha17, qbcp_l.cs_em.F_COEF+"alpha17",  nf, N, 0);
-    qbtbp_ofs_fft_unpack(gsl_alpha18, qbcp_l.cs_em.F_COEF+"alpha18",  nf, N, 0);
+    qbtbp_ofs_fft_unpack(gsl_alpha16, fbpl.cs_em.F_COEF+"alpha16",  nf, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_alpha17, fbpl.cs_em.F_COEF+"alpha17",  nf, N, 0);
+    qbtbp_ofs_fft_unpack(gsl_alpha18, fbpl.cs_em.F_COEF+"alpha18",  nf, N, 0);
 
 
     //---------------
@@ -1272,17 +1272,17 @@ void qbtbp_ofs_fft_alpha( Ofts< Ofsd > &zt,     //zt = normalized Earth-Moon mot
     //Note that, at this step, the vertical motion of the primaries is undefined,
     //so we can put either Even or Odd in the qbtbp_ofs_fft_unpack option of gsl_Zc without much difference
     //---------------
-    qbtbp_ofs_fft_unpack(gsl_Xs, qbcp_l.cs_em.F_COEF+"Ps1", nf, N, 1);
-    qbtbp_ofs_fft_unpack(gsl_Ys, qbcp_l.cs_em.F_COEF+"Ps2", nf, N, 0);
-    qbtbp_ofs_fft_unpack(gsl_Zs, qbcp_l.cs_em.F_COEF+"Ps3", nf, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_Xs, fbpl.cs_em.F_COEF+"Ps1", nf, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_Ys, fbpl.cs_em.F_COEF+"Ps2", nf, N, 0);
+    qbtbp_ofs_fft_unpack(gsl_Zs, fbpl.cs_em.F_COEF+"Ps3", nf, N, 1);
 
-    qbtbp_ofs_fft_unpack(gsl_Xe, qbcp_l.cs_em.F_COEF+"Pe1", nf, N, 1);
-    qbtbp_ofs_fft_unpack(gsl_Ye, qbcp_l.cs_em.F_COEF+"Pe2", nf, N, 0);
-    qbtbp_ofs_fft_unpack(gsl_Ze, qbcp_l.cs_em.F_COEF+"Pe3", nf, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_Xe, fbpl.cs_em.F_COEF+"Pe1", nf, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_Ye, fbpl.cs_em.F_COEF+"Pe2", nf, N, 0);
+    qbtbp_ofs_fft_unpack(gsl_Ze, fbpl.cs_em.F_COEF+"Pe3", nf, N, 1);
 
-    qbtbp_ofs_fft_unpack(gsl_Xm, qbcp_l.cs_em.F_COEF+"Pm1", nf, N, 1);
-    qbtbp_ofs_fft_unpack(gsl_Ym, qbcp_l.cs_em.F_COEF+"Pm2", nf, N, 0);
-    qbtbp_ofs_fft_unpack(gsl_Zm, qbcp_l.cs_em.F_COEF+"Pm3", nf, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_Xm, fbpl.cs_em.F_COEF+"Pm1", nf, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_Ym, fbpl.cs_em.F_COEF+"Pm2", nf, N, 0);
+    qbtbp_ofs_fft_unpack(gsl_Zm, fbpl.cs_em.F_COEF+"Pm3", nf, N, 1);
 
 
     //---------------
@@ -1290,17 +1290,17 @@ void qbtbp_ofs_fft_alpha( Ofts< Ofsd > &zt,     //zt = normalized Earth-Moon mot
     //Note that, at this step, the vertical motion of the primaries is undefined,
     //so we can put either Even or Odd in the qbtbp_ofs_fft_unpack option of gsl_zc without much difference
     //---------------
-    qbtbp_ofs_fft_unpack(gsl_xs, qbcp_l.cs_em.F_COEF+"ps1", nf, N, 1);
-    qbtbp_ofs_fft_unpack(gsl_ys, qbcp_l.cs_em.F_COEF+"ps2", nf, N, 0);
-    qbtbp_ofs_fft_unpack(gsl_zs, qbcp_l.cs_em.F_COEF+"ps3", nf, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_xs, fbpl.cs_em.F_COEF+"ps1", nf, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_ys, fbpl.cs_em.F_COEF+"ps2", nf, N, 0);
+    qbtbp_ofs_fft_unpack(gsl_zs, fbpl.cs_em.F_COEF+"ps3", nf, N, 1);
 
-    qbtbp_ofs_fft_unpack(gsl_xe, qbcp_l.cs_em.F_COEF+"pe1", nf, N, 1);
-    qbtbp_ofs_fft_unpack(gsl_ye, qbcp_l.cs_em.F_COEF+"pe2", nf, N, 0);
-    qbtbp_ofs_fft_unpack(gsl_ze, qbcp_l.cs_em.F_COEF+"pe3", nf, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_xe, fbpl.cs_em.F_COEF+"pe1", nf, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_ye, fbpl.cs_em.F_COEF+"pe2", nf, N, 0);
+    qbtbp_ofs_fft_unpack(gsl_ze, fbpl.cs_em.F_COEF+"pe3", nf, N, 1);
 
-    qbtbp_ofs_fft_unpack(gsl_xm, qbcp_l.cs_em.F_COEF+"pm1", nf, N, 1);
-    qbtbp_ofs_fft_unpack(gsl_ym, qbcp_l.cs_em.F_COEF+"pm2", nf, N, 0);
-    qbtbp_ofs_fft_unpack(gsl_zm, qbcp_l.cs_em.F_COEF+"pm3", nf, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_xm, fbpl.cs_em.F_COEF+"pm1", nf, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_ym, fbpl.cs_em.F_COEF+"pm2", nf, N, 0);
+    qbtbp_ofs_fft_unpack(gsl_zm, fbpl.cs_em.F_COEF+"pm3", nf, N, 1);
 
 
     //--------------------------
@@ -1354,30 +1354,30 @@ void qbtbp_ofs_fft_alpha( Ofts< Ofsd > &zt,     //zt = normalized Earth-Moon mot
 void qbtbp_ofs_fft_delta(Ofts< Ofsd > &zt,     //zt = normalized Earth-Moon motion
                          Ofts< Ofsd > &Zt,     //Zt = normalized Sun-(Earth+Moon) motion
                          int nf,               //order of the Fourier expansions
-                         QBCP_L &qbcp_l)       //QBCP
+                         FBPL &fbpl)       //QBCP
 {
     //--------------------------
     //Physical params in EM units
     //--------------------------
-    double as_EM  = qbcp_l.us_em.as;     //Sun-(Earth+Moon) mean distance
-    double ms_EM  = qbcp_l.us_em.ms;     //Sun mass
-    double mu_EM  = qbcp_l.us_em.mu_EM;  //Mass ratio
-    double mu_SEM = qbcp_l.us_em.mu_SEM; //Mass ratio
+    double as_EM  = fbpl.us_em.as;     //Sun-(Earth+Moon) mean distance
+    double ms_EM  = fbpl.us_em.ms;     //Sun mass
+    double mu_EM  = fbpl.us_em.mu_EM;  //Mass ratio
+    double mu_SEM = fbpl.us_em.mu_SEM; //Mass ratio
 
     //--------------------------
     //Physical params in SE units
     //--------------------------
-    double ns = qbcp_l.us_sem.ns;    //Sun-(Earth+Moon) mean angular motion
-    double ni = qbcp_l.us_sem.ni;    //Earth-Moon mean angular motion
-    double n  = qbcp_l.us_sem.n;     //n = ni - ns
-    double as = qbcp_l.us_sem.as;    //Sun-(Earth+Moon) mean distance
-    double ai = qbcp_l.us_sem.ai;    //Earth-Moon mean distance
+    double ns = fbpl.us_sem.ns;    //Sun-(Earth+Moon) mean angular motion
+    double ni = fbpl.us_sem.ni;    //Earth-Moon mean angular motion
+    double n  = fbpl.us_sem.n;     //n = ni - ns
+    double as = fbpl.us_sem.as;    //Sun-(Earth+Moon) mean distance
+    double ai = fbpl.us_sem.ai;    //Earth-Moon mean distance
 
     //--------------------------
-    //Physical params specific to the QBCP_L
+    //Physical params specific to the FBPL
     //--------------------------
-    double c1    = qbcp_l.cs_sem.c1;
-    double gamma = qbcp_l.cs_sem.gamma;
+    double c1    = fbpl.cs_sem.c1;
+    double gamma = fbpl.cs_sem.gamma;
 
     //--------------------------
     //FFT params
@@ -1647,45 +1647,45 @@ void qbtbp_ofs_fft_delta(Ofts< Ofsd > &zt,     //zt = normalized Earth-Moon moti
     //--------------------------
     //Unpack the FFT and put in data file
     //--------------------------
-    qbtbp_ofs_fft_unpack(gsl_delta1, qbcp_l.cs_sem.F_COEF+"alpha1", nf, N, 1);
-    qbtbp_ofs_fft_unpack(gsl_delta2, qbcp_l.cs_sem.F_COEF+"alpha2", nf, N, 0);
-    qbtbp_ofs_fft_unpack(gsl_delta3, qbcp_l.cs_sem.F_COEF+"alpha3", nf, N, 1);
-    qbtbp_ofs_fft_unpack(gsl_delta4, qbcp_l.cs_sem.F_COEF+"alpha4", nf, N, 1);
-    qbtbp_ofs_fft_unpack(gsl_delta5, qbcp_l.cs_sem.F_COEF+"alpha5", nf, N, 0);
-    qbtbp_ofs_fft_unpack(gsl_delta6, qbcp_l.cs_sem.F_COEF+"alpha6", nf, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_delta1, fbpl.cs_sem.F_COEF+"alpha1", nf, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_delta2, fbpl.cs_sem.F_COEF+"alpha2", nf, N, 0);
+    qbtbp_ofs_fft_unpack(gsl_delta3, fbpl.cs_sem.F_COEF+"alpha3", nf, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_delta4, fbpl.cs_sem.F_COEF+"alpha4", nf, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_delta5, fbpl.cs_sem.F_COEF+"alpha5", nf, N, 0);
+    qbtbp_ofs_fft_unpack(gsl_delta6, fbpl.cs_sem.F_COEF+"alpha6", nf, N, 1);
     //Sun
-    qbtbp_ofs_fft_unpack(gsl_delta7, qbcp_l.cs_sem.F_COEF+"alpha7", nf, N, 1);
-    qbtbp_ofs_fft_unpack(gsl_delta8, qbcp_l.cs_sem.F_COEF+"alpha8", nf, N, 0);
+    qbtbp_ofs_fft_unpack(gsl_delta7, fbpl.cs_sem.F_COEF+"alpha7", nf, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_delta8, fbpl.cs_sem.F_COEF+"alpha8", nf, N, 0);
     //Earth
-    qbtbp_ofs_fft_unpack(gsl_delta9,  qbcp_l.cs_sem.F_COEF+"alpha9",  nf, N, 1);
-    qbtbp_ofs_fft_unpack(gsl_delta10, qbcp_l.cs_sem.F_COEF+"alpha10", nf, N, 0);
+    qbtbp_ofs_fft_unpack(gsl_delta9,  fbpl.cs_sem.F_COEF+"alpha9",  nf, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_delta10, fbpl.cs_sem.F_COEF+"alpha10", nf, N, 0);
     //Moon
-    qbtbp_ofs_fft_unpack(gsl_delta11, qbcp_l.cs_sem.F_COEF+"alpha11", nf, N, 1);
-    qbtbp_ofs_fft_unpack(gsl_delta12, qbcp_l.cs_sem.F_COEF+"alpha12", nf, N, 0);
+    qbtbp_ofs_fft_unpack(gsl_delta11, fbpl.cs_sem.F_COEF+"alpha11", nf, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_delta12, fbpl.cs_sem.F_COEF+"alpha12", nf, N, 0);
     //NC additional coef
-    qbtbp_ofs_fft_unpack(gsl_delta13, qbcp_l.cs_sem.F_COEF+"alpha13",  nf, N, 1);
-    qbtbp_ofs_fft_unpack(gsl_delta14, qbcp_l.cs_sem.F_COEF+"alpha14",  nf, N, 0);
+    qbtbp_ofs_fft_unpack(gsl_delta13, fbpl.cs_sem.F_COEF+"alpha13",  nf, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_delta14, fbpl.cs_sem.F_COEF+"alpha14",  nf, N, 0);
     //VF with velocity additionnal coef
-    qbtbp_ofs_fft_unpack(gsl_delta16, qbcp_l.cs_sem.F_COEF+"alpha16",  nf, N, 1);
-    qbtbp_ofs_fft_unpack(gsl_delta17, qbcp_l.cs_sem.F_COEF+"alpha17",  nf, N, 0);
-    qbtbp_ofs_fft_unpack(gsl_delta18, qbcp_l.cs_sem.F_COEF+"alpha18",  nf, N, 0);
+    qbtbp_ofs_fft_unpack(gsl_delta16, fbpl.cs_sem.F_COEF+"alpha16",  nf, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_delta17, fbpl.cs_sem.F_COEF+"alpha17",  nf, N, 0);
+    qbtbp_ofs_fft_unpack(gsl_delta18, fbpl.cs_sem.F_COEF+"alpha18",  nf, N, 0);
 
     //---------------
     //Primary, EM coordinates
     //Note that, at this step, the vertical motion of the primaries is undefined,
     //so we can put either Even or Odd in the qbtbp_ofs_fft_unpack option of gsl_Zc without much difference
     //---------------
-    qbtbp_ofs_fft_unpack(gsl_Xs, qbcp_l.cs_sem.F_COEF+"Ps1", nf, N, 1);
-    qbtbp_ofs_fft_unpack(gsl_Ys, qbcp_l.cs_sem.F_COEF+"Ps2", nf, N, 0);
-    qbtbp_ofs_fft_unpack(gsl_Zs, qbcp_l.cs_sem.F_COEF+"Ps3", nf, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_Xs, fbpl.cs_sem.F_COEF+"Ps1", nf, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_Ys, fbpl.cs_sem.F_COEF+"Ps2", nf, N, 0);
+    qbtbp_ofs_fft_unpack(gsl_Zs, fbpl.cs_sem.F_COEF+"Ps3", nf, N, 1);
 
-    qbtbp_ofs_fft_unpack(gsl_Xe, qbcp_l.cs_sem.F_COEF+"Pe1", nf, N, 1);
-    qbtbp_ofs_fft_unpack(gsl_Ye, qbcp_l.cs_sem.F_COEF+"Pe2", nf, N, 0);
-    qbtbp_ofs_fft_unpack(gsl_Ze, qbcp_l.cs_sem.F_COEF+"Pe3", nf, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_Xe, fbpl.cs_sem.F_COEF+"Pe1", nf, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_Ye, fbpl.cs_sem.F_COEF+"Pe2", nf, N, 0);
+    qbtbp_ofs_fft_unpack(gsl_Ze, fbpl.cs_sem.F_COEF+"Pe3", nf, N, 1);
 
-    qbtbp_ofs_fft_unpack(gsl_Xm, qbcp_l.cs_sem.F_COEF+"Pm1", nf, N, 1);
-    qbtbp_ofs_fft_unpack(gsl_Ym, qbcp_l.cs_sem.F_COEF+"Pm2", nf, N, 0);
-    qbtbp_ofs_fft_unpack(gsl_Zm, qbcp_l.cs_sem.F_COEF+"Pm3", nf, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_Xm, fbpl.cs_sem.F_COEF+"Pm1", nf, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_Ym, fbpl.cs_sem.F_COEF+"Pm2", nf, N, 0);
+    qbtbp_ofs_fft_unpack(gsl_Zm, fbpl.cs_sem.F_COEF+"Pm3", nf, N, 1);
 
 
     //---------------
@@ -1693,17 +1693,17 @@ void qbtbp_ofs_fft_delta(Ofts< Ofsd > &zt,     //zt = normalized Earth-Moon moti
     //Note that, at this step, the vertical motion of the primaries is undefined,
     //so we can put either Even or Odd in the qbtbp_ofs_fft_unpack option of gsl_zc without much difference
     //---------------
-    qbtbp_ofs_fft_unpack(gsl_xs, qbcp_l.cs_sem.F_COEF+"ps1", nf, N, 1);
-    qbtbp_ofs_fft_unpack(gsl_ys, qbcp_l.cs_sem.F_COEF+"ps2", nf, N, 0);
-    qbtbp_ofs_fft_unpack(gsl_zs, qbcp_l.cs_sem.F_COEF+"ps3", nf, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_xs, fbpl.cs_sem.F_COEF+"ps1", nf, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_ys, fbpl.cs_sem.F_COEF+"ps2", nf, N, 0);
+    qbtbp_ofs_fft_unpack(gsl_zs, fbpl.cs_sem.F_COEF+"ps3", nf, N, 1);
 
-    qbtbp_ofs_fft_unpack(gsl_xe, qbcp_l.cs_sem.F_COEF+"pe1", nf, N, 1);
-    qbtbp_ofs_fft_unpack(gsl_ye, qbcp_l.cs_sem.F_COEF+"pe2", nf, N, 0);
-    qbtbp_ofs_fft_unpack(gsl_ze, qbcp_l.cs_sem.F_COEF+"pe3", nf, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_xe, fbpl.cs_sem.F_COEF+"pe1", nf, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_ye, fbpl.cs_sem.F_COEF+"pe2", nf, N, 0);
+    qbtbp_ofs_fft_unpack(gsl_ze, fbpl.cs_sem.F_COEF+"pe3", nf, N, 1);
 
-    qbtbp_ofs_fft_unpack(gsl_xm, qbcp_l.cs_sem.F_COEF+"pm1", nf, N, 1);
-    qbtbp_ofs_fft_unpack(gsl_ym, qbcp_l.cs_sem.F_COEF+"pm2", nf, N, 0);
-    qbtbp_ofs_fft_unpack(gsl_zm, qbcp_l.cs_sem.F_COEF+"pm3", nf, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_xm, fbpl.cs_sem.F_COEF+"pm1", nf, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_ym, fbpl.cs_sem.F_COEF+"pm2", nf, N, 0);
+    qbtbp_ofs_fft_unpack(gsl_zm, fbpl.cs_sem.F_COEF+"pm3", nf, N, 1);
 
 
     //--------------------------
@@ -1785,15 +1785,15 @@ void qbtbp_ofs_recurrence(Ofts< Ofsd > &zr_ofts, //zr_ofts = normalized Earth-Mo
                           Ofsd &sigma2,          //sigma2 = exp(+itheta)
                           int m,                 //order
                           int nf,                //order of the Fourier expansions
-                          QBCP_L &qbcp_l)        //QBCP
+                          FBPL &fbpl)        //QBCP
 
 {
     //Physical param
-    double n  = qbcp_l.us_em.n;
-    double mu = qbcp_l.us_em.mu_EM;
-    double ns = qbcp_l.us_em.ns;
-    double as = qbcp_l.us_em.as;
-    double ms = qbcp_l.us_em.ms;
+    double n  = fbpl.us_em.n;
+    double mu = fbpl.us_em.mu_EM;
+    double ns = fbpl.us_em.ns;
+    double as = fbpl.us_em.as;
+    double ms = fbpl.us_em.ms;
 
     if(m == 0)
     {
@@ -2085,16 +2085,16 @@ int qbtbp_derivatives(double t, const double y[], double f[], void *params)
 /**
  *  \brief Test function to compare the analytical solution of the QBTBP to the numerical integration of the equations of motion.
  */
-void qbtbp_test(double t1, Ofsc &bjc, Ofsc &cjc, OdeStruct ode_s, QBCP_L &qbcp_l)
+void qbtbp_test(double t1, Ofsc &bjc, Ofsc &cjc, OdeStruct ode_s, FBPL &fbpl)
 {
     cout << "---------------------------------------------------" << endl;
     cout << "               Test of the                         " << endl;
     cout << "   Quasi-Bicircular Three-Body Problem (QBTBP)     " << endl;
     cout << "---------------------------------------------------" << endl;
     //Initialization
-    double as = qbcp_l.us_em.as;
-    double n  = qbcp_l.us_em.n;
-    double ns = qbcp_l.us_em.ns;
+    double as = fbpl.us_em.as;
+    double n  = fbpl.us_em.n;
+    double ns = fbpl.us_em.ns;
     int nf    = bjc.getOrder();
 
     //z(0) and Z(0)
@@ -2375,7 +2375,7 @@ void qbtbp_test_FFT_vs_OFS(Ofsc &bjc,       //zt(t)
                            int N,           //Number of points
                            int type,        //Type of reference
                            OdeStruct ode_s, //ode structure
-                           QBCP_L& qbcp_l)  //QBCP
+                           FBPL& fbpl)  //QBCP
 {
     reset_ode_structure(&ode_s);
     //For print
@@ -2391,18 +2391,18 @@ void qbtbp_test_FFT_vs_OFS(Ofsc &bjc,       //zt(t)
     double *alpha_FFT = dvector(0, 8*(nf+1)-1);
 
     cout << "Retrieving OFS coefficients " << endl;
-    coefRetrieving(qbcp_l.cs.F_COEF+"alpha", alpha_OFS, nf, 0, 0, 8);
+    read_fourier_coef(fbpl.cs.F_COEF+"alpha", alpha_OFS, nf, 0, 0, 8);
     cout << "Retrieving FFT coefficients " << endl;
-    coefRetrieving(qbcp_l.cs.F_COEF+"alpha", alpha_FFT, nf, 0, 1, 8);
+    read_fourier_coef(fbpl.cs.F_COEF+"alpha", alpha_FFT, nf, 0, 1, 8);
 
     //Physical params in EM units
     //--------------------------
-    double ns = qbcp_l.us_em.ns;  //Sun-(Earth+Moon) mean angular motion
-    double ni = qbcp_l.us_em.ni;  //Earth-Moon mean angular motion
-    double n  = qbcp_l.us_em.n;   //n = ni - ns
-    double as = qbcp_l.us_em.as;  //Sun-(Earth+Moon) mean distance
-    double ai = qbcp_l.us_em.ai;  //Earth-Moon mean distance
-    double ms = qbcp_l.us_em.ms;  //Sun mass
+    double ns = fbpl.us_em.ns;  //Sun-(Earth+Moon) mean angular motion
+    double ni = fbpl.us_em.ni;  //Earth-Moon mean angular motion
+    double n  = fbpl.us_em.n;   //n = ni - ns
+    double as = fbpl.us_em.as;  //Sun-(Earth+Moon) mean distance
+    double ai = fbpl.us_em.ai;  //Earth-Moon mean distance
+    double ms = fbpl.us_em.ms;  //Sun mass
 
     //QBTBP init
     //--------------------------
@@ -2772,15 +2772,15 @@ void qbtbp_ofs_storage(   Ofts< Ofsd > &zr_ofts,//zr_ofts = normalized Earth-Moo
                           Ofsd &sigma1,          //sigma1 = exp(-itheta)
                           Ofsd &sigma2,          //sigma2 = exp(+itheta)
                           int nf,                       //order of the Fourier expansions
-                          QBCP_L& qbcp_l)             //QBCP
+                          FBPL& fbpl)             //QBCP
 {
     //Physical param
-    double n  = qbcp_l.us_em.n;
-    double mu = qbcp_l.us_em.mu_EM;
-    double ns = qbcp_l.us_em.ns;
-    double as = qbcp_l.us_em.as;
-    double ms = qbcp_l.us_em.ms;
-    double muSE = qbcp_l.us_em.mu_SE;
+    double n  = fbpl.us_em.n;
+    double mu = fbpl.us_em.mu_EM;
+    double ns = fbpl.us_em.ns;
+    double as = fbpl.us_em.as;
+    double ms = fbpl.us_em.ms;
+    double muSE = fbpl.us_em.mu_SE;
 
     double eps = 1.0/as;                     //length epsilon
     int order  = zr_ofts.getOrder();         //order of the Taylor expansion
@@ -3041,11 +3041,11 @@ void qbtbp_ofs_storage(   Ofts< Ofsd > &zr_ofts,//zr_ofts = normalized Earth-Moo
     //----------------------------------------
     alpha27c.ccopy(d1);
     //Storage in txt file
-    curentStream.open((qbcp_l.cs.F_COEF+"r2.txt").c_str());
+    curentStream.open((fbpl.cs.F_COEF+"r2.txt").c_str());
     curentStream << alpha27c << endl;
     curentStream.close();
     //Storage in txt file (alpha27 !!)
-    ofs_sst(alpha27c, qbcp_l.cs.F_COEF+"alpha27", 1, "");
+    ofs_sst(alpha27c, fbpl.cs.F_COEF+"alpha27", 1, "");
     //-----------------------------
 
     //alpha6
@@ -3058,14 +3058,14 @@ void qbtbp_ofs_storage(   Ofts< Ofsd > &zr_ofts,//zr_ofts = normalized Earth-Moo
     //alpha6c
     doubleToComplex(alpha6, alpha6c);
     //Storage in txt file
-    ofs_sst(alpha6c, qbcp_l.cs.F_COEF+"alpha6", 1, "");
+    ofs_sst(alpha6c, fbpl.cs.F_COEF+"alpha6", 1, "");
     //-----------------------------
 
     //alpha25 = c2 * alpha6
     //-----------------------------
-    alpha25c.ofs_mult(alpha6c, cn(qbcp_l, 2)+0.0*I);
+    alpha25c.ofs_mult(alpha6c, cn(fbpl, 2)+0.0*I);
     //Storage in txt file
-    ofs_sst(alpha25c, qbcp_l.cs.F_COEF+"alpha25", 1, "");
+    ofs_sst(alpha25c, fbpl.cs.F_COEF+"alpha25", 1, "");
     //-----------------------------
 
     //alpha1
@@ -3075,7 +3075,7 @@ void qbtbp_ofs_storage(   Ofts< Ofsd > &zr_ofts,//zr_ofts = normalized Earth-Moo
     //alpha1c
     doubleToComplex(alpha1, alpha1c);
     //Storage in txt file
-    ofs_sst(alpha1c, qbcp_l.cs.F_COEF+"alpha1", 1, "");
+    ofs_sst(alpha1c, fbpl.cs.F_COEF+"alpha1", 1, "");
     //-----------------------------
 
     //alpha2
@@ -3087,7 +3087,7 @@ void qbtbp_ofs_storage(   Ofts< Ofsd > &zr_ofts,//zr_ofts = normalized Earth-Moo
     //force the odd nature
     for(int l = -nf; l< 0; l++) alpha2c.setCoef(+0.0*I-alpha2c.ofs_getCoef(-l), l);
     //Storage in txt file
-    ofs_sst(alpha2c, qbcp_l.cs.F_COEF+"alpha2", 0, "");
+    ofs_sst(alpha2c, fbpl.cs.F_COEF+"alpha2", 0, "");
     //-----------------------------
 
     //alpha3
@@ -3095,21 +3095,21 @@ void qbtbp_ofs_storage(   Ofts< Ofsd > &zr_ofts,//zr_ofts = normalized Earth-Moo
     //alpha3c = +imag(dot(z)*conj(z))*1/r2
     alpha3c.ofs_sprod(alpha1c, d5i);
     //Storage in txt file
-    ofs_sst(alpha3c, qbcp_l.cs.F_COEF+"alpha3", 1, "");
+    ofs_sst(alpha3c, fbpl.cs.F_COEF+"alpha3", 1, "");
     //-----------------------------
 
     //alpha4
     //-----------------------------
     alpha4c+= (+0.0*I-ms/(1+ms))*d12r;
     //Storage in txt file
-    ofs_sst(alpha4c, qbcp_l.cs.F_COEF+"alpha4", 1, "");
+    ofs_sst(alpha4c, fbpl.cs.F_COEF+"alpha4", 1, "");
     //-----------------------------
 
     //alpha5
     //-----------------------------
     alpha5c+= (+0.0*I-ms/(1+ms))*d12i;
     //Storage in txt file
-    ofs_sst(alpha5c, qbcp_l.cs.F_COEF+"alpha5", 0, "");
+    ofs_sst(alpha5c, fbpl.cs.F_COEF+"alpha5", 0, "");
     //-----------------------------
 
     //alpha7
@@ -3117,7 +3117,7 @@ void qbtbp_ofs_storage(   Ofts< Ofsd > &zr_ofts,//zr_ofts = normalized Earth-Moo
     //alpha7
     alpha7c.ofs_sprod(alpha1c, d4r);
     //Storage in txt file
-    ofs_sst(alpha7c, qbcp_l.cs.F_COEF+"alpha7", 1, "");
+    ofs_sst(alpha7c, fbpl.cs.F_COEF+"alpha7", 1, "");
     //-----------------------------
 
     //alpha8
@@ -3125,7 +3125,7 @@ void qbtbp_ofs_storage(   Ofts< Ofsd > &zr_ofts,//zr_ofts = normalized Earth-Moo
     alpha8c.ofs_sprod(alpha1c, d4i);
     alpha8c.setCoef(0.0, 0);
     //Storage in txt file
-    ofs_sst(alpha8c, qbcp_l.cs.F_COEF+"alpha8", 0, "");
+    ofs_sst(alpha8c, fbpl.cs.F_COEF+"alpha8", 0, "");
     //-----------------------------
 
 
@@ -3165,7 +3165,7 @@ void qbtbp_ofs_storage(   Ofts< Ofsd > &zr_ofts,//zr_ofts = normalized Earth-Moo
     //---------------------------------------------------------------------
 
     //Storage in txt file
-    ofs_sst(alpha28c, qbcp_l.cs.F_COEF+"alpha28", 1, "");
+    ofs_sst(alpha28c, fbpl.cs.F_COEF+"alpha28", 1, "");
     //-----------------------------
 
     //alpha20 = alpha6*alpha28*ms/as^2
@@ -3173,7 +3173,7 @@ void qbtbp_ofs_storage(   Ofts< Ofsd > &zr_ofts,//zr_ofts = normalized Earth-Moo
     //alpha20
     alpha20c.ofs_smprod(alpha6c, alpha28c, ms/(as*as)+0.0*I);
     //Storage in txt file
-    ofs_sst(alpha20c, qbcp_l.cs.F_COEF+"alpha20", 1, "");
+    ofs_sst(alpha20c, fbpl.cs.F_COEF+"alpha20", 1, "");
     //-----------------------------
 
 
@@ -3182,7 +3182,7 @@ void qbtbp_ofs_storage(   Ofts< Ofsd > &zr_ofts,//zr_ofts = normalized Earth-Moo
     //alpha21
     alpha21c.ofs_prod(alpha28c, alpha28c);
     //Storage in txt file
-    ofs_sst(alpha21c, qbcp_l.cs.F_COEF+"alpha21", 1, "");
+    ofs_sst(alpha21c, fbpl.cs.F_COEF+"alpha21", 1, "");
     //-----------------------------
 
     //alpha22 = alpha28*alpha28*tilde(alpha7) = alpha21*alpha7/as
@@ -3190,7 +3190,7 @@ void qbtbp_ofs_storage(   Ofts< Ofsd > &zr_ofts,//zr_ofts = normalized Earth-Moo
     //alpha22
     alpha22c.ofs_mprod(alpha7c, alpha21c, 1.0/as+0.0*I);
     //Storage in txt file
-    ofs_sst(alpha22c, qbcp_l.cs.F_COEF+"alpha22", 1, "");
+    ofs_sst(alpha22c, fbpl.cs.F_COEF+"alpha22", 1, "");
     //-----------------------------
 
     //alpha23 = alpha28*alpha28*tilde(alpha8) = alpha21*alpha8/as
@@ -3198,7 +3198,7 @@ void qbtbp_ofs_storage(   Ofts< Ofsd > &zr_ofts,//zr_ofts = normalized Earth-Moo
     //alpha23
     alpha23c.ofs_mprod(alpha8c, alpha21c, 1.0/as+0.0*I);
     //Storage in txt file
-    ofs_sst(alpha23c, qbcp_l.cs.F_COEF+"alpha23", 0, "");
+    ofs_sst(alpha23c, fbpl.cs.F_COEF+"alpha23", 0, "");
     //-----------------------------
 
 
@@ -3239,11 +3239,11 @@ void qbtbp_ofs_storage(   Ofts< Ofsd > &zr_ofts,//zr_ofts = normalized Earth-Moo
 
     //alpha24
     //-----------------------------
-    alpha24c.ofs_fsum(sp8, qbcp_l.cs.c1+0.0*I, alpha4c, 1.0/qbcp_l.cs.gamma+0.0*I);
+    alpha24c.ofs_fsum(sp8, fbpl.cs.c1+0.0*I, alpha4c, 1.0/fbpl.cs.gamma+0.0*I);
     //Storage in txt file
-    ofs_sst(alpha24c, qbcp_l.cs.F_COEF+"alpha24", 1, "");
+    ofs_sst(alpha24c, fbpl.cs.F_COEF+"alpha24", 1, "");
     //WARNING: alpha9 is set equal to alpha24 for now (needs improvement, avoid double definition!)
-    ofs_sst(alpha24c, qbcp_l.cs.F_COEF+"alpha9", 1, "");
+    ofs_sst(alpha24c, fbpl.cs.F_COEF+"alpha9", 1, "");
     //-----------------------------
 
     //Spares are used again
@@ -3256,11 +3256,11 @@ void qbtbp_ofs_storage(   Ofts< Ofsd > &zr_ofts,//zr_ofts = normalized Earth-Moo
 
     //alpha26
     //-----------------------------
-    alpha26c.ofs_fsum(sp4, qbcp_l.cs.c1+0.0*I, alpha5c, 1.0/qbcp_l.cs.gamma+0.0*I);
+    alpha26c.ofs_fsum(sp4, fbpl.cs.c1+0.0*I, alpha5c, 1.0/fbpl.cs.gamma+0.0*I);
     //Storage in txt file
-    ofs_sst(alpha26c, qbcp_l.cs.F_COEF+"alpha26", 0, "");
+    ofs_sst(alpha26c, fbpl.cs.F_COEF+"alpha26", 0, "");
     //WARNING: alpha10 is set equal to alpha26 for now (needs improvement, avoid double definition!)
-    ofs_sst(alpha26c, qbcp_l.cs.F_COEF+"alpha10", 0, "");
+    ofs_sst(alpha26c, fbpl.cs.F_COEF+"alpha10", 0, "");
     //-----------------------------
 
 
@@ -3414,7 +3414,7 @@ void qbtbp_ofs_storage(   Ofts< Ofsd > &zr_ofts,//zr_ofts = normalized Earth-Moo
 
 
     //Storage in txt file
-    ofs_sst(beta6c, qbcp_l.cs.F_COEF+"beta6", 1, "");
+    ofs_sst(beta6c, fbpl.cs.F_COEF+"beta6", 1, "");
     //-----------------------------
 
 
@@ -3431,7 +3431,7 @@ void qbtbp_ofs_storage(   Ofts< Ofsd > &zr_ofts,//zr_ofts = normalized Earth-Moo
     beta1c.ofs_prod(zhinvc, zhinvconj);
 
     //Storage in txt file
-    ofs_sst(beta1c, qbcp_l.cs.F_COEF+"beta1", 1, "");
+    ofs_sst(beta1c, fbpl.cs.F_COEF+"beta1", 1, "");
     //-----------------------------
 
 
@@ -3442,7 +3442,7 @@ void qbtbp_ofs_storage(   Ofts< Ofsd > &zr_ofts,//zr_ofts = normalized Earth-Moo
     beta2c.ofs_mprod(g1, beta1c, -1.0+0.0*I);
     beta2c.setCoef(0.0, 0);
     //Storage in txt file
-    ofs_sst(beta2c, qbcp_l.cs.F_COEF+"beta2", 0, "");
+    ofs_sst(beta2c, fbpl.cs.F_COEF+"beta2", 0, "");
     //-----------------------------
 
 
@@ -3452,7 +3452,7 @@ void qbtbp_ofs_storage(   Ofts< Ofsd > &zr_ofts,//zr_ofts = normalized Earth-Moo
     //beta3 = + gamma2/h2 = +beta1*gamma2
     beta3c.ofs_prod(g2, beta1c);
     //Storage in txt file
-    ofs_sst(beta3c, qbcp_l.cs.F_COEF+"beta3", 1, "");
+    ofs_sst(beta3c, fbpl.cs.F_COEF+"beta3", 1, "");
     //-----------------------------
 
 
@@ -3460,14 +3460,14 @@ void qbtbp_ofs_storage(   Ofts< Ofsd > &zr_ofts,//zr_ofts = normalized Earth-Moo
     //-----------------------------
     Ofsc beta4c(g3);
     //Storage in txt file
-    ofs_sst(beta4c, qbcp_l.cs.F_COEF+"beta4", 1, "");
+    ofs_sst(beta4c, fbpl.cs.F_COEF+"beta4", 1, "");
     //-----------------------------
 
     //beta5
     //-----------------------------
     Ofsc beta5c(g4);
     //Storage in txt file
-    ofs_sst(beta5c, qbcp_l.cs.F_COEF+"beta5", 0, "");
+    ofs_sst(beta5c, fbpl.cs.F_COEF+"beta5", 0, "");
     //-----------------------------
 
     //beta7
@@ -3477,7 +3477,7 @@ void qbtbp_ofs_storage(   Ofts< Ofsd > &zr_ofts,//zr_ofts = normalized Earth-Moo
     beta7c.setCoef(muSE - 1, 0);
     beta7c.ofs_sprod(beta1c, g51);
     //Storage in txt file
-    ofs_sst(beta7c, qbcp_l.cs.F_COEF+"beta7", 1, "");
+    ofs_sst(beta7c, fbpl.cs.F_COEF+"beta7", 1, "");
     //-----------------------------
 
     //beta8
@@ -3487,465 +3487,7 @@ void qbtbp_ofs_storage(   Ofts< Ofsd > &zr_ofts,//zr_ofts = normalized Earth-Moo
     beta8c.ofs_sprod(beta1c, g61);
     beta8c.setCoef(0.0, 0);
     //Storage in txt file
-    ofs_sst(beta8c, qbcp_l.cs.F_COEF+"beta8", 0, "");
+    ofs_sst(beta8c, fbpl.cs.F_COEF+"beta8", 0, "");
     //-----------------------------
 
 }
-
-
-
-//-------------------------------------------------------------------------------------------------------------------------------------------------------------------
-// Backup void qbtbp_ofs and qbtbp_ots
-//-------------------------------------------------------------------------------------------------------------------------------------------------------------------
-/*
-///
-//   \brief Solution of the qbtbp in Ots format (obsolete)
-//
-void qbtbp_ots (Ofts< Ots<double> > &ofts_z, Ofts< Ots<double> > &ofts_Z, double n, double ms, double as, double ns)
-{
-    int order = ofts_z.getOrder();
-    int nv = ofts_z.getNV();
-    int corder = ofts_z.getCOrder();
-    int cnv = ofts_z.getCVariables();
-    //Here nf = corder/2 because nf is the order of the Ofs coefficients (Fourier form), not the Ots (Taylor form)
-    int nf = ofts_z.getCOrder()/2;
-
-    double mu = 0.0121505816;
-    double eps = 1.0/as;
-
-
-    //---------------------------------------------------------
-    //Order 0
-    //---------------------------------------------------------
-    ofts_z.setCoef0(1.0,0, 0);
-    ofts_Z.setCoef0(1.0,0, 0);
-
-
-    //---------------------------------------------------------
-    //Order 1
-    //One may choose to set it at the beginning or to compute it in the loop.
-    //---------------------------------------------------------
-    //Fourier series
-    Ofsd u1(nf);
-    Ofsd v1(nf);
-
-    u1.setCoef(-ms/(as*as)/6.0, 0);
-    u1.setCoef(-ms/(as*as)*(24.0*n*n+24*n+9.0)/(64*pow(n,4.0)-16*n*n), -2);
-    u1.setCoef(+ms/(as*as)*9.0/(64*pow(n,4.0)-16*n*n), 2);
-
-    //Fourier to Taylor: this is the solution @order 1.
-    //-----------------------------------
-    //fs2ts(ofts_z.getCoef(1,0), u1);
-    //fs2ts(ofts_Z.getCoef(1,0), v1);
-
-    //---------------------------------------------------------
-    //Order n
-    //---------------------------------------------------------
-    Ofts< Ots<double> > z1(nv, order, cnv, corder);
-    Ofts< Ots<double> > z2(nv, order, cnv, corder);
-    Ofts< Ots<double> > z3(nv, order, cnv, corder);
-    Ofts< Ots<double> > z4(nv, order, cnv, corder);
-
-
-    Ofts< Ots<double> > a1(nv, order, cnv, corder);
-    Ofts< Ots<double> > a2(nv, order, cnv, corder);
-    Ofts< Ots<double> > a3(nv, order, cnv, corder);
-    Ofts< Ots<double> > a4(nv, order, cnv, corder);
-    Ofts< Ots<double> > a5(nv, order, cnv, corder);
-    Ofts< Ots<double> > a6(nv, order, cnv, corder);
-    Ofts< Ots<double> > a7(nv, order, cnv, corder);
-
-
-    Ofts< Ots<double> > b1(nv, order, cnv, corder);
-    Ofts< Ots<double> > b2(nv, order, cnv, corder);
-    Ofts< Ots<double> > b3(nv, order, cnv, corder);
-    Ofts< Ots<double> > b4(nv, order, cnv, corder);
-    Ofts< Ots<double> > b5(nv, order, cnv, corder);
-    Ofts< Ots<double> > b6(nv, order, cnv, corder);
-    Ofts< Ots<double> > b7(nv, order, cnv, corder);
-
-    Ofts< Ots<double> > Pm(nv, order, cnv, corder);
-    Ofts< Ots<double> > Qm(nv, order, cnv, corder);
-
-    //sigma1 = exp(-itheta)
-    Ofsd sigma1(nf);
-    sigma1.setCoef(1.0, -1);
-    Ots<double> s1(cnv, corder);
-    fs2ts(&s1, sigma1);
-
-
-    //sigma2 = exp(+itheta)
-    Ofsd sigma2(nf);
-    sigma2.setCoef(1.0, 1);
-    Ots<double> s2(cnv, corder);
-    fs2ts(&s2, sigma2);
-
-    //epsilon = 0+epsilon+0 (order 1 of Taylor serie)
-    Ofts< Ots<double> > epsilon(nv, order, cnv, corder);
-    epsilon.setCoef0(1.0,1,0);
-
-    //Order 0
-    int m;
-    for(m = 0; m<=0 ; m++)
-    {
-        z1.ccopy(ofts_z, m);
-        //z1 = \bar{z1}
-        z1.conjugate(m);
-        //z2 = \bar{z}^^(-3/2)
-        z2.ofts_pows(z1, -3.0/2, m);
-        //z3 = z^(-1/2)
-        z3.ofts_pows(ofts_z, -1.0/2, m);
-        //z4 = z2*z3;
-        z4.ofts_sprod(z2, z3, m);
-
-
-        //a1 = mu*exp(itheta)*z
-        a1.ofts_smult_tu(ofts_z, s2, mu, m);
-        //a2 = epsilon*a1
-        a2.ofts_sprod(a1, epsilon, m);
-        //a3+= Z
-        a3.ofts_smult_u(ofts_Z, 1.0, m);
-        //a3+= -mu*exp(itheta)*epsilon*z
-        a3.ofts_smult_u(a2, -1.0, m);
-        //a4 = a3^(-1/2)
-        a4.ofts_pows(a3, -1.0/2, m);
-        //a5 = \bar{a3}
-        a5.ccopy(a3, m);
-        a5.conjugate(m);
-        //a6 = a5^(-3/2)
-        a6.ofts_pows(a5, -3.0/2, m);
-        //a7 = a4*a6;
-        a7.ofts_sprod(a4,a6, m);
-
-
-        //b1 = (1-mu)*exp(ithetb)*z
-        b1.ofts_smult_tu(ofts_z, s2, (1.0-mu), m);
-        //b2 = epsilon*b1
-        b2.ofts_sprod(b1, epsilon, m);
-        //b3+= Z
-        b3.ofts_smult_u(ofts_Z, 1.0, m);
-        //b3+= (1-mu)*exp(ithetb)*epsilon*z
-        b3.ofts_smult_u(b2, 1.0, m);
-        //b4 = b3^(-1/2)
-        b4.ofts_pows(b3, -1.0/2, m);
-        //b5 = \bbr{b3}
-        b5.ccopy(b3, m);
-        b5.conjugate(m);
-        //b6 = b5^(-3/2)
-        b6.ofts_pows(b5, -3.0/2, m);
-        //b7 = b4*b6;
-        b7.ofts_sprod(b4,b6, m);
-
-
-        //Pm += -ms/as^2*exp(-itheta)*b7
-        Pm.ofts_smult_tu(b7, s1, -ms/(as*as),m);
-        //Pm +=  ms/as^2*exp(-itheta)*a7
-        Pm.ofts_smult_tu(a7, s1,  ms/(as*as),m);
-        //Pm +=  -z4
-        Pm.ofts_smult_u(z4, -1.0, m);
-
-
-        //Qm += -ns^2*mu*b7
-        Qm.ofts_smult_u(b7, -ns*ns*mu, m);
-        //Qm += -ns^2*(1-mu)*a7
-        Qm.ofts_smult_u(a7, -ns*ns*(1-mu), m);
-
-    }
-
-    Ofsd  Pfm(nf);
-    Ofsd  Qfm(nf);
-
-    Ofsd ufm(nf);
-    Ofsd vfm(nf);
-
-    //-------------------------
-    //Recurrence
-    //-------------------------
-    for(m = 1; m <= ofts_z.getOrder(); m++)
-    {
-
-        //z1 =ofts_z at order m-1
-        z1.ccopy(ofts_z, m-1);
-        //z1 = \bar{z1} at order m-1
-        z1.conjugate(m-1);
-        //z2 = \bar{z}^^(-3/2)
-        if(m>1) z2.ofts_pows(z1, -3.0/2, m-1);
-        z2.ofts_pows(z1, -3.0/2, m);
-        //z3 = z^(-1/2)
-        if(m>1) z3.ofts_pows(ofts_z, -1.0/2, m-1);
-        z3.ofts_pows(ofts_z, -1.0/2, m);
-        //z4 = z2*z3;
-        z4.ofts_sprod(z2, z3, m);
-
-        //cout << "Order: " << m << endl;
-        //cout << "z1: \n" << z1 << endl;
-        //cout << "z2: \n" << z2 << endl;
-
-
-
-        //a1 = mu*exp(itheta)*z at order m-1
-        if(m>1) a1.ofts_smult_tu(ofts_z, s2, mu, m-1);
-        //a2 = epsilon*a1 at order m
-        a2.ofts_sprod(a1, epsilon, m);
-        //a3+= Z
-        if(m>1) a3.ofts_smult_u(ofts_Z, 1.0, m-1);
-        //a3+= -mu*exp(itheta)*epsilon*z
-        a3.ofts_smult_u(a2, -1.0, m);
-        //a4 = a3^(-1/2)
-        if(m>1) a4.ofts_pows(a3, -1.0/2, m-1);
-        a4.ofts_pows(a3, -1.0/2, m);
-        //a5 = \bar{a3}
-        if(m>1)
-        {
-            a5.ccopy(a3, m-1);
-            a5.conjugate(m-1);
-        }
-        a5.ccopy(a3, m);
-        a5.conjugate(m);
-        //a6 = a5^(-3/2)
-        if(m>1) a6.ofts_pows(a5, -3.0/2, m-1);
-        a6.ofts_pows(a5, -3.0/2, m);
-        //a7 = a4*a6;
-        a7.ofts_sprod(a4,a6, m);
-
-//        cout << "\n---------------------------\n" << endl;
-//        cout << "Order: " << m << endl;
-//        cout << "a3: \n" << a3 << endl;
-//        cout << "a4: \n" << a4 << endl;
-
-        //b1 = (1-mu)*exp(ithetb)*z
-        if(m>1) b1.ofts_smult_tu(ofts_z, s2, (1.0-mu), m-1);
-        //b2 = epsilon*b1
-        b2.ofts_sprod(b1, epsilon, m);
-        //b3+= Z
-        if(m>1) b3.ofts_smult_u(ofts_Z, 1.0, m-1);
-        //b3+= (1-mu)*exp(ithetb)*epsilon*z
-        b3.ofts_smult_u(b2, 1.0, m);
-        //b4 = b3^(-1/2)
-        if(m>1) b4.ofts_pows(b3, -1.0/2, m-1);
-        b4.ofts_pows(b3, -1.0/2, m);
-        //b5 = \bbr{b3}
-        if(m>1)
-        {
-            b5.ccopy(b3, m-1);
-            b5.conjugate(m-1);
-        }
-        b5.ccopy(b3, m);
-        b5.conjugate(m);
-        //b6 = b5^(-3/2)
-        if(m>1) b6.ofts_pows(b5, -3.0/2, m-1);
-        b6.ofts_pows(b5, -3.0/2, m);
-        //b7 = b4*b6;
-        b7.ofts_sprod(b4,b6, m);
-
-        //Pm += -ms/as^2*exp(-itheta)*b7
-        Pm.ofts_smult_tu(b7, s1, -ms/(as*as),m);
-        //Pm +=  ms/as^2*exp(-itheta)*a7
-        Pm.ofts_smult_tu(a7, s1,  ms/(as*as),m);
-        //Pm +=  -z4
-        Pm.ofts_smult_u(z4, -1.0, m);
-
-
-        //Qm += -ns^2*mu*b7
-        Qm.ofts_smult_u(b7, -ns*ns*mu, m);
-        //Qm += -ns^2*(1-mu)*a7
-        Qm.ofts_smult_u(a7, -ns*ns*(1-mu), m);
-
-        //-------------------------
-        // Solving equations
-        //-------------------------
-        Pfm.ts2fs(Pm.getTerm(m)->getCoef(0));
-        Qfm.ts2fs(Qm.getTerm(m)->getCoef(0));
-
-        //Order 0
-        ufm.setCoef(-1.0/3*Pfm.ofs_getCoef(0), 0);  //u0 = -1/3*p0
-        vfm.setCoef(-1.0/(3*ns*ns)*Qfm.ofs_getCoef(0), 0); //v0 = -1/(3*ns^2)*p0
-
-        //Order 1 to nf
-        //solving a 2*2 system
-        double k1, k2, k3, l1, l2, l3, uj, vj;
-        for(int j = 1; j<= nf; j++)
-        {
-            k1 = -pow(j*n,2.0) + 2*j*n - 3.0/2;
-            k2 = -pow(j*n,2.0) - 2*j*n - 3.0/2;
-            k3 = -3.0/2;
-
-            l1 = -pow(j*n,2.0) + 2*j*n*ns - 3.0/2*ns*ns;
-            l2 = -pow(j*n,2.0) - 2*j*n*ns - 3.0/2*ns*ns;
-            l3 = -3.0/2*ns*ns;
-
-
-            //u-j
-            uj = ( k2*Pfm.ofs_getCoef(-j) - k3*Pfm.ofs_getCoef(j))/(k1*k2-k3*k3);
-            ufm.setCoef(uj, -j);
-            //uj
-            uj = (-k3*Pfm.ofs_getCoef(-j) + k1*Pfm.ofs_getCoef(j))/(k1*k2-k3*k3);
-            ufm.setCoef(uj, j);
-
-            //v-j
-            vj = ( l2*Qfm.ofs_getCoef(-j) - l3*Qfm.ofs_getCoef(j))/(l1*l2-l3*l3);
-            vfm.setCoef(vj, -j);
-            //vj
-            vj = (-l3*Qfm.ofs_getCoef(-j) + l1*Qfm.ofs_getCoef(j))/(l1*l2-l3*l3);
-            vfm.setCoef(vj, j);
-
-        }
-
-
-        //Update z and Z
-        fs2ts(ofts_z.getCoef(m,0), ufm);
-        fs2ts(ofts_Z.getCoef(m,0), vfm);
-
-        cout << "Order " << m << " completed." << endl;
-    }
-
-    //bj and cj
-    Ofsd bj(nf);
-    fts2fs(&bj, ofts_z, eps);
-    Ofsd cj(nf);
-    fts2fs(&cj, ofts_Z, eps);
-
-
-    //cout << ofts_z << endl;
-
-    ofstream bjstream("data/bj.txt");
-    bjstream << "bj: \n" << bj << endl;
-    bjstream.close();
-    ofstream cjstream("data/cj.txt");
-    cjstream << "cj: \n" << cj << endl;
-    cjstream.close();
-
-}
-
-*/
-//-----------------------------------------------------------------------------
-// FFT from NR in C
-//-----------------------------------------------------------------------------
-/**
- * \brief Calculates the Fourier transform of a set of n real-valued data points. Not currently used.
- *
- * Replaces this data (which
- * is stored in array data[0..n-1] ) by the positive frequency half of its complex Fourier transform.
- * The real-valued first and last components of the complex transform are returned as elements
- * data[1] and data[2] , respectively. n must be a power of 2. This routine also calculates the
- * inverse transform of a complex data array if it is the transform of real data. (Result in this case
- * must be multiplied by 2/n .)
- **/
-void realft(double data[], unsigned long n, int isign)
-{
-    void four1(double data[], unsigned long nn, int isign);
-    unsigned long i,i1,i2,i3,i4,np3;
-    double c1=0.5,c2,h1r,h1i,h2r,h2i;
-    double wr,wi,wpr,wpi,wtemp,theta; //Double precision for the trigonometric recurrences.
-    theta=3.141592653589793/(double) (n>>1);//Initialize the recurrence.
-    if (isign == 1)
-    {
-        c2 = -0.5;
-        four1(data,n>>1,1);  //The forward transform is here.
-    }
-    else
-    {
-        c2=0.5; //Otherwise set up for an inverse transform.
-        theta = -theta;
-    }
-    wtemp=sin(0.5*theta);
-    wpr = -2.0*wtemp*wtemp;
-    wpi=sin(theta);
-    wr=1.0+wpr;
-    wi=wpi;
-    np3=n+3;
-    for (i=2; i<=(n>>2); i++)
-    {
-        //Case i=1 done separately below.
-        i4=1+(i3=np3-(i2=1+(i1=i+i-1)));
-        h1r=c1*(data[i1]+data[i3]); //The two separate transforms are separated out of data.
-        h1i=c1*(data[i2]-data[i4]);
-        h2r = -c2*(data[i2]+data[i4]);
-        h2i=c2*(data[i1]-data[i3]);
-        data[i1]=h1r+wr*h2r-wi*h2i; //Here they are recombined to form
-        data[i2]=h1i+wr*h2i+wi*h2r; //the true transform of the original real data.
-        data[i3]=h1r-wr*h2r+wi*h2i;
-        data[i4] = -h1i+wr*h2i+wi*h2r;
-        wr=(wtemp=wr)*wpr-wi*wpi+wr; //The recurrence.
-        wi=wi*wpr+wtemp*wpi+wi;
-    }
-    if (isign == 1)
-    {
-        //Squeeze the first and last data to-
-        //gether to get them all within the
-        //original array.
-        data[1] = (h1r=data[1])+data[2];
-        data[2] = h1r-data[2];
-    }
-    else
-    {
-        //This is the inverse transform for the
-        //case isign=-1.
-        data[1]=c1*((h1r=data[1])+data[2]);
-        data[2]=c1*(h1r-data[2]);
-        four1(data,n>>1,-1);
-    }
-
-}
-#define SWAP(a,b) tempr=(a);(a)=(b);(b)=tempr
-/**
- * \brief Replaces data[1..2*nn] by its discrete Fourier transform, if isign is input as 1; or replaces
- * data[1..2*nn] by nn times its inverse discrete Fourier transform, if isign is input as −1.
- * data is a complex array of length nn or, equivalently, a real array of length 2*nn . nn MUST
- * be an integer power of 2 (this is not checked for!).
- **/
-void four1(double data[], unsigned long nn, int isign)
-{
-    unsigned long n,mmax,m,j,istep,i;
-    double wtemp,wr,wpr,wpi,wi,theta;
-    double tempr,tempi;
-    n=nn << 1;
-    j=1;
-    for (i=1; i<n; i+=2)
-    {
-        //This is the bit-reversal section of the routine.
-        if (j > i)
-        {
-
-            SWAP(data[j],data[i]);   //Exchange the two complex numbers.
-            SWAP(data[j+1],data[i+1]);
-        }
-        m=nn;
-        while (m >= 2 && j > m)
-        {
-            j -= m;
-            m >>= 1;
-        }
-        j += m;
-    }
-    //Here begins the Danielson-Lanczos section of the routine.
-    mmax=2;
-    while (n > mmax)  //Outer loop executed log 2 nn times.
-    {
-        istep=mmax << 1;
-        theta=isign*(6.28318530717959/mmax); // Initialize the trigonometric recurrence.
-        wtemp=sin(0.5*theta);
-        wpr = -2.0*wtemp*wtemp;
-        wpi=sin(theta);
-        wr=1.0;
-        wi=0.0;
-        for (m=1; m<mmax; m+=2)  //Here are the two nested inner loops.
-        {
-            for (i=m; i<=n; i+=istep)
-            {
-                //This is the Danielson-Lanczos for-mula:
-                j=i+mmax;
-                tempr=wr*data[j]-wi*data[j+1];
-                tempi=wr*data[j+1]+wi*data[j];
-                data[j]=data[i]-tempr;
-                data[j+1]=data[i+1]-tempi;
-                data[i] += tempr;
-                data[i+1] += tempi;
-            }
-            wr=(wtemp=wr)*wpr-wi*wpi+wr; //Trigonometric recurrence.
-            wi=wi*wpr+wtemp*wpi+wi;
-        }
-        mmax=istep;
-    }
-}
-

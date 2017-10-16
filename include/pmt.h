@@ -30,7 +30,7 @@
  *  \param manType: type of manifold (center, center-stable, center-unstable or center-hyperbolic).
  *
  *   Inputs:
- *      - The QBCP_L structure SEML, which contains the addresses of the data folders (F_COC, F_PMS...),
+ *      - The FBPL structure SEML, which contains the addresses of the data folders (F_COC, F_PMS...),
  *        the order of the expansions (both Fourier and Fourier-Taylor),
  *        and some useful parameters (gamma, c1)
  *

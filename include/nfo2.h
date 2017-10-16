@@ -27,7 +27,6 @@
 //Custom
 #include "qbcp.h"
 #include "define_env.h"
-#include "parameters.h"
 #include "lpdyneq.h"
 #include "init.h"
 
@@ -37,22 +36,22 @@
 //----------------------------------------------------------------------------------------
 // Main routine
 //----------------------------------------------------------------------------------------
-void nfo2_2(QBCP_L &qbcp_l, int isStored);
+void nfo2_2(FBPL &fbpl, int isStored);
 
 /**
  *  \brief Main routine. Compute the complete change of coordinates.
  */
-void nfo2(QBCP_L &qbcp_l, int isStored);
+void nfo2(FBPL &fbpl, int isStored);
 
 /**
  *  \brief Main routine. Compute the complete change of coordinates.
  */
-void nfo2_QBP(QBCP_L &qbcp_l, int isStored);
+void nfo2_QBP(FBPL &fbpl, int isStored);
 
 /**
  *  \brief Main routine. Compute the complete change of coordinates.
  */
-void nfo2_RTBP(QBCP_L &qbcp_l, int isStored);
+void nfo2_RTBP(FBPL &fbpl, int isStored);
 
 //-------------------------------------------------------------------------------------------------------
 //Compute the STM/Monodromy Matrix
@@ -98,7 +97,7 @@ void monoDiag(gsl_matrix* MM, gsl_matrix_complex *evecd, gsl_vector_complex *eva
 void monoDecomp(gsl_odeiv2_driver *d,           //driver for odeRK78
                 const double y0[],              //initial conditions
                 const double n,                 //pulsation
-                QBCP_L *qbcp_l,                //Four-Body problem
+                FBPL *fbpl,                //Four-Body problem
                 int M,                          //Number of steps for Monodromy matrix splitting in a product of matrices
                 int STABLE_DIR_TYPE,            //Type of computation of the stable direction
                 gsl_matrix_complex* MMc,        //Final monodromy matrix in complex form                                    |
@@ -130,7 +129,7 @@ void permutationS(gsl_matrix_complex *S,
 void monoDecomp_RTBP(gsl_odeiv2_driver* d,           //driver for odeRK78
                      const double y0[],              //initial conditions
                      const double n,                 //pulsation
-                     QBCP_L* qbcp_l,                 //Four-Body problem
+                     FBPL* fbpl,                 //Four-Body problem
                      int M,                          //Number of steps for Monodromy matrix splitting in a product of matrices
                      int STABLE_DIR_TYPE,            //Type of computation of the stable direction
                      gsl_matrix_complex* MMc,        //Final monodromy matrix in complex form                                    |
@@ -247,7 +246,7 @@ void ortho(gsl_matrix_complex **VECS, int IK, int M);
 /**
  *  \brief Obtain the FFT decomposition of various matrices P, Q = inv(P) FT11, FT12, FT21 and FT22.
  */
-void nfo2coc(gsl_odeiv2_driver *d, const double y0[], const double n, QBCP_L *qbcp_l, gsl_matrix* Br, gsl_matrix* R, gsl_matrix* JB, int N, int isStored);
+void nfo2coc(gsl_odeiv2_driver *d, const double y0[], const double n, FBPL *fbpl, gsl_matrix* Br, gsl_matrix* R, gsl_matrix* JB, int N, int isStored);
 
 /**
  *  \brief Integrate the various matrices referenced on a N point grid to seed FFT process.
@@ -255,7 +254,7 @@ void nfo2coc(gsl_odeiv2_driver *d, const double y0[], const double n, QBCP_L *qb
 void nfo2Int(gsl_odeiv2_driver *d,
              const double y0[],
              const double n,
-             QBCP_L *qbcp_l,
+             FBPL *fbpl,
              gsl_matrix* R,
              gsl_matrix* JB,
              int N,

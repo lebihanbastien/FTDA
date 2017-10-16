@@ -40,7 +40,6 @@ void oftsh_test()
     cout << "- Oftsh<T>& Oftsh<T>::lcopy (Oftsh<T> const& b)" << endl;
     cout << "- Oftsh<T>& Oftsh<T>::ccopy (Oftsh<T> const& b)" << endl;
     cout << "- Oftsh<T>::linkCoefs(T *coef0)" << endl;
-    cout << "- Oftsh< Ots<double> >::linkCoefs( Ots<double> *coef0)" << endl;
     cout << "- Oftsh<T>::setCoef(T value, int pos)" << endl;
     cout << "- Oftsh<T>::addCoef(T value, int pos)" << endl;
     cout << "- Oftsh<T>::setSubCoef(U value, int pos)" << endl;
@@ -313,7 +312,7 @@ void oftsh_test_smult_t()
     cout << "Delta: " << cabs(res2) << endl;
     cout << "Expected error : " << cabs(smult_expectedError(*xd2, ofs3, Xvar, VAR)) << endl;
     cout << "Corrected delta: " << cabs(res2 + smult_expectedError(*xd2, ofs3, Xvar, VAR)) << endl;
-    cout << "Higher bound on relative accumulated roundoff errors: ~" << 7.0/2*OFS_ORDER*(OFS_ORDER+1)*FTDA::nmon(REDUCED_NV, OFTS_ORDER)*1.1e-16 << endl;
+    cout << "Higher bound on relative accumulated roundoff errors: ~" << 7.0/2*OFS_ORDER*(OFS_ORDER+1)*Manip::nmon(REDUCED_NV, OFTS_ORDER)*1.1e-16 << endl;
 
     //Comparison. cdouble case
     //--------------
@@ -324,7 +323,7 @@ void oftsh_test_smult_t()
     cout << "Delta: " << cabs(resd2) << endl;
     cout << "Expected error : " << cabs(smult_expectedError(*xdc2, ofsd3, Xvard, VAR)) << endl;
     cout << "Corrected delta: " << cabs(resd2 + smult_expectedError(*xdc2, ofsd3, Xvard, VAR)) << endl;
-    cout << "Higher bound on relative accumulated roundoff errors: ~" << 7.0/2*OFS_ORDER*(OFS_ORDER+1)*FTDA::nmon(REDUCED_NV, OFTS_ORDER)*1.1e-16 << endl;
+    cout << "Higher bound on relative accumulated roundoff errors: ~" << 7.0/2*OFS_ORDER*(OFS_ORDER+1)*Manip::nmon(REDUCED_NV, OFTS_ORDER)*1.1e-16 << endl;
 
     //---------------------------------------------------------
     // 2. Oftsh<T>::oftsh_mult_t(Oftsh<T> const& a, T const& c)
@@ -377,7 +376,7 @@ void oftsh_test_smult_t()
     cout << "Delta: " << cabs(res2) << endl;
     cout << "Expected error : " << cabs(smult_expectedError(*xd2, ofs3, Xvar, VAR)) << endl;
     cout << "Corrected delta: " << cabs(res2 + smult_expectedError(*xd2, ofs3, Xvar, VAR)) << endl;
-    cout << "Higher bound on relative accumulated roundoff errors: ~" << 7.0/2*OFS_ORDER*(OFS_ORDER+1)*FTDA::nmon(REDUCED_NV, OFTS_ORDER)*1.1e-16 << endl;
+    cout << "Higher bound on relative accumulated roundoff errors: ~" << 7.0/2*OFS_ORDER*(OFS_ORDER+1)*Manip::nmon(REDUCED_NV, OFTS_ORDER)*1.1e-16 << endl;
 
     //Comparison. cdouble case
     //--------------
@@ -388,7 +387,7 @@ void oftsh_test_smult_t()
     cout << "Delta: " << cabs(resd2) << endl;
     cout << "Expected error : " << cabs(smult_expectedError(*xdc2, ofsd3, Xvard, VAR)) << endl;
     cout << "Corrected delta: " << cabs(resd2 + smult_expectedError(*xdc2, ofsd3, Xvard, VAR)) << endl;
-    cout << "Higher bound on relative accumulated roundoff errors: ~" << 7.0/2*OFS_ORDER*(OFS_ORDER+1)*FTDA::nmon(REDUCED_NV, OFTS_ORDER)*1.1e-16 << endl;
+    cout << "Higher bound on relative accumulated roundoff errors: ~" << 7.0/2*OFS_ORDER*(OFS_ORDER+1)*Manip::nmon(REDUCED_NV, OFTS_ORDER)*1.1e-16 << endl;
 
 
     //---------------------------------------------------------
@@ -444,7 +443,7 @@ void oftsh_test_smult_t()
     cout << "Delta: " << cabs(res2) << endl;
     cout << "Expected error : " << cabs(c*smult_expectedError(*xd2, ofs3, Xvar, VAR)) << endl;
     cout << "Corrected delta: " << cabs(res2 + c*smult_expectedError(*xd2, ofs3, Xvar, VAR)) << endl;
-    cout << "Higher bound on relative accumulated roundoff errors: ~" << 7.0/2*OFS_ORDER*(OFS_ORDER+1)*FTDA::nmon(REDUCED_NV, OFTS_ORDER)*1.1e-16 << endl;
+    cout << "Higher bound on relative accumulated roundoff errors: ~" << 7.0/2*OFS_ORDER*(OFS_ORDER+1)*Manip::nmon(REDUCED_NV, OFTS_ORDER)*1.1e-16 << endl;
 
     //Comparison. cdouble case
     //--------------
@@ -455,7 +454,7 @@ void oftsh_test_smult_t()
     cout << "Delta: " << cabs(resd2) << endl;
     cout << "Expected error : " << cabs(cd*smult_expectedError(*xdc2, ofsd3, Xvard, VAR)) << endl;
     cout << "Corrected delta: " << cabs(resd2 + cd*smult_expectedError(*xdc2, ofsd3, Xvard, VAR)) << endl;
-    cout << "Higher bound on relative accumulated roundoff errors: ~" << 7.0/2*OFS_ORDER*(OFS_ORDER+1)*FTDA::nmon(REDUCED_NV, OFTS_ORDER)*1.1e-16 << endl;
+    cout << "Higher bound on relative accumulated roundoff errors: ~" << 7.0/2*OFS_ORDER*(OFS_ORDER+1)*Manip::nmon(REDUCED_NV, OFTS_ORDER)*1.1e-16 << endl;
 }
 
 /**
@@ -831,7 +830,7 @@ void oftsh_test_sprod()
     //Then an estimation of this error is \pm Ofs*Ofs error times this number times xvar(0)^order.
     cout <<  setw(5) << setprecision(2) << std::showpos  <<  setiosflags(ios::scientific);
     cout << "Expected error : up to ";
-    cout << maxC*cabs(sprod_expectedError(xd2->getCoef(0), xd3->getCoef(0), VAR))*pow(FTDA::nmon(REDUCED_NV, OFTS_ORDER/2), 2.0) << endl;
+    cout << maxC*cabs(sprod_expectedError(xd2->getCoef(0), xd3->getCoef(0), VAR))*pow(Manip::nmon(REDUCED_NV, OFTS_ORDER/2), 2.0) << endl;
     cout <<  setw(5) << setprecision(15) << std::showpos  <<  setiosflags(ios::scientific);
 
     //Comparison. cdouble case
@@ -846,19 +845,19 @@ void oftsh_test_sprod()
     cout << "Delta: " << cabs(resd2) << endl;
     cout <<  setw(5) << setprecision(2) << std::showpos  <<  setiosflags(ios::scientific);
     cout << "Expected error : up to ";
-    cout <<  maxC*cabs(sprod_expectedError(xdc2->getCoef(0), xdc3->getCoef(0), VAR))*pow(FTDA::nmon(REDUCED_NV, OFTS_ORDER/2), 2.0) << endl;
+    cout <<  maxC*cabs(sprod_expectedError(xdc2->getCoef(0), xdc3->getCoef(0), VAR))*pow(Manip::nmon(REDUCED_NV, OFTS_ORDER/2), 2.0) << endl;
     cout <<  setw(5) << setprecision(15) << std::showpos  <<  setiosflags(ios::scientific);
 }
 
 /**
  * \fn void oftsh_test_smprod()
- * \brief Test of the routine: Oftsh<T>::oftsh_smprod_u(Oftsh< Ots<U> > const& a, Oftsh< Ots<U> > const& b, U const& m).
+ * \brief Test of the routine: Oftsh<T>::oftsh_smprod_u(Oftsh< Ofs<U> > const& a, Oftsh< Ofs<U> > const& b, U const& m).
  */
 void oftsh_test_smprod()
 {
     cout << "-----------------------------------------------------------------" << endl;
     cout << " Test of the routines:                                           " << endl;
-    cout << " 1. Oftsh<T>::oftsh_smprod_u(Oftsh< Ots<U> > const& a, Oftsh< Ots<U> > const& b, U const& m)  " << endl;
+    cout << " 1. Oftsh<T>::oftsh_smprod_u(Oftsh< Ofs<U> > const& a, Oftsh< Ofs<U> > const& b, U const& m)  " << endl;
     cout << " 2. its specializations.                                         " << endl;
     cout << "-----------------------------------------------------------------" << endl;
 
@@ -956,7 +955,7 @@ void oftsh_test_smprod()
     //Then an estimation of this error is \pm Ofs*Ofs error times this number times xvar(0)^order.
     cout <<  setw(5) << setprecision(2) << std::showpos  <<  setiosflags(ios::scientific);
     cout << "Expected error : up to ";
-    cout <<  maxC*cabs(smprod_expectedError(xd2->getCoef(0), xd3->getCoef(0), c, VAR))*pow(FTDA::nmon(REDUCED_NV, OFTS_ORDER/2), 2.0) << endl;
+    cout <<  maxC*cabs(smprod_expectedError(xd2->getCoef(0), xd3->getCoef(0), c, VAR))*pow(Manip::nmon(REDUCED_NV, OFTS_ORDER/2), 2.0) << endl;
     cout <<  setw(5) << setprecision(15) << std::showpos  <<  setiosflags(ios::scientific);
 
 
@@ -972,13 +971,13 @@ void oftsh_test_smprod()
     cout << "Delta: " << cabs(resd2) << endl;
     cout <<  setw(5) << setprecision(2) << std::showpos  <<  setiosflags(ios::scientific);
     cout << "Expected error : up to ";
-    cout << maxC*cabs(smprod_expectedError(xdc2->getCoef(0), xdc3->getCoef(0), cd, VAR))*pow(FTDA::nmon(REDUCED_NV, OFTS_ORDER/2), 2.0) << endl;
+    cout << maxC*cabs(smprod_expectedError(xdc2->getCoef(0), xdc3->getCoef(0), cd, VAR))*pow(Manip::nmon(REDUCED_NV, OFTS_ORDER/2), 2.0) << endl;
     cout <<  setw(5) << setprecision(15) << std::showpos  <<  setiosflags(ios::scientific);
 }
 
 /**
  * \fn void oftsh_test_smprod_t()
- * \brief Test of the routine: Oftsh<T>::oftsh_smprod_u(Oftsh< Ots<U> > const& a, Oftsh< Ots<U> > const& b, U const& m).
+ * \brief Test of the routine: Oftsh<T>::oftsh_smprod_u(Oftsh< Ofs<U> > const& a, Oftsh< Ofs<U> > const& b, U const& m).
  */
 void oftsh_test_smprod_t()
 {
@@ -1092,7 +1091,7 @@ void oftsh_test_smprod_t()
     //Then an estimation of this error is \pm Ofs*Ofs error times this number times xvar(0)^order.
     cout <<  setw(5) << setprecision(2) << std::showpos  <<  setiosflags(ios::scientific);
     cout << "Expected error : up to ";
-    cout <<  maxC*cabs(smprod_expectedError(xd2->getCoef(0), xd3->getCoef(0), c, VAR))*pow(FTDA::nmon(REDUCED_NV, OFTS_ORDER/2), 2.0) << endl;
+    cout <<  maxC*cabs(smprod_expectedError(xd2->getCoef(0), xd3->getCoef(0), c, VAR))*pow(Manip::nmon(REDUCED_NV, OFTS_ORDER/2), 2.0) << endl;
     cout <<  setw(5) << setprecision(15) << std::showpos  <<  setiosflags(ios::scientific);
 
 
@@ -1108,7 +1107,7 @@ void oftsh_test_smprod_t()
     cout << "Delta: " << cabs(resd2) << endl;
     cout <<  setw(5) << setprecision(2) << std::showpos  <<  setiosflags(ios::scientific);
     cout << "Expected error : up to ";
-    cout << maxC*cabs(smprod_expectedError(xdc2->getCoef(0), xdc3->getCoef(0), cd, VAR))*pow(FTDA::nmon(REDUCED_NV, OFTS_ORDER/2), 2.0) << endl;
+    cout << maxC*cabs(smprod_expectedError(xdc2->getCoef(0), xdc3->getCoef(0), cd, VAR))*pow(Manip::nmon(REDUCED_NV, OFTS_ORDER/2), 2.0) << endl;
     cout <<  setw(5) << setprecision(15) << std::showpos  <<  setiosflags(ios::scientific);
 }
 

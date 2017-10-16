@@ -41,11 +41,10 @@
 //----------------------------------------------------------------------------------------
 // Include
 //----------------------------------------------------------------------------------------
-//Constants
-#include "Config.h"
 //Parallel computing
 #include <omp.h>
 //Custom
+#include "Config.h"
 #include "ofs.h"
 #include "ofts.h"
 #include "poincare.h"
@@ -87,98 +86,96 @@ int main(int argc, char *argv[])
     cout << "---------------------------------------------------" << endl;
     cout << argc << " arguments have been passed to OOFTDA"       << endl;
 
-    //------------------------------------------------------------------------------------
-    // Initialization of static FTDA objects. Mandatory.
+    //====================================================================================
+    // Initialization of Manip object, which allows for algebraic manipulation
+    // of polynomials (exponents in reverse lexicographic order, number of coefficient in
+    // homogeneous polynomials...).
     // Note that, for now, the default order of the OFS and OFTS objects are set at
-    // compilation
-    //------------------------------------------------------------------------------------
+    // compilation (OFS_ORDER_0OFTS_ORDER_0).
+    //====================================================================================
     int OFS_ORDER_0  = 30;  //The default OFS_ORDER (Fourier series) is 30
     int OFTS_ORDER_0 = 30;  //The default OFTS_ORDER (Taylor series) is 30
     int nr = max(2*OFS_ORDER_0, OFTS_ORDER_0);
     int nv = Csts::NV;
-    FTDA::init(nv, nr);
+    Manip::init(nv, nr);
 
-    //------------------------------------------------------------------------------------
-    // The variable index contains the index of the current argument of the main routine
-    // first index is 1 because index 0 is the application path
-    //------------------------------------------------------------------------------------
+
+    //====================================================================================
+    // Get the user-defined arguments
+    //====================================================================================
+    // The variable index contains the index of the current argument argv[index]
+    // of the main routine. The first index is 1 because index 0 is the application path.
     int index    = 1;
 
     //------------------------------------------------------------------------------------
     // Get the current orders
     //------------------------------------------------------------------------------------
-    OFTS_ORDER   = atoi(argv[index++]);
-    OFS_ORDER    = atoi(argv[index++]);
-    REDUCED_NV   = atoi(argv[index++]);
-    OTS_ORDER    = 10;
+    OFTS_ORDER   = atoi(argv[index++]); //Order of the Taylor series
+    OFS_ORDER    = atoi(argv[index++]); //Order of the Fourier series
+    REDUCED_NV   = atoi(argv[index++]); //Number of reduced variables (4, 5 or 6).
 
     //To check consistency with the desired values
     cout << "Current orders:" << endl;
     cout << "OFTS_ORDER = "   << OFTS_ORDER << endl;
     cout << "OFS_ORDER  = "   << OFS_ORDER  << endl;
-    cout << "OTS_ORDER  = "   << OTS_ORDER  << endl;
     cout << "REDUCED_NV = "   << REDUCED_NV << endl;
     cout << "---------------------------------------------------" << endl;
 
     //------------------------------------------------------------------------------------
     // Retrieving the parameters, in this order:
-    // 1. Type of computation (QBTBP, NFO2, PM...)
-    // 2. Type of model (QBCP, RTBP...)
-    // 3. Default coordinate system (EM, SEM...)
-    // 4. Boolean for normalization (or not) of the equations of motion
-    // 5. Default libration point (EM system)
-    // 6. Default libration point (SEM system)
-    // 7. Parameterization (PM) style (only used in some computations)
-    // 8. boolean for storage (in txt/bin files) of the results
+    // 1. compType: Type of computation (QBTBP, NFO2, PM...)
+    // 2. model: Type of model (QBCP, RTBP)
+    // 3. coordsys: Default coordinate system (EM, SEM)
+    // 4. dli: Default libration point
+    // 5. pms: Parameterization (PM) style (only used in some computations)
+    // 6. mtype: Type of manifold (center, center-stable, center-unstable)
+    // 7. storage: Boolean for storage (in txt/bin files) of the results
     //------------------------------------------------------------------------------------
     int compType  = atoi(argv[index++]);
     int model     = atoi(argv[index++]);
     int coordsys  = atoi(argv[index++]);
-    int isNorm    = atoi(argv[index++]);
-    int li_EM     = atoi(argv[index++]);
-    int li_SEM    = atoi(argv[index++]);
+    int dli       = atoi(argv[index++]);
     int pms       = atoi(argv[index++]);
-    int mType     = atoi(argv[index++]);
+    int mtype     = atoi(argv[index++]);
     int storage   = atoi(argv[index++]);
 
     //Check
-    cout << "Current parameters:" << endl;
+    cout << "Current parameters: " << endl;
     cout << "--------------------" << endl;
     cout << "compType  = "   << compType << endl;
     cout << "model     = "   << model << endl;
     cout << "coordsys  = "   << coordsys << endl;
-    cout << "isNorm    = "   << isNorm << endl;
-    cout << "li_EM     = "   << li_EM << endl;
-    cout << "li_SEM    = "   << li_SEM << endl;
+    cout << "li        = "   << dli << endl;
     cout << "pms       = "   << pms << endl;
-    cout << "mType     = "   << mType << endl;
+    cout << "mtype     = "   << mtype << endl;
     cout << "storage   = "   << storage << endl;
     cout << "---------------------------------------------------" << endl;
 
-    //------------------------------------------
+    //------------------------------------------------------------------------------------
     // Set the global variable MODEL_TYPE
-    //------------------------------------------
+    //------------------------------------------------------------------------------------
     MODEL_TYPE = model;
 
-    //------------------------------------------------------------------------------------
-    // Initialization of the environnement
-    // Mandatory to perform any computation except qbtbp(int)
-    //------------------------------------------------------------------------------------
-    init_env(li_EM, li_SEM, isNorm, model, pms, mType, mType);
+    //====================================================================================
+    // Initialization of the environnement (the Four-Body Problem at hand).
+    // Mandatory to perform any computation, except qbtbp(int)
+    //====================================================================================
+    init_env(model, dli, mtype, pms);
 
-    //------------------------------------------
+
+    //------------------------------------------------------------------------------------
     // Which default CS?
-    //------------------------------------------
-    changeCOORDSYS(SEML, coordsys);
-
     //------------------------------------------------------------------------------------
+    //change_coord(SEML, coordsys);
+
+    //====================================================================================
     // Master switch on the type of computation required by the user
     // QBTBP   = 0
     // NFO2    = 1
     // PM      = 2
     // PM_TEST = 3
     // PMAP    = 4
-    //------------------------------------------------------------------------------------
+    //====================================================================================
     switch(compType)
     {
     //------------------------------------------------------------------------------------
@@ -186,13 +183,43 @@ int main(int argc, char *argv[])
     //------------------------------------------------------------------------------------
     case Csts::QBTBP:
     {
+
+            ///TO BE CHANGED
+            int li_EM=1, li_SEM=1;
+            switch(dli)
+            {
+                case Csts::EML1:
+                li_EM = 1;
+                li_SEM = 1;
+                break;
+
+                case Csts::EML2:
+                li_EM = 2;
+                li_SEM = 1;
+                break;
+
+                case Csts::SEL1:
+                li_EM = 1;
+                li_SEM = 1;
+                break;
+
+                case Csts::SEL2:
+                li_EM = 1;
+                li_SEM = 2;
+                break;
+
+                default:
+                    cout << "unknown lib point." << endl;
+                    return 1;
+                break;
+            }
+
+
         switch(model)
         {
             //----------------------------------------------------------------------------
             // QBTBP resolution up to OFS_ORDER.
-            // if the testing argument is true,
-            // the results are tested on
-            // one full period
+            // If the testing argument is true, the results are tested on one full period.
             //----------------------------------------------------------------------------
         case Csts::QBCP:
             qbtbp(li_EM, li_SEM, true, coordsys);
@@ -278,7 +305,7 @@ int main(int argc, char *argv[])
         }
 
         //--------------------------------------------------------------------------------
-        // Initialisation of the central manifold
+        // Initialization of the central manifold
         //--------------------------------------------------------------------------------
         initCM(SEML);
         initCOC(SEML);
@@ -607,6 +634,8 @@ int main(int argc, char *argv[])
         // - A T/2-resonant orbit at EML2
         //-----------------------------
         //continuation_res_orbit(SEML, Csts::CRTBP, Csts::QBCP);
+
+        break;
     }
 
     //------------------------------------------------------------------------------------
@@ -617,6 +646,7 @@ int main(int argc, char *argv[])
         ofs_test();
         oftsh_test();
         ofts_test();
+        break;
     }
 
 
@@ -634,11 +664,6 @@ int main(int argc, char *argv[])
 
     return 0;
 
-
-    //------------------------------------------------------------------------------------
-    // MULTIMIN_TEST
-    //------------------------------------------------------------------------------------
-    //test_frprmn();
 
     //------------------------------------------------------------------------------------
     // Tests

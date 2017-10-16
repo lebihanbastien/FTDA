@@ -1,5 +1,12 @@
 #include "Constants.h"
 
+//----------------------------------------------------------------------------------------
+//   Global constants
+//----------------------------------------------------------------------------------------
+int OFTS_ORDER;
+int OFS_ORDER;
+int MODEL_TYPE;
+int REDUCED_NV;
 
 //========================================================================================
 //   Constructor (not required for now, since all members are static constants)

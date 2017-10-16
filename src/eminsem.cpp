@@ -20,7 +20,7 @@ void SEMvtoSEMm(double t, const double ySEv[], double ySEm[], void *params_void)
     //-------------------------------------------------------------------------------
     // Misc parameters
     //-------------------------------------------------------------------------------
-    QBCP_L* qbp = (QBCP_L*) params_void;
+    FBPL* qbp = (FBPL*) params_void;
     double n    =  qbp->us_sem.n;
 
     double delta[3];
@@ -50,7 +50,7 @@ void SEMmtoSEMv(double t, const double ySEm[], double ySEv[], void *params_void)
     //-------------------------------------------------------------------------------
     // Misc parameters
     //-------------------------------------------------------------------------------
-    QBCP_L* qbp = (QBCP_L*) params_void;
+    FBPL* qbp = (FBPL*) params_void;
     double n    =  qbp->us_sem.n;
 
     double delta[3];
@@ -81,7 +81,7 @@ void EMvtoEMm(double t, const double yEMv[], double yEMm[], void *params_void)
     //-------------------------------------------------------------------------------
     // Misc parameters
     //-------------------------------------------------------------------------------
-    QBCP_L* qbp  = (QBCP_L*) params_void;
+    FBPL* qbp  = (FBPL*) params_void;
     double n     =  qbp->us_em.n;
 
     //-------------------------------------------------------------------------------
@@ -117,7 +117,7 @@ void EMmtoEMv(double t, const double yEMm[], double yEMv[], void *params_void)
     //-------------------------------------------------------------------------------
     // Misc parameters
     //-------------------------------------------------------------------------------
-    QBCP_L* qbp  = (QBCP_L*) params_void;
+    FBPL* qbp  = (FBPL*) params_void;
     double n     =  qbp->us_em.n;
 
     //-------------------------------------------------------------------------------
@@ -150,31 +150,31 @@ void EMmtoEMv(double t, const double yEMm[], double yEMv[], void *params_void)
 /**
  *   \brief From SEM unit system to EM unit system for a Position/Velocity and time vector in IN coordinates and time
  **/
-void ussem2usem(double *tc, double yINv[], QBCP_L *qbcp_l)
+void ussem2usem(double *tc, double yINv[], FBPL *fbpl)
 {
     //IN[SEM] to IN[EM]
-    yINv[0] *= qbcp_l->us_em.as;
-    yINv[1] *= qbcp_l->us_em.as;
-    yINv[2] *= qbcp_l->us_em.as;
-    yINv[3] *= qbcp_l->us_em.as*qbcp_l->us_em.ns;
-    yINv[4] *= qbcp_l->us_em.as*qbcp_l->us_em.ns;
-    yINv[5] *= qbcp_l->us_em.as*qbcp_l->us_em.ns;
-    *tc     /= qbcp_l->us_em.ns;
+    yINv[0] *= fbpl->us_em.as;
+    yINv[1] *= fbpl->us_em.as;
+    yINv[2] *= fbpl->us_em.as;
+    yINv[3] *= fbpl->us_em.as*fbpl->us_em.ns;
+    yINv[4] *= fbpl->us_em.as*fbpl->us_em.ns;
+    yINv[5] *= fbpl->us_em.as*fbpl->us_em.ns;
+    *tc     /= fbpl->us_em.ns;
 }
 
 /**
  *   \brief From EM unit system to SEM unit system for a Position/Velocity and time vector in IN coordinates and time
  **/
-void usem2ussem(double *tc, double yINv[], QBCP_L *qbcp_l)
+void usem2ussem(double *tc, double yINv[], FBPL *fbpl)
 {
     //IN[EM] to IN[SEM]
-    yINv[0] /= qbcp_l->us_em.as;
-    yINv[1] /= qbcp_l->us_em.as;
-    yINv[2] /= qbcp_l->us_em.as;
-    yINv[3] /= qbcp_l->us_em.as*qbcp_l->us_em.ns;
-    yINv[4] /= qbcp_l->us_em.as*qbcp_l->us_em.ns;
-    yINv[5] /= qbcp_l->us_em.as*qbcp_l->us_em.ns;
-    *tc     *= qbcp_l->us_em.ns;
+    yINv[0] /= fbpl->us_em.as;
+    yINv[1] /= fbpl->us_em.as;
+    yINv[2] /= fbpl->us_em.as;
+    yINv[3] /= fbpl->us_em.as*fbpl->us_em.ns;
+    yINv[4] /= fbpl->us_em.as*fbpl->us_em.ns;
+    yINv[5] /= fbpl->us_em.as*fbpl->us_em.ns;
+    *tc     *= fbpl->us_em.ns;
 }
 
 //-----------------------------------------------------------------------------
@@ -183,33 +183,33 @@ void usem2ussem(double *tc, double yINv[], QBCP_L *qbcp_l)
 /**
  * \brief From EM to IN (in EM units)
  **/
-void EMtoIN(double t, const double yEM[], double yIN[], QBCP_L *qbcp_l)
+void EMtoIN(double t, const double yEM[], double yIN[], FBPL *fbpl)
 {
     //-------------------------------------------------------------------------------
     //Init
     //-------------------------------------------------------------------------------
     //Param
-    double n  = qbcp_l->us_em.n;
-    double ms = qbcp_l->us_em.ms;
-    double ns = qbcp_l->us_em.ns;
-    double as = qbcp_l->us_em.as;
-    double ni = qbcp_l->us_em.ni;
-    double ai = qbcp_l->us_em.ai;
+    double n  = fbpl->us_em.n;
+    double ms = fbpl->us_em.ms;
+    double ns = fbpl->us_em.ns;
+    double as = fbpl->us_em.as;
+    double ni = fbpl->us_em.ni;
+    double ai = fbpl->us_em.ai;
     //r
-    double r1 = creal(evz(qbcp_l->cs_em.zt, t, n, ni, ai));
-    double r2 = cimag(evz(qbcp_l->cs_em.zt, t, n, ni, ai));
+    double r1 = creal(evz(fbpl->cs_em.zt, t, n, ni, ai));
+    double r2 = cimag(evz(fbpl->cs_em.zt, t, n, ni, ai));
     double r  = sqrt(r1*r1 + r2*r2);
 
     //R
-    double R1 = creal(evz(qbcp_l->cs_em.Zt, t, n, ns, as));
-    double R2 = cimag(evz(qbcp_l->cs_em.Zt, t, n, ns, as));
+    double R1 = creal(evz(fbpl->cs_em.Zt, t, n, ns, as));
+    double R2 = cimag(evz(fbpl->cs_em.Zt, t, n, ns, as));
     //rdot
-    double r1dot = creal(evzdot(qbcp_l->cs_em.zt, qbcp_l->cs_em.ztdot, t, n, ni, ai));
-    double r2dot = cimag(evzdot(qbcp_l->cs_em.zt, qbcp_l->cs_em.ztdot, t, n, ni, ai));
+    double r1dot = creal(evzdot(fbpl->cs_em.zt, fbpl->cs_em.ztdot, t, n, ni, ai));
+    double r2dot = cimag(evzdot(fbpl->cs_em.zt, fbpl->cs_em.ztdot, t, n, ni, ai));
     double rdot  = 1.0/r*(r1*r1dot + r2*r2dot);
     //Rdot
-    double R1dot = creal(evzdot(qbcp_l->cs_em.Zt, qbcp_l->cs_em.Ztdot, t, n, ns, as));
-    double R2dot = cimag(evzdot(qbcp_l->cs_em.Zt, qbcp_l->cs_em.Ztdot, t, n, ns, as));
+    double R1dot = creal(evzdot(fbpl->cs_em.Zt, fbpl->cs_em.Ztdot, t, n, ns, as));
+    double R2dot = cimag(evzdot(fbpl->cs_em.Zt, fbpl->cs_em.Ztdot, t, n, ns, as));
 
     //-------------------------------------------------------------------------------
     // EM to IN: Position
@@ -230,32 +230,32 @@ void EMtoIN(double t, const double yEM[], double yIN[], QBCP_L *qbcp_l)
  * \brief From IN to EM (in EM units)
  **/
 void INtoEM(double t, const double yIN[], double yEM[],
-                                          QBCP_L *qbcp_l)
+                                          FBPL *fbpl)
 {
     //-------------------------------------------------------------------------------
     //Init
     //-------------------------------------------------------------------------------
     //Param
-    double n  = qbcp_l->us_em.n;
-    double ms = qbcp_l->us_em.ms;
-    double ns = qbcp_l->us_em.ns;
-    double as = qbcp_l->us_em.as;
-    double ni = qbcp_l->us_em.ni;
-    double ai = qbcp_l->us_em.ai;
+    double n  = fbpl->us_em.n;
+    double ms = fbpl->us_em.ms;
+    double ns = fbpl->us_em.ns;
+    double as = fbpl->us_em.as;
+    double ni = fbpl->us_em.ni;
+    double ai = fbpl->us_em.ai;
 
     //r
-    double r1 = creal(evz(qbcp_l->cs_em.zt, t, n, ni, ai));
-    double r2 = cimag(evz(qbcp_l->cs_em.zt, t, n, ni, ai));
+    double r1 = creal(evz(fbpl->cs_em.zt, t, n, ni, ai));
+    double r2 = cimag(evz(fbpl->cs_em.zt, t, n, ni, ai));
     double r = sqrt(r1*r1 + r2*r2);
     //R
-    double R1 = creal(evz(qbcp_l->cs_em.Zt, t, n, ns, as));
-    double R2 = cimag(evz(qbcp_l->cs_em.Zt, t, n, ns, as));
+    double R1 = creal(evz(fbpl->cs_em.Zt, t, n, ns, as));
+    double R2 = cimag(evz(fbpl->cs_em.Zt, t, n, ns, as));
     //rdot
-    double r1dot = creal(evzdot(qbcp_l->cs_em.zt, qbcp_l->cs_em.ztdot, t, n, ni, ai));
-    double r2dot = cimag(evzdot(qbcp_l->cs_em.zt, qbcp_l->cs_em.ztdot, t, n, ni, ai));
+    double r1dot = creal(evzdot(fbpl->cs_em.zt, fbpl->cs_em.ztdot, t, n, ni, ai));
+    double r2dot = cimag(evzdot(fbpl->cs_em.zt, fbpl->cs_em.ztdot, t, n, ni, ai));
     //Rdot
-    double R1dot = creal(evzdot(qbcp_l->cs_em.Zt, qbcp_l->cs_em.Ztdot, t, n, ns, as));
-    double R2dot = cimag(evzdot(qbcp_l->cs_em.Zt, qbcp_l->cs_em.Ztdot, t, n, ns, as));
+    double R1dot = creal(evzdot(fbpl->cs_em.Zt, fbpl->cs_em.Ztdot, t, n, ns, as));
+    double R2dot = cimag(evzdot(fbpl->cs_em.Zt, fbpl->cs_em.Ztdot, t, n, ns, as));
 
     //Additional parameters
     double a = +pow(r, -4.0)*(r1dot*r*r - 2*r1*(r1*r1dot + r2*r2dot)); //dot(r1/(r*r))
@@ -286,30 +286,30 @@ void INtoEM(double t, const double yIN[], double yEM[],
  * \brief From SEM to IN (in SEM units)
  **/
 void SEMtoIN(double t, const double ySE[], double yIN[],
-                                          QBCP_L *qbcp_l)
+                                          FBPL *fbpl)
 {
     //-------------------------------------------------------------------------------
     //Init
     //-------------------------------------------------------------------------------
     //Param
-    double n  = qbcp_l->us_sem.n;
-    double ns = qbcp_l->us_sem.ns;
-    double as = qbcp_l->us_sem.as;
+    double n  = fbpl->us_sem.n;
+    double ns = fbpl->us_sem.ns;
+    double as = fbpl->us_sem.as;
 
     //-------------------------------------------------------------------------------
     //r & R
     //-------------------------------------------------------------------------------
     //R
-    double R1 = creal(evz(qbcp_l->cs_sem.Zt, t, n, ns, as));
-    double R2 = cimag(evz(qbcp_l->cs_sem.Zt, t, n, ns, as));
+    double R1 = creal(evz(fbpl->cs_sem.Zt, t, n, ns, as));
+    double R2 = cimag(evz(fbpl->cs_sem.Zt, t, n, ns, as));
     double R = sqrt(R1*R1 + R2*R2);
 
     //-------------------------------------------------------------------------------
     //Derivatives
     //-------------------------------------------------------------------------------
     //Rdot
-    double R1dot = creal(evzdot(qbcp_l->cs_sem.Zt, qbcp_l->cs_sem.Ztdot, t, n, ns, as));
-    double R2dot = cimag(evzdot(qbcp_l->cs_sem.Zt, qbcp_l->cs_sem.Ztdot, t, n, ns, as));
+    double R1dot = creal(evzdot(fbpl->cs_sem.Zt, fbpl->cs_sem.Ztdot, t, n, ns, as));
+    double R2dot = cimag(evzdot(fbpl->cs_sem.Zt, fbpl->cs_sem.Ztdot, t, n, ns, as));
     double Rdot  = 1.0/R*(R1*R1dot + R2*R2dot);
 
     //-------------------------------------------------------------------------------
@@ -343,22 +343,22 @@ void SEMtoIN(double t, const double ySE[], double yIN[],
  * \brief From IN to SEM (in SEM units)
  **/
 void INtoSEM(double t, const double yIN[], double ySE[],
-                                          QBCP_L *qbcp_l)
+                                          FBPL *fbpl)
 {
     //-------------------------------------------------------------------------------
     //Init
     //-------------------------------------------------------------------------------
     //Param
-    double n  = qbcp_l->us_sem.n;
-    double ns = qbcp_l->us_sem.ns;
-    double as = qbcp_l->us_sem.as;
+    double n  = fbpl->us_sem.n;
+    double ns = fbpl->us_sem.ns;
+    double as = fbpl->us_sem.as;
 
     //-------------------------------------------------------------------------------
     //r & R
     //-------------------------------------------------------------------------------
     //R
-    double R1 = creal(evz(qbcp_l->cs_sem.Zt, t, n, ns, as));
-    double R2 = cimag(evz(qbcp_l->cs_sem.Zt, t, n, ns, as));
+    double R1 = creal(evz(fbpl->cs_sem.Zt, t, n, ns, as));
+    double R2 = cimag(evz(fbpl->cs_sem.Zt, t, n, ns, as));
     //h
     double h1 = R1;
     double h2 = R2;
@@ -368,8 +368,8 @@ void INtoSEM(double t, const double yIN[], double ySE[],
     //Derivatives
     //-------------------------------------------------------------------------------
     //Rdot
-    double R1dot = creal(evzdot(qbcp_l->cs_sem.Zt, qbcp_l->cs_sem.Ztdot, t, n, ns, as));
-    double R2dot = cimag(evzdot(qbcp_l->cs_sem.Zt, qbcp_l->cs_sem.Ztdot, t, n, ns, as));
+    double R1dot = creal(evzdot(fbpl->cs_sem.Zt, fbpl->cs_sem.Ztdot, t, n, ns, as));
+    double R2dot = cimag(evzdot(fbpl->cs_sem.Zt, fbpl->cs_sem.Ztdot, t, n, ns, as));
     //hdot
     double h1dot = R1dot;
     double h2dot = R2dot;
@@ -414,53 +414,53 @@ void INtoSEM(double t, const double yIN[], double ySE[],
  * \brief From SEM to EM (both in position/momenta form)
  **/
 void SEMmtoEMm(double t, const double ySEm[], double yEMm[],
-              QBCP_L *qbcp_l)
+              FBPL *fbpl)
 {
     double tc = t;
 
     //Momenta to velocities
     double ySEv[42];
-    SEMmtoSEMv(tc, ySEm, ySEv, qbcp_l);
+    SEMmtoSEMv(tc, ySEm, ySEv, fbpl);
 
     //SE --> IN
     double yINv[42];
-    SEMtoIN(tc, ySEv, yINv, qbcp_l);
+    SEMtoIN(tc, ySEv, yINv, fbpl);
 
     //IN[SE] to IN[SEM]
-    ussem2usem(&tc, yINv, qbcp_l);
+    ussem2usem(&tc, yINv, fbpl);
 
     //IN --> EM
     double yEMv[42];
-    INtoEM(tc, yINv, yEMv, qbcp_l);
+    INtoEM(tc, yINv, yEMv, fbpl);
 
     //Velocities to momenta
-    EMvtoEMm(tc, yEMv, yEMm, qbcp_l);
+    EMvtoEMm(tc, yEMv, yEMm, fbpl);
 }
 
 /**
  * \brief From EM to SEM (both in position/momenta form)
  **/
 void EMmtoSEMm(double t, const double yEMm[], double ySEMm[],
-              QBCP_L *qbcp_l)
+              FBPL *fbpl)
 {
     double tc = t;
     //Momenta to velocities
     double yEMv[42];
-    EMmtoEMv(tc, yEMm, yEMv, qbcp_l);
+    EMmtoEMv(tc, yEMm, yEMv, fbpl);
 
     //EM-->IN
     double yINv[42];
-    EMtoIN(tc, yEMv, yINv, qbcp_l);
+    EMtoIN(tc, yEMv, yINv, fbpl);
 
     //IN[EM] to IN[SEM]
-    usem2ussem(&tc, yINv, qbcp_l);
+    usem2ussem(&tc, yINv, fbpl);
 
     //IN-->SE
     double ySEMv[42];
-    INtoSEM(tc, yINv, ySEMv, qbcp_l);
+    INtoSEM(tc, yINv, ySEMv, fbpl);
 
     //Velocities to momenta
-    SEMvtoSEMm(tc, ySEMv, ySEMm, qbcp_l);
+    SEMvtoSEMm(tc, ySEMv, ySEMm, fbpl);
 }
 
 //-----------------------------------------------------------------------------
@@ -469,13 +469,13 @@ void EMmtoSEMm(double t, const double yEMm[], double ySEMm[],
 /**
  * \brief From NC EM to SEM (both in position/momenta form)
  **/
-void NCEMmtoSEMm(double t, const double yNCEMm[], double ySEMm[], QBCP_L *qbcp_l)
+void NCEMmtoSEMm(double t, const double yNCEMm[], double ySEMm[], FBPL *fbpl)
 {
     double yEMm[42];
     //NC to EM
-    NCtoEM(t, yNCEMm, yEMm, qbcp_l);
+    NCtoEM(t, yNCEMm, yEMm, fbpl);
     //EM to SEM
-    EMmtoSEMm(t, yEMm, ySEMm, qbcp_l);
+    EMmtoSEMm(t, yEMm, ySEMm, fbpl);
 }
 
 //-----------------------------------------------------------------------------
@@ -484,28 +484,28 @@ void NCEMmtoSEMm(double t, const double yNCEMm[], double ySEMm[], QBCP_L *qbcp_l
 /**
  * \brief From NC SEM to  NC EM (both in position/momenta form)
  **/
-void NCSEMmtoNCEMm(double t, const double yNCSEMm[], double yNCEM[], QBCP_L *qbcp_l)
+void NCSEMmtoNCEMm(double t, const double yNCSEMm[], double yNCEM[], FBPL *fbpl)
 {
     double ySEMm[6], yEMm[6];
-    //NC to EM
-    NCtoSEM(t, yNCSEMm, ySEMm, qbcp_l);
+    //NC to SEM
+    NCtoSEM(t, yNCSEMm, ySEMm, fbpl);
     //SEM to EM
-    SEMmtoEMm(t, ySEMm, yEMm, qbcp_l);
+    SEMmtoEMm(t, ySEMm, yEMm, fbpl);
     //EM to NC (careful, the time should be set into EM units!)
-    EMtoNC(t/qbcp_l->us_em.ns, yEMm, yNCEM, qbcp_l);
+    EMtoNC(t/fbpl->us_em.ns, yEMm, yNCEM, fbpl);
 }
 
 /**
  * \brief From NC EM to  NC SEM (both in position/momenta form)
  **/
-void NCEMmtoNCSEMm(double tEM, const double yNCEMm[], double yNCSEM[], QBCP_L *qbcp_l)
+void NCEMmtoNCSEMm(double tEM, const double yNCEMm[], double yNCSEM[], FBPL *fbpl)
 {
     double yEMm[6], ySEMm[6];
     //NC to EM
-    NCtoEM(tEM, yNCEMm, yEMm, qbcp_l);
+    NCtoEM(tEM, yNCEMm, yEMm, fbpl);
     //EM to SEM
-    EMmtoSEMm(tEM, yEMm, ySEMm, qbcp_l);
+    EMmtoSEMm(tEM, yEMm, ySEMm, fbpl);
     //SEM to NC (careful, the time should be set into SEM units!)
-    SEMtoNC(tEM*qbcp_l->us_em.ns, ySEMm, yNCSEM, qbcp_l);
+    SEMtoNC(tEM*fbpl->us_em.ns, ySEMm, yNCSEM, fbpl);
 }
 

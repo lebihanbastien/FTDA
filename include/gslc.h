@@ -27,7 +27,7 @@
 #include <gsl/gsl_eigen.h>
 
 //Custom
-#include "parameters.h"
+#include "Constants.h"
 #include "Config.h"
 
 

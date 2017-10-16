@@ -19,7 +19,6 @@
 //Custom
 #include "qbcp.h"
 #include "define_env.h"
-#include "parameters.h"
 #include "timec.h"
 #include "matrix.h"
 
@@ -67,7 +66,7 @@ void tfs_from_ofs(matrix<Ofsc> &P,
  *  In this routine,
  *
  *  1. First step
- *      * P, Q and V are retrieved from txt files set in the folder \c qbcp_l.F_COC.
+ *      * P, Q and V are retrieved from txt files set in the folder \c fbpl.F_COC.
  *      * Vdot = dot(V) is computed
  *      * The products P*C and C*Q are computed in PC and QC
  *      * dot(PC) = PCdot is computed
@@ -91,7 +90,7 @@ void tfts_initCOC(matrix<Ofsc> &P,
              Ofsc &ILe,
              Ofsc &ILm,
              Ofsc &ILs,
-             QBCP_L& qbcp_l);
+             FBPL& fbpl);
 /**
  *  \brief Retrieves the Fouriers series within the matrices P and Q, the vectors V, Xe, Xm and Xs and the scalars ILe, ILs and ILm.
  *
@@ -108,7 +107,7 @@ void tfts_initCOC(matrix<Ofsc> &P,
  *  In this routine,
  *
  *  1. First step
- *      * P, Q and V are retrieved from txt files set in the folder \c qbcp_l.F_COC.
+ *      * P, Q and V are retrieved from txt files set in the folder \c fbpl.F_COC.
  *      * Vdot = dot(V) is computed
  *      * The products P*C and C*Q are computed in PC and QC
  *      * dot(PC) = PCdot is computed
@@ -136,7 +135,7 @@ void initCOC(matrix<Ofsc> &P,
              Ofsc &ILe,
              Ofsc &ILm,
              Ofsc &ILs,
-             QBCP_L& qbcp_l);
+             FBPL& fbpl);
 
 //----------------------------------
 // COC
@@ -274,7 +273,7 @@ void tfts_applyInvDotCOC(matrix<Ofsc> &CQ,
  *  In this routine,
  *
  *  1. First step
- *      * P, Q and V are retrieved from txt files set in the folder \c qbcp_l.F_COC.
+ *      * P, Q and V are retrieved from txt files set in the folder \c fbpl.F_COC.
  *
  *  2. Second step
  *  The vectors Xe[2], Xm[2], and X[s] contains the time-dependent positions of the primaries in the xy-plane.
@@ -297,7 +296,7 @@ void initCOC_OFS(matrix<Ofsc> &P,
              Ofsc &ILe,
              Ofsc &ILm,
              Ofsc &ILs,
-             QBCP_L& qbcp_l);
+             FBPL& fbpl);
 
 /**
  *  \brief Apply the change of variables in zIN/zOut (OFS version).
@@ -434,12 +433,12 @@ void pij_plot(gnuplot_ctrl  *h1);
 /**
  *  \brief Plot the coefficient of qbp
  **/
-void coeff_plot(gnuplot_ctrl  *h1, QBCP_L* qbp);
+void coeff_plot(gnuplot_ctrl  *h1, FBPL* qbp);
 
 /**
  *  \brief Plot the potential of the primaries when the s/c is fixed at the Lagrange point.
  **/
-void potential_plot(gnuplot_ctrl  *h1, QBCP_L* qbp);
+void potential_plot(gnuplot_ctrl  *h1, FBPL* qbp);
 
 
  /**
@@ -459,8 +458,8 @@ struct COC
     vector<Ofsc>* V;
     //Vdot=dot(V)
     vector<Ofsc>* Vdot;
-    //QBCP_L
-    QBCP_L* qbcp_l;
+    //FBPL
+    FBPL* fbpl;
     vector<cdouble>* zh;  //current state in TFC variables
     vector<cdouble>* z;   //current state in Nc  variables
     vector<cdouble>* zd;  //temporary variable used in COC

@@ -59,7 +59,7 @@ void oftsh_test_sprod();
 
 /**
  * \fn void oftsh_test_smprod()
- * \brief Test of the routine: Oftsh<T>::oftsh_smprod_u(Oftsh< Ots<U> > const& a, Oftsh< Ots<U> > const& b, U const& m).
+ * \brief Test of the routine: Oftsh<T>::oftsh_smprod_u(Oftsh< Ofs<U> > const& a, Oftsh< Ofs<U> > const& b, U const& m).
  */
 void oftsh_test_smprod();
 

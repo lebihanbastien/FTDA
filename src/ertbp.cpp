@@ -174,25 +174,25 @@ void ertbp(int li_EM, int li_SEM, int coordsys)
     // 1. Init
     //--------------------------------------------------------------------
     //Init the ERTBP
-    QBCP fbp;
-    init_QBCP(&fbp, Csts::SUN, Csts::EARTH, Csts::MOON);
+    FBP fbp;
+    init_FBP(&fbp, Csts::SUN, Csts::EARTH, Csts::MOON);
 
     //Init the ERTBP focused on one libration point
-    QBCP_L qbcp_l;
-    init_QBCP_L(&qbcp_l, &fbp, 1, li_EM, li_SEM, true, Csts::ERTBP, coordsys, Csts::GRAPH, Csts::MAN_CENTER, Csts::MAN_CENTER);  //Note: PM style is NOT used
+    FBPL fbpl;
+    init_FBPL(&fbpl, &fbp, li_EM, li_SEM, Csts::ERTBP, coordsys, Csts::GRAPH, Csts::MAN_CENTER, Csts::MAN_CENTER, true, true);  //Note: PM style is NOT used
 
     //Parameters
-    int nf       = qbcp_l.nf;
-    double c1    = qbcp_l.cs_em.c1;
-    double gamma = qbcp_l.cs_em.gamma;
-    double mu_EM = qbcp_l.us_em.mu_EM;
-    double t1    = qbcp_l.us_em.T;  //should be equal to 2pi here
+    int nf       = fbpl.nf;
+    double c1    = fbpl.cs_em.c1;
+    double gamma = fbpl.cs_em.gamma;
+    double mu_EM = fbpl.us_em.mu_EM;
+    double t1    = fbpl.us_em.T;  //should be equal to 2pi here
 
     //--------------------------------------------------------------------
     // 2. (fac) FFT of the true anomaly
     //--------------------------------------------------------------------
     double M, E;
-    double e = qbcp_l.us_em.lecc;
+    double e = fbpl.us_em.lecc;
 
     //-------------------------------------
     //Set E[M]-M in dEv, for M = [0, ..., 2pi]
@@ -371,26 +371,26 @@ void ertbp(int li_EM, int li_SEM, int coordsys)
     //--------------------------
     //Put in data file
     //--------------------------
-    ofs_sst(alpha1c, qbcp_l.cs_em.F_COEF+"alpha1", 1, "_fft");
-    ofs_sst(alpha2c, qbcp_l.cs_em.F_COEF+"alpha2", 0, "_fft");
-    ofs_sst(alpha3c, qbcp_l.cs_em.F_COEF+"alpha3", 1, "_fft");
-    ofs_sst(alpha4c, qbcp_l.cs_em.F_COEF+"alpha4", 1, "_fft");
-    ofs_sst(alpha5c, qbcp_l.cs_em.F_COEF+"alpha5", 0, "_fft");
-    ofs_sst(alpha6c, qbcp_l.cs_em.F_COEF+"alpha6", 1, "_fft");
+    ofs_sst(alpha1c, fbpl.cs_em.F_COEF+"alpha1", 1, "_fft");
+    ofs_sst(alpha2c, fbpl.cs_em.F_COEF+"alpha2", 0, "_fft");
+    ofs_sst(alpha3c, fbpl.cs_em.F_COEF+"alpha3", 1, "_fft");
+    ofs_sst(alpha4c, fbpl.cs_em.F_COEF+"alpha4", 1, "_fft");
+    ofs_sst(alpha5c, fbpl.cs_em.F_COEF+"alpha5", 0, "_fft");
+    ofs_sst(alpha6c, fbpl.cs_em.F_COEF+"alpha6", 1, "_fft");
      //Sun
-    ofs_sst(alpha7c, qbcp_l.cs_em.F_COEF+"alpha7", 1, "_fft");
-    ofs_sst(alpha8c, qbcp_l.cs_em.F_COEF+"alpha8", 0, "_fft");
+    ofs_sst(alpha7c, fbpl.cs_em.F_COEF+"alpha7", 1, "_fft");
+    ofs_sst(alpha8c, fbpl.cs_em.F_COEF+"alpha8", 0, "_fft");
     //Earth
-    ofs_sst(alpha9c,  qbcp_l.cs_em.F_COEF+"alpha9",  1, "_fft");
-    ofs_sst(alpha10c, qbcp_l.cs_em.F_COEF+"alpha10", 0, "_fft");
+    ofs_sst(alpha9c,  fbpl.cs_em.F_COEF+"alpha9",  1, "_fft");
+    ofs_sst(alpha10c, fbpl.cs_em.F_COEF+"alpha10", 0, "_fft");
     //Moon
-    ofs_sst(alpha11c, qbcp_l.cs_em.F_COEF+"alpha11", 1, "_fft");
-    ofs_sst(alpha12c, qbcp_l.cs_em.F_COEF+"alpha12", 0, "_fft");
+    ofs_sst(alpha11c, fbpl.cs_em.F_COEF+"alpha11", 1, "_fft");
+    ofs_sst(alpha12c, fbpl.cs_em.F_COEF+"alpha12", 0, "_fft");
     //NC additional coeffs
-    ofs_sst(alpha13c, qbcp_l.cs_em.F_COEF+"alpha13", 1, "_fft");
-    ofs_sst(alpha14c, qbcp_l.cs_em.F_COEF+"alpha14", 0, "_fft");
+    ofs_sst(alpha13c, fbpl.cs_em.F_COEF+"alpha13", 1, "_fft");
+    ofs_sst(alpha14c, fbpl.cs_em.F_COEF+"alpha14", 0, "_fft");
     //ERTBP additional coeff
-    ofs_sst(alpha15c, qbcp_l.cs_em.F_COEF+"alpha15", 1, "_fft");
+    ofs_sst(alpha15c, fbpl.cs_em.F_COEF+"alpha15", 1, "_fft");
 
 
     //---------------
@@ -398,17 +398,17 @@ void ertbp(int li_EM, int li_SEM, int coordsys)
     //Note that, at this step, the vertical motion of the primaries is undefined,
     //so we can put either Even or Odd in the ofs_sst option of gsl_Zc without much difference
     //---------------
-    ofs_sst(Xs, qbcp_l.cs_em.F_COEF+"Ps1", 1, "_fft");
-    ofs_sst(Ys, qbcp_l.cs_em.F_COEF+"Ps2", 0, "_fft");
-    ofs_sst(Zs, qbcp_l.cs_em.F_COEF+"Ps3", 1, "_fft");
+    ofs_sst(Xs, fbpl.cs_em.F_COEF+"Ps1", 1, "_fft");
+    ofs_sst(Ys, fbpl.cs_em.F_COEF+"Ps2", 0, "_fft");
+    ofs_sst(Zs, fbpl.cs_em.F_COEF+"Ps3", 1, "_fft");
 
-    ofs_sst(Xm, qbcp_l.cs_em.F_COEF+"Pm1", 1, "_fft");
-    ofs_sst(Ym, qbcp_l.cs_em.F_COEF+"Pm2", 0, "_fft");
-    ofs_sst(Zm, qbcp_l.cs_em.F_COEF+"Pm3", 1, "_fft");
+    ofs_sst(Xm, fbpl.cs_em.F_COEF+"Pm1", 1, "_fft");
+    ofs_sst(Ym, fbpl.cs_em.F_COEF+"Pm2", 0, "_fft");
+    ofs_sst(Zm, fbpl.cs_em.F_COEF+"Pm3", 1, "_fft");
 
-    ofs_sst(Xe, qbcp_l.cs_em.F_COEF+"Pe1", 1, "_fft");
-    ofs_sst(Ye, qbcp_l.cs_em.F_COEF+"Pe2", 0, "_fft");
-    ofs_sst(Ze, qbcp_l.cs_em.F_COEF+"Pe3", 1, "_fft");
+    ofs_sst(Xe, fbpl.cs_em.F_COEF+"Pe1", 1, "_fft");
+    ofs_sst(Ye, fbpl.cs_em.F_COEF+"Pe2", 0, "_fft");
+    ofs_sst(Ze, fbpl.cs_em.F_COEF+"Pe3", 1, "_fft");
 
 
     //---------------
@@ -416,17 +416,17 @@ void ertbp(int li_EM, int li_SEM, int coordsys)
     //Note that, at this step, the vertical motion of the primaries is undefined,
     //so we can put either Even or Odd in the ofs_sst option of gsl_zc without much difference
     //---------------
-    ofs_sst(xs, qbcp_l.cs_em.F_COEF+"ps1", 1, "_fft");
-    ofs_sst(ys, qbcp_l.cs_em.F_COEF+"ps2", 0, "_fft");
-    ofs_sst(zs, qbcp_l.cs_em.F_COEF+"ps3", 1, "_fft");
+    ofs_sst(xs, fbpl.cs_em.F_COEF+"ps1", 1, "_fft");
+    ofs_sst(ys, fbpl.cs_em.F_COEF+"ps2", 0, "_fft");
+    ofs_sst(zs, fbpl.cs_em.F_COEF+"ps3", 1, "_fft");
 
-    ofs_sst(xm, qbcp_l.cs_em.F_COEF+"pm1", 1, "_fft");
-    ofs_sst(ym, qbcp_l.cs_em.F_COEF+"pm2", 0, "_fft");
-    ofs_sst(zm, qbcp_l.cs_em.F_COEF+"pm3", 1, "_fft");
+    ofs_sst(xm, fbpl.cs_em.F_COEF+"pm1", 1, "_fft");
+    ofs_sst(ym, fbpl.cs_em.F_COEF+"pm2", 0, "_fft");
+    ofs_sst(zm, fbpl.cs_em.F_COEF+"pm3", 1, "_fft");
 
-    ofs_sst(xe, qbcp_l.cs_em.F_COEF+"pe1", 1, "_fft");
-    ofs_sst(ye, qbcp_l.cs_em.F_COEF+"pe2", 0, "_fft");
-    ofs_sst(ze, qbcp_l.cs_em.F_COEF+"pe3", 1, "_fft");
+    ofs_sst(xe, fbpl.cs_em.F_COEF+"pe1", 1, "_fft");
+    ofs_sst(ye, fbpl.cs_em.F_COEF+"pe2", 0, "_fft");
+    ofs_sst(ze, fbpl.cs_em.F_COEF+"pe3", 1, "_fft");
 }
 
 

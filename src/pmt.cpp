@@ -30,7 +30,7 @@ extern "C" {
  *  \param manType: type of manifold (center, center-stable, center-unstable or center-hyperbolic).
  *
  *   Inputs:
- *      - The QBCP_L structure SEML, which contains the addresses of the data folders (F_COC, F_PMS...),
+ *      - The FBPL structure SEML, which contains the addresses of the data folders (F_COC, F_PMS...),
  *        the order of the expansions (both Fourier and Fourier-Taylor),
  *        and some useful parameters (gamma, c1)
  *
@@ -131,8 +131,6 @@ void pmt(int OutputEachOrder, int Output, int pms, int manType)
     tfts_initCOC(P, Q, PC, PCdot, CQ, Xe, Xm, Xs, V, Vdot, ILe, ILm, ILs, SEML);
     //TFS format
     tfs_from_ofs(P, Q, PC, PCdot, CQ, Xe, Xm, Xs, V, Vdot, ILe, ILm, ILs);
-
-
 
     //--------------------------------------------------------------------------
     // 3. Initialization of the alphas
@@ -1015,7 +1013,7 @@ void cohomEq(vector<Oftsc>& eta,
         //------------------------------------------
         //Sum on all the coefficients of eta^p_m
         //------------------------------------------
-        for(int k = 0; k< FTDA::nmon(REDUCED_NV, m); k++)
+        for(int k = 0; k< Manip::nmon(REDUCED_NV, m); k++)
         {
             //Reset aux
             aux = 0.0+0.0*I;
@@ -1114,7 +1112,7 @@ void cohomEq(vector<Oftsc>& eta,
                 }
             }
             //Update kv
-            if(k < FTDA::nmon(REDUCED_NV, m)-1)  FTDA::prxkt(kv, REDUCED_NV);
+            if(k < Manip::nmon(REDUCED_NV, m)-1)  Manip::prxkt(kv, REDUCED_NV);
         }
     }
 
@@ -1132,7 +1130,7 @@ void cohomEq(vector<Oftsc>& eta,
         for(int i = 1; i< REDUCED_NV; i++) kv[i] = 0;
 
         //Sum on all the coefficients of eta^p_m
-        for(int k = 0; k< FTDA::nmon(REDUCED_NV, m); k++)
+        for(int k = 0; k< Manip::nmon(REDUCED_NV, m); k++)
         {
             //Reset aux
             aux = 0.0+0.0*I;
@@ -1153,7 +1151,7 @@ void cohomEq(vector<Oftsc>& eta,
                 xi[p].getCoef(m, k)->setCoef(bux, j);
             }
             //Update kv
-            if(k < FTDA::nmon(REDUCED_NV, m)-1)  FTDA::prxkt(kv, REDUCED_NV);
+            if(k < Manip::nmon(REDUCED_NV, m)-1)  Manip::prxkt(kv, REDUCED_NV);
         }
     }
 }

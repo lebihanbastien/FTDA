@@ -97,3 +97,33 @@ void Config::coutlp()
 }
 
 
+//----------------------------------------------------------------------------------------
+// I/O
+//----------------------------------------------------------------------------------------
+/**
+ *  \brief Prompt "Press Enter to go on"
+ **/
+void pressEnter(bool isFlag)
+{
+    if(isFlag)
+        {
+        char ch;
+        cout << "Press ENTER to go on" << endl;
+        scanf("%c",&ch);
+    }
+}
+
+
+/**
+ *  \brief Prompt msg
+ **/
+void pressEnter(bool isFlag, string msg)
+{
+    if(isFlag)
+    {
+        char ch;
+        cout << msg << endl;
+        scanf("%c",&ch);
+    }
+}
+

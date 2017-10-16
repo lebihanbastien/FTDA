@@ -1,27 +1,30 @@
-#include "ftda.h"
+#include "Manip.h"
 
 /**
- * \file ftda.cpp
- * \brief Basic operations for algebraic manipulation (exponents in reverse lexicographic order, number of coefficient in homogeneous polynomials...).
- * \author BLB, Angel Jorba
- * \date May 2015
- * \version 1.0
+ * \file Manip.cpp
+ * \brief Basic operations for manipulation of polynomials
+ *       (exponents in reverse lexicographic order, number of coefficient in
+ *       homogeneous polynomials...).
+ *       Note that the algebraic operations on series (sum, product) are not done here
+ *       but in ofts.h/ofts.tpp.
+ * \author BLB using code by Angel Jorba.
  *
- *      Based on Jorba 1999.
+ *      Based on Jorba 1999 (http://www.maia.ub.es/~angel/soft.html).
  */
 
 using namespace std;
 
-int  FTDA::nor=0;       //static maximum degree
-int  FTDA::nov=0;       //static number of variables
-long int **FTDA::psi;  //cointains psi(i,j) for i=2..nov.
+int  Manip::nor=0;       //static maximum degree
+int  Manip::nov=0;       //static number of variables
+long int **Manip::psi;   //contains psi(i,j) for i=2..nov.
 
 
-//-----------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 //Class routines
-//-----------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 /**
- *   \brief Initializes the table psi(i,j), which contains the number of monomials of degree j with i variables.
+ *   \brief Initializes the table psi(i,j), which contains the number of monomials
+ *          of degree j with i variables.
  *
  *   parameters:
  *   nr: maximum degree we are going to work with. it can not be greater than 63.
@@ -30,12 +33,12 @@ long int **FTDA::psi;  //cointains psi(i,j) for i=2..nov.
  *   returned value: number of kbytes allocated by the internal tables.
  *   Based on a routine by Angel Jorba, 1999.
  **/
-int  FTDA::init(int nv, int nr)
+int  Manip::init(int nv, int nr)
 {
     int i,j,l;
     unsigned long int mem; /* mem: to count the amount of memory used */
 
-    if (nor != 0) /* this means that FTDA is already initialized */
+    if (nor != 0) /* this means that Manip is already initialized */
     {
         if (nr <= nor)
         {
@@ -60,7 +63,7 @@ int  FTDA::init(int nv, int nr)
     psi= (long  int**)malloc((nv)*sizeof(long int*));
     if (psi == NULL)
     {
-        puts("FTDA error. no memory (1).");
+        puts("Manip error. no memory (1).");
         exit(1);
     }
     psi -= sizeof(long  int*);
@@ -69,7 +72,7 @@ int  FTDA::init(int nv, int nr)
         psi[i]=(long int*)malloc((nr+1)*sizeof(long  int));
         if (psi[i] == NULL)
         {
-            puts("FTDA error. no memory (2).");
+            puts("Manip error. no memory (2).");
             exit(1);
         }
         mem += (nr+1)*sizeof(int);
@@ -95,9 +98,9 @@ int  FTDA::init(int nv, int nr)
 }
 
 /**
- *  \brief Frees the space allocated by FTDA::init.
+ *  \brief Frees the space allocated by Manip::init.
  **/
-void  FTDA::free()
+void  Manip::free()
 {
     int i;
     if (nor == 0)
@@ -124,14 +127,15 @@ void  FTDA::free()
 }
 
 /**
- *   \brief Returns the number of monomials of degree nr with nv variables, making use of the table FTDA::psi.
+ *   \brief Returns the number of monomials of degree nr with nv variables,
+ *          making use of the table Manip::psi.
  *
  *  parameters:
  *  nv: number of variables
  *  nr: order we are interested in (input).
  *  returned value: number of monomials of order no.
  **/
-long int FTDA::nmon(int nv, int nr)
+long int Manip::nmon(int nv, int nr)
 {
     if (nr > nor)
     {
@@ -156,9 +160,10 @@ long int FTDA::nmon(int nv, int nr)
  *  according to the (reverse) lexicographic order.
  *
  *  parameters:
- *  k: array of nv components containing the multiindex. it is overwritten on exit (input and output).
+ *  k: array of nv components containing the multiindex. It is overwritten on exit
+ *  (input and output).
  **/
-void  FTDA::prxkt(int k[], int nv)
+void  Manip::prxkt(int k[], int nv)
 {
     if(nv == 0)
     {
@@ -198,15 +203,15 @@ long int pdk(int nv, int n)
     int k,i;
     for(k=0; k<=n; k++)
     {
-        for(i=0; i<=k; i++) result+= FTDA::nmon(nv,i)* FTDA::nmon(nv,k-i); //result+=binomial(nv+i-1, nv-1)*binomial(nv+k-i-1, nv-1); //
+        for(i=0; i<=k; i++) result+= Manip::nmon(nv,i)* Manip::nmon(nv,k-i); //result+=binomial(nv+i-1, nv-1)*binomial(nv+k-i-1, nv-1); //
     }
     return result;
 }
 
 
-//-----------------------------------------------------------------------
-//Binomial coefficients
-//-----------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
+//Binomial coefficients. These routines do not make use of Manip::psi.
+//----------------------------------------------------------------------------------------
 /**
  * \brief Computes the binomial coefficient (x y).
  **/
@@ -229,7 +234,7 @@ unsigned long gcd_ui(unsigned long x, unsigned long y)
 }
 
 /**
- * \brief Computes the binomial coefficient (n k). DEPRECATED.
+ * \brief Computes the binomial coefficient (n k).
  **/
 unsigned long binomial(unsigned long n, unsigned long k)
 {

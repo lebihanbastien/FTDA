@@ -60,9 +60,9 @@ void bcp(int li_EM, int li_SEM, int coordsys);
  *  \brief Computes the QBTBP in Ofs format.
  *  \param zr_ofts: a reference to reduced internal motion \f$ z \f$ so that: \f$ z_r = \sum \limits_{j} b_j e^{ijnt} \f$ and \f$ z = e^{it} z_r \f$ in Earth-Moon units.
  *  \param Zr_ofts: a reference to reduced external  motion \f$ Z \f$ so that: \f$ Z_r = \sum \limits_{j} c_j e^{ijnt} \f$ and \f$ Z = a_s e^{in_st} Z_r \f$ in Earth-Moon units.
- *  \param qbcp_l: a reference to the current qbcp, focused on a given point \f$ L_{1,2} \f$.
+ *  \param fbpl: a reference to the current qbcp, focused on a given point \f$ L_{1,2} \f$.
  */
-void qbtbp_ofs (Ofts< Ofsd > &zr_ofts, Ofts< Ofsd > &Zr_ofts, QBCP_L& qbcp_l);
+void qbtbp_ofs (Ofts< Ofsd > &zr_ofts, Ofts< Ofsd > &Zr_ofts, FBPL& fbpl);
 
 
 /**
@@ -134,8 +134,8 @@ void qbtbp_ofs_recurrence(/**reduced internal motion */
                           int m,
                           ///order of the Fourier expansions
                           int nf,
-                          ///current QBCP_L
-                          QBCP_L &qbcp_l);
+                          ///current FBPL
+                          FBPL &fbpl);
 
 
 /**
@@ -203,8 +203,8 @@ void qbtbp_ofs_storage(/**reduced internal motion */
                           Ofsd &sigma2,
                           ///order of the Fourier expansions
                           int nf,
-                          ///current QBCP_L
-                          QBCP_L &qbcp_l);
+                          ///current FBPL
+                          FBPL &fbpl);
 
 
 
@@ -215,14 +215,14 @@ void qbtbp_ofs_storage(/**reduced internal motion */
 void qbtbp_ofs_fft_alpha( Ofts< Ofsd > &zt,     //zt = normalized Earth-Moon motion
                           Ofts< Ofsd > &Zt,     //Zt = normalized Sun-(Earth+Moon) motion
                           int nf,                      //order of the Fourier expansions
-                          QBCP_L& qbcp_l);            //QBCP
+                          FBPL& fbpl);            //QBCP
 /**
  *  \brief FFT and Storage in txt files of OFS objects delta_i in qbtbp_ofs.
  */
 void qbtbp_ofs_fft_delta(Ofts< Ofsd > &zt,    //zt = normalized Earth-Moon motion
                         Ofts< Ofsd > &Zt,     //Zt = normalized Sun-(Earth+Moon) motion
                         int nf,                      //order of the Fourier expansions
-                        QBCP_L &qbcp_l);            //QBCP
+                        FBPL &fbpl);            //QBCP
 
 
 //-----------------------------------------------------------------------------
@@ -239,7 +239,7 @@ int qbtbp_derivatives(double t, const double y[], double f[], void *params);
 /**
  *  \brief Test function to compare the analytical solution of the QBTBP to the numerical integration of the equations of motion.
  */
-void qbtbp_test(double t1, Ofsc &bjc, Ofsc &cjc, OdeStruct ode_s, QBCP_L &qbcp_l);
+void qbtbp_test(double t1, Ofsc &bjc, Ofsc &cjc, OdeStruct ode_s, FBPL &fbpl);
 
 /**
  *  \brief Test function to compare the analytical solutions found in IN, EM, SE, and SEM coordinates
@@ -255,7 +255,7 @@ void qbtbp_test_FFT_vs_OFS(Ofsc &bjc,    //zt(t)
                       int N,                       //Number of points
                       int type,                    //Type of reference
                       OdeStruct ode_s,             //ode structure
-                      QBCP_L& qbcp_l);           //QBCP
+                      FBPL& fbpl);           //QBCP
 //-----------------------------------------------------------------------------
 // Evaluate the QBTBP
 //-----------------------------------------------------------------------------
@@ -315,11 +315,6 @@ double evaluateOddDerivative(double omega,  int order, double *coef, double *cR)
 //-----------------------------------------------------------------------------
 // Backup void qbtbp_ofs and qbtbp_ots
 //-----------------------------------------------------------------------------
-/**
- *  \brief Solution of the qbtbp in Ots format (obsolete)
- */
-void qbtbp_ots(Ofts< Ots<double> > &ofts_z, Ofts< Ots<double> > &ofts_Z, double n, double ms, double as, double ns);
-
 /**
  * \brief Calculates the Fourier transform of a set of n real-valued data points. Note currently used.
  *

@@ -19,7 +19,7 @@
 #include <complex.h>
 #include <vector>
 
-#include "ftda.h"
+#include "Ftda.h"
 #include "parameters.h"
 
 using namespace std;

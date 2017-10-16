@@ -32,7 +32,7 @@ int qbfbp_vfn_novar(double t, const double y[], double f[], void *params_void)
     // Misc parameters
     //------------------------------------------------------------------------------------
     //Retrieving the parameters
-    QBCP_L* qbp = (QBCP_L *) params_void;
+    FBPL* qbp = (FBPL *) params_void;
     int noc      = qbp->numberOfCoefs;
     double ms    = qbp->us.ms;
     double me    = qbp->us.me;
@@ -87,7 +87,7 @@ int qbfbp_vfn_varnonlin(double t, const double y[], double f[], void *params_voi
     // Misc parameters
     //------------------------------------------------------------------------------------
     //Retrieving the parameters
-    QBCP_L* qbp  = (QBCP_L *) params_void;
+    FBPL* qbp  = (FBPL *) params_void;
     int noc      = qbp->numberOfCoefs;
     double ms    = qbp->us.ms;
     double me    = qbp->us.me;
@@ -166,7 +166,7 @@ int qbfbp_vf(double t, const double y[], double f[], void *params_void)
     // Misc parameters
     //------------------------------------------------------------------------------------
     //Retrieving the parameters
-    QBCP_L* qbp = (QBCP_L *) params_void;
+    FBPL* qbp = (FBPL *) params_void;
     double ms = qbp->us.ms;
     double me = qbp->us.me;
     double mm = qbp->us.mm;
@@ -243,7 +243,7 @@ int qbfbp_vfn_varlin_trans(double t, const double y[], double f[], void *params_
     // Misc parameters
     //------------------------------------------------------------------------------------
     //Retrieving the parameters
-    QBCP_L* qbp = (QBCP_L *) params_void;
+    FBPL* qbp = (FBPL *) params_void;
     int noc      = qbp->numberOfCoefs;
     double ms    = qbp->us.ms;
     double me    = qbp->us.me;
@@ -317,7 +317,7 @@ int qbfbp_Dfn_varnonlin(double t, const double y[], double **Df, void *params_vo
     // Misc parameters
     //------------------------------------------------------------------------------------
     //Retrieving the parameters
-    QBCP_L* qbp  = (QBCP_L *) params_void;
+    FBPL* qbp  = (FBPL *) params_void;
     int noc      = qbp->numberOfCoefs;
     double ms    = qbp->us.ms;
     double me    = qbp->us.me;
@@ -876,7 +876,7 @@ double qbfbp_H(double t, const double y[], void *params_void)
     // Misc parameters
     //------------------------------------------------------------------------------------
     //Retrieving the parameters
-    QBCP_L* qbp = (QBCP_L *) params_void;
+    FBPL* qbp = (FBPL *) params_void;
     int noc   = qbp->numberOfCoefs;
     double ms = qbp->us.ms;
     double me = qbp->us.me;
@@ -932,7 +932,7 @@ double qbfbp_Hn(double t, const double y[], void *params_void)
     // Misc parameters
     //------------------------------------------------------------------------------------
     //Retrieving the parameters
-    QBCP_L* qbp = (QBCP_L *) params_void;
+    FBPL* qbp = (FBPL *) params_void;
     int noc      = qbp->numberOfCoefs;
     double ms    = qbp->us.ms;
     double me    = qbp->us.me;
@@ -1001,7 +1001,7 @@ int qbfbp_vfn_varlin_trans_P(double t, const double y[], double f[], void *param
     // Misc parameters
     //------------------------------------------------------------------------------------
     //Retrieving the parameters
-    QBCP_L* qbp = (QBCP_L *) params_void;
+    FBPL* qbp = (FBPL *) params_void;
     int noc      = qbp->numberOfCoefs;
     double ms    = qbp->us.ms;
     double me    = qbp->us.me;
@@ -1092,7 +1092,7 @@ int qbfbp_Q(double t, const double y[], gsl_matrix *Q1, gsl_matrix *Q2, gsl_matr
     // Misc parameters
     //------------------------------------------------------------------------------------
     //Retrieving the parameters
-    QBCP_L* qbp = (QBCP_L *) params_void;
+    FBPL* qbp = (FBPL *) params_void;
     int noc      = qbp->numberOfCoefs;
     double ms    = qbp->us.ms;
     double me    = qbp->us.me;
@@ -1171,7 +1171,7 @@ int qbfbp_Q(double t, const double y[], gsl_matrix *Q1, gsl_matrix *Q2, gsl_matr
 /**
  *  \brief COC: from Normalized-Centered coordinates to Earth-Moon coordinates
  **/
-void NCtoEM(double t, const double yNC[], double yEM[], QBCP_L *qbp)
+void NCtoEM(double t, const double yNC[], double yEM[], FBPL *qbp)
 {
     //------------------------------------------------------------------------------------
     // Misc parameters
@@ -1210,7 +1210,7 @@ void NCtoEM(double t, const double yNC[], double yEM[], QBCP_L *qbp)
 /**
  *  \brief COC: from Earth-Moon coordinates to Normalized-Centered coordinates
  **/
-void EMtoNC(double t, const double yEM[], double yNC[], QBCP_L *qbp)
+void EMtoNC(double t, const double yEM[], double yNC[], FBPL *qbp)
 {
     //------------------------------------------------------------------------------------
     // Misc parameters
@@ -1251,7 +1251,7 @@ void EMtoNC(double t, const double yEM[], double yNC[], QBCP_L *qbp)
 /**
  *  \brief COC: Normalized-Centered coordinates to system coordinates. Use in priority instead of NCtoEM or NCtoSEM.
  **/
-void NCtoSYS(double t, const double yNC[], double yEM[], QBCP_L *qbp)
+void NCtoSYS(double t, const double yNC[], double yEM[], FBPL *qbp)
 {
     //------------------------------------------------------------------------------------
     // Misc parameters
@@ -1288,7 +1288,7 @@ void NCtoSYS(double t, const double yNC[], double yEM[], QBCP_L *qbp)
 /**
  *  \brief COC: from system coordinates to Normalized-Centered coordinates
  **/
-void SYStoNC(double t, const double yEM[], double yNC[], QBCP_L *qbp)
+void SYStoNC(double t, const double yEM[], double yNC[], FBPL *qbp)
 {
     //------------------------------------------------------------------------------------
     // Misc parameters
@@ -1328,7 +1328,7 @@ void SYStoNC(double t, const double yEM[], double yNC[], QBCP_L *qbp)
 /**
  *  \brief COC: from Sun-Earth-Moon coordinates to Normalized-Centered coordinates
  **/
-void SEMtoNC(double t, const double ySEM[], double yNC[], QBCP_L *qbp)
+void SEMtoNC(double t, const double ySEM[], double yNC[], FBPL *qbp)
 {
     //------------------------------------------------------------------------------------
     // Misc parameters
@@ -1365,7 +1365,7 @@ void SEMtoNC(double t, const double ySEM[], double yNC[], QBCP_L *qbp)
 /**
  *  \brief COC: from Normalized-Centered coordinates to Sun-Earth-Moon coordinates
  **/
-void NCtoSEM(double t, const double yNC[], double ySEM[], QBCP_L *qbp)
+void NCtoSEM(double t, const double yNC[], double ySEM[], FBPL *qbp)
 {
     //------------------------------------------------------------------------------------
     // Misc parameters
@@ -1677,7 +1677,7 @@ void QBTBP_IN()
  **/
 int odePlot_EMtoSEM(const double y[],
                       double t1,
-                      QBCP_L &qbcp_l,
+                      FBPL &qbcp_l,
                       gsl_odeiv2_driver *d,
                       gnuplot_ctrl  *h1,
                       int Npoints,
@@ -1737,7 +1737,6 @@ int odePlot_EMtoSEM(const double y[],
  **/
 int odePlot_SEMtoEM(const double y[],
                       double t1,
-                      QBCP_L &qbcp_l,
                       gsl_odeiv2_driver *d,
                       gnuplot_ctrl  *h1,
                       int Npoints,
@@ -1769,7 +1768,7 @@ int odePlot_SEMtoEM(const double y[],
         ti = i * t1 / Npoints;
         if(i > 0) gsl_odeiv2_driver_apply (d, &t, ti, ySNC);
         //SNC to ENC
-        NCSEMmtoNCEMm(ti, ySNC, yENC, &qbcp_l);
+        NCSEMmtoNCEMm(ti, ySNC, yENC, &SEML);
         //Storage
         xc[i] = yENC[0];
         yc[i] = yENC[1];
@@ -1830,7 +1829,7 @@ void dynTest_SEMtoEM()
     //-------------------------------------------------
     // SEML focused on the SEM system
     //-------------------------------------------------
-    changeCOORDSYS(SEML, Csts::SEM);
+    change_coord(SEML, Csts::SEM);
 
     //-------------------------------------------------
     //Integration tools
@@ -1918,7 +1917,7 @@ void dynTest_SEMtoEM()
     //-------------------------------------------------
     //Using EM frame
     //-------------------------------------------------
-    changeCOORDSYS(SEML, Csts::EM);
+    change_coord(SEML, Csts::EM);
 
     //-------------------------------
     //SNC to ENC
@@ -1980,7 +1979,7 @@ void dynTest_EMtoSEM()
     //-------------------------------------------------
     //Using EM frame
     //-------------------------------------------------
-    changeCOORDSYS(SEML, Csts::EM);
+    change_coord(SEML, Csts::EM);
 
     //-------------------------------------------------
     //Integration tools
@@ -2063,7 +2062,7 @@ void dynTest_EMtoSEM()
     //-------------------------------------------------
     //Using SEM frame
     //-------------------------------------------------
-    changeCOORDSYS(SEML, Csts::SEM);
+    change_coord(SEML, Csts::SEM);
 
     //-----------------
     //ENC to SNC
@@ -2077,7 +2076,7 @@ void dynTest_EMtoSEM()
     // Plotting
     //-----------------
     title = "DYNEQ of "+Li+" prop. in SEM back in EM";
-    odePlot_SEMtoEM(ySNC, tfac*T_SE, SEML_SEM, d, h1, 5000,  title.c_str(), "lines", "1", "3", 4, SEML.cs_em.F_PLOT);
+    odePlot_SEMtoEM(ySNC, tfac*T_SE, d, h1, 5000,  title.c_str(), "lines", "1", "3", 4, SEML.cs_em.F_PLOT);
 
     //-----------------
     // With Diff Corr in SNC
@@ -2085,7 +2084,7 @@ void dynTest_EMtoSEM()
     //Diff Corr in SNC
     differential_correction(ySNC, T_SE, 1e-14, d, 42, 0);
     //Change framework for integration
-    changeCOORDSYS(SEML, Csts::EM);
+    change_coord(SEML, Csts::EM);
     //SNC to ENC coordinates for IC
     NCSEMmtoNCEMm(0.0, ySNC, yENC, &SEML);
     //Plot

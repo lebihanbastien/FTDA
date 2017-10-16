@@ -3,6 +3,8 @@
 
 #include <iostream>
 #include <iomanip>
+#include <string>
+#include <cstdio>
 
 /**
  * \file Config.h
@@ -23,11 +25,10 @@
 //    would become something like
 //                      'Config::configManager().get_OFTS_ORDER()'
 //------------------------------------------------------------------------------------
-extern int OFTS_ORDER;  ///< Order of the Taylor series in Fourier-Taylor series
-extern int OFS_ORDER;   ///< Order of the Fourier series in Fourier-Taylor series
-extern int OTS_ORDER;   ///< Order of the Taylor series in pure Taylor series
-extern int MODEL_TYPE;  ///< Type of model (chosen in the constants beginning by "M_")
-extern int REDUCED_NV;  ///< Number of reduced variables (e.g. 4 for a center manifold, 5 for a center-stable...)
+extern int OFTS_ORDER;  // Order of the Taylor series in Fourier-Taylor series
+extern int OFS_ORDER;   // Order of the Fourier series in Fourier-Taylor series
+extern int MODEL_TYPE;  // Type of model (chosen in the constants beginning by "M_")
+extern int REDUCED_NV;  // Number of reduced variables (e.g. 4 for a center manifold, 5 for a center-stable...)
 
 
 /**
@@ -119,7 +120,15 @@ class Config
 };
 
 
+/**
+ *  \brief Prompt "Press Enter to go on"
+ **/
+void pressEnter(bool isFlag);
 
+/**
+ *  \brief Prompt msg
+ **/
+void pressEnter(bool isFlag, std::string msg);
 
 
 

@@ -72,7 +72,7 @@ void tfs_from_ofs(matrix<Ofsc> &P,
  *  In this routine,
  *
  *  1. First step
- *      * P, Q and V are retrieved from txt files set in the folder \c qbcp_l.F_COC.
+ *      * P, Q and V are retrieved from txt files set in the folder \c fbpl.F_COC.
  *      * Vdot = dot(V) is computed
  *      * The products P*C and C*Q are computed in PC and QC
  *      * dot(PC) = PCdot is computed
@@ -96,17 +96,17 @@ void tfts_initCOC(matrix<Ofsc> &P,
                   Ofsc &ILe,
                   Ofsc &ILm,
                   Ofsc &ILs,
-                  QBCP_L& qbcp_l)
+                  FBPL& fbpl)
 {
     //----------------------------
     //Retrieve folder
     //----------------------------
-    string F_COC = qbcp_l.cs.F_COC;
+    string F_COC = fbpl.cs.F_COC;
 
     //----------------------------
     //Switch RTBP/QBCP/BCP
     //----------------------------
-    if(qbcp_l.model == Csts::QBCP || qbcp_l.model == Csts::BCP)
+    if(fbpl.model == Csts::QBCP || fbpl.model == Csts::BCP)
     {
         //Recovering the data: matrix P
         for(int i = 0; i < Csts::NV ; i++) for(int j = 0; j < Csts::NV ; j++) readCOC(*P.getCA(i,j), F_COC+"P",  i+1, j+1);
@@ -153,7 +153,7 @@ void tfts_initCOC(matrix<Ofsc> &P,
         //Init double variables
         //--------------------
         double eta1, eta2, la1, om1, om2, dl1, do1, s1, s2, c2;
-        c2 = qbcp_l.cs.c2;
+        c2 = fbpl.cs.c2;
         eta1 = (c2 - 2.0 - sqrt(9*c2*c2 - 8*c2))/2.0;
         eta2 = (c2 - 2.0 + sqrt(9*c2*c2 - 8*c2))/2.0;
         om1 = sqrt(-eta1);
@@ -223,8 +223,8 @@ void tfts_initCOC(matrix<Ofsc> &P,
         for(int i =0; i < Csts::NV; i++) for(int j =0; j < Csts::NV; j++) Q.setCoef(gsl_matrix_get(Qc, i, j), i, j);
 
 
-        double gamma = qbcp_l.cs.gamma;
-        switch(qbcp_l.coordsys)
+        double gamma = fbpl.cs.gamma;
+        switch(fbpl.coordsys)
         {
         case Csts::EM:
             //Sun does not exist
@@ -233,7 +233,7 @@ void tfts_initCOC(matrix<Ofsc> &P,
             ILs.setCoef(    0.0+0.0*I, 0);
 
             //Earth and Moon
-            if(qbcp_l.li_EM == 1)
+            if(fbpl.li_EM == 1)
             {
                 Xe[0].setCoef((-1.0+gamma)/gamma+0.0*I, 0);
                 Xe[1].setCoef( 0.0+0.0*I, 0);
@@ -262,7 +262,7 @@ void tfts_initCOC(matrix<Ofsc> &P,
             ILm.setCoef(    0.0+0.0*I, 0);
 
             //Sun and Moon
-            if(qbcp_l.li_SEM == 1)
+            if(fbpl.li_SEM == 1)
             {
                 Xs[0].setCoef((-1.0+gamma)/gamma+0.0*I, 0);
                 Xs[1].setCoef( 0.0+0.0*I, 0);
@@ -348,10 +348,10 @@ void tfts_initCOC(matrix<Ofsc> &P,
     //----------------------------
     for(int i = 0; i < Csts::NV; i++)
     {
-        Vdot[i].dot(V[i], qbcp_l.us.n);
+        Vdot[i].dot(V[i], fbpl.us.n);
     }
     //Init PCdot
-    PCdot.dot(PC, qbcp_l.us.n);
+    PCdot.dot(PC, fbpl.us.n);
 }
 
 
@@ -372,7 +372,7 @@ void tfts_initCOC(matrix<Ofsc> &P,
  *  In this routine,
  *
  *  1. First step
- *      * P, Q and V are retrieved from txt files set in the folder \c qbcp_l.F_COC.
+ *      * P, Q and V are retrieved from txt files set in the folder \c fbpl.F_COC.
  *      * Vdot = dot(V) is computed
  *      * The products P*C and C*Q are computed in PC and QC
  *      * dot(PC) = PCdot is computed
@@ -399,17 +399,17 @@ void initCOC(matrix<Ofsc> &P,
              Ofsc &ILe,
              Ofsc &ILm,
              Ofsc &ILs,
-             QBCP_L& qbcp_l)
+             FBPL& fbpl)
 {
     //----------------------------
     //Retrieve folder
     //----------------------------
-    string F_COC = qbcp_l.cs.F_COC;
+    string F_COC = fbpl.cs.F_COC;
 
     //----------------------------
     //Switch RTBP/QBCP/BCP
     //----------------------------
-    if(qbcp_l.model == Csts::QBCP || qbcp_l.model == Csts::BCP)
+    if(fbpl.model == Csts::QBCP || fbpl.model == Csts::BCP)
     {
         //Recovering the data: matrix P
         for(int i = 0; i < Csts::NV ; i++) for(int j = 0; j < Csts::NV ; j++) readCOC(*P.getCA(i,j), F_COC+"P",  i+1, j+1);
@@ -456,7 +456,7 @@ void initCOC(matrix<Ofsc> &P,
         //Init double variables
         //--------------------
         double eta1, eta2, la1, om1, om2, dl1, do1, s1, s2, c2;
-        c2 = qbcp_l.cs.c2;
+        c2 = fbpl.cs.c2;
         eta1 = (c2 - 2.0 - sqrt(9*c2*c2 - 8*c2))/2.0;
         eta2 = (c2 - 2.0 + sqrt(9*c2*c2 - 8*c2))/2.0;
         om1 = sqrt(-eta1);
@@ -526,8 +526,8 @@ void initCOC(matrix<Ofsc> &P,
         for(int i =0; i < Csts::NV; i++) for(int j =0; j < Csts::NV; j++) Q.setCoef(gsl_matrix_get(Qc, i, j), i, j);
 
 
-        double gamma = qbcp_l.cs.gamma;
-        switch(qbcp_l.coordsys)
+        double gamma = fbpl.cs.gamma;
+        switch(fbpl.coordsys)
         {
         case Csts::EM:
             //Sun does not exist
@@ -536,7 +536,7 @@ void initCOC(matrix<Ofsc> &P,
             ILs.setCoef(    0.0+0.0*I, 0);
 
             //Earth and Moon
-            if(qbcp_l.li_EM == 1)
+            if(fbpl.li_EM == 1)
             {
                 Xe[0].setCoef((-1.0+gamma)/gamma+0.0*I, 0);
                 Xe[1].setCoef( 0.0+0.0*I, 0);
@@ -565,7 +565,7 @@ void initCOC(matrix<Ofsc> &P,
             ILm.setCoef(    0.0+0.0*I, 0);
 
             //Sun and Moon
-            if(qbcp_l.li_SEM == 1)
+            if(fbpl.li_SEM == 1)
             {
                 Xs[0].setCoef((-1.0+gamma)/gamma+0.0*I, 0);
                 Xs[1].setCoef( 0.0+0.0*I, 0);
@@ -651,10 +651,10 @@ void initCOC(matrix<Ofsc> &P,
     //----------------------------
     for(int i = 0; i < Csts::NV; i++)
     {
-        Vdot[i].dot(V[i], qbcp_l.us.n);
+        Vdot[i].dot(V[i], fbpl.us.n);
     }
     //Init PCdot
-    PCdot.dot(PC, qbcp_l.us.n);
+    PCdot.dot(PC, fbpl.us.n);
 }
 
 
@@ -893,7 +893,7 @@ void tfts_applyInvDotCOC(matrix<Ofsc> &CQ,
  *  In this routine,
  *
  *  1. First step
- *      * P, Q and V are retrieved from txt files set in the folder \c qbcp_l.F_COC.
+ *      * P, Q and V are retrieved from txt files set in the folder \c fbpl.F_COC.
  *
  *  2. Second step
  *  The vectors Xe[2], Xm[2], and X[s] contains the time-dependent positions of the primaries in the xy-plane.
@@ -916,12 +916,12 @@ void initCOC_OFS(matrix<Ofsc> &P,
                  Ofsc &ILe,
                  Ofsc &ILm,
                  Ofsc &ILs,
-                 QBCP_L& qbcp_l)
+                 FBPL& fbpl)
 {
     //Retrieve folder
-    string F_COC = qbcp_l.cs.F_COC;
+    string F_COC = fbpl.cs.F_COC;
     //Switch RTBP/QBCP
-    if(qbcp_l.model == Csts::QBCP || qbcp_l.model == Csts::BCP)
+    if(fbpl.model == Csts::QBCP || fbpl.model == Csts::BCP)
     {
         //Recovering the data: matrix P
         for(int i = 0; i < Csts::NV ; i++) for(int j = 0; j < Csts::NV ; j++) readCOC(*P.getCA(i,j), F_COC+"P", i+1, j+1);
@@ -963,7 +963,7 @@ void initCOC_OFS(matrix<Ofsc> &P,
         //Init double variables
         //--------------------
         double eta1, eta2, la1, om1, om2, dl1, do1, s1, s2, c2;
-        c2 = qbcp_l.cs.c2;
+        c2 = fbpl.cs.c2;
         eta1 = (c2 - 2 - sqrt(9*c2*c2 - 8*c2))/2.0;
         eta2 = (c2 - 2 + sqrt(9*c2*c2 - 8*c2))/2.0;
         om1 = sqrt(-eta1);
@@ -1020,7 +1020,7 @@ void initCOC_OFS(matrix<Ofsc> &P,
         //--------------------
         // Init Xm
         //--------------------
-        double gamma = qbcp_l.cs.gamma;
+        double gamma = fbpl.cs.gamma;
 
         //Sun does not exist
         Xs[0].setCoef(0.0+0.0*I, 0);
@@ -1028,7 +1028,7 @@ void initCOC_OFS(matrix<Ofsc> &P,
         ILs.setCoef(0.0+0.0*I, 0);
 
         //Earth and Moon
-        if(qbcp_l.li_EM == 1)
+        if(fbpl.li_EM == 1)
         {
             Xe[0].setCoef((-1.0+gamma)/gamma+0.0*I, 0);
             Xe[1].setCoef(0.0+0.0*I, 0);
@@ -1597,7 +1597,7 @@ void testIntCOC()
     coc.CQ      = &CQ;
     coc.V       = &V;
     coc.Vdot    = &Vdot;
-    coc.qbcp_l  = &SEML;
+    coc.fbpl  = &SEML;
     coc.zh      = &zh;
     coc.z       = &z;
     coc.zd      = &zd;
@@ -1750,7 +1750,7 @@ int qbfbp_Fh(double t, const double y[], double f[], void *params_void)
     //Initialization
     //-------------------------------
     COC *coc = (COC*) params_void;
-    double n = (coc->qbcp_l)->us.n;
+    double n = (coc->fbpl)->us.n;
     double y2[6];
     double f2[6];
 
@@ -1783,7 +1783,7 @@ int qbfbp_Fh(double t, const double y[], double f[], void *params_void)
     //Apply the VF in NC variables
     //-------------------------------
     //f2 = F(z2)
-    qbfbp_vfn_novar(t, y2, f2, (coc->qbcp_l));
+    qbfbp_vfn_novar(t, y2, f2, (coc->fbpl));
 
     //Update zd
     coc->zd->at(0) = f2[0]+0.0*I;
@@ -2126,7 +2126,7 @@ void pij_plot(int ii, int jj, gnuplot_ctrl  *h1)
 /**
  *  \brief Plot the coefficient of qbp
  **/
-void coeff_plot(gnuplot_ctrl  *h1, QBCP_L* qbp)
+void coeff_plot(gnuplot_ctrl  *h1, FBPL* qbp)
 {
     cout << std::showpos << setprecision(15) << setiosflags(ios::scientific);
 
@@ -2205,7 +2205,7 @@ void coeff_plot(gnuplot_ctrl  *h1, QBCP_L* qbp)
 /**
  *  \brief Plot the potential of the primaries when the s/c is fixed at the Lagrange point. Deprecated.
  **/
-void potential_plot(gnuplot_ctrl  *h1, QBCP_L* qbp)
+void potential_plot(gnuplot_ctrl  *h1, FBPL* qbp)
 {
     //-------------------------------------------------------------------------------
     // Misc parameters

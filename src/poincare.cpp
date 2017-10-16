@@ -744,7 +744,7 @@ void pmap_invariance_error(Pmap& pmap, int append, bool isPar, double hzmax)
                 // Computation
                 //------------------------------------------------------------------------
                 //Evaluating the vector field at z0 = W(s0, t0)
-                qbfbp_vfn_novar(orbit.pmap->t0, orbit.z0, fnc, orbit.qbcp_l);
+                qbfbp_vfn_novar(orbit.pmap->t0, orbit.z0, fnc, orbit.fbpl);
 
                 //-------------------------------
                 // eI:
@@ -988,7 +988,7 @@ void pmap_invariance_error_random(Pmap& pmap, int append, bool isPar, double hzm
             // Computation
             //----------------------------------------------------------------------------
             //Evaluating the vector field at z0 = W(s0, t0)
-            qbfbp_vfn_novar(orbit.pmap->t0, orbit.z0, fnc, orbit.qbcp_l);
+            qbfbp_vfn_novar(orbit.pmap->t0, orbit.z0, fnc, orbit.fbpl);
 
             //-------------------------------
             // eI:
@@ -1226,7 +1226,7 @@ void pmap_invariance_error_random(Pmap& pmap, int append, bool isPar, double hzm
                 // Computation
                 //------------------------------------------------------------------------
                 //Evaluating the vector field at z0 = W(s0, t0)
-                qbfbp_vfn_novar(orbit.pmap->t0, orbit.z0, fnc, orbit.qbcp_l);
+                qbfbp_vfn_novar(orbit.pmap->t0, orbit.z0, fnc, orbit.fbpl);
 
                 //-------------------------------
                 // eI:
@@ -1463,7 +1463,7 @@ void pmap_invariance_error_random_planar(Pmap& pmap, int append, bool isPar, dou
                 // Computation
                 //------------------------------------------------------------------------
                 //Evaluating the vector field at z0 = W(s0, t0)
-                qbfbp_vfn_novar(orbit.pmap->t0, orbit.z0, fnc, orbit.qbcp_l);
+                qbfbp_vfn_novar(orbit.pmap->t0, orbit.z0, fnc, orbit.fbpl);
 
                 //------------------------------------------------------------------------
                 // eI:
@@ -1708,7 +1708,7 @@ void pmap_test_error(Pmap& pmap, int append, bool isPar, double hzmax)
                 // Computation
                 //------------------------------------------------------------------------------------
                 //Evluating the vector field at z0 = W(s0, t0)
-                qbfbp_vfn_novar(orbit.pmap->t0, orbit.z0, fnc, orbit.qbcp_l);
+                qbfbp_vfn_novar(orbit.pmap->t0, orbit.z0, fnc, orbit.fbpl);
 
                 //-------------------------------
                 // eI:
@@ -2485,7 +2485,7 @@ void orbit_pmap_fprint(Orbit* orbit, string filename, int append)
         }
 
         //First line
-        NCtoSYS(orbit->pmap->t0, orbit->z0, zEM, (QBCP_L*) orbit->ode_s_6->d->sys->params);
+        NCtoSYS(orbit->pmap->t0, orbit->z0, zEM, (FBPL*) orbit->ode_s_6->d->sys->params);
         hz = qbfbp_H(orbit->pmap->t0, zEM, orbit->ode_s_6->d->sys->params);
 
         myfile << orbit->label << ",  ";
@@ -2579,7 +2579,7 @@ void orbit_pmap_fprint_small(Orbit* orbit, string filename, int append)
         }
 
         //First line
-        NCtoSYS(orbit->pmap->t0, orbit->z0, zEM, (QBCP_L*) orbit->ode_s_6->d->sys->params);
+        NCtoSYS(orbit->pmap->t0, orbit->z0, zEM, (FBPL*) orbit->ode_s_6->d->sys->params);
         hz = qbfbp_H(orbit->pmap->t0, zEM, orbit->ode_s_6->d->sys->params);
 
         myfile << orbit->label << ",  ";
@@ -2644,7 +2644,7 @@ void orbit_pmap_fprint_bin(Orbit* orbit, string filename, int append)
         else myfile.open ((filename+".bin").c_str(), std::ios::binary | ios::out);
 
         //First line
-        NCtoSYS(orbit->pmap->t0, orbit->z0, zEM, (QBCP_L*) orbit->ode_s_6->d->sys->params);
+        NCtoSYS(orbit->pmap->t0, orbit->z0, zEM, (FBPL*) orbit->ode_s_6->d->sys->params);
         hz = qbfbp_H(orbit->pmap->t0, zEM, orbit->ode_s_6->d->sys->params);
 
         double res;
@@ -2829,7 +2829,7 @@ void orbit_precision_fprint(Orbit* orbit, string filename, int append)
         double zEM[6], hz;
 
         //First line
-        NCtoSYS(orbit->pmap->t0, orbit->z0, zEM, (QBCP_L*) orbit->ode_s_6->d->sys->params);
+        NCtoSYS(orbit->pmap->t0, orbit->z0, zEM, (FBPL*) orbit->ode_s_6->d->sys->params);
         hz = qbfbp_H(orbit->pmap->t0, zEM, orbit->ode_s_6->d->sys->params);
 
         //Open stream
@@ -2918,7 +2918,7 @@ void orbit_energy_fprint(Orbit* orbit, string filename, double hzmax, int append
         double zEM[6], hz;
 
         //First line
-        NCtoSYS(orbit->pmap->t0, orbit->z0, zEM, (QBCP_L*) orbit->ode_s_6->d->sys->params);
+        NCtoSYS(orbit->pmap->t0, orbit->z0, zEM, (FBPL*) orbit->ode_s_6->d->sys->params);
         hz = qbfbp_H(orbit->pmap->t0, zEM, orbit->ode_s_6->d->sys->params);
 
         if( fabs(hz - orbit->pmap->H0) <= hzmax) //do we need the condition >= 0.0?
@@ -3007,7 +3007,7 @@ void orbit_imap_fprint_bin(Orbit* orbit, string filename, int append)
         double zEM[6], hz;
 
         //First line
-        NCtoSYS(orbit->pmap->t0, orbit->z0, zEM, (QBCP_L*) orbit->ode_s_6->d->sys->params);
+        NCtoSYS(orbit->pmap->t0, orbit->z0, zEM, (FBPL*) orbit->ode_s_6->d->sys->params);
         hz = qbfbp_H(orbit->pmap->t0, zEM, orbit->ode_s_6->d->sys->params);
 
         //Open stream
@@ -3081,7 +3081,7 @@ void orbit_energy_fprint_bin(Orbit* orbit, string filename, int append)
         double zEM[6], hz;
 
         //First line
-        NCtoSYS(orbit->pmap->t0, orbit->z0, zEM, (QBCP_L*) orbit->ode_s_6->d->sys->params);
+        NCtoSYS(orbit->pmap->t0, orbit->z0, zEM, (FBPL*) orbit->ode_s_6->d->sys->params);
         hz = qbfbp_H(orbit->pmap->t0, zEM, orbit->ode_s_6->d->sys->params);
 
         //Open stream
@@ -3380,7 +3380,7 @@ void orbit_update_ic(Orbit& orbit, const double si[], double t0)
     // 4. Update z0
     //------------------------------------------------------------------------------------
     //z0 = W(si, 0.0)
-    RCMtoNCbyTFC(si, t0, orbit.qbcp_l->us.n, orbit.pmap->order, orbit.pmap->ofs_order,
+    RCMtoNCbyTFC(si, t0, orbit.fbpl->us.n, orbit.pmap->order, orbit.pmap->ofs_order,
                  *orbit.Wh, *orbit.PC, *orbit.V, orbit.z0, orbit.pmap->isGS);
 
     //------------------------------------------------------------------------------------
@@ -3389,7 +3389,7 @@ void orbit_update_ic(Orbit& orbit, const double si[], double t0)
     //zh0 = wh(si, 0.0)
     RCMtoTF(si,
             t0,
-            orbit.qbcp_l->us.n,
+            orbit.fbpl->us.n,
             orbit.pmap->order,
             orbit.pmap->ofs_order,
             *orbit.Wh,
@@ -3490,7 +3490,7 @@ int gslc_proj_step(Orbit* orbit,
         //Get the closest point on the center manifold
         NCprojCCM(yv, *t, SEML.us_em.n, OFS_ORDER, MIcoc, Vcoc, omega1, omega3, scp, REDUCED_NV);
         //Update the state
-        CCMtoNCbyTFC(scp, *t, orbit->qbcp_l->us.n, orbit->pmap->order,  orbit->pmap->ofs_order,  *orbit->Wh, Mcoc, Vcoc,  yvp,  orbit->pmap->isGS);
+        CCMtoNCbyTFC(scp, *t, orbit->fbpl->us.n, orbit->pmap->order,  orbit->pmap->ofs_order,  *orbit->Wh, Mcoc, Vcoc,  yvp,  orbit->pmap->isGS);
         //For comparison
         for(int i = 0; i <6; i++) yvi[i] = yv[i];
         // Copy of yvp in current state
@@ -3814,7 +3814,7 @@ int dual_pmap(Orbit* orbit)
             CCM8toRCM(sv, si); //from CCM8 to RCM
             for(i=0; i<4; i++) orbit->s0_mat[i][k] = si[i];
             //TFC
-            RCMtoTFC(si, t, orbit->qbcp_l->us.n, orbit->pmap->order,  orbit->pmap->ofs_order,  *orbit->Wh,  *orbit->ofs, zh1,  orbit->pmap->isGS);
+            RCMtoTFC(si, t, orbit->fbpl->us.n, orbit->pmap->order,  orbit->pmap->ofs_order,  *orbit->Wh,  *orbit->ofs, zh1,  orbit->pmap->isGS);
             TFCtoTF(zh1, yhs); //from TFC to TF
             for(i=0; i<6; i++) orbit->zh0_mat[i][k] = yhs[i];
             //Time (common to NC, RCM and TFC)
@@ -3823,14 +3823,14 @@ int dual_pmap(Orbit* orbit)
             //-----------------
             //Energy
             //-----------------
-            NCtoSYS(t, yv, ys, (QBCP_L*) orbit->ode_s_6->d->sys->params);
+            NCtoSYS(t, yv, ys, (FBPL*) orbit->ode_s_6->d->sys->params);
             orbit->hz[k] = qbfbp_H(t, ys, orbit->ode_s_6->d->sys->params);
             //Evaluate pm at s1 and store it in yv
-            RCMtoNCbyTFC(si, t, orbit->qbcp_l->us.n, orbit->pmap->order,
+            RCMtoNCbyTFC(si, t, orbit->fbpl->us.n, orbit->pmap->order,
                          orbit->pmap->ofs_order, *orbit->Wh, Mcoc, Vcoc,
                          yv,  orbit->pmap->isGS);
             //NC to EM coordinates
-            NCtoSYS(t, yv, ys, (QBCP_L*) orbit->ode_s_6->d->sys->params);
+            NCtoSYS(t, yv, ys, (FBPL*) orbit->ode_s_6->d->sys->params);
             orbit->hw[k] = qbfbp_H(t, ys, orbit->ode_s_6->d->sys->params);
 
             //------------------------------------------------------------------------------
@@ -3938,7 +3938,7 @@ int dual_pmap_stepped(Orbit* orbit)
             //RCM
             for(int i=0; i<4; i++) orbit->s0_mat[i][events] = si_c[i];
             //TF
-            RCMtoTF(si_c, t_c, orbit->qbcp_l->us.n, orbit->pmap->order, orbit->pmap->ofs_order, *orbit->Wh, *orbit->ofs, yhs, orbit->pmap->isGS);
+            RCMtoTF(si_c, t_c, orbit->fbpl->us.n, orbit->pmap->order, orbit->pmap->ofs_order, *orbit->Wh, *orbit->ofs, yhs, orbit->pmap->isGS);
             for(int i=0; i<6; i++) orbit->zh0_mat[i][events] = yhs[i];
             //Time (common to NC, RCM and TFC)
             orbit->te_mat[events] = t_c;
@@ -3946,16 +3946,16 @@ int dual_pmap_stepped(Orbit* orbit)
             //-----------------
             //Energy
             //-----------------
-            NCtoSYS(t_c, yv_c, ys_c, (QBCP_L*) orbit->ode_s_6->d->sys->params);
+            NCtoSYS(t_c, yv_c, ys_c, (FBPL*) orbit->ode_s_6->d->sys->params);
             orbit->hz[events] = qbfbp_H(t_c, ys_c, orbit->ode_s_6->d->sys->params);
 
             //-----------------
             //Energy (2)
             //-----------------
-            RCMtoNCbyTFC(si_c, t, orbit->qbcp_l->us.n, orbit->pmap->order,
+            RCMtoNCbyTFC(si_c, t, orbit->fbpl->us.n, orbit->pmap->order,
                          orbit->pmap->ofs_order, *orbit->Wh, Mcoc, Vcoc,
                          yv_c, orbit->pmap->isGS);
-            NCtoSYS(t, yv_c, ys_c, (QBCP_L*) orbit->ode_s_6->d->sys->params);
+            NCtoSYS(t, yv_c, ys_c, (FBPL*) orbit->ode_s_6->d->sys->params);
             orbit->hw[events] = qbfbp_H(t, ys_c, orbit->ode_s_6->d->sys->params);
             orbit->nevent[events] = events+1; //number of the event
 
@@ -4089,7 +4089,7 @@ int dual_pmap_stepped_plot(Orbit* orbit)
             //RCM
             for(int i=0; i<4; i++) orbit->s0_mat[i][events] = si_c[i];
             //TF
-            RCMtoTF(si_c, t_c, orbit->qbcp_l->us.n, orbit->pmap->order, orbit->pmap->ofs_order, *orbit->Wh, *orbit->ofs, yhs, orbit->pmap->isGS);
+            RCMtoTF(si_c, t_c, orbit->fbpl->us.n, orbit->pmap->order, orbit->pmap->ofs_order, *orbit->Wh, *orbit->ofs, yhs, orbit->pmap->isGS);
             for(int i=0; i<6; i++) orbit->zh0_mat[i][events] = yhs[i];
             //Time (common to NC, RCM and TFC)
             orbit->te_mat[events] = t_c;
@@ -4097,16 +4097,16 @@ int dual_pmap_stepped_plot(Orbit* orbit)
             //-----------------
             //Energy
             //-----------------
-            NCtoSYS(t_c, yv_c, ys_c, (QBCP_L*) orbit->ode_s_6->d->sys->params);
+            NCtoSYS(t_c, yv_c, ys_c, (FBPL*) orbit->ode_s_6->d->sys->params);
             orbit->hz[events] = qbfbp_H(t_c, ys_c, orbit->ode_s_6->d->sys->params);
 
             //-----------------
             //Energy (2)
             //-----------------
-            RCMtoNCbyTFC(si_c, t, orbit->qbcp_l->us.n, orbit->pmap->order,
+            RCMtoNCbyTFC(si_c, t, orbit->fbpl->us.n, orbit->pmap->order,
                          orbit->pmap->ofs_order, *orbit->Wh, Mcoc, Vcoc,
                          yv_c,  orbit->pmap->isGS);
-            NCtoSYS(t, yv_c, ys_c, (QBCP_L*) orbit->ode_s_6->d->sys->params);
+            NCtoSYS(t, yv_c, ys_c, (FBPL*) orbit->ode_s_6->d->sys->params);
             orbit->hw[events] = qbfbp_H(t, ys_c, orbit->ode_s_6->d->sys->params);
             orbit->nevent[events] = events+1; //number of the event
 
@@ -4720,7 +4720,7 @@ int refine_root(Orbit* orbit,
 
 
     //Energy @ yv(t) before projection
-    NCtoSYS(*t, yv, ys, (QBCP_L*) orbit->ode_s_6->d->sys->params);
+    NCtoSYS(*t, yv, ys, (FBPL*) orbit->ode_s_6->d->sys->params);
     orbit->hz[events] = qbfbp_H(*t, ys, orbit->ode_s_6->d->sys->params);
 
     //--------------------------------------------------------
@@ -4733,7 +4733,7 @@ int refine_root(Orbit* orbit,
     //Project on the center manifold
     cdouble scp[4];
     NCprojCCM(yv, r, SEML.us_em.n, OFS_ORDER, MIcoc, Vcoc, omega1, omega3, scp, 4);
-    CCMtoNCbyTFC(scp, r, orbit->qbcp_l->us.n, orbit->pmap->order,  orbit->pmap->ofs_order,  *orbit->Wh,  Mcoc, Vcoc,  yv,  orbit->pmap->isGS);
+    CCMtoNCbyTFC(scp, r, orbit->fbpl->us.n, orbit->pmap->order,  orbit->pmap->ofs_order,  *orbit->Wh,  Mcoc, Vcoc,  yv,  orbit->pmap->isGS);
 
     //Compute projected state in RCM coordinates
     CCMtoRCM(scp, s1, REDUCED_NV);
@@ -4752,7 +4752,7 @@ int refine_root(Orbit* orbit,
     yv[2] = 0.0;
 
     //Energy @ yv(t) after projection
-    NCtoSYS(*t, yv, ys, (QBCP_L*) orbit->ode_s_6->d->sys->params);
+    NCtoSYS(*t, yv, ys, (FBPL*) orbit->ode_s_6->d->sys->params);
     orbit->hw[events] = qbfbp_H(*t, ys, orbit->ode_s_6->d->sys->params);
 
     return GSL_SUCCESS;
@@ -4821,7 +4821,7 @@ int dual_tmap(Orbit* orbit)
         CCM8toRCM(sv, si); //from CCM8 to RCM
         for(i=0; i<4; i++) orbit->s0_mat[i][events] = si[i];
         //TFC
-        RCMtoTFC(si, t, orbit->qbcp_l->us.n, orbit->pmap->order,  orbit->pmap->ofs_order,  *orbit->Wh,  *orbit->ofs, zh1,  orbit->pmap->isGS);
+        RCMtoTFC(si, t, orbit->fbpl->us.n, orbit->pmap->order,  orbit->pmap->ofs_order,  *orbit->Wh,  *orbit->ofs, zh1,  orbit->pmap->isGS);
         TFCtoTF(zh1, yhs); //from TFC to TF
         for(i=0; i<6; i++) orbit->zh0_mat[i][events] = yhs[i];
         //Time (common to NC, RCM and TFC)
@@ -4830,16 +4830,16 @@ int dual_tmap(Orbit* orbit)
         //-----------------
         //Energy
         //-----------------
-        NCtoSYS(t, yv, ys, (QBCP_L*) orbit->ode_s_6->d->sys->params);
+        NCtoSYS(t, yv, ys, (FBPL*) orbit->ode_s_6->d->sys->params);
         orbit->hz[events] = qbfbp_H(t, ys, orbit->ode_s_6->d->sys->params);
 
         //-----------------
         //Energy (2)
         //-----------------
-        RCMtoNCbyTFC(si, t, orbit->qbcp_l->us.n, orbit->pmap->order,
+        RCMtoNCbyTFC(si, t, orbit->fbpl->us.n, orbit->pmap->order,
                      orbit->pmap->ofs_order,  *orbit->Wh,  Mcoc, Vcoc,
                      yv,  orbit->pmap->isGS);
-        NCtoSYS(t, yv, ys, (QBCP_L*) orbit->ode_s_6->d->sys->params);
+        NCtoSYS(t, yv, ys, (FBPL*) orbit->ode_s_6->d->sys->params);
         orbit->hw[events] = qbfbp_H(t, ys, orbit->ode_s_6->d->sys->params);
         orbit->nevent[events] = events+1; //number of the event
 
@@ -4927,7 +4927,7 @@ int single_tmap(Orbit* orbit)
                 gsl_odeiv2_driver_apply (orbit->ode_s_6->d, &tp, ti, yv);
                 //Project on the center manifold
                 NCprojCCM(yv, ti, SEML.us_em.n, OFS_ORDER, MIcoc, Vcoc, omega1, omega3, scp, 4);
-                CCMtoNCbyTFC(scp, ti, orbit->qbcp_l->us.n, orbit->pmap->order,  orbit->pmap->ofs_order, *orbit->Wh,  Mcoc, Vcoc,  yvp,  orbit->pmap->isGS);
+                CCMtoNCbyTFC(scp, ti, orbit->fbpl->us.n, orbit->pmap->order,  orbit->pmap->ofs_order, *orbit->Wh,  Mcoc, Vcoc,  yvp,  orbit->pmap->isGS);
                 //Reset ode structure for next step
                 reset_ode_structure(orbit->ode_s_6);
                 //------------------------------------------------------------------------------
@@ -4960,7 +4960,7 @@ int single_tmap(Orbit* orbit)
         CCMtoRCM(scp, si, REDUCED_NV); //from CCM to RCM
         for(i=0; i<4; i++) orbit->s0_mat[i][events] = si[i];
         //TFC
-        RCMtoTFC(si, tp, orbit->qbcp_l->us.n, orbit->pmap->order,  orbit->pmap->ofs_order,  *orbit->Wh,  *orbit->ofs, zh1,  orbit->pmap->isGS);
+        RCMtoTFC(si, tp, orbit->fbpl->us.n, orbit->pmap->order,  orbit->pmap->ofs_order,  *orbit->Wh,  *orbit->ofs, zh1,  orbit->pmap->isGS);
         TFCtoTF(zh1, yhs); //from TFC to TF
         for(i=0; i<6; i++) orbit->zh0_mat[i][events] = yhs[i];
         //Time (common to NC, RCM and TFC)
@@ -4969,7 +4969,7 @@ int single_tmap(Orbit* orbit)
         //-----------------
         //Energy (1)
         //-----------------
-        NCtoSYS(tp, yvi, ys, (QBCP_L*) orbit->ode_s_6->d->sys->params);
+        NCtoSYS(tp, yvi, ys, (FBPL*) orbit->ode_s_6->d->sys->params);
         orbit->hz[events] = qbfbp_H(tp, ys, orbit->ode_s_6->d->sys->params);
 
         //-----------------
@@ -4988,7 +4988,7 @@ int single_tmap(Orbit* orbit)
         //-----------------
         //Energy (2)
         //-----------------
-        NCtoSYS(tp, yv, ys, (QBCP_L*) orbit->ode_s_6->d->sys->params);
+        NCtoSYS(tp, yv, ys, (FBPL*) orbit->ode_s_6->d->sys->params);
         orbit->hw[events] = qbfbp_H(tp, ys, orbit->ode_s_6->d->sys->params);
         orbit->nevent[events] = events+1; //number of the event
 
@@ -5070,14 +5070,14 @@ int single_tmap_tested(Orbit* orbit)
                 //------------------------------------------------------------------------------
                 gsl_odeiv2_driver_apply (orbit->ode_s_8->d, &tr, ti, sv);
                 //Copy in yvc
-                CCM8toNCbyTFC(sv, ti, orbit->qbcp_l->us.n, orbit->pmap->order,  orbit->pmap->ofs_order, *orbit->Wh, Mcoc, Vcoc,  yvc,  orbit->pmap->isGS);
+                CCM8toNCbyTFC(sv, ti, orbit->fbpl->us.n, orbit->pmap->order,  orbit->pmap->ofs_order, *orbit->Wh, Mcoc, Vcoc,  yvc,  orbit->pmap->isGS);
                 //------------------------------------------------------------------------------
                 //Evolve the yv integration
                 //------------------------------------------------------------------------------
                 gsl_odeiv2_driver_apply (orbit->ode_s_6->d, &tp, ti, yv);
                 //Project on the center manifold
                 NCprojCCM(yv, ti, SEML.us_em.n, OFS_ORDER, MIcoc, Vcoc, omega1, omega3, scp, 4);
-                CCMtoNCbyTFC(scp, ti, orbit->qbcp_l->us.n, orbit->pmap->order,  orbit->pmap->ofs_order, *orbit->Wh,  Mcoc, Vcoc,  yvp,  orbit->pmap->isGS);
+                CCMtoNCbyTFC(scp, ti, orbit->fbpl->us.n, orbit->pmap->order,  orbit->pmap->ofs_order, *orbit->Wh,  Mcoc, Vcoc,  yvp,  orbit->pmap->isGS);
                 //Reset ode structure for next step
                 reset_ode_structure(orbit->ode_s_6);
 
@@ -5114,7 +5114,7 @@ int single_tmap_tested(Orbit* orbit)
         CCMtoRCM(scp, si, REDUCED_NV); //from CCM to RCM
         for(i=0; i<4; i++) orbit->s0_mat[i][events] = si[i];
         //TFC
-        RCMtoTFC(si, tr, orbit->qbcp_l->us.n, orbit->pmap->order,  orbit->pmap->ofs_order,  *orbit->Wh,  *orbit->ofs, zh1,  orbit->pmap->isGS);
+        RCMtoTFC(si, tr, orbit->fbpl->us.n, orbit->pmap->order,  orbit->pmap->ofs_order,  *orbit->Wh,  *orbit->ofs, zh1,  orbit->pmap->isGS);
         TFCtoTF(zh1, yhs); //from TFC to TF
         for(i=0; i<6; i++) orbit->zh0_mat[i][events] = yhs[i];
         //Time (common to NC, RCM and TFC)
@@ -5123,16 +5123,16 @@ int single_tmap_tested(Orbit* orbit)
         //-----------------
         //Energy
         //-----------------
-        NCtoSYS(tr, yv, ys, (QBCP_L*) orbit->ode_s_6->d->sys->params);
+        NCtoSYS(tr, yv, ys, (FBPL*) orbit->ode_s_6->d->sys->params);
         orbit->hz[events] = qbfbp_H(tr, ys, orbit->ode_s_6->d->sys->params);
 
         //-----------------
         //Energy (2)
         //-----------------
-        RCMtoNCbyTFC(si, tr, orbit->qbcp_l->us.n, orbit->pmap->order,
+        RCMtoNCbyTFC(si, tr, orbit->fbpl->us.n, orbit->pmap->order,
                      orbit->pmap->ofs_order, *orbit->Wh, Mcoc, Vcoc,  yve,
                      orbit->pmap->isGS);
-        NCtoSYS(tr, yv, ys, (QBCP_L*) orbit->ode_s_6->d->sys->params);
+        NCtoSYS(tr, yv, ys, (FBPL*) orbit->ode_s_6->d->sys->params);
         orbit->hw[events] = qbfbp_H(tr, ys, orbit->ode_s_6->d->sys->params);
         orbit->nevent[events] = events+1; //number of the event
 
@@ -5247,7 +5247,7 @@ double gslc_dual_step( Orbit* orbit,
     //----------------------
     //z1 = W(s1);
     //----------------------
-    CCM8toNCbyTFC(sv, *t, orbit->qbcp_l->us.n, orbit->pmap->order, orbit->pmap->ofs_order, *orbit->Wh, Mcoc, Vcoc, zr1, orbit->pmap->isGS);
+    CCM8toNCbyTFC(sv, *t, orbit->fbpl->us.n, orbit->pmap->order, orbit->pmap->ofs_order, *orbit->Wh, Mcoc, Vcoc, zr1, orbit->pmap->isGS);
 
     //----------------------
     //Orbit error (infty norm)
@@ -5328,7 +5328,7 @@ void orbit_plot(Orbit* orbit, gnuplot_ctrl* h1, int type, int points, OdeStruct*
     //------------------------------------------------------------------------------------
     //First value
     //------------------------------------------------------------------------------------
-    CCM8toNCbyTFC(s, 0.0, orbit->qbcp_l->us.n, orbit->pmap->order, orbit->pmap->ofs_order, *orbit->Wh, Mcoc, Vcoc, z1, orbit->pmap->isGS);
+    CCM8toNCbyTFC(s, 0.0, orbit->fbpl->us.n, orbit->pmap->order, orbit->pmap->ofs_order, *orbit->Wh, Mcoc, Vcoc, z1, orbit->pmap->isGS);
 
     switch(type)
     {
@@ -5395,7 +5395,7 @@ void orbit_plot(Orbit* orbit, gnuplot_ctrl* h1, int type, int points, OdeStruct*
         gslc_dual_evolve(orbit, y, s, z1, &t, ti);
 
         //current condition updated
-        CCM8toNCbyTFC(s, ti, orbit->qbcp_l->us.n, orbit->pmap->order, orbit->pmap->ofs_order, *orbit->Wh, Mcoc, Vcoc, z1, orbit->pmap->isGS);
+        CCM8toNCbyTFC(s, ti, orbit->fbpl->us.n, orbit->pmap->order, orbit->pmap->ofs_order, *orbit->Wh, Mcoc, Vcoc, z1, orbit->pmap->isGS);
 
         switch(type)
         {
@@ -5504,7 +5504,7 @@ void orbit_plot_3d(Orbit* orbit, gnuplot_ctrl* h1, int points, OdeStruct* ode_s_
         while(fabs(t) < fabs(ti));
 
         //current condition updated
-        CCM8toNCbyTFC(s, ti, orbit->qbcp_l->us.n, orbit->pmap->order, orbit->pmap->ofs_order, *orbit->Wh, Mcoc, Vcoc, z1, orbit->pmap->isGS);
+        CCM8toNCbyTFC(s, ti, orbit->fbpl->us.n, orbit->pmap->order, orbit->pmap->ofs_order, *orbit->Wh, Mcoc, Vcoc, z1, orbit->pmap->isGS);
 
         x1[i] = y[0];
         x2[i] = y[1];
@@ -5605,259 +5605,6 @@ void orbit_Tmap_plot(Orbit* orbit, gnuplot_ctrl* h1, gnuplot_ctrl* h2, int color
 }
 
 
-
-//----------------------------------------------------------------------------------------
-//
-//  Square distance & minimization of it (deprecated)
-//
-//----------------------------------------------------------------------------------------
-/**
-    \brief Given an initial guess st0, computes the min argument of square distance between a given configuraton z1 and z = W(g(st), t) (see sqdist).
-    i.e. st1 = argmin sqdist(st, z1, t, &orbit)
-
-    \param Orbit a reference to the current orbit
-    \param z1 the target NC configuration (dim 6)
-    \param t the current time
-    \param st0 the initial guess in real TFC configuration (dim 4)
-    \param st1 the min argument to update real TFC configuration (dim 4)
-    \param multimin_method an integer to select a multidimensionnal minimization method
-**/
-void argmin_sqdist(Orbit& orbit, double z1[], double t, double st0[], double st1[], int multimin_method)
-{
-    double ftol   = 1e-6;  //Common precision for the multimin routines
-    int niter = 0;         //Number of iterations
-
-    //Switch on the multidimensionnal minimization method to use
-    switch(multimin_method)
-    {
-
-        //Simplex method
-    case MULTIMIN_SIMPLEX:
-    {
-        double** p    = dmatrix(0, 4, 0, 3); //5*4 matrices to store the vertices of the initial search simplex
-        double* y     = dvector(0, 4);       //5*1 vector so that y[i] = y[i] = sqdist(p[i])
-        double** id   = dmatrix(0, 3, 0, 3); //4*4 identity matrix
-        double lambda = 0.1;                 //size of the initial simplex (arbitrary, might be neater to set it higher in the code)
-
-        //Compute the identity matrix (ej)
-        for(int i= 0; i < 4; i++) for(int j = 0; j < 4; j++) id[i][j] = (i==j)? 1:0;
-        //First vertix is the initial guess st0
-        for(int j = 0; j < 4; j++) p[0][j] = st0[j];
-        //4 others are st0+lambda*ej
-        for(int i= 1; i <= 4; i++)  for(int j = 0; j < 4; j++) p[i][j] = st0[j] + lambda*id[i-1][j];
-        //Evaluate the 4+1 vertices and store them in y
-        for(int i = 0; i <= 4; i++) y[i] = sqdist(p[i], z1, t, &orbit);
-
-        //Simplex method
-        tic();
-        amoeba(z1, t, &orbit, p, y, 4, ftol, sqdist, &niter);
-        cout << "Simplex method. niter = " << niter << "in " << toc() << "s. " << endl;
-
-        //Update st1
-        for(int i = 0; i<4; i++) st1[i] = p[0][i]; //arbitrary, we can choose p[k], for k= 0...4
-
-        //Memory release
-        free_dmatrix(p,  0, 4, 0, 3);
-        free_dmatrix(id, 0, 3, 0, 3);
-        free_dvector(y, 0, 4);
-        break;
-    }
-
-
-
-    //Fletcher-Reeves-Polak-Ribiere minimization
-    case MULTIMIN_FRPRMN ... MULTIMIN_DFRPRMN:
-    {
-
-        double* pv    = dvector(0, 3);  //4*1 vector that contains the final argmin
-        double fret;                    //final minimum found
-
-        //Initialize pv to st0
-        for(int j = 0; j < 4; j++) pv[j] = st0[j];
-
-        //frprmn method
-        tic();
-        if(multimin_method == MULTIMIN_FRPRMN)
-        {
-            frprmn(z1, t, &orbit, pv, 3, ftol, &niter, &fret, sqdist, dsqdist);
-            //cout << "frprmn method. niter = " << niter << " in " << toc() << "s. " << endl;
-        }
-        else
-        {
-            dfrprmn(z1, t, &orbit, pv, 3, ftol, &niter, &fret, sqdist, dsqdist);
-            //cout << "dfrprmn method. niter = " << niter << "in " << toc() << "s. " << endl;
-        }
-
-        //Update st1
-        for(int i = 0; i<4; i++) st1[i] = pv[i];
-
-        //Free memory
-        free_dvector(pv, 0, 3);
-        break;
-    }
-
-    }
-
-}
-
-/**
-    \brief Computes the square distance between a given configuraton z1 and z0 = W(g(st0), t)
-
-    \param st0 an array of 4 double which gives the configuration to study in real TFC coordinates
-    \param z1 the target NC configuration (dim 6)
-    \param t the current time
-    \param params a set of parameters needed to perform evaluations of W and g
-    \return a double, the square distance between a given configuraton z1 and z0 = W(g(st0), t)
-**/
-double sqdist(double st0[], double z1[], double t, void* params)
-{
-    //Pointers
-    Orbit* orbit = (Orbit*) params;
-
-    //------------------------------------------------------------------------------------
-    // Inner variables (NC, TFC)
-    //------------------------------------------------------------------------------------
-    cdouble s0[4];
-    cdouble z0[6];
-    double z0d[6];
-//    double ys[6];
-
-    //------------------------------------------------------------------------------------
-    //"Realification": s0 = REAL(st0)
-    //------------------------------------------------------------------------------------
-    s0[0] = 1.0/sqrt(2)*(st0[0] - st0[2]*I);
-    s0[2] = 1.0/sqrt(2)*(st0[2] - st0[0]*I);
-    s0[1] = 1.0/sqrt(2)*(st0[1] - st0[3]*I);
-    s0[3] = 1.0/sqrt(2)*(st0[3] - st0[1]*I);
-
-    //------------------------------------------------------------------------------------
-    // 2. Update z0
-    //------------------------------------------------------------------------------------
-    double res = 0;
-    for(int p = 0; p < 6; p++)
-    {
-        orbit->W->at(p).evaluate(s0, *orbit->ofs, orbit->pmap->order, orbit->pmap->ofs_order);
-        z0[p] = orbit->ofs->evaluate(orbit->qbcp_l->us.n*t);
-        z0d[p] = creal(z0[p]);
-        res += (z0d[p] - z1[p])*(z0d[p] - z1[p]);
-        //Add the delta in energy?
-        //NCtoSYS(t, z0d, ys, orbit->ode_s_6->d->sys->params);
-        //res += (qbfbp_H(t, ys, orbit->ode_s_6->d->sys->params) - orbit->pmap->Hvalue)*(qbfbp_H(t, ys, orbit->ode_s_6->d->sys->params) - orbit->pmap->Hvalue);
-    }
-
-    return res;
-}
-
-/**
-    \brief Computes the gradient square distance between a given configuraton z1 and z0 = W(g(st0), t) (see sqdist)
-
-    \param st0 an array of 4 double which gives the configuration to study in real TFC coordinates
-    \param df the gradient to update
-    \param z1 the target NC configuration (dim 6)
-    \param t the current time
-    \param params a set of parameters needed to perform evaluations of W and g
-**/
-void dsqdist(double st0[], double df[], double z1[], double t, void* params)
-{
-    //Pointers
-    Orbit* orbit = (Orbit*) params;
-
-    //------------------------------------------------------------------------------------
-    // Inner variables (NC, TFC)
-    //------------------------------------------------------------------------------------
-    cdouble s0[4];
-    cdouble z0;
-    double w[6];
-    cdouble** dw    = dcmatrix(0,5,0,3);
-    cdouble** dg    = dcmatrix(0,3,0,3);
-    cdouble** dwdg  = dcmatrix(0,5,0,3);
-
-    //------------------------------------------------------------------------------------
-    //"Realification": s0 = REAL(st0)
-    //------------------------------------------------------------------------------------
-    s0[0] = 1.0/sqrt(2)*(st0[0] - st0[2]*I);
-    s0[2] = 1.0/sqrt(2)*(st0[2] - st0[0]*I);
-    s0[1] = 1.0/sqrt(2)*(st0[1] - st0[3]*I);
-    s0[3] = 1.0/sqrt(2)*(st0[3] - st0[1]*I);
-
-    //------------------------------------------------------------------------------------
-    // Evaluating W and the Jacobian of W
-    //------------------------------------------------------------------------------------
-    for(int i = 0; i < 6; i++)
-    {
-        //AUX = Wi(s0)
-        orbit->W->at(i).evaluate(s0, *orbit->ofs, orbit->pmap->order, orbit->pmap->ofs_order);
-        z0 = orbit->ofs->evaluate(orbit->qbcp_l->us.n*t);
-        //w[i] = Aux(nt)
-        w[i] = creal(z0);
-
-        for(int j = 0; j < 4; j++)
-        {
-            //AUX= DW_ij(s0)
-            orbit->DW->getCA(i,j)->evaluate(s0, *orbit->ofs, orbit->pmap->order, orbit->pmap->ofs_order);
-            //dw[i][j] = AUX(nt)
-            dw[i][j] = orbit->ofs->evaluate(orbit->qbcp_l->us.n*t);
-        }
-    }
-
-    //------------------------------------------------------------------------------------
-    // Building the matrix dg
-    //------------------------------------------------------------------------------------
-    dg[0][0] = 1.0/sqrt(2)+0.0*I;
-    dg[0][1] = 0.0+0.0*I;
-    dg[0][2] = -1.0/sqrt(2)*I;
-    dg[0][3] = 0.0+0.0*I;
-
-    dg[1][0] = 0.0+0.0*I;
-    dg[1][1] = 1.0/sqrt(2)+0.0*I;
-    dg[1][2] = 0.0+0.0*I;
-    dg[1][3] = -1.0/sqrt(2)*I;
-
-    dg[2][0] = -1.0/sqrt(2)*I;
-    dg[2][1] = 0.0+0.0*I;
-    dg[2][2] = 1.0/sqrt(2)+0.0*I;
-    dg[2][3] = 0.0+0.0*I;
-
-    dg[3][0] = 0.0+0.0*I;
-    dg[3][1] = -1.0/sqrt(2)*I;
-    dg[3][2] = 0.0+0.0*I;
-    dg[3][3] = 1.0/sqrt(2)+0.0*I;
-
-    //------------------------------------------------------------------------------------
-    // Evaluating the product dw*dg
-    //------------------------------------------------------------------------------------
-    for(int i = 0; i < 6; i++)
-    {
-        for(int j = 0; j < 4; j++)
-        {
-            dwdg[i][j] = 0.0+0.0*I;
-            for(int k = 0; k <4; k++) dwdg[i][j] += dw[i][k]*dg[k][j];
-        }
-    }
-
-    //------------------------------------------------------------------------------------
-    // Evaluating the gradient
-    //------------------------------------------------------------------------------------
-    for(int p = 0; p < 4; p++)
-    {
-        df[p] = 0.0;
-        for(int k = 0; k < 6; k++)
-        {
-            df[p] += creal(2*(w[k] - z1[k])*dwdg[k][p]);
-            //cout << "Real? " << creal(2*(w[k] - z1[k])*dwdg[k][p]) << " + " << cimag(2*(w[k] - z1[k])*dwdg[k][p]) << endl;
-        }
-    }
-
-
-    //------------------------------------------------------------------------------------
-    // Free memory
-    //------------------------------------------------------------------------------------
-    free_dcmatrix(dg, 0, 3, 0, 3);
-    free_dcmatrix(dw, 0, 5, 0, 3);
-    free_dcmatrix(dwdg, 0, 5, 0, 3);
-}
-
-
 //----------------------------------------------------------------------------------------
 //
 //  Orbit C structure handling
@@ -5879,7 +5626,7 @@ void init_orbit(Orbit* orbit,
                 OdeStruct* ode_s_6_root,
                 OdeStruct* ode_s_8_root,
                 Pmap* pmap,
-                QBCP_L* qbcp_l,
+                FBPL* fbpl,
                 Ofsc* orbit_ofs,
                 int vdim,
                 int label)
@@ -5888,7 +5635,7 @@ void init_orbit(Orbit* orbit,
     //Parent
     //-----------
     orbit->pmap    = pmap;     //Poincare map (parent)
-    orbit->qbcp_l = qbcp_l;  //QBCP around a given Li point (parent)
+    orbit->fbpl = fbpl;  //QBCP around a given Li point (parent)
 
     //-----------
     //Parameterization (common to all orbits)
@@ -5907,7 +5654,7 @@ void init_orbit(Orbit* orbit,
     //-----------
     //Pulsation
     //-----------
-    orbit->n = qbcp_l->us.n;
+    orbit->n = fbpl->us.n;
 
 
     //-----------
@@ -5982,51 +5729,6 @@ void free_orbit(Orbit* orbit)
     free_ode_structure(orbit->ode_s_6_root);
     free_ode_structure(orbit->ode_s_8);
     free_ode_structure(orbit->ode_s_8_root);
-}
-
-//----------------------------------------------------------------------------------------
-//Backup
-//----------------------------------------------------------------------------------------
-int gslc_pmin_step(Orbit* orbit,
-                   OdeStruct* ode_s,
-                   double yv[],
-                   double s1[],
-                   int* reset_number,
-                   double* t,
-                   double t1,
-                   double threshold)
-{
-    int status;
-    double eOm;
-    //----------------------
-    //Evolve one step of z(t)
-    //----------------------
-    status = gsl_odeiv2_evolve_apply (ode_s->e, ode_s->c, ode_s->s, &ode_s->sys, t, t1, &ode_s->h, yv);
-    if (status != GSL_SUCCESS)
-    {
-        cout << "error in gslc_dual_step: integration of z(t) has gone wrong. break." << endl;
-        return GSL_FAILURE;
-    }
-
-    tic();
-    argmin_sqdist(*orbit, yv, *t, s1, s1, MULTIMIN_FRPRMN);
-    eOm = sqdist(s1, yv, *t, orbit);
-    cout << "Minimization done in " << toc() << "s." << endl;
-
-    cout << "gslc_pmin_step. t  = " << *t << ", z = " << yv[2] << ", pmin = " << eOm << endl;
-    cout << "Hamiltonian = " << orbit_ham(*orbit->pmap, s1) << endl;
-
-    //----------------------
-    //Reset if necessary
-    //----------------------
-    if(eOm > threshold)
-    {
-        cout << "Reset is detected @t  = " << *t << ", z = " << yv[2] << ", pmin = " << eOm << endl;
-        RCMtoNC(s1, *t, orbit->n, orbit->pmap->order, orbit->pmap->ofs_order, *orbit->W, *orbit->ofs, yv, true);
-        (*reset_number)++;
-    }
-
-    return status;
 }
 
 

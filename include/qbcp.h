@@ -24,7 +24,6 @@
 #include "qbtbp.h"
 #include "diffcorr.h"
 #include "define_env.h"
-#include "parameters.h"
 #include "odezero.h"
 #include "init.h"
 #include "eminsem.h"
@@ -198,12 +197,12 @@ int qbfbp_Q(double t, const double y[], gsl_matrix *Q1, gsl_matrix *Q2, gsl_matr
 /**
  *  \brief COC: from Normalized-Centered coordinates to Earth-Moon coordinates
  **/
-void NCtoEM(double t, const double yNC[], double yEM[], QBCP_L *qbp);
+void NCtoEM(double t, const double yNC[], double yEM[], FBPL *qbp);
 
 /**
  *  \brief COC: from Earth-Moon coordinates to Normalized-Centered coordinates
  **/
-void EMtoNC(double t, const double yEM[], double yNC[], QBCP_L *qbp);
+void EMtoNC(double t, const double yEM[], double yNC[], FBPL *qbp);
 
 //-----------------------------------------------------------------------------
 // COC: NC <--> SYS
@@ -211,12 +210,12 @@ void EMtoNC(double t, const double yEM[], double yNC[], QBCP_L *qbp);
 /**
  *  \brief COC: Normalized-Centered coordinates to system coordinates. Use in priority instead of NCtoEM or NCtoSEM.
  **/
-void NCtoSYS(double t, const double yNC[], double yEM[], QBCP_L *qbp);
+void NCtoSYS(double t, const double yNC[], double yEM[], FBPL *qbp);
 
 /**
  *  \brief COC: from system coordinates to Normalized-Centered coordinates
  **/
-void SYStoNC(double t, const double yEM[], double yNC[], QBCP_L *qbp);
+void SYStoNC(double t, const double yEM[], double yNC[], FBPL *qbp);
 
 //-----------------------------------------------------------------------------
 // COC: NC <--> SEM
@@ -224,12 +223,12 @@ void SYStoNC(double t, const double yEM[], double yNC[], QBCP_L *qbp);
 /**
  *  \brief COC: from Sun-Earth-Moon coordinates to Normalized-Centered coordinates
  **/
-void SEMtoNC(double t, const double ySEM[], double yNC[], QBCP_L *qbp);
+void SEMtoNC(double t, const double ySEM[], double yNC[], FBPL *qbp);
 
 /**
  *  \brief COC: from Normalized-Centered coordinates to Sun-Earth-Moon coordinates
  **/
-void NCtoSEM(double t, const double yNC[], double ySEM[], QBCP_L *qbp);
+void NCtoSEM(double t, const double yNC[], double ySEM[], FBPL *qbp);
 
 //-----------------------------------------------------------------------------
 // COC: tests & plots
@@ -244,7 +243,7 @@ void QBTBP_IN();
  **/
 int odePlot_EMtoSEM(const double y[],
                       double t1,
-                      QBCP_L &qbcp_l,
+                      FBPL &fbpl,
                       gsl_odeiv2_driver *d,
                       gnuplot_ctrl  *h1,
                       int Npoints,
@@ -260,7 +259,6 @@ int odePlot_EMtoSEM(const double y[],
  **/
 int odePlot_SEMtoEM(const double y[],
                       double t1,
-                      QBCP_L &qbcp_l,
                       gsl_odeiv2_driver *d,
                       gnuplot_ctrl  *h1,
                       int Npoints,

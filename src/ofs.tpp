@@ -1036,65 +1036,6 @@ template<typename T> void Ofs<T>::dot(double const& n)
 }
 
 //---------------------------------------------------------------------------
-//Change of format
-//---------------------------------------------------------------------------
-/**
- *  \brief  Performs the transformation from an Ots object (Object Taylor Serie).
- *
- *  ts is a Taylor serie of two variables, namely \f$ \sigma_1 = e^(-it) \f$ and \f$ \sigma_2 = e^(-it) \f$.
- *  Notes:
- *  1. Both series have to be properly initialized
- *  2. If this is of order J (size 2J+1), ts is of order 2J (of size binomial(2J+2,2)
- */
-template <typename T>  void Ofs<T>::ts2fs(Ots<T> const& ts)
-{
-    int k, l, fspow;
-    //Cleaning of fs
-    this->zero();
-    //Order 0
-    this->coef[this->order] = (T) ts.getCoef(0,0);
-    //Orders > 0
-    for(k = 1; k<= ts.getOrder() ; k++)
-    {
-        for(l=0; l<= k; l++)
-        {
-            fspow = 2*l-k;
-            if(fspow <= this->order && fspow >= -this->order)
-            {
-                //printf("k: %i, l: %i, fspower: %i, cc: %i, indix of ts: %i\n", k, l, fspow, cc, cc+l);
-                this->coef[this->order+fspow] += ts.getCoef(k, l);
-            }
-
-        }
-    }
-}
-
-/**
- * \fn template<typename T> Ots<T>& fs2ts(Ots<T> & ts, Ofs<T> const& fs)
- * \brief Performs the transformation from an Ofs object (fs) to an Ots object (ts).
- *
- *  ts is a Taylor serie of two variables, namely \f$ \sigma_1 = e^(-it) \f$ and \f$ \sigma_2 = e^(-it) \f$.
- *  Notes:
- *  1. Both series have to be properly initialized
- *  2. If this is of order J (size 2J+1), ts is of order 2J (of size binomial(2J+2,2)
- */
-template<typename T> void fs2ts(Ots<T> *ts, Ofs<T> const& fs)
-{
-    int j, cc;
-    //Order 0
-    ts->setCoef(fs.ofs_getCoef(0), 0);
-
-    //Orders > 0
-    cc = 1;
-    for(j = 1; j<= fs.getOrder(); j++)
-    {
-        ts->setCoef(fs.ofs_getCoef(-j), cc);
-        cc+=FTDA::nmon(2,j);
-        ts->setCoef(fs.ofs_getCoef(j), cc-1);
-    }
-}
-
-//---------------------------------------------------------------------------
 // Functions (+, -,...)
 //---------------------------------------------------------------------------
 /**

@@ -17,8 +17,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 //custom
-#include "ftda.h"
-#include "ots.h"
+#include "Manip.h"
 #include "ofs.h"
 #include "Constants.h"
 
@@ -259,34 +258,6 @@ public:
 
     //------------------
 
-    /**
-     *  \brief  An operation. Adds the product: \c this \f$  += m a \f$ with m a subcoefficient. Oftsh< Ots<U> > case.
-     *  \param  a: a reference to an Oftsh object
-     *  \param  m: reference to a subcoefficient
-     */
-    template<typename U>
-    Oftsh< Ots<U> >& oftsh_smult_u(Oftsh< Ots<U> > const& a, U const& m);
-
-    /**
-     *  \brief  An operation. Adds the product: \c this \f$  += m * r_a * a \f$ with m a subcoefficient and ra a coefficient. Oftsh< Ots<U> > case.
-     *  \param  a: a reference to an Oftsh object
-     *  \param  ra: reference to a coefficient
-     *  \param  m: reference to a subcoefficient
-     */
-    template<typename U>
-    Oftsh< Ots<U> >& oftsh_smult_tu(Oftsh< Ots<U> > const& a, Ots<U> const& ra, U const& m);
-
-    /**
-     *  \brief  An operation. Adds the product: \c this \f$  += \frac{m r_a}{r}  a \f$ with m a subcoefficient, ra and r coefficients. Oftsh< Ots<U> > case.
-     *  \param  a: a reference to an Oftsh object
-     *  \param  ra: reference to a coefficient
-     *  \param  r: reference to a coefficient
-     *  \param  m: reference to a subcoefficient
-     */
-    template<typename U>
-    Oftsh< Ots<U> >& oftsh_smultdiv_ttu(Oftsh< Ots<U> > const& a, Ots<U> const& ra, Ots<U> const& r, U const& m,  Ots<U> & temp);
-
-
     //------------------
     // mult
     //------------------
@@ -334,27 +305,6 @@ public:
      */
     template<typename U>
     Oftsh< Ofs<U> >& oftsh_smprod_u(Oftsh< Ofs<U> > const& a, Oftsh< Ofs<U> > const& b, U const& m);
-
-    /**
-     *  \brief  An operation. Adds the product: \c this \f$ += m a \times b \f$ with a and b Oftsh objects. Oftsh< Ots<U> > case.
-     *  \param  a: a reference to an Oftsh object
-     *  \param  b: reference to an Oftsh object
-     *  \param  m: reference to a subcoefficient
-     *  \return a reference to the current object
-     */
-    template<typename U>
-    Oftsh< Ots<U> >& oftsh_smprod_u(Oftsh< Ots<U> > const& a, Oftsh< Ots<U> > const& b, U const& m);
-
-    /**
-     *  \brief  An operation. Adds the product: \c this \f$ += \frac{m}{r} a \times b \f$ with a and b Oftsh objects. Oftsh< Ots<U> > case.
-     *  \param  a: a reference to an Oftsh object
-     *  \param  b: reference to an Oftsh object
-     *  \param  r: reference to a coefficient
-     *  \param  m: reference to a subcoefficient
-     *  \return a reference to the current object
-     */
-    template<typename U>
-    Oftsh< Ots<U> >& oftsh_smproddiv_tu(Oftsh< Ots<U> > const& a, Oftsh< Ots<U> > const& b, Ots<U> const& r, U const& m, Ots<U> &temp);
 
     //------------------
     // Derivation
@@ -426,7 +376,7 @@ public:
     *
     *  Notes:
     *  1. If a is of order n, this is of order n+1.
-    *  2. Need an extension to autonomous case: WORKS ONLY FOR Ofs/Ots<double/cdouble> coefficients.
+    *  2. Need an extension to autonomous case: WORKS ONLY FOR Ofs<double/cdouble> coefficients.
     */
     Oftsh<T>& sprimh(Oftsh< T > const& a, int ni);
 

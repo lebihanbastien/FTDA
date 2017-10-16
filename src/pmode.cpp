@@ -723,7 +723,7 @@ int errorPlot(const double st0[],      //RCM initial conditions
               gsl_odeiv2_driver *dnc,  //driver for NC integration
               gsl_odeiv2_driver *drvf, //drive for RVF integration (reduced vector field)
               int Npoints,             //Number of points on which the errors are estimated
-              QBCP_L& qbcp_l,          //current QBCP
+              FBPL& fbpl,          //current QBCP
               int order,               //Order for the eval of the OFTS objects
               int ofs_order,           //Order for the eval of the OFS objects
               gnuplot_ctrl  **ht,      //Gnuplot handlers
@@ -732,9 +732,9 @@ int errorPlot(const double st0[],      //RCM initial conditions
     //------------------------------------------------------------------------------------
     // Strings
     //------------------------------------------------------------------------------------
-    string F_GS    = qbcp_l.cs.F_GS;
-    string F_PLOT  = qbcp_l.cs.F_PLOT;
-    string F_COC   = qbcp_l.cs.F_COC;
+    string F_GS    = fbpl.cs.F_GS;
+    string F_PLOT  = fbpl.cs.F_PLOT;
+    string F_COC   = fbpl.cs.F_COC;
 
 
     //------------------------------------------------------------------------------------
@@ -784,7 +784,7 @@ int errorPlot(const double st0[],      //RCM initial conditions
     //------------------------------------------------------------------------------------
     //Retrieving the parameters
     //------------------------------------------------------------------------------------
-    double n = qbcp_l.us.n;
+    double n = fbpl.us.n;
 
     //------------------------------------------------------------------------------------
     //Hamiltonian at the origin
@@ -792,7 +792,7 @@ int errorPlot(const double st0[],      //RCM initial conditions
     double stLi[REDUCED_NV];
     for(int i = 0; i < REDUCED_NV; i++) stLi[i] = 0.0;
     RCMtoNCbyTFC(stLi, 0.0, n, order, ofs_order, Wh, PC, V, z0ncr, false);
-    NCtoSYS(0.0, z0ncr, z0em, (QBCP_L*) dnc->sys->params);  //Hamiltonian in sys coordinates (for reference)
+    NCtoSYS(0.0, z0ncr, z0em, (FBPL*) dnc->sys->params);  //Hamiltonian in sys coordinates (for reference)
     double HLi = qbfbp_H(0.0, z0em, dnc->sys->params);
 
     //------------------------------------------------------------------------------------
@@ -809,7 +809,7 @@ int errorPlot(const double st0[],      //RCM initial conditions
     // Euclidian Norm
     //------------------------------------------------------------------------------------
     W0 = ENorm(z1ncr, 3);
-    W0km = W0*qbcp_l.cs.gamma*qbcp_l.cs.cr3bp.L;
+    W0km = W0*fbpl.cs.gamma*fbpl.cs.cr3bp.L;
 
     //------------------------------------------------------------------------------------
     // Print Initial Conditions
@@ -824,7 +824,7 @@ int errorPlot(const double st0[],      //RCM initial conditions
     // Initial relative Hamiltonian
     //-----------------------------------------
     //H0 = qbfbp_Hn(0.0, z1ncr, dnc->sys->params)-HLi0;           //Hamiltonian
-    NCtoSYS(0.0, z1ncr, z1em, (QBCP_L*) dnc->sys->params);        //Hamiltonian in EM coordinates (for reference)
+    NCtoSYS(0.0, z1ncr, z1em, (FBPL*) dnc->sys->params);        //Hamiltonian in EM coordinates (for reference)
     H0 = qbfbp_H(0.0, z1em, dnc->sys->params) -HLi ;
     cout << "H in EM coordinates: " << H0 << endl;
 
@@ -886,12 +886,12 @@ int errorPlot(const double st0[],      //RCM initial conditions
 
         //Hamiltonian, at the origin
         RCMtoNCbyTFC(stLi, ti, n, order, ofs_order, Wh, PC, V, z0ncr, false);
-        NCtoSYS(ti, z0ncr, z0em, (QBCP_L*) dnc->sys->params);  //Hamiltonian in sys coordinates (for reference)
+        NCtoSYS(ti, z0ncr, z0em, (FBPL*) dnc->sys->params);  //Hamiltonian in sys coordinates (for reference)
         HLi = qbfbp_H(ti, z0em, dnc->sys->params);
 
 
         //Hamiltonian, taken at z1ncr2 = W(s1rcm, ti)
-        NCtoSYS(ti, z1ncr2, z1em, (QBCP_L*) dnc->sys->params);
+        NCtoSYS(ti, z1ncr2, z1em, (FBPL*) dnc->sys->params);
         H  = qbfbp_H(ti, z1em, dnc->sys->params);
 
 
@@ -1101,7 +1101,7 @@ int eOPlot(const double st0[],         //RCM initial conditions
               gsl_odeiv2_driver *dnc,  //driver for NC integration
               gsl_odeiv2_driver *drvf, //drive for RVF integration (reduced vector field)
               int Npoints,             //Number of points on which the errors are estimated
-              QBCP_L& qbcp_l,          //current QBCP
+              FBPL& fbpl,          //current QBCP
               int order,               //Order for the eval of the OFTS objects
               int ofs_order,           //Order for the eval of the OFS objects
               gnuplot_ctrl  **ht,      //Gnuplot handlers
@@ -1110,9 +1110,9 @@ int eOPlot(const double st0[],         //RCM initial conditions
     //------------------------------------------------------------------------------------
     // Strings
     //------------------------------------------------------------------------------------
-    string F_GS    = qbcp_l.cs.F_GS;
-    string F_PLOT  = qbcp_l.cs.F_PLOT;
-    string F_COC   = qbcp_l.cs.F_COC;
+    string F_GS    = fbpl.cs.F_GS;
+    string F_PLOT  = fbpl.cs.F_PLOT;
+    string F_COC   = fbpl.cs.F_COC;
 
 
     //------------------------------------------------------------------------------------
@@ -1155,7 +1155,7 @@ int eOPlot(const double st0[],         //RCM initial conditions
     //------------------------------------------------------------------------------------
     //Retrieving the parameters
     //------------------------------------------------------------------------------------
-    double n = qbcp_l.us.n;
+    double n = fbpl.us.n;
 
 
     //------------------------------------------------------------------------------------
@@ -1177,7 +1177,7 @@ int eOPlot(const double st0[],         //RCM initial conditions
     // Euclidian Norm
     //------------------------------------------------------------------------------------
     W0   = ENorm(z1ncr, 3);
-    W0km = W0*qbcp_l.cs.gamma*qbcp_l.cs.cr3bp.L;
+    W0km = W0*fbpl.cs.gamma*fbpl.cs.cr3bp.L;
 
     //------------------------------------------------------------------------------------
     // Print Initial Conditions

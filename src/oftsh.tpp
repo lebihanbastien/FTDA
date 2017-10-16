@@ -78,7 +78,7 @@ template<typename T> Oftsh<T>::Oftsh(Oftsh<T> const& b)
 //-----------------------------------------------------------
     order = b.order;
     nv = b.nv;
-    coef = new T(0);//[ FTDA::nmon(nv, order)]();
+    coef = new T(0);//[ Manip::nmon(nv, order)]();
     //Tree
     if(nv==1)  //1-variable polynomial
     {
@@ -111,8 +111,8 @@ template<typename T> Oftsh<T>::Oftsh(Oftsh<T> const& b)
 //-----------------------------------------------------------
 
     //Copy in linking of the coefficients
-    T *coef0 = new T[ FTDA::nmon(b.nv, b.order)]();
-    for(int i = 0 ; i <  FTDA::nmon(b.nv, b.order) ; i++) coef0[i] = b.coef[i];
+    T *coef0 = new T[ Manip::nmon(b.nv, b.order)]();
+    for(int i = 0 ; i <  Manip::nmon(b.nv, b.order) ; i++) coef0[i] = b.coef[i];
     this->linkCoefs(coef0);
 }
 
@@ -132,7 +132,7 @@ template<typename T> Oftsh<T>& Oftsh<T>::operator = (Oftsh<T> const& b)
 //-----------------------------------------------------------
         order = b.order;
         nv = b.nv;
-        coef = new T(0);//[ FTDA::nmon(nv, order)]();
+        coef = new T(0);//[ Manip::nmon(nv, order)]();
         //Tree
         if(nv==1)  //1-variable polynomial
         {
@@ -164,8 +164,8 @@ template<typename T> Oftsh<T>& Oftsh<T>::operator = (Oftsh<T> const& b)
 // End of replacement code
 //-----------------------------------------------------------
         //Copy in linking of the coefficients
-        T *coef0 = new T[ FTDA::nmon(b.nv, b.order)]();
-        for(int i = 0 ; i <  FTDA::nmon(b.nv, b.order) ; i++) coef0[i] = b.coef[i];
+        T *coef0 = new T[ Manip::nmon(b.nv, b.order)]();
+        for(int i = 0 ; i <  Manip::nmon(b.nv, b.order) ; i++) coef0[i] = b.coef[i];
         this->linkCoefs(coef0);
     }
     return *this; //same object if returned
@@ -223,7 +223,7 @@ template<typename T> Oftsh<T>& Oftsh<T>::ccopy (Oftsh<T> const& b)
     }
     else
     {
-        for(int i = 0 ; i< FTDA::nmon(nv, order) ; i++) coef[i] = b.coef[i];
+        for(int i = 0 ; i< Manip::nmon(nv, order) ; i++) coef[i] = b.coef[i];
         return *this;
     }
 }
@@ -248,36 +248,13 @@ template<typename T> void Oftsh<T>::linkCoefs(T *coef0)
         //allocate the position of the first coefficient
         coef = coef0;
         //perform recursice allocation
-        for(i=0, coefc=coef0; i<=order; coefc+= FTDA::nmon(nv-1,order-i), i++)
+        for(i=0, coefc=coef0; i<=order; coefc+= Manip::nmon(nv-1,order-i), i++)
         {
             term[i].linkCoefs(coefc);
         }
     }
 }
 
-/**
- *  \brief  Performs linking between the Oftsh<T> and a coefficient array. Oftsh< Ots<double> > case.
- *   Specialization of routine: template<typename T> void Oftsh<T>::linkCoefs(T *coef0)
- */
-template<> inline void Oftsh< Ots<double> >::linkCoefs( Ots<double> *coef0)
-{
-    if(nv==1) //1-variable homogeneous polynomial
-    {
-        coef = coef0;
-    }
-    else
-    {
-        Ots<double>  *coefc;
-        int i;
-        //allocate the position of the first coefficient
-        coef = coef0;
-        //perform recursice allocation
-        for(i=0, coefc=coef0; i<=order; coefc+= FTDA::nmon(nv-1,order-i), i++)
-        {
-            term[i].linkCoefs(coefc);
-        }
-    }
-}
 
 //---------------------------------------------------------------------------
 //Setters
@@ -287,7 +264,7 @@ template<> inline void Oftsh< Ots<double> >::linkCoefs( Ots<double> *coef0)
  */
 template<typename T> void Oftsh<T>::setCoef(T const& value, int pos)
 {
-    if(pos >=0 && pos <  FTDA::nmon(nv, order)) coef[pos] = value;
+    if(pos >=0 && pos <  Manip::nmon(nv, order)) coef[pos] = value;
     else cout << "Error in setCoef: position is out of scope\n No coefficient is set." << endl;
 }
 
@@ -296,7 +273,7 @@ template<typename T> void Oftsh<T>::setCoef(T const& value, int pos)
  */
 template<typename T> void Oftsh<T>::addCoef(T const& value, int pos)
 {
-    if(pos >=0 && pos <  FTDA::nmon(nv, order)) coef[pos] += value;
+    if(pos >=0 && pos <  Manip::nmon(nv, order)) coef[pos] += value;
     else cout << "Error in setCoef: position is out of scope\n No coefficient is set." << endl;
 }
 
@@ -305,7 +282,7 @@ template<typename T> void Oftsh<T>::addCoef(T const& value, int pos)
  */
 template<typename T> template<typename U> void Oftsh<T>::setSubCoef(U value, int pos)
 {
-    if(pos >=0 && pos <  FTDA::nmon(nv, order)) coef[pos].setAllCoefs(value);
+    if(pos >=0 && pos <  Manip::nmon(nv, order)) coef[pos].setAllCoefs(value);
     else cout << "Error in setCoef: position is out of scope\n No coefficient is set." << endl;
 }
 
@@ -314,7 +291,7 @@ template<typename T> template<typename U> void Oftsh<T>::setSubCoef(U value, int
  */
 template<typename T> template<typename U> void Oftsh<T>::setSubCoef(U value, int pos, int i)
 {
-    if(pos >=0 && pos <  FTDA::nmon(nv, order)) coef[pos].setCoef(value, i);
+    if(pos >=0 && pos <  Manip::nmon(nv, order)) coef[pos].setCoef(value, i);
     else cout << "Error in setCoef: position is out of scope\n No coefficient is set." << endl;
 }
 
@@ -323,7 +300,7 @@ template<typename T> template<typename U> void Oftsh<T>::setSubCoef(U value, int
  */
 template<typename T> void Oftsh<T>::setRandomCoefs()
 {
-    for(int pos = 0; pos< FTDA::nmon(nv, order); pos++)
+    for(int pos = 0; pos< Manip::nmon(nv, order); pos++)
     {
             coef[pos].setRandomCoefs();
             //coef[pos]/=(double)(order+1);
@@ -372,7 +349,7 @@ template<typename T> T* Oftsh<T>::getCA() const
  */
 template<typename T>  T Oftsh<T>::getCoef(int i) const
 {
-    if(i >=0 && i <  FTDA::nmon(nv, order)) return coef[i];
+    if(i >=0 && i <  Manip::nmon(nv, order)) return coef[i];
     else
     {
         cout << "Error in Oftsh<T>::getCoef(int i): position is out of scope." << endl;
@@ -406,7 +383,7 @@ template<typename T> int Oftsh<T>::getNV() const
  */
 template<typename T> void Oftsh<T>::zero()
 {
-    for(int i = 0 ; i<  FTDA::nmon(nv, order); i++) this->setCoef(0.0, i);
+    for(int i = 0 ; i<  Manip::nmon(nv, order); i++) this->setCoef(0.0, i);
 }
 
 /**
@@ -414,7 +391,7 @@ template<typename T> void Oftsh<T>::zero()
  */
 template<> inline void Oftsh< Ofsd >::zero()
 {
-    for(int i = 0 ; i<  FTDA::nmon(nv, order); i++) this->coef[i].zero();
+    for(int i = 0 ; i<  Manip::nmon(nv, order); i++) this->coef[i].zero();
 }
 
 /**
@@ -422,24 +399,7 @@ template<> inline void Oftsh< Ofsd >::zero()
  */
 template<> inline void Oftsh< Ofsc >::zero()
 {
-    for(int i = 0 ; i<  FTDA::nmon(nv, order); i++) this->coef[i].zero();
-}
-
-/**
- *  \brief  Sets all coefficients to zero. Ots<double> case
- */
-template<> inline void Oftsh< Ots<double> >::zero()
-{
-    for(int i = 0 ; i<  FTDA::nmon(nv, order); i++) this->coef[i].zero();
-}
-
-
-/**
- *  \brief  Sets all coefficients to zero. Ots<cdouble> case
- */
-template<> inline void Oftsh< Ots< complex double> >::zero()
-{
-    for(int i = 0 ; i<  FTDA::nmon(nv, order); i++) this->coef[i].zero();
+    for(int i = 0 ; i<  Manip::nmon(nv, order); i++) this->coef[i].zero();
 }
 
 
@@ -456,7 +416,7 @@ template<> inline void Oftsh< Ots< complex double> >::zero()
  */
 template<typename T> Oftsh<T>& Oftsh<T>::conjugate()
 {
-    for(int pos=0; pos< FTDA::nmon(nv, order); pos++) coef[pos].conjugate();
+    for(int pos=0; pos< Manip::nmon(nv, order); pos++) coef[pos].conjugate();
     return *this;
 }
 
@@ -476,7 +436,7 @@ template<typename T> Oftsh<T>& Oftsh<T>::oftsh_smult_t(Oftsh<T> const& a, T cons
     else
     {
         //Sum
-        for (int i=0 ; i <  FTDA::nmon(nv, order); i++) coef[i].ofs_sprod(a.coef[i], c); //coef[i] += c*a.coef[i]; //
+        for (int i=0 ; i <  Manip::nmon(nv, order); i++) coef[i].ofs_sprod(a.coef[i], c); //coef[i] += c*a.coef[i]; //
         return *this;
     }
 }
@@ -494,7 +454,7 @@ template<typename T> Oftsh<T>& Oftsh<T>::oftsh_smult_tt(Oftsh<T> const& a, T con
     else
     {
         //Sum
-        for (int i=0 ; i <  FTDA::nmon(nv, order); i++) coef[i].ofs_smprod_t(a.coef[i], c1, c2, temp); //coef[i] += c*a.coef[i]; //
+        for (int i=0 ; i <  Manip::nmon(nv, order); i++) coef[i].ofs_smprod_t(a.coef[i], c1, c2, temp); //coef[i] += c*a.coef[i]; //
         return *this;
     }
 }
@@ -508,13 +468,13 @@ template<typename T> template<typename U> Oftsh< Ofs<U> >& Oftsh<T>::oftsh_smult
 {
     if(order != a.order || nv != a.nv)
     {
-        cout << "Error using smult: the order and/or number of variables does not match. Initial Oftsh< Ots<double> > is returned" << endl;
+        cout << "Error using smult: the order and/or number of variables does not match. Initial Oftsh< Ofs<double> > is returned" << endl;
         return *this;
     }
     else
     {
         //Sum
-        for (int i=0 ; i <  FTDA::nmon(nv, order); i++) coef[i].ofs_smult(a.coef[i], c);
+        for (int i=0 ; i <  Manip::nmon(nv, order); i++) coef[i].ofs_smult(a.coef[i], c);
         return *this;
     }
 }
@@ -526,129 +486,18 @@ template<typename T> template<typename U> Oftsh< Ofs<U> >& Oftsh<T>::oftsh_smult
 {
     if(order != a.order || nv != a.nv)
     {
-        cout << "Error using smult: the order and/or number of variables does not match. Initial Oftsh< Ots<double> > is returned" << endl;
+        cout << "Error using smult: the order and/or number of variables does not match. Initial Oftsh< Ofs<double> > is returned" << endl;
         return *this;
     }
     else
     {
         //Sum
-        for (int i=0 ; i <  FTDA::nmon(nv, order); i++) coef[i].ofs_smprod(a.coef[i], ra, c);  //sprod(a.coef[i], c*ra)
+        for (int i=0 ; i <  Manip::nmon(nv, order); i++) coef[i].ofs_smprod(a.coef[i], ra, c);  //sprod(a.coef[i], c*ra)
         return *this;
     }
 }
 
-//------------------
 
-/**
- *  \brief  An operation. Adds the product: \c this \f$  += m a \f$ with m a subcoefficient. Oftsh< Ots<U> > case.
- *  \param  a: a reference to an Oftsh object
- *  \param  m: reference to a subcoefficient
- */
-template<typename T> template<typename U> Oftsh< Ots<U> >& Oftsh<T>::oftsh_smult_u(Oftsh< Ots<U> > const& a, U const& c)
-{
-    if(order != a.order || nv != a.nv)
-    {
-        cout << "Error using smult: the order and/or number of variables does not match. Initial Oftsh< Ots<double> > is returned" << endl;
-        return *this;
-    }
-    else
-    {
-        //Sum
-        for (int i=0 ; i <  FTDA::nmon(nv, order); i++) coef[i].smult(a.coef[i], c);
-        return *this;
-    }
-}
-
-/**
- *  \brief  An operation. Adds the product: \c this \f$  += m * r_a * a \f$ with m a subcoefficient and ra a coefficient. Oftsh< Ots<U> > case.
- *  \param  a: a reference to an Oftsh object
- *  \param  ra: reference to a coefficient
- *  \param  m: reference to a subcoefficient
- */
-template<typename T> template<typename U> Oftsh< Ots<U> >& Oftsh<T>::oftsh_smult_tu(Oftsh< Ots<U> > const& a, Ots<U> const& ra, U const& c)
-{
-    if(order != a.order || nv != a.nv)
-    {
-        cout << "Error using smult: the order and/or number of variables does not match. Initial Oftsh< Ots<double> > is returned" << endl;
-        return *this;
-    }
-    else
-    {
-        //Sum
-        for (int i=0 ; i <  FTDA::nmon(nv, order); i++) coef[i].smprod(a.coef[i], ra, c);  //sprod(a.coef[i], c*ra)
-        return *this;
-    }
-}
-
-/**
- *  \brief  An operation. Adds the product: \c this \f$  += \frac{m r_a}{r}  a \f$ with m a subcoefficient, ra and r coefficients. Oftsh< Ots<U> > case.
- *  \param  a: a reference to an Oftsh object
- *  \param  ra: reference to a coefficient
- *  \param  r: reference to a coefficient
- *  \param  m: reference to a subcoefficient
- */
-template<typename T> template<typename U> Oftsh< Ots<U> >& Oftsh<T>::oftsh_smultdiv_ttu(Oftsh< Ots<U> > const& a, Ots<U> const& ra, Ots<U> const& r, U const& c,  Ots<U> & temp)
-{
-    if(order != a.order || nv != a.nv)
-    {
-        cout << "Error using smult: the order and/or number of variables does not match. Initial Oftsh< Ots<double> > is returned" << endl;
-        return *this;
-    }
-    else
-    {
-        //Sum
-        for (int i=0 ; i <  FTDA::nmon(nv, order); i++)
-        {
-            //temp = a.coef[i] / r
-            temp.mdivs(a.coef[i], r, 1.0);
-            //coef[i]+= m*ra*temp
-            coef[i].smprod(temp, ra, c);
-        }
-        return *this;
-    }
-}
-
-//------------------
-
-/**
- *  \brief  An operation. Adds the product: \c this \f$  += c a \f$ with c a coefficient. Oftsh< Ots<double> > case.
- *  Specialization of routine: template<typename T> Oftsh<T>& Oftsh<T>::oftsh_smult_t(Oftsh<T> const& a, T const& c)
- */
-template<> inline Oftsh< Ots<double> >& Oftsh< Ots<double> >::oftsh_smult_t(Oftsh< Ots<double> > const& a,  Ots<double> const& c)
-{
-    if(order != a.order || nv != a.nv)
-    {
-        cout << order << " " << a.order << endl;
-        cout << "Error using smult: the order and/or number of variables does not match (here). Initial Oftsh< Ots<double> > is returned" << endl;
-        return *this;
-    }
-    else
-    {
-        //Sum
-        for (int i=0 ; i <  FTDA::nmon(nv, order); i++) coef[i].sprod(a.coef[i], c);
-        return *this;
-    }
-}
-
-/**
- *  \brief  An operation. Adds the product: \c this \f$  += c a \f$ with c a coefficient. Oftsh< Ots<cdouble> > case.
- *  Specialization of routine: template<typename T> Oftsh<T>& Oftsh<T>::oftsh_smult_t(Oftsh<T> const& a, T const& c)
- */
-template<> inline Oftsh< Ots<cdouble> >& Oftsh< Ots<cdouble> >::oftsh_smult_t(Oftsh< Ots<cdouble> > const& a,  Ots<cdouble> const& c)
-{
-    if(order != a.order || nv != a.nv)
-    {
-        cout << order << " " << a.order << endl;
-        cout << "Error using smult: the order and/or number of variables does not match (here). Initial Oftsh< Ots<cdouble> > is returned" << endl;
-        return *this;
-    }
-    else
-    {
-        //Sum
-        for (int i=0 ; i <  FTDA::nmon(nv, order); i++) coef[i].sprod(a.coef[i], c);
-        return *this;
-    }
-}
 
 
 //------------------
@@ -667,7 +516,7 @@ template<typename T> Oftsh<T>& Oftsh<T>::oftsh_mult_t(Oftsh<T> const& a, T const
     else
     {
         //Sum
-        for (int i=0 ; i <  FTDA::nmon(nv, order); i++) coef[i].ofs_prod(a.coef[i], c);
+        for (int i=0 ; i <  Manip::nmon(nv, order); i++) coef[i].ofs_prod(a.coef[i], c);
         return *this;
     }
 }
@@ -681,53 +530,13 @@ template<typename T> template<typename U> Oftsh< Ofs<U> >& Oftsh<T>::oftsh_mult_
 {
     if(order != a.order || nv != a.nv)
     {
-        cout << "Error using smult: the order and/or number of variables does not match. Initial Oftsh< Ots<double> > is returned" << endl;
+        cout << "Error using smult: the order and/or number of variables does not match. Initial Oftsh< Ofs<double> > is returned" << endl;
         return *this;
     }
     else
     {
         //Sum
-        for (int i=0 ; i <  FTDA::nmon(nv, order); i++) coef[i].ofs_mult(a.coef[i], c);
-        return *this;
-    }
-}
-
-//------------------
-
-/**
- *  \brief  An operation. Sets the product: \c this \f$  += c a \f$ with c a coefficient. Oftsh< Ots<double> > case.
- *  Specialization of routine: template<typename T> Oftsh<T>& Oftsh<T>::oftsh_mult_t(Oftsh<T> const& a, T const& c)
- */
-template<> inline Oftsh< Ots<double> >& Oftsh< Ots<double> >::oftsh_mult_t(Oftsh< Ots<double> > const& a,  Ots<double>  const& c)
-{
-    if(order != a.order || nv != a.nv)
-    {
-        cout << "Error using smult: the order and/or number of variables does not match. Initial Oftsh< Ots<double> > is returned" << endl;
-        return *this;
-    }
-    else
-    {
-        //Sum
-        for (int i=0 ; i <  FTDA::nmon(nv, order); i++) coef[i].prod(a.coef[i], c);
-        return *this;
-    }
-}
-
-/**
- *  \brief  An operation. Sets the product: \c this \f$  += c a \f$ with c a coefficient. Oftsh< Ots<cdouble> > case.
- *  Specialization of routine: template<typename T> Oftsh<T>& Oftsh<T>::oftsh_mult_t(Oftsh<T> const& a, T const& c)
- */
-template<> inline Oftsh< Ots<cdouble> >& Oftsh< Ots<cdouble> >::oftsh_mult_t(Oftsh< Ots<cdouble> > const& a,  Ots<cdouble>  const& c)
-{
-    if(order != a.order || nv != a.nv)
-    {
-        cout << "Error using smult: the order and/or number of variables does not match. Initial Oftsh< Ots<cdouble> > is returned" << endl;
-        return *this;
-    }
-    else
-    {
-        //Sum
-        for (int i=0 ; i <  FTDA::nmon(nv, order); i++) coef[i].prod(a.coef[i], c);
+        for (int i=0 ; i <  Manip::nmon(nv, order); i++) coef[i].ofs_mult(a.coef[i], c);
         return *this;
     }
 }
@@ -851,93 +660,6 @@ template<> inline Oftsh< Ofsc >& Oftsh< Ofsc >::oftsh_sprod(Oftsh< Ofsc > const&
     return *this;
 }
 
-//------------------
-
-/**
- *  \brief  An operation. Adds the product: \c this \f$ += a \times b \f$ with a and b Oftsh objects. Oftsh< Ots<double> > double case.
- * Specialization of the routine: template<typename T> Oftsh<T>& Oftsh<T>::oftsh_sprod(Oftsh<T> const& a, Oftsh<T> const& b)
- */
-template<> inline Oftsh< Ots<double> >& Oftsh< Ots<double> >::oftsh_sprod(Oftsh< Ots<double> > const& a, Oftsh< Ots<double> > const& b)
-{
-    if (nv > 2)  //3+-variate polynomial
-    {
-        if (a.order)
-        {
-            if (b.order)
-            {
-                Oftsh< Ots<double> > *aa , *bb , *pp , *pp0 , *af , *bf ;
-                af = a.term+a.order;
-                bf = b.term+b.order;
-                for ( aa= a.term , pp0= this->term ; aa< af ; aa++ , pp0++)
-                {
-                    for (bb= b.term , pp= pp0 ; bb< bf ; bb++ , pp++)  pp->oftsh_sprod(*aa , *bb);
-                    pp->oftsh_smult_t(*aa, *(bb->coef));
-                }
-                for ( bb= b.term , pp= pp0 ; bb< bf ; pp->oftsh_smult_t(*bb, *(aa->coef)), bb++ , pp++);
-                pp->coef->sprod(*(aa->coef), *(bb->coef));
-                //*(pp->coef)+= *(aa->coef) * *(bb->coef);
-            }
-            else this->oftsh_smult_t(a, *(b.coef)); //b is scalar
-        }
-        else this->oftsh_smult_t(b, *(a.coef));   //a is scalar
-    }
-    else if (nv == 2)  //2-variate homogeneous polynomial
-    {
-        Ots<double>  *aa , *bb , *pp , *pp0 , *af , *bf;
-        af = a.coef +a.order;
-        bf = b.coef +b.order;
-        for ( aa= a.coef , pp0= this->coef ; aa<= af ; aa++ , pp0++)
-            for ( bb= b.coef , pp= pp0 ; bb<= bf ; bb++ , pp++ )  pp->sprod(*aa, *bb);//*pp+= *aa * *bb;
-    }
-    else
-    {
-        this->coef->sprod(*(a.coef ), *(b.coef));//*(this->coef)+= *(a.coef ) * *(b.coef); //1-variate homogeneous polynomial
-    }
-    return *this;
-}
-
-/**
- *  \brief  An operation. Adds the product: \c this \f$ += a \times b \f$ with a and b Oftsh objects. Oftsh< Ots<cdouble> > double case.
- * Specialization of the routine: template<typename T> Oftsh<T>& Oftsh<T>::oftsh_sprod(Oftsh<T> const& a, Oftsh<T> const& b)
- */
-template<> inline Oftsh< Ots<cdouble> >& Oftsh< Ots<cdouble> >::oftsh_sprod(Oftsh< Ots<cdouble> > const& a, Oftsh< Ots<cdouble> > const& b)
-{
-    if (nv > 2)  //3+-variate polynomial
-    {
-        if (a.order)
-        {
-            if (b.order)
-            {
-                Oftsh< Ots<cdouble> > *aa , *bb , *pp , *pp0 , *af , *bf ;
-                af = a.term+a.order;
-                bf = b.term+b.order;
-                for ( aa= a.term , pp0= this->term ; aa< af ; aa++ , pp0++)
-                {
-                    for (bb= b.term , pp= pp0 ; bb< bf ; bb++ , pp++)  pp->oftsh_sprod(*aa , *bb);
-                    pp->oftsh_smult_t(*aa, *(bb->coef));
-                }
-                for ( bb= b.term , pp= pp0 ; bb< bf ; pp->oftsh_smult_t(*bb, *(aa->coef)), bb++ , pp++);
-                pp->coef->sprod(*(aa->coef), *(bb->coef));
-            }
-            else this->oftsh_smult_t(a, *(b.coef)); //b is scalar
-        }
-        else this->oftsh_smult_t(b, *(a.coef));   //a is scalar
-    }
-    else if (nv == 2)  //2-variate homogeneous polynomial
-    {
-        Ots<cdouble>  *aa , *bb , *pp , *pp0 , *af , *bf;
-        af = a.coef +a.order;
-        bf = b.coef +b.order;
-        for ( aa= a.coef , pp0= this->coef ; aa<= af ; aa++ , pp0++)
-            for ( bb= b.coef , pp= pp0 ; bb<= bf ; bb++ , pp++ )  pp->sprod(*aa, *bb);//*pp+= *aa * *bb;
-    }
-    else
-    {
-        this->coef->sprod(*(a.coef ), *(b.coef));//*(this->coef)+= *(a.coef ) * *(b.coef); //1-variate homogeneous polynomial
-    }
-    return *this;
-}
-
 
 //------------------
 // smprod
@@ -1052,102 +774,6 @@ template<typename T> template<typename U> Oftsh< Ofs<U> >& Oftsh<T>::oftsh_smpro
     else
     {
         this->coef->ofs_smprod(*(a.coef ), *(b.coef), m); //1-variate homogeneous polynomial
-    }
-    return *this;
-}
-
-//------------------
-
-/**
- *  \brief  An operation. Adds the product: \c this \f$ += \frac{m}{r} a \times b \f$ with a and b Oftsh objects. Oftsh< Ots<U> > case.
- */
-template<typename T> template<typename U> Oftsh< Ots<U> >& Oftsh<T>::oftsh_smproddiv_tu(Oftsh< Ots<U> > const& a, Oftsh< Ots<U> > const& b, Ots<U> const& r, U const& m, Ots<U> & temp)
-{
-    if (nv > 2)  //3+-variate polynomial
-    {
-        if (a.order)
-        {
-            if (b.order)
-            {
-                Oftsh< Ots<U> > *aa , *bb , *pp , *pp0 , *af , *bf ;
-                af = a.term+a.order;
-                bf = b.term+b.order;
-                for ( aa= a.term , pp0= this->term ; aa< af ; aa++ , pp0++)
-                {
-                    for (bb= b.term , pp= pp0 ; bb< bf ; bb++ , pp++)  pp->oftsh_smproddiv_tu(*aa , *bb, r, m, temp);
-                    pp->oftsh_smultdiv_ttu(*aa, *(bb->coef), r, m, temp);
-                }
-                for ( bb= b.term , pp= pp0 ; bb< bf ; pp->oftsh_smultdiv_ttu(*bb, *(aa->coef), r, m, temp), bb++ , pp++)
-                    //temp = aa->coef/r
-                    temp.mdivs(*(aa->coef), r, 1.0);
-                //pp->coef += m*bb->coef*temp
-                pp->coef->smprod(temp, *(bb->coef), m);
-            }
-            else this->oftsh_smultdiv_ttu(a, *(b.coef), r, m, temp); //b is scalar
-        }
-        else this->oftsh_smultdiv_ttu(b, *(a.coef), r, m, temp);   //a is scalar
-    }
-    else if (nv == 2)  //2-variate homogeneous polynomial
-    {
-        Ots<U>  *aa , *bb , *pp , *pp0 , *af , *bf;
-        af = a.coef +a.order;
-        bf = b.coef +b.order;
-        for ( aa= a.coef , pp0= this->coef ; aa<= af ; aa++ , pp0++)
-            for ( bb= b.coef , pp= pp0 ; bb<= bf ; bb++ , pp++ )
-            {
-                //temp = aa/r
-                temp.mdivs(*aa, r, 1.0);
-                //pp += m*bb*temp
-                pp->smprod(temp, *bb, m);
-            }
-    }
-    else
-    {
-        //temp = a/r
-        temp.mdivs(*a.coef, r, 1.0);
-        //this-Coef += m*bb*temp
-        this->coef->smprod(temp, *b.coef, m);
-    }
-    return *this;
-}
-
-/**
- *  \brief  An operation. Adds the product: \c this \f$ += m a \times b \f$ with a and b Oftsh objects. Oftsh< Ots<U> > case.
- */
-template<typename T> template<typename U> Oftsh< Ots<U> >& Oftsh<T>::oftsh_smprod_u(Oftsh< Ots<U> > const& a, Oftsh< Ots<U> > const& b, U const& m)
-{
-    if (nv > 2)  //3+-variate polynomial
-    {
-        if (a.order)
-        {
-            if (b.order)
-            {
-                Oftsh< Ots<U> > *aa , *bb , *pp , *pp0 , *af , *bf ;
-                af = a.term+a.order;
-                bf = b.term+b.order;
-                for ( aa= a.term , pp0= this->term ; aa< af ; aa++ , pp0++)
-                {
-                    for (bb= b.term , pp= pp0 ; bb< bf ; bb++ , pp++)  pp->oftsh_smprod_u(*aa , *bb, m);
-                    pp->oftsh_smult_tu(*aa, *(bb->coef), m);
-                }
-                for ( bb= b.term , pp= pp0 ; bb< bf ; pp->oftsh_smult_tu(*bb, *(aa->coef), m), bb++ , pp++);
-                pp->coef->smprod(*(aa->coef), *(bb->coef),m);
-            }
-            else this->oftsh_smult_tu(a, *(b.coef),m); //b is scalar
-        }
-        else this->oftsh_smult_tu(b, *(a.coef),m);   //a is scalar
-    }
-    else if (nv == 2)  //2-variate homogeneous polynomial
-    {
-        Ots<U>  *aa , *bb , *pp , *pp0 , *af , *bf;
-        af = a.coef +a.order;
-        bf = b.coef +b.order;
-        for ( aa= a.coef , pp0= this->coef ; aa<= af ; aa++ , pp0++)
-            for ( bb= b.coef , pp= pp0 ; bb<= bf ; bb++ , pp++ )  pp->smprod(*aa, *bb,m);//*pp+= *aa * *bb;
-    }
-    else
-    {
-        this->coef->smprod(*(a.coef ), *(b.coef),m); //1-variate homogeneous polynomial
     }
     return *this;
 }
@@ -1339,13 +965,13 @@ template<typename T> template<typename U> Oftsh< Ofs<U> >& Oftsh<T>::tftsh_smult
 {
     if(order != a.order || nv != a.nv)
     {
-        cout << "Error using smult: the order and/or number of variables does not match. Initial Oftsh< Ots<double> > is returned" << endl;
+        cout << "Error using smult: the order and/or number of variables does not match. Initial Oftsh< Ofs<double> > is returned" << endl;
         return *this;
     }
     else
     {
         //Sum: note ofs_smult can be used because it does the same as tfs_smult would do.
-        for (int i=0 ; i <  FTDA::nmon(nv, order); i++) coef[i].ofs_smult(a.coef[i], c);
+        for (int i=0 ; i <  Manip::nmon(nv, order); i++) coef[i].ofs_smult(a.coef[i], c);
         return *this;
     }
 }
@@ -1357,13 +983,13 @@ template<typename T> template<typename U> Oftsh< Ofs<U> >& Oftsh<T>::tftsh_mult_
 {
     if(order != a.order || nv != a.nv)
     {
-        cout << "Error using smult: the order and/or number of variables does not match. Initial Oftsh< Ots<double> > is returned" << endl;
+        cout << "Error using smult: the order and/or number of variables does not match. Initial Oftsh< Ofs<double> > is returned" << endl;
         return *this;
     }
     else
     {
         //Sum: note ofs_mult can be used because it does the same as tfs_smult would do.
-        for (int i=0 ; i <  FTDA::nmon(nv, order); i++) coef[i].ofs_mult(a.coef[i], c);
+        for (int i=0 ; i <  Manip::nmon(nv, order); i++) coef[i].ofs_mult(a.coef[i], c);
         return *this;
     }
 }
@@ -1381,7 +1007,7 @@ template<typename T> Oftsh<T>& Oftsh<T>::tftsh_smult_t(Oftsh<T> const& a, T cons
     else
     {
         //Sum
-        for (int i=0 ; i <  FTDA::nmon(nv, order); i++) coef[i].tfs_sprod(a.coef[i], c); //coef[i] += c*a.coef[i]; //
+        for (int i=0 ; i <  Manip::nmon(nv, order); i++) coef[i].tfs_sprod(a.coef[i], c); //coef[i] += c*a.coef[i]; //
         return *this;
     }
 }
@@ -1399,7 +1025,7 @@ template<typename T> Oftsh<T>& Oftsh<T>::tftsh_smult_tt(Oftsh<T> const& a, T con
     else
     {
         //Sum
-        for (int i=0 ; i <  FTDA::nmon(nv, order); i++) coef[i].tfs_smprod_t(a.coef[i], c1, c2); //coef[i] += c*a.coef[i]; //
+        for (int i=0 ; i <  Manip::nmon(nv, order); i++) coef[i].tfs_smprod_t(a.coef[i], c1, c2); //coef[i] += c*a.coef[i]; //
         return *this;
     }
 }
@@ -1417,7 +1043,7 @@ template<typename T> template<typename U> Oftsh<T>& Oftsh<T>::tftsh_smult_ttu(Of
     else
     {
         //Sum
-        for (int i=0 ; i <  FTDA::nmon(nv, order); i++) coef[i].tfs_smprod_tu(a.coef[i], c1, c2, m); //coef[i] += c*a.coef[i]; //
+        for (int i=0 ; i <  Manip::nmon(nv, order); i++) coef[i].tfs_smprod_tu(a.coef[i], c1, c2, m); //coef[i] += c*a.coef[i]; //
         return *this;
     }
 }
@@ -1429,13 +1055,13 @@ template<typename T> template<typename U> Oftsh< Ofs<U> >& Oftsh<T>::tftsh_smult
 {
     if(order != a.order || nv != a.nv)
     {
-        cout << "Error using smult: the order and/or number of variables does not match. Initial Oftsh< Ots<double> > is returned" << endl;
+        cout << "Error using smult: the order and/or number of variables does not match. Initial Oftsh< Ofs<double> > is returned" << endl;
         return *this;
     }
     else
     {
         //Sum
-        for (int i=0 ; i <  FTDA::nmon(nv, order); i++) coef[i].tfs_smprod(a.coef[i], ra, c);  //sprod(a.coef[i], c*ra)
+        for (int i=0 ; i <  Manip::nmon(nv, order); i++) coef[i].tfs_smprod(a.coef[i], ra, c);  //sprod(a.coef[i], c*ra)
         return *this;
     }
 }
@@ -1448,7 +1074,7 @@ template<typename T> template<typename U> Oftsh< Ofs<U> >& Oftsh<T>::tftsh_smult
  *
  *  Notes:
  *  1. If a is of order n, this is of order n-1.
- *  2. Need an extension to autonomous case: WORKS ONLY FOR Ofs/Ots<double/cdouble> coefficients.
+ *  2. Need an extension to autonomous case: WORKS ONLY FOR Ofs<double/cdouble> coefficients.
  */
 template<typename T> Oftsh<T>& Oftsh<T>::tfts_derh(Oftsh<T> const& a, int ni)
 {
@@ -1484,7 +1110,7 @@ template<typename T> Oftsh<T>& Oftsh<T>::tfts_derh(Oftsh<T> const& a, int ni)
  *
  *  Notes:
  *  1. If a is of order n, this is of order n-1.
- *  2. Need an extension to autonomous case: WORKS ONLY FOR Ofs/Ots<double/cdouble> coefficients.
+ *  2. Need an extension to autonomous case: WORKS ONLY FOR Ofs<double/cdouble> coefficients.
  */
 template<typename T> Oftsh<T>& Oftsh<T>::tfts_sderh(Oftsh< T > const& a, int ni)
 {
@@ -1525,7 +1151,7 @@ template<typename T> Oftsh<T>& Oftsh<T>::tfts_sderh(Oftsh< T > const& a, int ni)
  *
  *  Notes:
  *  1. If a is of order n, this is of order n-1.
- *  2. Need an extension to autonomous case: WORKS ONLY FOR Ofs/Ots<double/cdouble> coefficients.
+ *  2. Need an extension to autonomous case: WORKS ONLY FOR Ofs<double/cdouble> coefficients.
  */
 template<typename T> Oftsh<T>& Oftsh<T>::derh(Oftsh<T> const& a, int ni)
 {
@@ -1595,7 +1221,7 @@ template<> inline Oftsh<Ofsd >& Oftsh<Ofsd >::derh(Oftsh<Ofsd  > const& a, int n
  *
  *  Notes:
  *  1. If a is of order n, this is of order n-1.
- *  2. Need an extension to autonomous case: WORKS ONLY FOR Ofs/Ots<double/cdouble> coefficients.
+ *  2. Need an extension to autonomous case: WORKS ONLY FOR Ofs<double/cdouble> coefficients.
  */
 template<typename T> Oftsh<T>& Oftsh<T>::sderh(Oftsh< T > const& a, int ni)
 {
@@ -1632,7 +1258,7 @@ template<typename T> Oftsh<T>& Oftsh<T>::sderh(Oftsh< T > const& a, int ni)
  *
  *  Notes:
  *  1. If a is of order n, this is of order n+1.
- *  2. Need an extension to autonomous case: WORKS ONLY FOR Ofs/Ots<double/cdouble> coefficients.
+ *  2. Need an extension to autonomous case: WORKS ONLY FOR Ofs<double/cdouble> coefficients.
  */
 template<typename T> Oftsh<T>& Oftsh<T>::sprimh(Oftsh< T > const& a, int ni)
 {
@@ -1710,7 +1336,7 @@ template<typename T> Oftsh<T>& Oftsh<T>::dot(Oftsh<T> const& a, double const&  n
     else
     {
         //Derivation of all the coefficients
-        for (int i=0 ; i <  FTDA::nmon(nv, order); i++) coef[i].dot(a.coef[i], n);
+        for (int i=0 ; i <  Manip::nmon(nv, order); i++) coef[i].dot(a.coef[i], n);
         return *this;
     }
 }
@@ -1731,7 +1357,7 @@ template<typename T> template<typename U> void Oftsh<T>::evaluate(U X[], T& z)
     U aux;
     U bux;
 
-    for (int i=0; i< FTDA::nmon(nv, order); i++)
+    for (int i=0; i< Manip::nmon(nv, order); i++)
     {
         //z += X[ii]^kv[ii]*coef(i)
         bux = 1.0+0.0*I;
@@ -1746,7 +1372,7 @@ template<typename T> template<typename U> void Oftsh<T>::evaluate(U X[], T& z)
         }
 
         z.ofs_smult(coef[i], (U) bux);
-        if(i< FTDA::nmon(nv, order)-1)  FTDA::prxkt(kv, nv);
+        if(i< Manip::nmon(nv, order)-1)  Manip::prxkt(kv, nv);
     }
     free(kv);
 }
@@ -1764,7 +1390,7 @@ template<typename T>  void Oftsh<T>::evaluate(double X[], T& z)
     double aux;
     double bux;
 
-    for (int i=0; i< FTDA::nmon(nv, order); i++)
+    for (int i=0; i< Manip::nmon(nv, order); i++)
     {
         //z += X[ii]^kv[ii]*coef(i)
         bux = 1.0;
@@ -1779,7 +1405,7 @@ template<typename T>  void Oftsh<T>::evaluate(double X[], T& z)
         }
 
         z.ofs_smult(coef[i], (double) bux);
-        if(i< FTDA::nmon(nv, order)-1)  FTDA::prxkt(kv, nv);
+        if(i< Manip::nmon(nv, order)-1)  Manip::prxkt(kv, nv);
     }
     free(kv);
 }
@@ -1795,7 +1421,7 @@ template<typename T> template<typename U> void Oftsh<T>::sevaluate(U X[], T& z)
     for(int i=1; i<nv; i++) kv[i] = 0;
     U aux, bux;
 
-    for (int i=0; i< FTDA::nmon(nv, order); i++)
+    for (int i=0; i< Manip::nmon(nv, order); i++)
     {
         //z += X[ii]^kv[ii]*coef(i)
         bux = (U) (1.0+0.0*I);
@@ -1806,7 +1432,7 @@ template<typename T> template<typename U> void Oftsh<T>::sevaluate(U X[], T& z)
             bux *= aux;
         }
         z.ofs_smult(coef[i], (U) bux);
-        if(i< FTDA::nmon(nv, order)-1)  FTDA::prxkt(kv, nv);
+        if(i< Manip::nmon(nv, order)-1)  Manip::prxkt(kv, nv);
     }
     free(kv);
 }
@@ -1821,7 +1447,7 @@ template<typename T> template<typename U> void Oftsh<T>::sevaluate(U X[], T& z, 
     for(int i=1; i<nv; i++) kv[i] = 0;
     U aux, bux;
 
-    for (int i=0; i< FTDA::nmon(nv, order); i++)
+    for (int i=0; i< Manip::nmon(nv, order); i++)
     {
         //Evaluate one coefficient
         if(!coef[i].isnull(1))
@@ -1836,7 +1462,7 @@ template<typename T> template<typename U> void Oftsh<T>::sevaluate(U X[], T& z, 
             }
             z.ofs_smult(coef[i], (U) bux, ofs_order);
        }
-        if(i< FTDA::nmon(nv, order)-1)  FTDA::prxkt(kv, nv); //update the exponents
+        if(i< Manip::nmon(nv, order)-1)  Manip::prxkt(kv, nv); //update the exponents
     }
     free(kv);
 }
@@ -1852,7 +1478,7 @@ template<typename T> template<typename U> void Oftsh<T>::sevaluatedc(U X[], U& z
     for(int i=1; i<nv; i++) kv[i] = 0;
     U aux, bux;
 
-    for (int i=0; i< FTDA::nmon(nv, order); i++)
+    for (int i=0; i< Manip::nmon(nv, order); i++)
     {
         //z += X[ii]^kv[ii]*coef(i)
         bux = (U) (1.0+0.0*I);
@@ -1863,7 +1489,7 @@ template<typename T> template<typename U> void Oftsh<T>::sevaluatedc(U X[], U& z
             bux *= aux;
         }
         z += coef[i].evaluate(t, ofs_order)*bux;
-        if(i< FTDA::nmon(nv, order)-1)  FTDA::prxkt(kv, nv);
+        if(i< Manip::nmon(nv, order)-1)  Manip::prxkt(kv, nv);
     }
     free(kv);
 }
@@ -1880,7 +1506,7 @@ template<typename T> template<typename U> void Oftsh<T>::fevaluate(U X[], U& z, 
     kv[0] = order;
     for(int i=1; i<nv; i++) kv[i] = 0;
     //Loop on all monomials
-    for (int i=0; i< FTDA::nmon(nv, order); i++)
+    for (int i=0; i< Manip::nmon(nv, order); i++)
     {
         //z += X[ii]^kv[ii]*coef(i)
         bux = (U) (1.0+0.0*I);
@@ -1891,7 +1517,7 @@ template<typename T> template<typename U> void Oftsh<T>::fevaluate(U X[], U& z, 
             bux *= aux;
         }
         z += coef[i].fevaluate(cR, sR, ofs_order)*bux;
-        if(i< FTDA::nmon(nv, order)-1)  FTDA::prxkt(kv, nv);
+        if(i< Manip::nmon(nv, order)-1)  Manip::prxkt(kv, nv);
     }
 }
 
@@ -1905,7 +1531,7 @@ template<typename T> void Oftsh<T>::sevaluate(double X[], T& z)
     for(int i=1; i<nv; i++) kv[i] = 0;
     double aux, bux;
 
-    for (int i=0; i< FTDA::nmon(nv, order); i++)
+    for (int i=0; i< Manip::nmon(nv, order); i++)
     {
         //z += X[ii]^kv[ii]*coef(i)
         bux = 1.0;
@@ -1917,7 +1543,7 @@ template<typename T> void Oftsh<T>::sevaluate(double X[], T& z)
         }
 
         z.ofs_smult(coef[i], bux);
-        if(i< FTDA::nmon(nv, order)-1)  FTDA::prxkt(kv, nv);
+        if(i< Manip::nmon(nv, order)-1)  Manip::prxkt(kv, nv);
     }
     free(kv);
 }
@@ -1936,7 +1562,7 @@ template<typename T> template<typename U> void Oftsh<T>::evaluate_conjugate(U X[
     U aux;
     U bux;
 
-    for (int i=0; i< FTDA::nmon(nv, order); i++)
+    for (int i=0; i< Manip::nmon(nv, order); i++)
     {
         //z += X[ii]^kv[ii]*coef(i)
         bux = 1.0+0.0*I;
@@ -1951,7 +1577,7 @@ template<typename T> template<typename U> void Oftsh<T>::evaluate_conjugate(U X[
         }
 
         z.ofs_smult(coef[i], (U) bux);
-        if(i< FTDA::nmon(nv, order)-1)  FTDA::prxkt(kv, nv);
+        if(i< Manip::nmon(nv, order)-1)  Manip::prxkt(kv, nv);
     }
 }
 
@@ -1968,7 +1594,7 @@ template<typename T> void Oftsh<T>::evaluate_conjugate(double X[], T& z)
     double aux;
     double bux;
 
-    for (int i=0; i< FTDA::nmon(nv, order); i++)
+    for (int i=0; i< Manip::nmon(nv, order); i++)
     {
         //z += X[ii]^kv[ii]*coef(i)
         bux = 1.0;
@@ -1983,7 +1609,7 @@ template<typename T> void Oftsh<T>::evaluate_conjugate(double X[], T& z)
         }
 
         z.ofs_smult(coef[i], (double) bux);
-        if(i< FTDA::nmon(nv, order)-1)  FTDA::prxkt(kv, nv);
+        if(i< Manip::nmon(nv, order)-1)  Manip::prxkt(kv, nv);
     }
 }
 
@@ -1999,7 +1625,7 @@ template<typename T> template<typename U> void Oftsh<T>::sevaluate_conjugate(U X
     U aux;
     U bux;
 
-    for (int i=0; i< FTDA::nmon(nv, order); i++)
+    for (int i=0; i< Manip::nmon(nv, order); i++)
     {
         //z += X[ii]^kv[ii]*coef(i)
         bux = 1.0+0.0*I;
@@ -2014,7 +1640,7 @@ template<typename T> template<typename U> void Oftsh<T>::sevaluate_conjugate(U X
         }
 
         z.ofs_smult(coef[i], (U) bux);
-        if(i< FTDA::nmon(nv, order)-1)  FTDA::prxkt(kv, nv);
+        if(i< Manip::nmon(nv, order)-1)  Manip::prxkt(kv, nv);
     }
 }
 
@@ -2029,7 +1655,7 @@ template<typename T> void Oftsh<T>::sevaluate_conjugate(double X[], T& z)
     double aux;
     double bux;
 
-    for (int i=0; i< FTDA::nmon(nv, order); i++)
+    for (int i=0; i< Manip::nmon(nv, order); i++)
     {
         //z += X[ii]^kv[ii]*coef(i)
         bux = 1.0;
@@ -2044,7 +1670,7 @@ template<typename T> void Oftsh<T>::sevaluate_conjugate(double X[], T& z)
         }
 
         z.ofs_smult(coef[i], (double) bux);
-        if(i< FTDA::nmon(nv, order)-1)  FTDA::prxkt(kv, nv);
+        if(i< Manip::nmon(nv, order)-1)  Manip::prxkt(kv, nv);
     }
 }
 
@@ -2055,8 +1681,8 @@ template<typename T> void Oftsh<T>::sevaluate_conjugate(double X[], T& z)
 template<typename T> double Oftsh<T>::l1norm()
 {
     double l1n = 0.0;
-    if(MODEL_TYPE == Csts::QBCP) for(int k =0; k < FTDA::nmon(nv, order); k++) l1n += cabs(this->getCoef(k).l1norm());
-    else if(MODEL_TYPE == Csts::CRTBP) for(int k =0; k < FTDA::nmon(nv, order); k++) l1n += cabs(this->getCoef(k).ofs_getCoef(0));
+    if(MODEL_TYPE == Csts::QBCP) for(int k =0; k < Manip::nmon(nv, order); k++) l1n += cabs(this->getCoef(k).l1norm());
+    else if(MODEL_TYPE == Csts::CRTBP) for(int k =0; k < Manip::nmon(nv, order); k++) l1n += cabs(this->getCoef(k).ofs_getCoef(0));
     return l1n;
 }
 
@@ -2068,7 +1694,7 @@ template<typename T> double Oftsh<T>::l1norm()
 template<typename T> int Oftsh<T>::nsd(int odmax, double sdmax)
 {
     int res = 0;
-    for(int k =0; k < FTDA::nmon(nv, order); k++) res += this->getCoef(k).nsd(odmax, sdmax);
+    for(int k =0; k < Manip::nmon(nv, order); k++) res += this->getCoef(k).nsd(odmax, sdmax);
     return res;
 }
 
@@ -2082,7 +1708,7 @@ template<typename T> double Oftsh<T>::linfnorm()
     if(MODEL_TYPE == Csts::QBCP)
     {
         lin = cabs(this->getCoef(0).l1norm()+0.0*I);
-        for(int k =1; k < FTDA::nmon(nv, order); k++)
+        for(int k =1; k < Manip::nmon(nv, order); k++)
         {
             if(lin < fabs(this->getCoef(k).l1norm())) lin = fabs(this->getCoef(k).l1norm());
         }
@@ -2090,7 +1716,7 @@ template<typename T> double Oftsh<T>::linfnorm()
     else if(MODEL_TYPE == Csts::CRTBP)
     {
         lin = cabs(this->getCoef(0).ofs_getCoef(0));
-        for(int k =1; k < FTDA::nmon(nv, order); k++)
+        for(int k =1; k < Manip::nmon(nv, order); k++)
         {
            if(lin < cabs(this->getCoef(k).ofs_getCoef(0))) lin = cabs(this->getCoef(k).ofs_getCoef(0));
         }
@@ -2137,7 +1763,7 @@ template <typename U> cdouble smult_expectedError(Oftsh<Ofs<U> > const& a, Ofs<U
     U aux, bux;
 
     //Loop on all the monomials in a
-    for (int i=0; i< FTDA::nmon(a.getNV(), a.getOrder()); i++)
+    for (int i=0; i< Manip::nmon(a.getNV(), a.getOrder()); i++)
     {
         bux = 1.0+0.0*I;
         for(int ii = 0; ii < a.getNV(); ii++)
@@ -2153,7 +1779,7 @@ template <typename U> cdouble smult_expectedError(Oftsh<Ofs<U> > const& a, Ofs<U
         result += bux*sprod_expectedError(a.getCoef(i), c, t);
 
         //updating the exponents in kv
-        if(i< FTDA::nmon(a.getNV(), a.getOrder())-1)  FTDA::prxkt(kv, a.getNV());
+        if(i< Manip::nmon(a.getNV(), a.getOrder())-1)  Manip::prxkt(kv, a.getNV());
     }
     free(kv);
     return result;
@@ -2173,7 +1799,7 @@ inline cdouble smult_expectedError(Oftsh<Ofsd > const& a, Ofsd const& c, double 
     double aux, bux;
 
     //Loop on all the monomials in a
-    for (int i=0; i< FTDA::nmon(a.getNV(), a.getOrder()); i++)
+    for (int i=0; i< Manip::nmon(a.getNV(), a.getOrder()); i++)
     {
         bux = 1.0;
         for(int ii = 0; ii < a.getNV(); ii++)
@@ -2189,7 +1815,7 @@ inline cdouble smult_expectedError(Oftsh<Ofsd > const& a, Ofsd const& c, double 
         result += bux*sprod_expectedError(a.getCoef(i), c, t);
 
         //updating the exponents in kv
-        if(i< FTDA::nmon(a.getNV(), a.getOrder())-1)  FTDA::prxkt(kv, a.getNV());
+        if(i< Manip::nmon(a.getNV(), a.getOrder())-1)  Manip::prxkt(kv, a.getNV());
     }
     free(kv);
     return result;
@@ -2215,12 +1841,12 @@ template<typename T> std::ostream& operator << (std::ostream& stream, Oftsh<T> c
     stream << "#Variables: " << oftsh.nv    << endl;
     stream << "--------------------------" << endl;
 
-    for (i=0; i< FTDA::nmon(oftsh.nv, oftsh.order); i++)
+    for (i=0; i< Manip::nmon(oftsh.nv, oftsh.order); i++)
     {
         for(j=0; j<oftsh.nv; j++) stream <<  setw(2) << setiosflags(ios::right) <<  k[j] << " ";
         stream << std::showpos << setiosflags(ios::scientific)  << setprecision(15) << " " <<  oftsh.coef[i] << std::noshowpos << endl;
 
-        if(i< FTDA::nmon(oftsh.nv, oftsh.order)-1)  FTDA::prxkt(k, oftsh.nv);
+        if(i< Manip::nmon(oftsh.nv, oftsh.order)-1)  Manip::prxkt(k, oftsh.nv);
     }
     return stream;
 }
@@ -2240,46 +1866,12 @@ template<> inline std::ostream& operator << (std::ostream& stream, Oftsh<complex
     stream << "#Variables: " << oftsh.nv    << endl;
     stream << "--------------------------" << endl;
 
-    for (i=0; i< FTDA::nmon(oftsh.nv, oftsh.order); i++)
+    for (i=0; i< Manip::nmon(oftsh.nv, oftsh.order); i++)
     {
         for(j=0; j<oftsh.nv; j++) stream <<  setw(2) << setiosflags(ios::right) <<  k[j] << " ";
         stream << std::showpos << setiosflags(ios::scientific)  << setprecision(15) << " " <<  creal(oftsh.coef[i]) << " " <<  cimag(oftsh.coef[i]) << std::noshowpos << endl;
 
-        if(i< FTDA::nmon(oftsh.nv, oftsh.order)-1)  FTDA::prxkt(k, oftsh.nv);
-    }
-    return stream;
-}
-
-/**
- *  \brief  A stream operator. Oftsh< Ots <double> >. Specialization of  template<typename T> std::ostream& operator << (std::ostream& stream, Oftsh<T> const& oftsh)
- */
-template<> inline std::ostream& operator << (std::ostream& stream, Oftsh< Ots <double> > const& oftsh)
-{
-    int i,j, nrc;
-    int k[oftsh.nv];
-
-    stream << "#Homogeneous polynomial"             << endl;
-    stream << "#Degree: " << oftsh.order    << endl;
-    stream << "#Variables: " << oftsh.nv    << endl;
-    stream << "--------------------------"<< endl;
-
-    Ofsd ofs(oftsh.coef[0].getOrder()/2);
-
-    cout << "oftsh.coef[0].getOrder()/2: " << oftsh.coef[0].getOrder()/2 << endl;
-
-    nrc = oftsh.order;
-    //Update k
-    k[0] = nrc;
-    for(i=1; i<oftsh.nv; i++) k[i] = 0;
-    //Current homogeneous polynomial
-    for (i=0; i< FTDA::nmon(oftsh.nv, nrc); i++)
-    {
-        ofs.ts2fs(oftsh.coef[i]);
-        for(j=0; j<oftsh.nv; j++) stream <<  setw(2) << setiosflags(ios::right) <<  k[j] << " ";
-        stream << std::showpos << setiosflags(ios::scientific)  << setprecision(15) << " " <<  ofs << std::noshowpos << endl;
-        //stream << std::showpos << setiosflags(ios::scientific)  << setprecision(15) << " " <<  oftsh.coef[i] << std::noshowpos << endl;
-
-        if(i< FTDA::nmon(oftsh.nv, nrc)-1)  FTDA::prxkt(k, oftsh.nv);
+        if(i< Manip::nmon(oftsh.nv, oftsh.order)-1)  Manip::prxkt(k, oftsh.nv);
     }
     return stream;
 }

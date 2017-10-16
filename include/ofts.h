@@ -17,11 +17,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <complex.h>
+#include <vector>
 //custom
-#include "ftda.h"
+#include "Manip.h"
 #include "oftsh.h"
 #include "ofs.h"
-#include "parameters.h"
 #include "timec.h"
 //gsl
 #include <gsl/gsl_errno.h>
@@ -45,7 +45,7 @@ std::ostream& operator << (std::ostream& stream, Ofts<T> const& ofts);
 /** \class Ofts
  *  \brief Fourier-Taylor series class.
  *
- *  The Ots class handles the operations on Fourier-Taylor series, with homogeneous term based on Oftsh class.
+ *  The Ofts class handles the operations on Fourier-Taylor series, with homogeneous term based on Oftsh class.
  *  Important note: the delete of Ofts objects is badly handled because
  *  we do not know how to properly delete a recursive object such as every
  *  Oftsh in the parameter **term.
@@ -308,37 +308,6 @@ public:
      */
     template<typename U> Ofts< Ofs<U> >& ofts_smult_tu(Ofts< Ofs<U> > const& a, T const& m, U const& c, int const& k);
 
-    //------------------
-
-    /**
-     *  \brief  An operation. Adds the product: \c this \f$  += c a \f$ with c a subcoefficient.
-     *  \param  a: a reference to an Ofts object
-     *  \param  c: a reference to a subcoefficient
-     */
-    template<typename U> Ofts< Ots<U> >& ofts_smult_u(Ofts< Ots<U> > const& a, U const& c);
-
-    /**
-     *  \brief  An operation. Adds the product: \c this \f$  += c a \f$ with c a subcoefficient at order k.
-     *  \param  a: a reference to an Ofts object
-     *  \param  c: a reference to a subcoefficient
-     *  \param  k: a reference to the order to update
-     */
-    template<typename U> Ofts< Ots<U> >& ofts_smult_u(Ofts< Ots<U> > const& a, U const& c, int const& k);
-
-    /**
-     *  \brief  An operation. Adds the product: \c this \f$  += c m a \f$ with m a coefficient and c a subcoefficient.
-     *  \param  a: a reference to an Ofts object
-     *  \param  c: a reference to a subcoefficient
-     */
-    template<typename U> Ofts< Ots<U> >& ofts_smult_tu(Ofts< Ots<U> > const& a, T const& m, U const& c);
-
-    /**
-     *  \brief  An operation. Adds the product: \c this \f$  += c m a \f$ with m a coefficient and c a subcoefficient, at order k.
-     *  \param  a: a reference to an Ofts object
-     *  \param  c: a reference to a subcoefficient
-     *  \param  k: a reference to the order to update
-     */
-    template<typename U> Ofts< Ots<U> >& ofts_smult_tu(Ofts< Ots<U> > const& a, T const& m, U const& c, int const& k);
 
     //------------------
     // mult
@@ -373,21 +342,6 @@ public:
      *  \param  c: a reference to a subcoefficient
      */
     template<typename U> Ofts< Ofs<U> >&  ofts_mult_tu(Ofts< Ofs<U> > const& a, T const& m, U const& c);
-
-    //------------------
-    /**
-     *  \brief  An operation. Sets the product: \c this \f$  = c a \f$ with c a subcoefficient.
-     *  \param  a: a reference to an Ofts object
-     *  \param  c: a reference to a subcoefficient
-     */
-    template<typename U> Ofts< Ots<U> >&  ofts_mult_u(Ofts< Ots<U> > const& a, U const& c);
-
-    /**
-     *  \brief  An operation. Sets the product: \c this \f$  = c m a \f$ with m a coefficient and c a subcoefficient.
-     *  \param  a: a reference to an Ofts object
-     *  \param  c: a reference to a subcoefficient
-     */
-    template<typename U> Ofts< Ots<U> >&  ofts_mult_tu(Ofts< Ots<U> > const& a, T const& m, U const& c);
 
     //------------------
     // sfsum
@@ -864,19 +818,10 @@ public:
 // Ofts 2 Ofs
 //--------------------------------------------------------------------------------
 /**
- *  \brief Transform a one-variable Ofts< Ots<U> > fts_z into an Ofs<U> object fs object such that fts_z(epsilon) = fs.
- **/
-template <typename U>  void fts2fs(Ofs<U> *fs, Ofts< Ots<U> > const& fts_z, double epsilon);
-
-/**
  *  \brief Transform a one-variable Ofts< Ofs<U> > fts_z into an Ofs<U> object fs object such that fts_z(epsilon) = fs.
  **/
 template <typename U>  void fts2fs(Ofs<U> *fs, Ofts< Ofs<U> > const& fts_z, double epsilon);
 
-/**
- *  \brief Transform a one-variable Ofts< Ots<U> > fts_z into a complex number fts_z(epsilon, t).
- **/
-template <typename U>  cdouble fts2scalar(Ofts< Ots<U> > const& fts_z, double epsilon, double t);
 
 /**
  *  \brief Transform a one-variable Ofts< Ofs<U> > fts_z into a complex number fts_z(epsilon, t).

@@ -125,7 +125,7 @@ int errorPlot(const double st0[],      //RCM initial conditions
               gsl_odeiv2_driver *dnc,  //driver for NC integration
               gsl_odeiv2_driver *drvf, //drive for RVF integration (reduced vector field)
               int Npoints,             //Number of points on which the errors are estimated
-              QBCP_L& qbcp_l,         //current QBCP
+              FBPL& fbpl,         //current FBPL
               int order,               //Order for the eval of the OFTS objects
               int ofs_order,           //Order for the eval of the OFS objects
               gnuplot_ctrl  **ht,      //Gnuplot handlers
@@ -142,7 +142,7 @@ int eOPlot(const double st0[],         //RCM initial conditions
               gsl_odeiv2_driver *dnc,  //driver for NC integration
               gsl_odeiv2_driver *drvf, //drive for RVF integration (reduced vector field)
               int Npoints,             //Number of points on which the errors are estimated
-              QBCP_L& qbcp_l,         //current QBCP
+              FBPL& fbpl,         //current FBPL
               int order,               //Order for the eval of the OFTS objects
               int ofs_order,           //Order for the eval of the OFS objects
               gnuplot_ctrl  **ht,      //Gnuplot handlers

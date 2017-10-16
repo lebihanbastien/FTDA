@@ -27,7 +27,6 @@
 #include "ode.h"
 #include <sys/types.h>
 #include <sys/wait.h>
-#include "parameters.h"
 #include "ofts.h"
 
 //Gnuplot

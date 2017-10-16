@@ -71,7 +71,7 @@ extern "C"
  *
  *  WARNING: a lot of real matrices are manipulated as complex ones so that various scalar-matrix and vector-matrix can be made.
  */
-void nfo2(QBCP_L &qbcp_l, int isStored)
+void nfo2(FBPL &fbpl, int isStored)
 {
     cout << "----------------------------------------------" << endl;
     cout << "Compute the complete change of coordinates to:" << endl;
@@ -81,7 +81,7 @@ void nfo2(QBCP_L &qbcp_l, int isStored)
     cout << "Results are stored in the folder data/COC/    " << endl;
     cout << "----------------------------------------------" << endl;
     //Model must be normalized.
-    if(!qbcp_l.isNormalized)
+    if(!fbpl.isNorm)
     {
         cout << "nfo2. Warning: selected model is not normalized. Premature ending." << endl;
         return;
@@ -104,7 +104,7 @@ void nfo2(QBCP_L &qbcp_l, int isStored)
     sys.function      = qbfbp_vfn_varnonlin;
     sys.jacobian      = NULL;
     sys.dimension     = 42;
-    sys.params        = &qbcp_l;
+    sys.params        = &fbpl;
     //Stepper
     const gsl_odeiv2_step_type *T = gsl_odeiv2_step_rk8pd;
     //Driver
@@ -122,8 +122,8 @@ void nfo2(QBCP_L &qbcp_l, int isStored)
 
     //Plotting the refined solution
     int Npoints = 5000;
-    odePlot(y0, 42,  qbcp_l.us.T*0.5, d, h1, Npoints, 8);
-    odePlot(y0, 42, -qbcp_l.us.T*0.5, d, h1, Npoints, 1);
+    odePlot(y0, 42,  fbpl.us.T*0.5, d, h1, Npoints, 8);
+    odePlot(y0, 42, -fbpl.us.T*0.5, d, h1, Npoints, 1);
     printf("Press ENTER to close the gnuplot window(s)\n");
     scanf("%c",&ch);
     gnuplot_close(h1);
@@ -137,7 +137,7 @@ void nfo2(QBCP_L &qbcp_l, int isStored)
     sys2.function      = qbfbp_vfn_varlin_trans;
     sys2.jacobian      = NULL;
     sys2.dimension     = 42;
-    sys2.params        = &qbcp_l;
+    sys2.params        = &fbpl;
     //Stepper
     const gsl_odeiv2_step_type *T2 = gsl_odeiv2_step_rk8pd;
     //Driver
@@ -171,13 +171,13 @@ void nfo2(QBCP_L &qbcp_l, int isStored)
     // 2 Decomposition of the Monodromy matrix through the use of custom routines
     // from a monodromy matrix given as a product of matrices
     //====================================================================================
-    monoDecomp(d2, y0, qbcp_l.us.n, &qbcp_l, M, Csts::STABLE_DIR_POW, MMc, MM, Dm, DB, B, S, JB, Br, R, DAT, isStored);
+    monoDecomp(d2, y0, fbpl.us.n, &fbpl, M, Csts::STABLE_DIR_POW, MMc, MM, Dm, DB, B, S, JB, Br, R, DAT, isStored);
 
     //Change of Br to use B instead. Possible because we have ensured that B = real(B) inside monoDecomp.
     for(int i=0; i<6; i++) for(int j = 0; j<6; j++) gsl_matrix_set(Br, i, j, GSL_REAL(gsl_matrix_complex_get(B, i, j)));
 
     //Storage of the matrix Br (real form of B in params)
-    gslc_matrixToVector(qbcp_l.B, Br, 6, 6, 0);
+    gslc_matrixToVector(fbpl.B, Br, 6, 6, 0);
 
     //------------------------------------------------------------------------------------
     // Change of derivative routines in the system sys and the driver d
@@ -190,7 +190,7 @@ void nfo2(QBCP_L &qbcp_l, int isStored)
     //------------------------------------------------------------------------------------
     // 3 Integration & storage of the COC
     //------------------------------------------------------------------------------------
-    nfo2coc(d2, y0, qbcp_l.us.n, &qbcp_l, Br, R, JB, (int) 8*OFS_ORDER, isStored);
+    nfo2coc(d2, y0, fbpl.us.n, &fbpl, Br, R, JB, (int) 8*OFS_ORDER, isStored);
 }
 
 /**
@@ -237,7 +237,7 @@ void nfo2(QBCP_L &qbcp_l, int isStored)
  *
  *  WARNING: a lot of real matrices are manipulated as complex ones so that various scalar-matrix and vector-matrix can be made.
  */
-void nfo2_QBP(QBCP_L &qbcp_l, int isStored)
+void nfo2_QBP(FBPL &fbpl, int isStored)
 {
     cout << "----------------------------------------------" << endl;
     cout << "Compute the complete change of coordinates to:" << endl;
@@ -248,7 +248,7 @@ void nfo2_QBP(QBCP_L &qbcp_l, int isStored)
     cout << "----------------------------------------------" << endl;
 
     //Model must be normalized.
-    if(!qbcp_l.isNormalized)
+    if(!fbpl.isNorm)
     {
         cout << "nfo2. Warning: selected model is not normalized. Premature ending." << endl;
         return;
@@ -258,9 +258,9 @@ void nfo2_QBP(QBCP_L &qbcp_l, int isStored)
     //Structures for continuation
     //------------------------------------------------------------------------------------
     QBCP_I model;
-    QBCP_L model1, model2;
-    init_QBCP_I(&model, &model1, &model2, Csts::SUN, Csts::EARTH, Csts::MOON, qbcp_l.isNormalized, SEML.li_EM, SEML.li_SEM, 0, Csts::QBCP, Csts::BCP, SEML.coordsys, SEML.pms);
-    //init_QBCP_I(&model, &model1, &model2, Csts::SUN, Csts::EARTH, Csts::MOON, qbcp_l.isNormalized, SEML.li_EM, SEML.li_SEM, 0, Csts::CRTBP, Csts::BCP, SEML.coordsys, SEML.pms);
+    FBPL model1, model2;
+    init_FBP_I(&model, &model1, &model2, Csts::SUN, Csts::EARTH, Csts::MOON, fbpl.isNorm, SEML.li_EM, SEML.li_SEM, 0, Csts::QBCP, Csts::BCP, SEML.coordsys, SEML.pms);
+    //init_FBP_I(&model, &model1, &model2, Csts::SUN, Csts::EARTH, Csts::MOON, fbpl.isNorm, SEML.li_EM, SEML.li_SEM, 0, Csts::CRTBP, Csts::BCP, SEML.coordsys, SEML.pms);
 
     //------------------------------------------------------------------------------------
     //Plotting devices
@@ -298,8 +298,8 @@ void nfo2_QBP(QBCP_L &qbcp_l, int isStored)
 
     //Plotting the refined solution
     int Npoints = 5000;
-    odePlot(y0c, 48,  qbcp_l.us.T*0.5, d, h1, Npoints, 8);
-    odePlot(y0c, 48, -qbcp_l.us.T*0.5, d, h1, Npoints, 8);
+    odePlot(y0c, 48,  fbpl.us.T*0.5, d, h1, Npoints, 8);
+    odePlot(y0c, 48, -fbpl.us.T*0.5, d, h1, Npoints, 8);
 
     printf("Press ENTER to close the gnuplot window(s)\n");
     scanf("%c",&ch);
@@ -317,7 +317,7 @@ void nfo2_QBP(QBCP_L &qbcp_l, int isStored)
     sys2.function      = qbfbp_vfn_varlin_trans;
     sys2.jacobian      = NULL;
     sys2.dimension     = 42;
-    sys2.params        = &qbcp_l;
+    sys2.params        = &fbpl;
     //Stepper
     const gsl_odeiv2_step_type *T2 = gsl_odeiv2_step_rk8pd;
     //Driver
@@ -350,13 +350,13 @@ void nfo2_QBP(QBCP_L &qbcp_l, int isStored)
     //====================================================================================
     //Decomposition of the Monodromy matrix through the use of custom routines from a monodromy matrix given as a product of matrices
     //====================================================================================
-    monoDecomp(d2, y0, qbcp_l.us.n, &qbcp_l, M, Csts::STABLE_DIR_POW, MMc, MM, Dm, DB, B, S, JB, Br, R, DAT, isStored);
+    monoDecomp(d2, y0, fbpl.us.n, &fbpl, M, Csts::STABLE_DIR_POW, MMc, MM, Dm, DB, B, S, JB, Br, R, DAT, isStored);
 
     //Change of Br to use B instead. Possible because we have ensured that B = real(B) inside monoDecomp.
     //for(int i=0; i<6; i++) for(int j = 0; j<6; j++) gsl_matrix_set(Br, i, j, GSL_REAL(gsl_matrix_complex_get(B, i, j)));
 
     //Storage of the matrix Br (real form of B in params)
-    gslc_matrixToVector(qbcp_l.B, Br, 6, 6, 0);
+    gslc_matrixToVector(fbpl.B, Br, 6, 6, 0);
 
     //------------------------------------------------------------------------------------
     // Change of derivative routines in the system sys and the driver d
@@ -369,10 +369,10 @@ void nfo2_QBP(QBCP_L &qbcp_l, int isStored)
     //====================================================================================
     //Integration & storage of the COC
     //====================================================================================
-    nfo2coc(d2, y0, qbcp_l.us.n, &qbcp_l, Br, R, JB, (int) pow(2,12), isStored);
+    nfo2coc(d2, y0, fbpl.us.n, &fbpl, Br, R, JB, (int) pow(2,12), isStored);
 }
 
-void nfo2_RTBP(QBCP_L &qbcp_l, int isStored)
+void nfo2_RTBP(FBPL &fbpl, int isStored)
 {
     cout << "----------------------------------------------" << endl;
     cout << "Compute the complete change of coordinates to:" << endl;
@@ -383,7 +383,7 @@ void nfo2_RTBP(QBCP_L &qbcp_l, int isStored)
     cout << "----------------------------------------------" << endl;
 
     //Model must be normalized.
-    if(!qbcp_l.isNormalized)
+    if(!fbpl.isNorm)
     {
         cout << "nfo2. Warning: selected model is not normalized. Premature ending." << endl;
         return;
@@ -406,7 +406,7 @@ void nfo2_RTBP(QBCP_L &qbcp_l, int isStored)
     sys.function      = qbfbp_vfn_varnonlin;
     sys.jacobian      = NULL;
     sys.dimension     = 42;
-    sys.params        = &qbcp_l;
+    sys.params        = &fbpl;
     //Stepper
     const gsl_odeiv2_step_type *T = gsl_odeiv2_step_rk8pd;
     //Driver
@@ -471,7 +471,7 @@ void nfo2_RTBP(QBCP_L &qbcp_l, int isStored)
     sys2.function      = qbfbp_vfn_varlin_trans;
     sys2.jacobian      = NULL;
     sys2.dimension     = 42;
-    sys2.params        = &qbcp_l;
+    sys2.params        = &fbpl;
     //Stepper
     const gsl_odeiv2_step_type *T2 = gsl_odeiv2_step_rk8pd;
     //Driver
@@ -504,13 +504,13 @@ void nfo2_RTBP(QBCP_L &qbcp_l, int isStored)
     //====================================================================================
     // 2 Decomposition of the Monodromy matrix through the use of custom routines from a monodromy matrix given as a product of matrices
     //====================================================================================
-    monoDecomp_RTBP(d2, y0, 2*M_PI/T1, &qbcp_l, M, Csts::STABLE_DIR_POW, MMc, MM, Dm, DB, B, S, JB, Br, R, DAT, isStored);
+    monoDecomp_RTBP(d2, y0, 2*M_PI/T1, &fbpl, M, Csts::STABLE_DIR_POW, MMc, MM, Dm, DB, B, S, JB, Br, R, DAT, isStored);
 
     //Change of Br to use B instead. Possible because we have ensured that B = real(B) inside monoDecomp.
     for(int i=0; i<6; i++) for(int j = 0; j<6; j++) gsl_matrix_set(Br, i, j, GSL_REAL(gsl_matrix_complex_get(B, i, j)));
 
     //Storage of the matrix Br (real form of B in params)
-    gslc_matrixToVector(qbcp_l.B, Br, 6, 6, 0);
+    gslc_matrixToVector(fbpl.B, Br, 6, 6, 0);
 
     //------------------------------------------------------------------------------------
     // Change of derivative routines in the system sys and the driver d
@@ -523,7 +523,7 @@ void nfo2_RTBP(QBCP_L &qbcp_l, int isStored)
     //====================================================================================
     // 3 Integration & storage of the COC
     //====================================================================================
-    nfo2coc(d2, y0, 2*M_PI/T1, &qbcp_l, Br, R, JB, (int) 8*max(OFS_ORDER, 20), isStored);
+    nfo2coc(d2, y0, 2*M_PI/T1, &fbpl, Br, R, JB, (int) 8*max(OFS_ORDER, 20), isStored);
 }
 
 
@@ -1191,7 +1191,7 @@ void symplecticR(gsl_matrix_complex *S, gsl_matrix_complex *Dm, gsl_matrix *R)
 void monoDecomp(gsl_odeiv2_driver *d,           //driver for odeRK78
                 const double y0[],              //initial conditions
                 const double n,                 //pulsation
-                QBCP_L *qbcp_l,                 //Four-Body problem
+                FBPL *fbpl,                 //Four-Body problem
                 int M,                          //Number of steps for Monodromy matrix splitting in a product of matrices
                 int STABLE_DIR_TYPE,            //Type of computation of the stable direction
                 gsl_matrix_complex* MMc,        //Final monodromy matrix in complex form                                    |
@@ -1425,7 +1425,7 @@ void monoDecomp(gsl_odeiv2_driver *d,           //driver for odeRK78
         //------------------------------------------------------------
         //Heuristic to ensure that the matrix R will be symplectic (see monoDecompLog)
         int kmp[6];
-        switch(qbcp_l->li)
+        switch(fbpl->li)
         {
         case 1:
             kmp[0] = 0;
@@ -1678,7 +1678,7 @@ void monoDecomp(gsl_odeiv2_driver *d,           //driver for odeRK78
     //----------------------------------------------------------------------------------
     if(isStored)
     {
-        string F_COC = qbcp_l->cs.F_COC;
+        string F_COC = fbpl->cs.F_COC;
         string filename = F_COC+"complexCOC.txt";
         cout << "monoDecomp. Storage of the complex change of coord. in " << filename << endl;
         gslc_eigensystem_fprintf(Dm, S, 6, (char*) filename.c_str());
@@ -1880,7 +1880,7 @@ void monoDecompLog(gsl_matrix_complex *S,       //The eigenvectors are stored on
 void monoDecomp_RTBP(gsl_odeiv2_driver* d,           //driver for odeRK78
                      const double y0[],              //initial conditions
                      const double n,                 //pulsation
-                     QBCP_L* qbcp_l,                 //Four-Body problem
+                     FBPL* fbpl,                 //Four-Body problem
                      int M,                          //Number of steps for Monodromy matrix splitting in a product of matrices
                      int STABLE_DIR_TYPE,            //Type of computation of the stable direction
                      gsl_matrix_complex* MMc,        //Final monodromy matrix in complex form                                    |
@@ -2123,7 +2123,7 @@ void monoDecomp_RTBP(gsl_odeiv2_driver* d,           //driver for odeRK78
         //------------------------------------------------------------
         //Heuristic to ensure that the matrix R will be symplectic (see monoDecompLog)
         int kmp[6];
-        switch(qbcp_l->li)
+        switch(fbpl->li)
         {
         case 1:
             kmp[0] = 0;
@@ -2376,7 +2376,7 @@ void monoDecomp_RTBP(gsl_odeiv2_driver* d,           //driver for odeRK78
     //----------------------------------------------------------------------------------
     if(isStored)
     {
-        string F_COC = qbcp_l->cs.F_COC;
+        string F_COC = fbpl->cs.F_COC;
         string filename = F_COC+"complexCOC.txt";
         cout << "monoDecomp. Storage of the complex change of coord. in " << filename << endl;
         gslc_eigensystem_fprintf(Dm, S, 6, (char*) filename.c_str());
@@ -4185,7 +4185,7 @@ void setM64(gsl_matrix_complex *M64, gsl_matrix_complex *M64i, gsl_complex l1)
  *     |  0    0   p63   0    0    p66 |
  */
 void nfo2coc(gsl_odeiv2_driver *d,const double y0[], const double n,
-             QBCP_L *qbcp_l, gsl_matrix* Br, gsl_matrix* R, gsl_matrix* JB,
+             FBPL *fbpl, gsl_matrix* Br, gsl_matrix* R, gsl_matrix* JB,
              int N, int isStored)
 {
     cout << "-----------------------------------------------" << endl;
@@ -4233,15 +4233,15 @@ void nfo2coc(gsl_odeiv2_driver *d,const double y0[], const double n,
     // Integration
     //--------------------------------------------------------------------------------------------------
     //Integrate the matrices P, FT11, FT12, FT21 and FT22 on a N point grid
-    nfo2Int(d, y0, n, qbcp_l, R, JB, N, P, Pfb, Q, Qfb, FT11, FT12, FT21, FT22, G1, Xe, Xm, Xs);
+    nfo2Int(d, y0, n, fbpl, R, JB, N, P, Pfb, Q, Qfb, FT11, FT12, FT21, FT22, G1, Xe, Xm, Xs);
     //Integrate the matrices P, FT11, FT12, FT21 and FT22 on a fftPlot+1 point grid
-    nfo2Int(d, y0, n, qbcp_l, R, JB, fftPlot, Pt, Pfbt, Qt, Qfbt, FT11b, FT12b, FT21b, FT22b, G1b, Xeb, Xmb, Xsb);
+    nfo2Int(d, y0, n, fbpl, R, JB, fftPlot, Pt, Pfbt, Qt, Qfbt, FT11b, FT12b, FT21b, FT22b, G1b, Xeb, Xmb, Xsb);
 
 
     //--------------------------------------------------------------------------------------------------
     // Fourier Analysis of the coefficients of G1
     //--------------------------------------------------------------------------------------------------
-    string F_COC = qbcp_l->cs.F_COC;
+    string F_COC = fbpl->cs.F_COC;
     string filename = F_COC+"G1_";
     Ofsc xFFT(fftN);
     cout << "-----------------------------------------------" << endl;
@@ -4261,7 +4261,7 @@ void nfo2coc(gsl_odeiv2_driver *d,const double y0[], const double n,
     //--------------------------------------------------------------------------------------------------
     // Fourier Analysis of the coefficients of Pfb. Uncomment to replace P by Pfb
     //--------------------------------------------------------------------------------------------------
-    if(qbcp_l->model == Csts::QBCP) //does not work for BCP
+    if(fbpl->model == Csts::QBCP) //does not work for BCP
     {
         cout << "-----------------------------------------------"   << endl;
         cout << "FFT comp & validity: Pfb                         " << endl;
@@ -4281,7 +4281,7 @@ void nfo2coc(gsl_odeiv2_driver *d,const double y0[], const double n,
     //--------------------------------------------------------------------------------------------------
     // Fourier Analysis of the coefficients of Qfb. Uncomment to replace Q by Qfb
     //--------------------------------------------------------------------------------------------------
-    if(qbcp_l->model == Csts::QBCP) //does not work for BCP
+    if(fbpl->model == Csts::QBCP) //does not work for BCP
     {
         cout << "-----------------------------------------------" << endl;
         cout << "FFT comp & validity: Qfb                         " << endl;
@@ -4371,7 +4371,7 @@ void nfo2coc(gsl_odeiv2_driver *d,const double y0[], const double n,
 void nfo2Int(gsl_odeiv2_driver *d,
              const double y0[],
              const double n,
-             QBCP_L *qbcp_l,
+             FBPL *fbpl,
              gsl_matrix* R,
              gsl_matrix* JB,
              int N,
@@ -4462,9 +4462,9 @@ void nfo2Int(gsl_odeiv2_driver *d,
         //------------------------------------
         //Translated primaries positions update
         //------------------------------------
-        evaluateCoef(ps, t, qbcp_l->us.n, qbcp_l->nf, qbcp_l->cs.ps, 3);
-        evaluateCoef(pe, t, qbcp_l->us.n, qbcp_l->nf, qbcp_l->cs.pe, 3);
-        evaluateCoef(pm, t, qbcp_l->us.n, qbcp_l->nf, qbcp_l->cs.pm, 3);
+        evaluateCoef(ps, t, fbpl->us.n, fbpl->nf, fbpl->cs.ps, 3);
+        evaluateCoef(pe, t, fbpl->us.n, fbpl->nf, fbpl->cs.pe, 3);
+        evaluateCoef(pm, t, fbpl->us.n, fbpl->nf, fbpl->cs.pm, 3);
 
         //Xe update
         gsl_matrix_set(Xe[i], 0, 0, pe[0] - y[0]); //tilde(xe) of the Earth
@@ -4522,7 +4522,7 @@ void nfo2Int(gsl_odeiv2_driver *d,
         //------------------------------------
         //Update Q1, Q2 and Q3
         //------------------------------------
-        qbfbp_Q(t, y, Q1, Q2, Q3, qbcp_l);
+        qbfbp_Q(t, y, Q1, Q2, Q3, fbpl);
 
         //For plotting
         yvec[i] = gsl_matrix_get(P[i], 0, 0);
@@ -4582,7 +4582,7 @@ void nfo2Int(gsl_odeiv2_driver *d,
         gsl_linalg_LU_invert (Pc , p6 , Qfb[N-i]);
 
         //Update Q1, Q2 and Q3
-        qbfbp_Q(t, y, Q1, Q2, Q3, qbcp_l);
+        qbfbp_Q(t, y, Q1, Q2, Q3, fbpl);
 
         //-------------------------------------------
         //Views
@@ -4779,9 +4779,9 @@ void nfo2Int(gsl_odeiv2_driver *d,
         //------------------------------------
         //Translated primaries positions update
         //------------------------------------
-        evaluateCoef(ps, t, qbcp_l->us.n, qbcp_l->nf, qbcp_l->cs.ps, 3);
-        evaluateCoef(pe, t, qbcp_l->us.n, qbcp_l->nf, qbcp_l->cs.pe, 3);
-        evaluateCoef(pm, t, qbcp_l->us.n, qbcp_l->nf, qbcp_l->cs.pm, 3);
+        evaluateCoef(ps, t, fbpl->us.n, fbpl->nf, fbpl->cs.ps, 3);
+        evaluateCoef(pe, t, fbpl->us.n, fbpl->nf, fbpl->cs.pe, 3);
+        evaluateCoef(pm, t, fbpl->us.n, fbpl->nf, fbpl->cs.pm, 3);
 
         //Xe update
         gsl_matrix_set(Xe[i], 0, 0, pe[0] - y[0]); //tilde(xe) of the Earth
@@ -4883,9 +4883,9 @@ void nfo2Int(gsl_odeiv2_driver *d,
         //------------------------------------
         //Translated primaries positions update
         //------------------------------------
-        evaluateCoef(ps, t, qbcp_l->us.n, qbcp_l->nf, qbcp_l->cs.ps, 3);
-        evaluateCoef(pe, t, qbcp_l->us.n, qbcp_l->nf, qbcp_l->cs.pe, 3);
-        evaluateCoef(pm, t, qbcp_l->us.n, qbcp_l->nf, qbcp_l->cs.pm, 3);
+        evaluateCoef(ps, t, fbpl->us.n, fbpl->nf, fbpl->cs.ps, 3);
+        evaluateCoef(pe, t, fbpl->us.n, fbpl->nf, fbpl->cs.pe, 3);
+        evaluateCoef(pm, t, fbpl->us.n, fbpl->nf, fbpl->cs.pm, 3);
 
         //Xe update
         gsl_matrix_set(Xe[N-i], 0, 0, pe[0] - y[0]); //tilde(xe) of the Earth

@@ -40,7 +40,7 @@ template<typename T> Ofts<T>::Ofts()
         term[i] = new Oftsh<T>(nv, i);
         //Link h to coefs at each level of the tree
         term[i]->linkCoefs(coefs+index);
-        index+=  FTDA::nmon(nv,i);
+        index+=  Manip::nmon(nv,i);
     }
 }
 
@@ -70,8 +70,8 @@ template<typename T> Ofts<T>::Ofts(int newNv, int newOrder, int newCnv, int newC
         term[i] = new Oftsh<T>(nv, i);//allocate_homog(nv, i);
         //Link h to coefs at each level of the tree
         term[i]->linkCoefs(coefs+index);
-        //term[i]->linkCoefs(new T[FTDA::nmon(nv,i)]);
-        index+=  FTDA::nmon(nv,i);
+        //term[i]->linkCoefs(new T[Manip::nmon(nv,i)]);
+        index+=  Manip::nmon(nv,i);
     }
 }
 
@@ -102,8 +102,8 @@ template<> inline Ofts< Ofs<complex double> >::Ofts(int newNv, int newOrder, int
         term[i] = new Oftsh< Ofs<complex double> >(nv, i);//allocate_homog(nv, i);
         //Link h to coefs at each level of the tree
         term[i]->linkCoefs(coefs+index);
-        //term[i]->linkCoefs(new T[FTDA::nmon(nv,i)]);
-        index+=  FTDA::nmon(nv,i);
+        //term[i]->linkCoefs(new T[Manip::nmon(nv,i)]);
+        index+=  Manip::nmon(nv,i);
     }
 }
 
@@ -137,7 +137,7 @@ template<> inline Ofts< Ofsd >::Ofts(int newNv, int newOrder, int newCnv, int ne
         term[i] = new Oftsh< Ofsd >(nv, i);//allocate_homog(nv, i);
         //Link h to coefs at each level of the tree
         term[i]->linkCoefs(coefs+index);
-        index+=  FTDA::nmon(nv,i);
+        index+=  Manip::nmon(nv,i);
     }
 }
 
@@ -162,8 +162,8 @@ template<typename T> Ofts<T>::Ofts(Ofts<T> const& b)
     index = 0;
     for(int nrc=0; nrc<= order; nrc++)
     {
-        for (int i=0; i< FTDA::nmon(nv, nrc); i++)  coefs[index+i] = b.term[nrc]->getCoef(i);
-        index+=  FTDA::nmon(nv,nrc);
+        for (int i=0; i< Manip::nmon(nv, nrc); i++)  coefs[index+i] = b.term[nrc]->getCoef(i);
+        index+=  Manip::nmon(nv,nrc);
     }
 
     //Allocation of the homogeneous polynomials
@@ -177,7 +177,7 @@ template<typename T> Ofts<T>::Ofts(Ofts<T> const& b)
         term[nrc] = new Oftsh<T>(nv, nrc);//allocate_homog(nv, i);
         //Link h to coefs at each level of the tree
         term[nrc]->linkCoefs(coefs+index);
-        index+=  FTDA::nmon(nv,nrc);
+        index+=  Manip::nmon(nv,nrc);
     }
 }
 
@@ -201,8 +201,8 @@ template<typename T> Ofts<T>& Ofts<T>::operator = (Ofts<T> const& b)
         index = 0;
         for(int nrc=0; nrc<= order; nrc++)
         {
-            for (int i=0; i< FTDA::nmon(nv, nrc); i++)  coef0[index+i] = b.term[nrc]->getCoef(i);
-            index+=  FTDA::nmon(nv,nrc);
+            for (int i=0; i< Manip::nmon(nv, nrc); i++)  coef0[index+i] = b.term[nrc]->getCoef(i);
+            index+=  Manip::nmon(nv,nrc);
         }
 
         delete term;
@@ -218,7 +218,7 @@ template<typename T> Ofts<T>& Ofts<T>::operator = (Ofts<T> const& b)
             term[nrc] = new Oftsh<T>(nv, nrc);//allocate_homog(nv, i);
             //Link h to coefs at each level of the tree
             term[nrc]->linkCoefs(coef0+index);
-            index+=  FTDA::nmon(nv,nrc);
+            index+=  Manip::nmon(nv,nrc);
         }
 
     }
@@ -277,7 +277,7 @@ template<typename T> Ofts<T>& Ofts<T>::ccopy (Ofts<T> const& b)
     else
     {
         //Copy of all the coefficients at every order
-        for(int nrc=0; nrc<= order; nrc++) for (int i=0; i< FTDA::nmon(nv, nrc); i++)  term[nrc]->setCoef(b.term[nrc]->getCoef(i), i);
+        for(int nrc=0; nrc<= order; nrc++) for (int i=0; i< Manip::nmon(nv, nrc); i++)  term[nrc]->setCoef(b.term[nrc]->getCoef(i), i);
         return *this;
     }
 }
@@ -297,7 +297,7 @@ template<typename T> Ofts<T>& Ofts<T>::ccopy (Ofts<T> const& b, int const& nrc)
     else
     {
         //Copy of all the coefficients at every order
-        for (int i=0; i< FTDA::nmon(nv, nrc); i++)  term[nrc]->setCoef(b.term[nrc]->getCoef(i), i);
+        for (int i=0; i< Manip::nmon(nv, nrc); i++)  term[nrc]->setCoef(b.term[nrc]->getCoef(i), i);
         return *this;
     }
 }
@@ -339,7 +339,7 @@ template<typename T> void Ofts<T>::addCoef(T const& m, int ord, int i)
  */
 template<typename T> template < typename U > void Ofts<T>::setAllCoefs(U const& m)
 {
-    for(int nrc=0; nrc<= order; nrc++) for (int i=0; i< FTDA::nmon(nv, nrc); i++)  term[nrc]->setSubCoef(m, i);
+    for(int nrc=0; nrc<= order; nrc++) for (int i=0; i< Manip::nmon(nv, nrc); i++)  term[nrc]->setSubCoef(m, i);
 }
 
 /**
@@ -403,11 +403,11 @@ template<typename T> int Ofts<T>::getCVariables() const
  */
 template<typename T>  T* Ofts<T>::getCoef(int const& ord, int const& pos) const
 {
-    if(ord > order || pos >= FTDA::nmon(nv, ord))
+    if(ord > order || pos >= Manip::nmon(nv, ord))
     {
         cout << "Error in getCoef: out of range. First term is returned" << endl;
         cout << "Requested order: " << ord << ", Maximum allowed: " <<  order << endl;
-        cout << "Requested pos: " << pos << ", Maximum allowed: " <<  FTDA::nmon(nv, ord) << endl;
+        cout << "Requested pos: " << pos << ", Maximum allowed: " <<  Manip::nmon(nv, ord) << endl;
         return this->term[0]->getCA();
     }
     else return this->term[ord]->getCA()+pos;
@@ -1183,7 +1183,7 @@ template<typename T> Ofts<T>& Ofts<T>::tfs_from_ofs(Ofts<T> const& a)
     for(int nrc=0; nrc<= order; nrc++)
     {
         //Current homogeneous polynomial
-        for (int i=0; i< FTDA::nmon(nv, nrc); i++)
+        for (int i=0; i< Manip::nmon(nv, nrc); i++)
         {
             tfs.tfs_from_ofs(a.term[nrc]->getCoef(i));
             this->term[nrc]->setCoef(tfs, i);
@@ -1201,7 +1201,7 @@ template<typename T> Ofts<T>& Ofts<T>::tfs_from_ofs_inline()
     for(int nrc=0; nrc<= order; nrc++)
     {
         //Current homogeneous polynomial
-        for (int i=0; i< FTDA::nmon(nv, nrc); i++)
+        for (int i=0; i< Manip::nmon(nv, nrc); i++)
         {
             (this->term[nrc]->getCA()+i)->tfs_from_ofs_inline(tfs);
         }
@@ -1216,7 +1216,7 @@ template<typename T> Ofts<T>& Ofts<T>::tfs_from_ofs_inline(int nrc)
 {
     Ofs< cdouble > tfs(corder);
     //Current homogeneous polynomial
-    for (int i=0; i< FTDA::nmon(nv, nrc); i++)
+    for (int i=0; i< Manip::nmon(nv, nrc); i++)
     {
         (this->term[nrc]->getCA()+i)->tfs_from_ofs_inline(tfs);
     }
@@ -1233,7 +1233,7 @@ template<typename T> Ofts<T>& Ofts<T>::tfs_to_ofs(Ofts<T> const& a)
     for(int nrc=0; nrc<= order; nrc++)
     {
         //Current homogeneous polynomial
-        for (int i=0; i< FTDA::nmon(nv, nrc); i++)
+        for (int i=0; i< Manip::nmon(nv, nrc); i++)
         {
             ofs.tfs_to_ofs(a.term[nrc]->getCoef(i));
             this->term[nrc]->setCoef(ofs, i);
@@ -1251,7 +1251,7 @@ template<typename T> Ofts<T>& Ofts<T>::tfs_to_ofs_inline()
     for(int nrc=0; nrc<= order; nrc++)
     {
         //Current homogeneous polynomial
-        for (int i=0; i< FTDA::nmon(nv, nrc); i++)
+        for (int i=0; i< Manip::nmon(nv, nrc); i++)
         {
             (this->term[nrc]->getCA()+i)->tfs_to_ofs_inline();
         }
@@ -1266,7 +1266,7 @@ template<typename T> Ofts<T>& Ofts<T>::tfs_to_ofs_inline()
 template<typename T> Ofts<T>& Ofts<T>::tfs_to_ofs_inline(int nrc)
 {
     //Current homogeneous polynomial
-    for (int i=0; i< FTDA::nmon(nv, nrc); i++)
+    for (int i=0; i< Manip::nmon(nv, nrc); i++)
     {
         (this->term[nrc]->getCA()+i)->tfs_to_ofs_inline();
     }
@@ -1699,13 +1699,13 @@ template<typename T> std::ostream& operator << (std::ostream& stream, Ofts<T> co
         k[0] = nrc;
         for(i=1; i<ofts.nv; i++) k[i] = 0;
         //Current homogeneous polynomial
-        for (i=0; i< FTDA::nmon(ofts.nv, nrc); i++)
+        for (i=0; i< Manip::nmon(ofts.nv, nrc); i++)
         {
             for(j=0; j<ofts.nv; j++) stream <<   setiosflags(ios::right) <<  k[j] << " ";
             stream << endl;
             stream << std::showpos << setiosflags(ios::scientific)  << setprecision(16)  <<  ofts.term[nrc]->getCoef(i) << std::noshowpos << endl;
 
-            if(i< FTDA::nmon(ofts.nv, nrc)-1)  FTDA::prxkt(k, ofts.nv);
+            if(i< Manip::nmon(ofts.nv, nrc)-1)  Manip::prxkt(k, ofts.nv);
         }
     }
     return stream;
@@ -1724,7 +1724,7 @@ template<typename T> void Ofts<T>::fprint_0(ofstream& stream)
         k[0] = nrc;
         for(i=1; i<nv; i++) k[i] = 0;
         //Current homogeneous polynomial
-        for (i=0; i< FTDA::nmon(nv, nrc); i++)
+        for (i=0; i< Manip::nmon(nv, nrc); i++)
         {
             //for(j=0; j<nv; j++) stream <<  setw(2) << setiosflags(ios::right) <<  k[j] << " ";
             for(j=0; j<nv; j++) stream <<   setiosflags(ios::right) <<  k[j] << " ";
@@ -1732,7 +1732,7 @@ template<typename T> void Ofts<T>::fprint_0(ofstream& stream)
             stream << std::showpos << setiosflags(ios::scientific)  << setprecision(15);
             term[nrc]->getCoef(i).fprint_0(stream);
             stream << std::noshowpos << endl;
-            if(i< FTDA::nmon(nv, nrc)-1)  FTDA::prxkt(k, nv);
+            if(i< Manip::nmon(nv, nrc)-1)  Manip::prxkt(k, nv);
         }
     }
 }
@@ -2068,7 +2068,7 @@ inline int readOFTS_txt(Ofts<Ofsc > &x, string filename, int fftN)
     {
         for(int k = 0 ; k <= x.getOrder() ; k++)
         {
-            for(int p = 0; p < FTDA::nmon(x.getNV(), k); p++)
+            for(int p = 0; p < Manip::nmon(x.getNV(), k); p++)
             {
                 //Current kv
                 getline(readStream, ct);
@@ -2134,7 +2134,7 @@ inline void  writeOFTS_bin(Ofts<Ofsc > &W, string filename)
     for(int nrc=0; nrc<= W.getOrder(); nrc++)
     {
         //Current homogeneous polynomial
-        for (int i=0; i< FTDA::nmon(W.getNV(), nrc); i++)
+        for (int i=0; i< Manip::nmon(W.getNV(), nrc); i++)
         {
             //Write each Ofs coefficient
             writeOFS_bin(*W.getCoef(nrc,i), myfile);
@@ -2203,7 +2203,7 @@ inline int readOFTS_bin(Ofts<Ofsc > &W, string filename)
         for(int nrc=0; nrc<= W.getOrder(); nrc++)
         {
             //Current homogeneous polynomial
-            for (int i=0; i< FTDA::nmon(W.getNV(), nrc); i++)
+            for (int i=0; i< Manip::nmon(W.getNV(), nrc); i++)
             {
                 //Read each Ofs coefficient
                 readOFS_bin(*W.getCoef(nrc,i), myfile);
@@ -2302,13 +2302,13 @@ inline int fromOFTStoOFTS_bin(Oftsc &W, Oftsc &W1, int dim)
             //============================================================================
             //Loop on the monomials at order nrc
             //============================================================================
-            for (int i=0; i< FTDA::nmon(nv, nrc); i++)
+            for (int i=0; i< Manip::nmon(nv, nrc); i++)
             {
                 //If the exponents are non null only on dim, we save the value in W1
                 W1.getCoef(nrc, 0)->ccopy(*W.getCoef(nrc,i));
 
                 //Update the exponents
-                if(i< FTDA::nmon(nv, nrc)-1)  FTDA::prxkt(kv, nv);
+                if(i< Manip::nmon(nv, nrc)-1)  Manip::prxkt(kv, nv);
             }
 
     }
@@ -2388,37 +2388,6 @@ inline void writeVOFTS_txt2bin(vector<Ofts<Ofsc > > &W, string filename, int fft
     writeVOFTS_bin(W, filename);
 }
 
-//--------------------------------------------------------------------------------
-// Ofts 2 Ofs
-//--------------------------------------------------------------------------------
-/**
- *  \brief Transform a one-variable Ofts< Ots<U> > fts_z into an Ofs<U> object fs object such that fts_z(epsilon) = fs.
- **/
-template <typename U>  void fts2fs(Ofs<U> *fs, Ofts< Ots<U> > const& fts_z, double epsilon)
-{
-
-    int k, l;
-    double tempc;
-    int nf = fts_z.getCOrder()/2;
-    Ofs<U> tempfs(nf);
-    Oftsh< Ots<U> > *tempfth;
-    //Cleaning of fs
-    fs->zero();
-    //Orders >= 0
-    for(k = -nf; k <= nf; k++)
-    {
-        tempc = 0;
-        for(l = 0 ; l <= fts_z.getOrder(); l++)
-        {
-            //Trigonometric coefficient of order l
-            tempfth = fts_z.getTerm(l);
-            tempfs.ts2fs(tempfth->getCoef(0));
-            //tempc += ulj*epsilon^l
-            tempc += tempfs.ofs_getCoef(k)*pow(epsilon, (double) l);
-        }
-        fs->setCoef(tempc, k);
-    }
-}
 
 /**
  *  \brief Transform a one-variable Ofts< Ofs<U> > fts_z into an Ofs<U> object fs object such that fts_z(epsilon) = fs.
@@ -2445,16 +2414,6 @@ template <typename U>  void fts2fs(Ofs<U> *fs, Ofts< Ofs<U> > const& fts_z, doub
         }
         fs->setCoef(tempc, k);
     }
-}
-
-/**
- *  \brief Transform a one-variable Ofts< Ots<U> > fts_z into a complex number fts_z(epsilon, t).
- **/
-template <typename U>  cdouble fts2scalar(Ofts< Ots<U> > const& fts_z, double epsilon, double t)
-{
-    Ofs<U> fs(fts_z.getCOrder()/2);
-    fts2fs(&fs, fts_z, epsilon);
-    return fs.evaluate(t);
 }
 
 /**

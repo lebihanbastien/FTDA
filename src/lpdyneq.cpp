@@ -24,7 +24,7 @@
  *         - Finally, a test of the periodicity of the orbit is performed, via the computation of the error |y(0) - y(T)|.
  *         - If isStored is true, the results (x(t), y(t)) in synodical coordinates are stored in txt files of the form: "./plot/QBCP/DYNEQ/DYNEQ_QBCP_EM_L1.txt".
  **/
-void compute_dyn_eq_lib_point(QBCP_L &qbcp_l, int isStored)
+void compute_dyn_eq_lib_point(FBPL &fbpl, int isStored)
 {
     //====================================================================================
     // 1. Initialization
@@ -42,10 +42,10 @@ void compute_dyn_eq_lib_point(QBCP_L &qbcp_l, int isStored)
     //------------------------------------------------------------------------------------
     //System
     gsl_odeiv2_system sys;
-    sys.function      = qbcp_l.isNormalized? qbfbp_vfn_varnonlin:qbfbp_vf;
+    sys.function      = fbpl.isNorm? qbfbp_vfn_varnonlin:qbfbp_vf;
     sys.jacobian      = NULL;
     sys.dimension     = 42;
-    sys.params        = &qbcp_l;
+    sys.params        = &fbpl;
     //Stepper
     const gsl_odeiv2_step_type *T = gsl_odeiv2_step_rk8pd;
     //Driver
@@ -55,10 +55,10 @@ void compute_dyn_eq_lib_point(QBCP_L &qbcp_l, int isStored)
                        Config::configManager().G_PREC_REL());
 
     //Building the filename
-    string f_model  = init_F_MODEL(qbcp_l.model);
-    string f_csys   = init_F_COORDSYS(qbcp_l.coordsys);
-    string f_li     = init_F_LI(qbcp_l.li);
-    string f_norm   = qbcp_l.isNormalized?"_NC":"";
+    string f_model  = init_F_MODEL(fbpl.model);
+    string f_csys   = init_F_COORDSYS(fbpl.coordsys);
+    string f_li     = init_F_LI(fbpl.li);
+    string f_norm   = fbpl.isNorm?"_NC":"";
     string filename = "plot/"+f_model+"/DYNEQ/DYNEQ_"+f_model+"_"+f_csys+"_"+f_li+f_norm+".txt";
 
     //====================================================================================
@@ -89,12 +89,12 @@ void compute_dyn_eq_lib_point(QBCP_L &qbcp_l, int isStored)
     int Npoints = 500;
 
     //Building the solution and printing in file
-    odePlot2(y0, 42, qbcp_l.us.T, d, h1, Npoints, 6, qbcp_l.isNormalized, isStored, "From single shooting", filename.c_str());
+    odePlot2(y0, 42, fbpl.us.T, d, h1, Npoints, 6, fbpl.isNorm, isStored, "From single shooting", filename.c_str());
 
     //====================================================================================
     // 5. Periodicity condition for single shooting
     //====================================================================================
-    periodicity_condition(y0, 42, 6, qbcp_l.us.T, d, qbcp_l.isNormalized);
+    periodicity_condition(y0, 42, 6, fbpl.us.T, d, fbpl.isNorm);
 
     //====================================================================================
     // 6. Multiple shooting
@@ -111,7 +111,7 @@ void compute_dyn_eq_lib_point(QBCP_L &qbcp_l, int isStored)
     double *tmd   = dvector(0, M);
 
     //Building the patch points
-    lpdyneq_patch_points(y0, d, qbcp_l.us.T, ymd, tmd, M);
+    lpdyneq_patch_points(y0, d, fbpl.us.T, ymd, tmd, M);
 
     //Multiple shooting procedure
     lpdyneq_multiple_shooting(ymd, tmd, ymd, tmd, d, 42, M, 1e-14, false, h1, false);
@@ -141,8 +141,8 @@ void lpdyneq(gsl_odeiv2_driver *d, double y0[])
     Config::configManager().coutlp();
 
     //Retrieving the parameters
-    QBCP_L* qbp      = (QBCP_L *) d->sys->params;
-    int isNormalized =  qbp->isNormalized;
+    FBPL* qbp      = (FBPL *) d->sys->params;
+    int isNorm =  qbp->isNorm;
     int li           =  qbp->cs.li;
     double tend      =  qbp->us.T;
 
@@ -155,7 +155,7 @@ void lpdyneq(gsl_odeiv2_driver *d, double y0[])
     //------------------------------------------------------------------------------------
     //Approximated position from CR3BP
     //------------------------------------------------------------------------------------
-    if(isNormalized)
+    if(isNorm)
     {
         //Approximated position from CR3BP: null vector
         for(int i =0; i<6; i++) y0[i] = 0.0;
@@ -279,9 +279,9 @@ void lpdyneq_cont_2(gsl_odeiv2_driver *d, gsl_odeiv2_control * loose_control, gs
     //Retrieving the parameters
     //------------------------------------------------------------------------------------
     QBCP_I* qbpi     =  (QBCP_I *) d->sys->params;
-    QBCP_L* qbp1     =  &qbpi->model1;              //First model, full model when qpbi->epsilon = 0.0, at the beginning of the process.
-    QBCP_L* qbp2     =  &qbpi->model2;              //First model, full model when qpbi->epsilon = 1.0, at the end of the process.
-    int isNormalized =  qbp1->isNormalized;
+    FBPL* qbp1     =  &qbpi->model1;              //First model, full model when qpbi->epsilon = 0.0, at the beginning of the process.
+    FBPL* qbp2     =  &qbpi->model2;              //First model, full model when qpbi->epsilon = 1.0, at the end of the process.
+    int isNorm =  qbp1->isNorm;
     int li           =  qbp1->cs.li;
     //Full period of the Sun
     double tend = 2*M_PI/qbp2->us.n;
@@ -356,7 +356,7 @@ void lpdyneq_cont_2(gsl_odeiv2_driver *d, gsl_odeiv2_control * loose_control, gs
     //------------------------------------------------------------------------------------
     //Transform into y0 if NC coordinates are used
     //------------------------------------------------------------------------------------
-    if(isNormalized)
+    if(isNorm)
     {
         //To NC
         SYStoNC(0.0, yf, y0, qbp1);
@@ -524,7 +524,7 @@ void lpdyneq_cont_2(gsl_odeiv2_driver *d, gsl_odeiv2_control * loose_control, gs
 
     //Last correction much more precise
     qbpi->epsilon = 1.00;
-    if(isNormalized) differential_correction(y0, fT*tend, 1e-14, d, 48, 0);
+    if(isNorm) differential_correction(y0, fT*tend, 1e-14, d, 48, 0);
     else differential_correction(y0, fT*tend, 1e-14, d, 48, 0);
 
     //Final IC
@@ -547,13 +547,13 @@ void lpdyneq_cont_2(gsl_odeiv2_driver *d, gsl_odeiv2_control * loose_control, gs
  *  This routine makes use of the subroutine lpdyneq_cont_2 to perform a continuation procedure from the dynamical equivalent
  *         computed in a from_model to its counterpart in a to_model.
  */
-void continuation_dyn_eq_lib_point(QBCP_L &qbcp_l, int from_model, int to_model)
+void continuation_dyn_eq_lib_point(FBPL &fbpl, int from_model, int to_model)
 {
     //============================================================
     // 1. Initialization
     //============================================================
     //Model must be normalized.
-    if(!qbcp_l.isNormalized)
+    if(!fbpl.isNorm)
     {
         cout << "continuation_dyn_eq_lib_point. Warning: selected model is not normalized. Premature ending." << endl;
         return;
@@ -563,8 +563,8 @@ void continuation_dyn_eq_lib_point(QBCP_L &qbcp_l, int from_model, int to_model)
     //Structures for continuation
     //------------------------------------------------------------------------------------
     QBCP_I model;
-    QBCP_L model1, model2;
-    init_QBCP_I(&model, &model1, &model2, Csts::SUN, Csts::EARTH, Csts::MOON, qbcp_l.isNormalized, SEML.li_EM, SEML.li_SEM, 0, from_model, to_model, SEML.coordsys, SEML.pms);
+    FBPL model1, model2;
+    init_FBP_I(&model, &model1, &model2, Csts::SUN, Csts::EARTH, Csts::MOON, fbpl.isNorm, SEML.li_EM, SEML.li_SEM, 0, from_model, to_model, SEML.coordsys, SEML.pms);
 
     //------------------------------------------------------------------------------------
     // Integration tools
@@ -609,9 +609,9 @@ void lpdyneq_cont(gsl_odeiv2_driver *d, gsl_odeiv2_control * loose_control, gsl_
 
     //Retrieving the parameters
     QBCP_I* qbpi     =  (QBCP_I *) d->sys->params;
-    QBCP_L* qbp1     =  &qbpi->model1;              //First model, full model when qpbi->epsilon = 0.0, at the beginning of the process.
-    QBCP_L* qbp2     =  &qbpi->model2;              //First model, full model when qpbi->epsilon = 1.0, at the end of the process.
-    int isNormalized =  qbp1->isNormalized;
+    FBPL* qbp1     =  &qbpi->model1;              //First model, full model when qpbi->epsilon = 0.0, at the beginning of the process.
+    FBPL* qbp2     =  &qbpi->model2;              //First model, full model when qpbi->epsilon = 1.0, at the end of the process.
+    int isNorm =  qbp1->isNorm;
     int li           =  qbp1->cs.li;
 
     //Full period of the Sun
@@ -650,7 +650,7 @@ void lpdyneq_cont(gsl_odeiv2_driver *d, gsl_odeiv2_control * loose_control, gsl_
     EMvtoEMm(0.0, yv, yf, qbp1);
 
     //Transform into y0 if necessary
-    if(isNormalized)
+    if(isNorm)
     {
         //To NC
         SYStoNC(0.0, yf, y0, qbp1);
@@ -796,7 +796,7 @@ void lpdyneq_cont(gsl_odeiv2_driver *d, gsl_odeiv2_control * loose_control, gsl_
     cout << "here, after loop." << endl;
 
     //Last correction much more precise
-    if(isNormalized) differential_correction(y0, 0.5*tend, 1e-14, d, 48, 0);
+    if(isNorm) differential_correction(y0, 0.5*tend, 1e-14, d, 48, 0);
     else differential_correction(y0, 0.5*tend, 1e-14, d, 48, 0);
 
 
@@ -845,9 +845,9 @@ void res_orbit_cont(gsl_odeiv2_driver *d, gsl_odeiv2_control * loose_control, gs
     //Retrieving the parameters
     //------------------------------------------------------------------------------------
     QBCP_I* qbpi     =  (QBCP_I *) d->sys->params;
-    QBCP_L* qbp1     =  &qbpi->model1;              //First model, full model when qpbi->epsilon = 0.0, at the beginning of the process.
-    QBCP_L* qbp2     =  &qbpi->model2;              //First model, full model when qpbi->epsilon = 1.0, at the end of the process.
-    int isNormalized =  qbp1->isNormalized;
+    FBPL* qbp1     =  &qbpi->model1;              //First model, full model when qpbi->epsilon = 0.0, at the beginning of the process.
+    FBPL* qbp2     =  &qbpi->model2;              //First model, full model when qpbi->epsilon = 1.0, at the end of the process.
+    int isNorm =  qbp1->isNorm;
     int li           =  qbp1->cs.li;
     //Full period of the Sun
     double tend = 2*M_PI/qbp2->us.n;
@@ -908,7 +908,7 @@ void res_orbit_cont(gsl_odeiv2_driver *d, gsl_odeiv2_control * loose_control, gs
     //------------------------------------------------------------------------------------
     //Transform into y0 if NC coordinates are used
     //------------------------------------------------------------------------------------
-    if(isNormalized)
+    if(isNorm)
     {
         //To NC
         SYStoNC(0.0, yf, y0, qbp1);
@@ -1072,7 +1072,7 @@ void res_orbit_cont(gsl_odeiv2_driver *d, gsl_odeiv2_control * loose_control, gs
 
     //Last correction much more precise
     qbpi->epsilon = 1.00;
-    if(isNormalized) differential_correction(y0, fT*tend, 1e-14, d, 48, 0);
+    if(isNorm) differential_correction(y0, fT*tend, 1e-14, d, 48, 0);
     else differential_correction(y0, fT*tend, 1e-14, d, 48, 0);
 
     //Final IC
@@ -1108,7 +1108,7 @@ void res_orbit_cont(gsl_odeiv2_driver *d, gsl_odeiv2_control * loose_control, gs
  *                   - A 2T/5-resonant orbit at EML1
  *                   - A T/2-resonant orbit at EML2
  */
-void continuation_res_orbit(QBCP_L &qbcp_l, int from_model, int to_model)
+void continuation_res_orbit(FBPL &fbpl, int from_model, int to_model)
 {
     //============================================================
     // 1. Initialization
@@ -1116,7 +1116,7 @@ void continuation_res_orbit(QBCP_L &qbcp_l, int from_model, int to_model)
     //------------------------------------------------------------------------------------
     //Model must be normalized.
     //------------------------------------------------------------------------------------
-    if(!qbcp_l.isNormalized)
+    if(!fbpl.isNorm)
     {
         cout << "continuation_res_orbit. Warning: selected model is not normalized. Premature ending." << endl;
         return;
@@ -1126,8 +1126,8 @@ void continuation_res_orbit(QBCP_L &qbcp_l, int from_model, int to_model)
     //Structures for continuation
     //------------------------------------------------------------------------------------
     QBCP_I model;
-    QBCP_L model1, model2;
-    init_QBCP_I(&model, &model1, &model2, Csts::SUN, Csts::EARTH, Csts::MOON, qbcp_l.isNormalized, SEML.li_EM, SEML.li_SEM, 0, from_model, to_model, SEML.coordsys, SEML.pms);
+    FBPL model1, model2;
+    init_FBP_I(&model, &model1, &model2, Csts::SUN, Csts::EARTH, Csts::MOON, fbpl.isNorm, SEML.li_EM, SEML.li_SEM, 0, from_model, to_model, SEML.coordsys, SEML.pms);
 
     //------------------------------------------------------------------------------------
     // Integration tools
@@ -1167,7 +1167,7 @@ void continuation_res_orbit(QBCP_L &qbcp_l, int from_model, int to_model)
  *  Note that the integer N is the number of variables associated to the driver d, and should be also the number of variables in y. However, the periodicity condition is tested only on
  *  NvarTest variables (a usual example is Nvar = 42 but NvarTest = 6).
  **/
-int periodicity_condition(const double y[], int Nvar, int NvarTest, double t1, gsl_odeiv2_driver *d, int isNormalized)
+int periodicity_condition(const double y[], int Nvar, int NvarTest, double t1, gsl_odeiv2_driver *d, int isNorm)
 {
     //------------------------------------------------------------------------------------
     // Init
@@ -1175,14 +1175,14 @@ int periodicity_condition(const double y[], int Nvar, int NvarTest, double t1, g
     gsl_odeiv2_driver_reset(d);
 
     //Retrieving the parameters
-    QBCP_L* qbp = (QBCP_L *) d->sys->params;
+    FBPL* qbp = (FBPL *) d->sys->params;
 
     //Initial conditions
     double ys[Nvar], y0[Nvar], y1[Nvar], y0_nat[Nvar], y1_nat[Nvar];
     for(int i=0; i< Nvar; i++) ys[i] = y[i];
 
     //First point in system coordinates
-    if(isNormalized) NCtoSYS(0.0, ys, y0, qbp);
+    if(isNorm) NCtoSYS(0.0, ys, y0, qbp);
     else for(int i=0; i< Nvar; i++) y0[i] = ys[i];
 
     //First point in native coordinates
@@ -1198,7 +1198,7 @@ int periodicity_condition(const double y[], int Nvar, int NvarTest, double t1, g
     //Final state
     //------------------------------------------------------------------------------------
     // In system coordinates
-    if(isNormalized) NCtoSYS(t, ys, y1, qbp);
+    if(isNorm) NCtoSYS(t, ys, y1, qbp);
     else for(int i=0; i< Nvar; i++) y1[i] = ys[i];
 
     //In native coordinates
