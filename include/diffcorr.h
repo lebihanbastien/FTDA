@@ -80,10 +80,10 @@ int differential_correction_T(double ystart[], double t1, double eps_diff, gsl_o
 //------------------------------------------------------------------------------------------------------------
 /**
  *  \brief Integrate the state y[] up to t = t1 on a Npoints grid, in either NC or SYS coordinates, and plot the corresponding result in SYS coordinates (e.g. EM or SEM coord.).
- *         Then the results are plotted on a temporary gnuplot window via the handle *h1. Print in txt files is included vis \c isStored integer.
+ *         Then the results are plotted on a temporary gnuplot window via the handle *h1. Print in txt files is included vis \c is_stored integer.
  **/
 int odePlot2(const double y[], int N, double t1, gsl_odeiv2_driver *d,
-             gnuplot_ctrl  *h1, int Npoints, int color, int isNorm, int isStored,
+             gnuplot_ctrl  *h1, int Npoints, int color, int is_norm, int is_stored,
              string legend, string filename);
 
 /**
@@ -92,7 +92,7 @@ int odePlot2(const double y[], int N, double t1, gsl_odeiv2_driver *d,
  *         Then the results are plotted on a temporary gnuplot window via the handle *h1.
  **/
 int odePlotvec(double **ymdn, double *tmdn, int N, int mgs, gsl_odeiv2_driver *d,
-               gnuplot_ctrl  *h1, int Npoints, int color, int isNorm, string legend);
+               gnuplot_ctrl  *h1, int Npoints, int color, int is_norm, string legend);
 
 //------------------------------------------------------------------------------------------------------------
 // ODE PLOT

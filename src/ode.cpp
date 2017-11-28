@@ -93,6 +93,41 @@ void init_ode_structure(OdeStruct *ode_s,
 }
 
 /**
+ *  \brief Initializes an ode structure of the type OdeStruct, including:
+ *           - a step type T,
+ *           - a root solver type T_root,
+ *           - a root solver s_root,
+ *           - a number of dimension dim,
+ *           - a vector field func,
+ *           - its corresponding jacobian,
+ *           - some additional parameters in params.
+ *
+ *        During this initialisation, the following elements are initialized:
+ *           - a stepper s,
+ *           - a controler c,
+ *           - a system sys,
+ *           - a driver d containing all the previous objects.
+ *
+ *        The default precision of the propagator are taken in Config::configManager().
+ *        Moreover, the jacobian is always NULL.
+ **/
+void init_ode_structure(OdeStruct *ode_s,
+                        const gsl_odeiv2_step_type *T,
+                        const gsl_root_fsolver_type *T_root,
+                        size_t dim,
+                        int (* func) (double t, const double y[], double dydt[], void *params),
+                        void *odeParams)
+{
+    init_ode_structure(ode_s, T, T_root,
+                       Config::configManager().G_PREC_ABS(),
+                       Config::configManager().G_PREC_REL(),
+                       Config::configManager().G_PREC_ROOT(),
+                       dim,
+                       Config::configManager().G_PREC_HSTART(),
+                       func, NULL, odeParams);
+}
+
+/**
  *  \brief Reset an ode structure. Namely, the stepper s, the controller c, and the driver d.
  **/
 void reset_ode_structure(OdeStruct *ode_s)
@@ -154,3 +189,11 @@ void update_ode_structure(OdeStruct *ode_s,
     ode_s->eps_int_rel = -1;
 }
 
+/**
+ * \brief Change direction of integration
+ **/
+void flip_ode_structure(OdeStruct *ode_s)
+{
+    ode_s->d->h = -ode_s->d->h;
+    ode_s->h = -ode_s->h;
+}

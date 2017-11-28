@@ -19,15 +19,17 @@
 #include "matrix.h"
 #include "init.h"
 
-//---------------------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 //         Main routine
-//---------------------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 /**
- *  \brief Compute the parameterization of the central manifold of the dynamical equivalent of the Earth-Moon libration points L1,2, up to a given order.
- *  \param OutputEachOrder: if true, the results are printed in txt files after each computed order.
- *  \param Output: if true and OutputEachOrder = false, the results are printed at the very end of the computation.
- *  \param pms: parameterization style (graph, normal form or mixed)
- *  \param manType: type of manifold (center, center-stable, center-unstable or center-hyperbolic).
+ *  \brief Compute the parameterization of the central manifold of the dynamical
+ *         equivalents to the Earth-Moon & Sun-Earth libration points up to a given order.
+ *  \param man_type: type of manifold (center, center-stable, center-unstable or center-hyperbolic).
+ *  \param param_style: parameterization style (graph, normal form or mixed)
+ *  \param small_div_threshold: the limit above which small divisors are discarded.
+ *         Only used with the NORMFORM and MIXED styles.
+ *  \param is_stored: if true, the results are stored at the end of the computation.
  *
  *   Inputs:
  *      - The FBPL structure SEML, which contains the addresses of the data folders (F_COC, F_PMS...),
@@ -45,15 +47,15 @@
  *      - DWf(s,t), the product DW * fh
  *      - Wdotc(s,t), the partial derivative of W(s,t) with respect to time (not equal to dot(W) = dW/dt)
  **/
-void pmt(int OutputEachOrder, int Output, int pms, int manType);
+void pmt(int man_type, int param_style, double small_div_threshold, int is_stored);
 
-//---------------------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 //         Init routines
-//---------------------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 /**
  *  \brief Initialization of the vector fields (alpha coefficients) used in pm.
  **/
-void tfts_initVF(vector<Ofsc> &alpha);
+void tfts_initVF(vector<Ofsc>& alpha);
 
 /**
  *  \brief Initialization of various matrices that helps build the order one of the parameterization. Namely:
@@ -103,123 +105,121 @@ void tfts_initVF(vector<Ofsc> &alpha);
  *
  *  WARNING: all these objects are initialized in OFS format, and NOT in TFS format, since they are only used in pure OFS computations.
  **/
-void tfts_initOrderOne(gsl_matrix_complex *DB,
-                       gsl_matrix_complex *H,
-                       gsl_matrix_complex *Hinv,
-                       gsl_matrix_complex *La,
-                       matrix<Ofsc>& DF0,
-                       matrix<Ofsc>& H2,
-                       matrix<Ofsc>& Hinv2,
-                       int manType);
+void tfts_init_order_one(gsl_matrix_complex* DB,
+                         gsl_matrix_complex* H,
+                         gsl_matrix_complex* Hinv,
+                         gsl_matrix_complex* La,
+                         matrix<Ofsc>& DF0,
+                         matrix<Ofsc>& H2,
+                         matrix<Ofsc>& Hinv2,
+                         int man_type);
 /**
  *  \brief Initialization of the PM objects (W, Wh, and fh). TFS formatting is included.
  **/
-void tfts_initPM(vector<Oftsc>& W,
-                 vector<Oftsc>& Wh,
-                 vector<Oftsc>& fh,
-                 matrix<Ofsc>& PC,
-                 vector<Ofsc>& V,
-                 gsl_matrix_complex *L,
-                 gsl_matrix_complex *La,
-                 int manType);
+void tfts_init_pm(vector<Oftsc>& W,
+                  vector<Oftsc>& Wh,
+                  vector<Oftsc>& fh,
+                  matrix<Ofsc>& PC,
+                  vector<Ofsc>& V,
+                  gsl_matrix_complex* L,
+                  gsl_matrix_complex* La,
+                  int man_type);
 
-//---------------------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 //         Cohomological equations
-//---------------------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 /**
- *  \brief Resolution of the cohomological equations at order m.
- *
- *         The right-hand side of the cohomological equation are in the expansion xi. The expansions eta and fh are updated.
+ *  \brief Resolution of the homological equations at order m.
+ *         The right-hand side of the cohomological equation are in the expansion xi.
+ *         The expansions eta and fh are updated.
  **/
-void cohomEq(vector<Oftsc>& eta,
+void solv_hom_eq(vector<Oftsc>& eta,
              vector<Oftsc>& xi,
              vector<Oftsc>& fh,
-             gsl_matrix_complex *La,
+             gsl_matrix_complex* La,
              int m,
-             int pms,
+             int param_style,
              double threshold,
-             int **VIs,
-             int  *VIn,
+             int** VIs,
+             int*  VIn,
              int ims);
 
-//---------------------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 //         Recurrence
-//---------------------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 /**
- *  \brief Adds the contribution of the terms of order m to the order m of Un. These terms are part of the potential of the primary with position Xe and factor Ke.
+ *  \brief Adds the contribution of the terms of order m to the order m of Un.
+ *         These terms are part of the potential of the primary with position Xe and factor Ke.
  **/
-void updateDerPotprim_zero(vector<Oftsc>& W,        //parameterization in NC coordinates
-                           vector<Ofsc>& Xe,        //position of the primary
-                           Oftsc& E1, Oftsc& E2,    //intermediate steps
-                           Oftsc& Et1, Oftsc& Et2,  //intermediate steps
-                           double Ke,               //primary factor
-                           vector<Oftsc>& Un,       //potential to update
-                           int m);                  //order
+void update_potential_prim_m(vector<Oftsc>& W,        //parameterization in NC coordinates
+                             vector<Ofsc>& Xe,        //position of the primary
+                             Oftsc& E1, Oftsc& E2,    //intermediate steps
+                             Oftsc& Et1, Oftsc& Et2,  //intermediate steps
+                             double Ke,               //primary factor
+                             vector<Oftsc>& Un,       //potential to update
+                             int m);                  //order
 
 /**
- *  \brief Adds the contribution of the terms of order < m to the order m of Un. These terms are part of the the potential of the primary with position Xe and factor Ke.
+ *  \brief Adds the contribution of the terms of order < m to the order m of Un.
+ *         These terms are part of the the potential of the primary with position Xe and factor Ke.
  **/
-void updateDerPotprim(vector<Oftsc>& W,     //parameterization in NC coordinates
-                      vector<Ofsc>& Xe,     //position of the primary
-                      Oftsc& E1, Oftsc& E2, //intermediate steps
-                      double Ke,            //primary factor
-                      vector<Oftsc>& Un,    //potential to update
-                      int m);               //order
+void update_potential_prim(vector<Oftsc>& W,     //Parameterization in NC coordinates
+                           vector<Ofsc>& Xe,     //position of the primary
+                           Oftsc& E1, Oftsc& E2, //intermediate steps
+                           double Ke,            //primary factor
+                           vector<Oftsc>& Un,    //potential to update
+                           int m);               //order
 
 /**
  *  \brief Adds the contribution of the terms of order m to the order m of the potential Un.
  **/
-void updateDerPot_zero(vector<Oftsc>& W,        //parameterization in NC coordinates
-                       vector<Ofsc>& Xe,        //Earth position
-                       vector<Ofsc>& Xm,        //Moon position
-                       vector<Ofsc>& Xs,        //Sun position
-                       vector<Oftsc>& PrimPt,   //Intermediate steps: contr. of order < m to order m
-                       vector<Oftsc>& PrimPt2,  //Intermediate steps: contr. of order = m to order m
-                       double Ke,               //Earth factor
-                       double Km,               //Moon factor
-                       double Ks,               //Sun factor
-                       vector<Oftsc>& Un,       //potential to update
-                       int m);                  //order
+void update_potential_m(vector<Oftsc>& W,          //Parameterization in NC coordinates
+                        vector<Ofsc>& Xe,        //Earth position
+                        vector<Ofsc>& Xm,        //Moon position
+                        vector<Ofsc>& Xs,        //Sun position
+                        vector<Oftsc>& PrimPt,   //Intermediate steps: contr. of order < m to order m
+                        vector<Oftsc>& PrimPt2,  //Intermediate steps: contr. of order = m to order m
+                        double Ke,               //Earth factor
+                        double Km,               //Moon factor
+                        double Ks,               //Sun factor
+                        vector<Oftsc>& Un,       //potential to update
+                        int m);                  //order
 
 /**
  *  \brief Adds the contribution of the terms of order < m to the order m of the potential Un.
  **/
-void updateDerPot(vector<Oftsc>& W,        //parameterization in NC coordinates
-                  vector<Ofsc>& Xe,        //Earth position
-                  vector<Ofsc>& Xm,        //Moon position
-                  vector<Ofsc>& Xs,        //Sun position
-                  vector<Oftsc>& PrimPt,   //Intermediate steps: contr. of order < m to order m
-                  double Ke,               //Earth factor
-                  double Km,               //Moon factor
-                  double Ks,               //Sun factor
-                  vector<Oftsc>& Un,       //potential to update
-                  int m);                  //order
+void update_potential(vector<Oftsc>& W,        //Parameterization in NC coordinates
+                      vector<Ofsc>& Xe,        //Earth position
+                      vector<Ofsc>& Xm,        //Moon position
+                      vector<Ofsc>& Xs,        //Sun position
+                      vector<Oftsc>& PrimPt,   //Intermediate steps: contr. of order < m to order m
+                      double Ke,               //Earth factor
+                      double Km,               //Moon factor
+                      double Ks,               //Sun factor
+                      vector<Oftsc>& Un,       //potential to update
+                      int m);                  //order
 
 /**
  *  \brief Update the vector field FWc at order m, knowing the parameterization W and the potential Un.
  **/
-void applyVF(vector<Ofsc>& alpha,
-             vector<Oftsc>& W,
-             vector<Oftsc>& FWc,
-             vector<Oftsc>& Un,
-             int m);
+void apply_vector_field(vector<Ofsc>& alpha,
+                        vector<Oftsc>& W,
+                        vector<Oftsc>& FWc,
+                        vector<Oftsc>& Un,
+                        int m);
 
-//---------------------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 //         Mixed style
-//---------------------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 /**
  *  \brief Initialize the arrays that contains the segregated families of solutions in the mixed style.
  **/
-void initMS(int **VIs,
-            int  *VIn,
-            int manType);
-/**
- *  \brief Free the memory allocated by initMS.
- **/
-void freeMS(int **VIs,
-            int  *VIn,
-            int ims);
+void init_mixed_style(int** VIs, int*  VIn, int*  ims, int man_type);
 
+/**
+ *  \brief Free the memory of VIs, VIn
+ **/
+void free_mixed_style(int** VIs, int*  VIn, int ims);
 
 /**
  * \brief Inner routine. Checks that the indix \c ind is in the array \c VI, of size \c sVI.
@@ -227,20 +227,22 @@ void freeMS(int **VIs,
  *  Note that there is a shif of indices: VI contains indices in the form 1, 2, 3, ..., whereas ind is an indix of the form 0, 1, 2, ...
  *
  **/
-bool inVI(int ind, int *VI, int sVI);
+bool is_in_VI(int ind, int* VI, int sVI);
+
 /**
  * \brief Inner routine. Checks that all indices of the form \c kv[VI[i]-1] are null, where \c VI is an array of integers of size \c sVI.
  *
  *  Note that there is a shif of indices: VI contains indices in the form 1, 2, 3, ..., whereas ind is an indix of the form 0, 1, 2, ...
  *
  **/
-bool nullIndices(int *kv, int *VI, int sVI);
+bool null_ind_VI(int* kv, int* VI, int sVI);
+
 /**
  * \brief Inner routine. For all arrays VIs[vi] of size VIn[vi], checks the boolean:
- *                                      inVI(p, VIs[vi], VIn[vi]) && nullIndices(kv, VIs[vi], VIn[vi])
+ *                                      is_in_VI(p, VIs[vi], VIn[vi]) && null_ind_VI(kv, VIs[vi], VIn[vi])
  *        This the standard test for mixed style parameterization (see Haro 2014, section 2.2.3).
  *
  **/
-bool isNF(int p, int *kv, int **VIs, int *VIn, int numberOfSets);
+bool is_mixed_style_on(int p, int* kv, int** VIs, int* VIn, int numberOfSets);
 
 #endif // PMT_H_INCLUDED

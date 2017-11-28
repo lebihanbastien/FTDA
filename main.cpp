@@ -49,7 +49,6 @@
 #include "ofts.h"
 #include "poincare.h"
 #include "trajectory.h"
-#include "ertbp.h"
 #include "pmt.h"
 #include "pmode.h"
 //Tests
@@ -124,29 +123,27 @@ int main(int argc, char *argv[])
     //------------------------------------------------------------------------------------
     // Retrieving the parameters, in this order:
     // 1. compType: Type of computation (QBTBP, NFO2, PM...)
-    // 2. model: Type of model (QBCP, RTBP)
-    // 3. coordsys: Default coordinate system (EM, SEM)
+    // 2. model: Type of model (QBCP, CRTBP)
+    // 3. coord_sys: Default coordinate system (EM, SEM)
     // 4. dli: Default libration point
-    // 5. pms: Parameterization (PM) style (only used in some computations)
+    // 5. param_style: Parameterization (PM) style (only used in some computations)
     // 6. mtype: Type of manifold (center, center-stable, center-unstable)
     // 7. storage: Boolean for storage (in txt/bin files) of the results
     //------------------------------------------------------------------------------------
-    int compType  = atoi(argv[index++]);
-    int model     = atoi(argv[index++]);
-    int coordsys  = atoi(argv[index++]);
-    int dli       = atoi(argv[index++]);
-    int pms       = atoi(argv[index++]);
-    int mtype     = atoi(argv[index++]);
-    int storage   = atoi(argv[index++]);
+    int compType    = atoi(argv[index++]);
+    int model       = atoi(argv[index++]);
+    int dli         = atoi(argv[index++]);
+    int param_style = atoi(argv[index++]);
+    int mtype       = atoi(argv[index++]);
+    int storage     = atoi(argv[index++]);
 
     //Check
     cout << "Current parameters: " << endl;
     cout << "--------------------" << endl;
     cout << "compType  = "   << compType << endl;
     cout << "model     = "   << model << endl;
-    cout << "coordsys  = "   << coordsys << endl;
     cout << "li        = "   << dli << endl;
-    cout << "pms       = "   << pms << endl;
+    cout << "pmstyle   = "   << param_style << endl;
     cout << "mtype     = "   << mtype << endl;
     cout << "storage   = "   << storage << endl;
     cout << "---------------------------------------------------" << endl;
@@ -160,13 +157,8 @@ int main(int argc, char *argv[])
     // Initialization of the environnement (the Four-Body Problem at hand).
     // Mandatory to perform any computation, except qbtbp(int)
     //====================================================================================
-    init_env(model, dli, mtype, pms);
+    init_env(model, dli, mtype, param_style);
 
-
-    //------------------------------------------------------------------------------------
-    // Which default CS?
-    //------------------------------------------------------------------------------------
-    //change_coord(SEML, coordsys);
 
     //====================================================================================
     // Master switch on the type of computation required by the user
@@ -178,93 +170,64 @@ int main(int argc, char *argv[])
     //====================================================================================
     switch(compType)
     {
+
+    //------------------------------------------------------------------------------------
+    // Unitary tests of routines for the Fourier-Taylor algebra
+    //------------------------------------------------------------------------------------
+    case Csts::FT_TEST:
+    {
+        //Test of the Ofs class (Fourier series)
+        ofs_test();
+        //Test of the Oftsh class (Fourier-Taylor homogeneous polynomials)
+        oftsh_test();
+        //Test of the Ofts class (Fourier-Taylor series)
+        ofts_test();
+        break;
+    }
+
+
     //------------------------------------------------------------------------------------
     // Sun-Earth-Moon three-body motion resolution up to OFS_ORDER.
     //------------------------------------------------------------------------------------
     case Csts::QBTBP:
     {
-
-            ///TO BE CHANGED
-            int li_EM=1, li_SEM=1;
-            switch(dli)
-            {
-                case Csts::EML1:
-                li_EM = 1;
-                li_SEM = 1;
-                break;
-
-                case Csts::EML2:
-                li_EM = 2;
-                li_SEM = 1;
-                break;
-
-                case Csts::SEL1:
-                li_EM = 1;
-                li_SEM = 1;
-                break;
-
-                case Csts::SEL2:
-                li_EM = 1;
-                li_SEM = 2;
-                break;
-
-                default:
-                    cout << "unknown lib point." << endl;
-                    return 1;
-                break;
-            }
-
-
         switch(model)
         {
             //----------------------------------------------------------------------------
-            // QBTBP resolution up to OFS_ORDER.
-            // If the testing argument is true, the results are tested on one full period.
+            // QBTBP & QBCP resolution up to OFS_ORDER.
+            // If storage==true, results are stored in the folders
+            // data/qbtbp and data/VF/QBCP.
             //----------------------------------------------------------------------------
         case Csts::QBCP:
-            qbtbp(li_EM, li_SEM, true, coordsys);
+            qbtbp_and_qbcp(true, storage);
             break;
 
             //----------------------------------------------------------------------------
-            // BCP resolution in OFS format.
-            // Storage in txt file.
+            // BCP resolution in OFS format (in order to match QBCP format).
+            // Results are stored in the folder data/VF/BCP.
             //----------------------------------------------------------------------------
         case Csts::BCP:
-            bcp(li_EM, li_SEM, coordsys);
+            bcp();
             break;
-
-            //----------------------------------------------------------------------------
-            // ERTBP resolution in OFS format.
-            // Storage in txt file.
-            //----------------------------------------------------------------------------
-        case Csts::ERTBP:
-            ertbp(li_EM, li_SEM, coordsys);
-            break;
-
         }
         break;
     }
 
     //------------------------------------------------------------------------------------
     // Compute the complete change of coordinates to:
-    // - Get rid of order 1
-    // - Get a normal form for the order 2
-    // of the Hamiltonian of the QBCP
-    // Results are stored in the folder data/COC
+    // - Get rid of order 1,
+    // - Get a normal form for the order 2 of the Hamiltonian of the QBCP.
+    // If storage==true, results are stored in the folder data/COC
     //------------------------------------------------------------------------------------
     case Csts::NFO2:
     {
         switch(model)
         {
         case Csts::QBCP:
-        case Csts::ERTBP:
             nfo2(SEML, storage);
             break;
-        case Csts::BCP:
-            nfo2_QBP(SEML, storage); //€€TODO WORK IN PROGRESS
-            break;
-        case Csts::CRTBP:
-            nfo2_RTBP(SEML, storage);
+        default:
+            cout << "Error: nfo2 routine only implemented for the QBCP." << endl;
             break;
         }
         break;
@@ -275,7 +238,15 @@ int main(int argc, char *argv[])
     //------------------------------------------------------------------------------------
     case Csts::PM:
     {
-        pmt(0, storage, pms, SEML.cs.manType);
+        //--------------------------------------------------------------------------------
+        //threshold for small divisors = 1e-2 (could be propagated to the user)
+        //--------------------------------------------------------------------------------
+        double small_div_threshold = 1e-2;
+
+        //--------------------------------------------------------------------------------
+        //param method
+        //--------------------------------------------------------------------------------
+        pmt(SEML.cs.man_type, param_style, small_div_threshold, storage);
         break;
     }
 
@@ -291,60 +262,55 @@ int main(int argc, char *argv[])
         double si[REDUCED_NV];
         for(int i = 0; i < REDUCED_NV; i++) si[i] = atof(argv[index++]);
 
-        //2. Array of orders to test
-        int nkm = atoi(argv[index]);
-        int km[nkm];
-        for(int i = 0; i<nkm; i++)
+        //2. Array of ofts_orders to test
+        int n_ofts_order = atoi(argv[index++]);
+        int v_ofts_order[n_ofts_order];
+        for(int i = 0; i<n_ofts_order; i++)
         {
-            km[i] = atoi(argv[index+1+i]);
-            if(km[i] > OFTS_ORDER)
+            v_ofts_order[i] = atoi(argv[index++]);
+            if(v_ofts_order[i] > OFTS_ORDER)
             {
-                cout << "Warning: a required order is greater than OFTS_ORDER: the computation will be stopped before this value." << endl;
-                nkm = i;
+                cout << "Warning: a required order is greater than OFTS_ORDER. " << endl;
+                cout << "The computation will be cut at OFTS_ORDER." << endl;
             }
         }
 
+
+        //3. Array of ofs_orders to test
+        int n_ofs_order = atoi(argv[index++]);
+        int v_ofs_order[n_ofs_order];
+        for(int i = 0; i<n_ofs_order; i++)
+        {
+            v_ofs_order[i] = atoi(argv[index++]);
+            if(v_ofs_order[i] > OFS_ORDER)
+            {
+                cout << "Warning: a required order is greater than OFS_ORDER. " << endl;
+                cout << "The computation will be cut at OFS_ORDER." << endl;
+            }
+        }
+
+        //4. Time interval
+        double tvec[2];
+        tvec[0] = atof(argv[index++])*SEML.us.T;
+        tvec[1] = atof(argv[index++])*SEML.us.T;
+
+
         //--------------------------------------------------------------------------------
-        // Initialization of the central manifold
+        // Initialization of the invariant manifold
         //--------------------------------------------------------------------------------
-        initCM(SEML);
-        initCOC(SEML);
+        init_inv_man(SEML);
+        init_coc(SEML);
 
         //--------------------------------------------------------------------------------
         // Test
         //--------------------------------------------------------------------------------
-        //pmEOvsOrderTest(nkm, km, si);
-        pmErrorvsOrderTest(nkm, km, si);
+        pm_error_vs_orders_test(n_ofts_order, v_ofts_order, n_ofs_order, v_ofs_order, si, tvec);
 
-
-        //--------------------------------------------------------------------------------
-        // Plot
-        //--------------------------------------------------------------------------------
-        //        gnuplot_ctrl  *h1;
-        //        h1 = gnuplot_init();
-        //        //coeff_plot(h1, &SEML);
-        //        //potential_plot(h1, &SEML);
-        //        pij_plot(h1);
-        //        //pij_plot(5, 5, h1);
-        //        //pij_plot(2, 2, h1);
-        //        char ch;
-        //        printf("Press ENTER to close the gnuplot window(s)\n");
-        //        scanf("%c",&ch);
-        //        gnuplot_close(h1);
-
-        //pmProjTest(si);
-        //pmSmallDivisors(5e-2);
-        //pmTestPrec(0.1);
-        //pmErrorvsOrderTest();
-        //pmOfsOrderTest(10);
-        //pmNorms();
-        //pmContributions();
-        //pmTestIC();
         break;
     }
 
     //------------------------------------------------------------------------------------
-    // Poincare maps
+    // Poincare, stroboscopic and error maps
     //------------------------------------------------------------------------------------
     case Csts::COMPMAP:
     {
@@ -382,10 +348,10 @@ int main(int argc, char *argv[])
         cout << "Number of PMAP parameters & settings is " << argpmapc << endl;
 
         //--------------------------------------------------------------------------------
-        // Initialisation of the central manifold
+        // Initialization of the invariant manifold
         //--------------------------------------------------------------------------------
-        initCM(SEML);
-        initCOC(SEML);
+        init_inv_man(SEML);
+        init_coc(SEML);
 
 
         //--------------------------------------------------------------------------------
@@ -446,7 +412,7 @@ int main(int argc, char *argv[])
         //isGS and graph style?
         //helps enhance computation
         int isGS     =  atoi(argv[index++]);
-        if(isGS == 1 && SEML.pms == Csts::GRAPH) pmap.isGS = 1;
+        if(isGS == 1 && SEML.param_style == Csts::GRAPH) pmap.isGS = 1;
         else pmap.isGS = 0;
 
         pmap.order      =  atoi(argv[index++]);
@@ -638,17 +604,6 @@ int main(int argc, char *argv[])
         break;
     }
 
-    //------------------------------------------------------------------------------------
-    // Unitary tests of routines
-    //------------------------------------------------------------------------------------
-    case Csts::FT_TEST:
-    {
-        ofs_test();
-        oftsh_test();
-        ofts_test();
-        break;
-    }
-
 
     }
 
@@ -668,96 +623,9 @@ int main(int argc, char *argv[])
     //------------------------------------------------------------------------------------
     // Tests
     //------------------------------------------------------------------------------------
-    //testLegendreRecurrence_OFS();
     //testCOC();
     //testDotCOC();
     //testIntCOC();
-
-
-
-    //------------------------------------------------------------------------------------
-    // Retrieving the Hamiltonian from the VF (not working)
-    //------------------------------------------------------------------------------------
-    /*
-    vector_fprinf_0(Fh, SEML.cs.F_NF+"fh");
-
-    vector<Oftsc> H = vector<Oftsc>(4);
-    vector<Oftsc> Ham = vector<Oftsc>(1);
-
-    Oftsc *F1     = new Oftsc(REDUCED_NV, OFTS_ORDER, Csts::OFS_NV, OFS_ORDER);
-
-    Oftsc *dF1dp2 = new Oftsc(REDUCED_NV, OFTS_ORDER, Csts::OFS_NV, OFS_ORDER);
-    Oftsc *dF1dq1 = new Oftsc(REDUCED_NV, OFTS_ORDER, Csts::OFS_NV, OFS_ORDER);
-    Oftsc *dF1dq2 = new Oftsc(REDUCED_NV, OFTS_ORDER, Csts::OFS_NV, OFS_ORDER);
-
-    Oftsc *dGdp2  = new Oftsc(REDUCED_NV, OFTS_ORDER, Csts::OFS_NV, OFS_ORDER);
-    Oftsc *G2     = new Oftsc(REDUCED_NV, OFTS_ORDER, Csts::OFS_NV, OFS_ORDER);
-    Oftsc *dG2dq1 = new Oftsc(REDUCED_NV, OFTS_ORDER, Csts::OFS_NV, OFS_ORDER);
-    Oftsc *dG2dq2 = new Oftsc(REDUCED_NV, OFTS_ORDER, Csts::OFS_NV, OFS_ORDER);
-
-    Oftsc *dJdq1  = new Oftsc(REDUCED_NV, OFTS_ORDER, Csts::OFS_NV, OFS_ORDER);
-    Oftsc *J1     = new Oftsc(REDUCED_NV, OFTS_ORDER, Csts::OFS_NV, OFS_ORDER);
-    Oftsc *dJ1dq2 = new Oftsc(REDUCED_NV, OFTS_ORDER, Csts::OFS_NV, OFS_ORDER);
-
-    Oftsc *dKdq2  = new Oftsc(REDUCED_NV, OFTS_ORDER, Csts::OFS_NV, OFS_ORDER);
-    Oftsc *K2     = new Oftsc(REDUCED_NV, OFTS_ORDER, Csts::OFS_NV, OFS_ORDER);
-
-
-    //Fh[0] =  dH/ds3 = dH/dp1
-    //Fh[1] =  dH/ds4 = dH/dp2
-    //Fh[2] = -dH/ds1 = -dH/dq1
-    //Fh[3] = -dH/ds2 = -dH/dq2
-
-    //Building F1
-    F1->sprim(Fh[0], 3);  //dF1/dp1 = dH/dp1
-    dF1dp2->der(*F1, 4);  //dF1/dp2
-    dF1dq1->der(*F1, 1);  //dF1/dq1
-    dF1dq2->der(*F1, 2);  //dF1/dq2
-
-    //Building dG/dp2 = dH/dp2 - dF1/dp2
-    dGdp2->ofts_fsum_u(Fh[1], 1.0+0.0*I, *dF1dp2, -1.0+0.0*I);
-    //Building G2
-    G2->sprim(*dGdp2, 4);
-    dG2dq1->der(*G2, 1);  //dG2/dq1
-    dG2dq2->der(*G2, 2);  //dG2/dq2
-
-    //Building dJ/dq1 = dH/dq1 - dF1/dq1 - dG2/dq1
-    Fh[2].conjugate();
-    Fh[2].conjugate(1);
-    dJdq1->ofts_fsum_u(Fh[2], -1.0+0.0*I, *dF1dq1, -1.0+0.0*I);
-    dJdq1->ofts_smult_u(*dG2dq1, -1.0+0.0*I);
-    //Building J1
-    J1->sprim(*dJdq1, 1);
-    dJ1dq2->der(*J1, 2);  //dF1/dq2
-
-
-    //Building dK/dq2 = dJ/dq2 -  dJ1/dq2 = dH/dq2 - dF1/dq2 - dG2/dq2 - dJ1/dq2
-    Fh[3].conjugate();
-    Fh[3].conjugate(1);
-    dKdq2->ofts_fsum_u(Fh[3], -1.0+0.0*I, *dF1dq2, -1.0+0.0*I);
-    dKdq2->ofts_smult_u(*dG2dq2, -1.0+0.0*I);
-    dKdq2->ofts_smult_u(*dJ1dq2, -1.0+0.0*I);
-
-    //Building K
-    K2->sprim(*dKdq2, 2);
-
-    //Building H
-    Ham[0].ofts_smult_u(*F1, 1.0+0.0*I);
-    Ham[0].ofts_smult_u(*G2, 1.0+0.0*I);
-    Ham[0].ofts_smult_u(*J1, 1.0+0.0*I);
-    Ham[0].ofts_smult_u(*K2, 1.0+0.0*I);
-
-    H[0].der(Ham[0], 3);
-    H[1].der(Ham[0], 4);
-    H[2].der(Ham[0], 1);
-    H[3].der(Ham[0], 2);
-
-
-
-    vector_fprinf_0(H, SEML.cs.F_NF+"H");
-    vector_fprinf_0(Fh, SEML.cs.F_NF+"Fh");
-    vector_fprinf_0(Ham, SEML.cs.F_NF+"Ham");
-    */
 }
 
 

@@ -2,6 +2,9 @@
 # script file for OOFTDA
 # RECALL: make it executable with "$ chmod +x script.sh"
 
+
+
+
 #-----------------------------------------------------------------------------------------
 # Source the parameters
 #-----------------------------------------------------------------------------------------
@@ -22,6 +25,27 @@ echo "#------------------------------------------#"
 echo "#          OOFTDA configuration            #"
 echo "#------------------------------------------#"
 
+#-----------------------------------------------------------------------------------------
+# Start with rm of all gnuplot_tmpdatafile_* in tmp
+#-----------------------------------------------------------------------------------------
+echo "The tmp folder is cleared..."
+rm -f tmp/gnuplot_tmpdatafile_*
+
+
+#-----------------------------------------------------------------------------------------
+# Source the data folder generation
+#-----------------------------------------------------------------------------------------
+echo "The data and plot folders are updated if needed..."
+source "config/mkdirdata.sh"
+	
+# DATA_DIR="data"
+# if [ -d "$DATA_DIR" ]; then
+#     echo "The data folder already exists"
+#     
+# else
+# 	echo "The data folder is created"
+# 	source "config/mkdirdata.sh"
+# fi
 
 
 #-----------------------------------------------------------------------------------------
@@ -252,18 +276,6 @@ case $MODEL in
 esac
 
 
-# COORDINATE SYSTEM
-case $CS in
-	$EM)  echo 'CS       = EM'
-	;;
-	$SEM) echo 'CS       = SEM'
-	;;
-	$SE)  echo 'CS       = SE'
-	;;
-	*)    echo "CS       = " $CS ". Unknown type."
-esac
-
-
 # NORMALIZATION
 echo "ISNORM   =" $ISNORM
 
@@ -304,6 +316,27 @@ echo "STORAGE  =" $STORAGE
 echo
 
 #-----------------------------------------------------------------------------------------
+# OFTS_ORDERS & OFS_ORDERS
+#-----------------------------------------------------------------------------------------
+# Check that the OFTS_ORDERS exist
+if [ -z ${OFTS_ORDERS+x} ]; then
+	TEMP=(2 5 8)
+	set_param "OFTS_ORDERS" TEMP[@]
+	set_param "N_OFTS_ORDERS" 3
+	REMARKS+="* The variable OFTS_ORDERS, which was not defined, has been set to [${OFTS_ORDERS[*]}] .\n"
+fi
+
+
+# Check that the OFS_ORDERS exist
+if [ -z ${OFS_ORDERS+x} ]; then
+	TEMP=( 30 )
+	set_param "OFS_ORDERS" $TEMP
+	set_param "N_OFS_ORDERS" 1
+	REMARKS+="* The variable OFS_ORDERS, which was not defined, has been set to [${OFS_ORDERS[*]}].\n"
+fi
+
+
+#-----------------------------------------------------------------------------------------
 # Display initial conditions if necessary: PM TESTING
 #-----------------------------------------------------------------------------------------
 if [ $COMPTYPE == $PM_TEST ]; then
@@ -313,7 +346,8 @@ if [ $COMPTYPE == $PM_TEST ]; then
 		echo '* The number of IC does not match REDUCED_NV. Stop.'
 		exit 1
 	fi
-
+	
+	# Echo
 	echo "#------------------------------------------#"
 	echo "# INITIAL CONDITIONS FOR PM TESTING:"
 	echo "#------------------------------------------#"
@@ -321,12 +355,38 @@ if [ $COMPTYPE == $PM_TEST ]; then
 	echo
 
 	echo "#------------------------------------------#"
-	echo "# ORDERS FOR PM TESTING:"
+	echo "# OFTS OFTS_ORDERS FOR PM TESTING:"
 	echo "#------------------------------------------#"
-	echo "NORDERS = " $NORDERS
-	echo "ORDERS  = [" ${ORDERS[*]} "]"
+	echo "N_OFTS_ORDERS = " $N_OFTS_ORDERS
+	echo "OFTS_ORDERS   = [" ${OFTS_ORDERS[*]} "]"
 	echo
 	
+	echo "#------------------------------------------#"
+	echo "# OFS OFTS_ORDERS FOR PM TESTING:"
+	echo "#------------------------------------------#"
+	echo "N_OFS_ORDERS = " $N_OFS_ORDERS
+	echo "OFS_ORDERS   = [" ${OFS_ORDERS[*]} "]"
+	echo
+	
+	# Check if TMIN exist
+	if [ -z ${TMIN+x} ]; then
+		set_param "TMIN" 0.0
+		REMARKS+="* The variable TMIN, which was not defined, has been set to $TMIN .\n"
+	fi
+	
+	# Check if TMAX exist
+	if [ -z ${TMAX+x} ]; then
+		set_param "TMAX" 0.5
+		REMARKS+="* The variable TMIN, which was not defined, has been set to $TMAX .\n"
+	fi
+	
+	
+	echo "#------------------------------------------#"
+	echo "# TIME INVERVAL FOR PM TESTING:"
+	echo "#------------------------------------------#"
+	echo "[ $TMIN $TMAX ]"
+
+	echo
 fi
 
 
@@ -336,17 +396,17 @@ fi
 if [ $COMPTYPE == $COMPMAP ]; then
 
 	echo "#------------------------------------------#"
-	echo "# ORDERS FOR PMAP:"
+	echo "# OFTS_ORDERS FOR PMAP:"
 	echo "#------------------------------------------#"
-	echo "NORDERS = " $NORDERS
-	echo "ORDERS  = [" ${ORDERS[*]} "]"
+	echo "N_OFTS_ORDERS = " $N_OFTS_ORDERS
+	echo "OFTS_ORDERS  = [" ${OFTS_ORDERS[*]} "]"
 	echo
 
 	echo "#------------------------------------------#"
-	echo "# OFS ORDERS FOR PMAP:"
+	echo "# OFS OFTS_ORDERS FOR PMAP:"
 	echo "#------------------------------------------#"
-	echo "NORDERS_OFS =  " $NORDERS_OFS
-	echo "ORDERS_OFS  = [" ${ORDERS_OFS[*]} "]"
+	echo "N_OFS_ORDERS =  " $N_OFS_ORDERS
+	echo "OFS_ORDERS  = [" ${OFS_ORDERS[*]} "]"
 	echo
 
 	echo "#------------------------------------------#"
@@ -453,11 +513,12 @@ if [ "$ans" == "y" ]; then
 	case $COMPTYPE in
 	
 	$QBTBP | $NFO2 | $PM | $COC | $DYNEQ | $FT_TEST) 
-		COEFFS=($OFTS_ORDER $OFS_ORDER $REDUCED_NV $COMPTYPE $MODEL $CS $LIBPOINT $PMS $MANTYPE $STORAGE)
+		COEFFS=($OFTS_ORDER $OFS_ORDER $REDUCED_NV $COMPTYPE $MODEL $LIBPOINT $PMS $MANTYPE $STORAGE)
 		;;
 
 	$PM_TEST) 
-		COEFFS=($OFTS_ORDER $OFS_ORDER $REDUCED_NV $COMPTYPE $MODEL $CS $LIBPOINT $PMS $MANTYPE $STORAGE ${IC[*]} $NORDERS ${ORDERS[*]})
+		COEFFS=($OFTS_ORDER $OFS_ORDER $REDUCED_NV $COMPTYPE $MODEL $LIBPOINT $PMS $MANTYPE $STORAGE )
+		COEFFS=(${COEFFS[*]} ${IC[*]} $N_OFTS_ORDERS ${OFTS_ORDERS[*]} $N_OFS_ORDERS ${OFS_ORDERS[*]} $TMIN $TMAX)
 		;;
 	$COMPMAP) 
 		#Building the PMAP vector
@@ -467,10 +528,10 @@ if [ "$ans" == "y" ]; then
 		#Number of PMAP parameters 
 		NPMAP=${#PMAP[@]} 
 		#Coeffs
-		COEFFS=($OFTS_ORDER  $OFS_ORDER $REDUCED_NV $COMPTYPE $MODEL $CS)
+		COEFFS=($OFTS_ORDER  $OFS_ORDER $REDUCED_NV $COMPTYPE $MODEL)
 		COEFFS=(${COEFFS[*]} $LIBPOINT $PMS $MANTYPE $STORAGE)
-		COEFFS=(${COEFFS[*]} $NORDERS ${ORDERS[*]} )
-		COEFFS=(${COEFFS[*]} $NORDERS_OFS ${ORDERS_OFS[*]} )
+		COEFFS=(${COEFFS[*]} $N_OFTS_ORDERS ${OFTS_ORDERS[*]} )
+		COEFFS=(${COEFFS[*]} $N_OFS_ORDERS ${OFS_ORDERS[*]} )
 		COEFFS=(${COEFFS[*]} $NPMAP ${PMAP[*]} $NUM_THREADS ) 
 		;;
 	$TRAJ) 
@@ -480,7 +541,7 @@ if [ "$ans" == "y" ]; then
 		#Number of PMAP parameters 
 		NPMAP=${#PMAP[@]} 
 		#Coeffs
-		COEFFS=($OFTS_ORDER  $OFS_ORDER $REDUCED_NV $COMPTYPE $MODEL $CS)
+		COEFFS=($OFTS_ORDER  $OFS_ORDER $REDUCED_NV $COMPTYPE $MODEL)
 		COEFFS=(${COEFFS[*]} $LIBPOINT $PMS $MANTYPE $STORAGE)
 		COEFFS=(${COEFFS[*]} $NPMAP ${PMAP[*]} $NUM_THREADS ${IC[*]} )	   
 		;;

@@ -14,84 +14,84 @@
 
 using namespace std;
 
-int  Manip::nor=0;       //static maximum degree
-int  Manip::nov=0;       //static number of variables
-long int **Manip::psi;   //contains psi(i,j) for i=2..nov.
+int  Manip::m_max_deg=0;  //static maximum degree
+int  Manip::m_nvar=0;     //static number of variables
+long int **Manip::m_num_mon;    //contains m_num_mon(i,j) for i=2..m_nvar.
 
 
 //----------------------------------------------------------------------------------------
 //Class routines
 //----------------------------------------------------------------------------------------
 /**
- *   \brief Initializes the table psi(i,j), which contains the number of monomials
+ *   \brief Initializes the table m_num_mon(i,j), which contains the number of monomials
  *          of degree j with i variables.
  *
  *   parameters:
- *   nr: maximum degree we are going to work with. it can not be greater than 63.
- *   nv: number of variables
+ *   t_max_deg: maximum degree we are going to work with. it can not be greater than 63.
+ *   t_nvar: number of variables
  *
  *   returned value: number of kbytes allocated by the internal tables.
  *   Based on a routine by Angel Jorba, 1999.
  **/
-int  Manip::init(int nv, int nr)
+int  Manip::init(int t_nvar, int t_max_deg)
 {
     int i,j,l;
     unsigned long int mem; /* mem: to count the amount of memory used */
 
-    if (nor != 0) /* this means that Manip is already initialized */
+    if (m_max_deg != 0) /* this means that Manip is already initialized */
     {
-        if (nr <= nor)
+        if (t_max_deg <= m_max_deg)
         {
             puts("**************************************************");
             printf("%s warning message:\n"," init");
-            printf("%s is already initialized to degree %d\n"," init",nor);
+            printf("%s is already initialized to degree %d\n"," init",m_max_deg);
             printf("now you want to initialize it again to the same degree.\n");
             printf("action taken: this call to %s is simply ignored.\n"," init");
             puts("**************************************************");
             return(0);
         }
         printf("%s error message:\n"," init");
-        printf("%s is already initialized to degree %d\n"," init",nor);
-        printf("and now you want to initialize it to degree %d.\n",nr);
+        printf("%s is already initialized to degree %d\n"," init",m_max_deg);
+        printf("and now you want to initialize it to degree %d.\n",t_max_deg);
         printf("you must call routine %s first.\n"," free");
         printf("action taken: program aborted\n");
         exit(1); /* this will stop the program */
     }
-    nor=nr;
-    nov=nv;
-    mem=(nv-1)*sizeof(int*); /* this is to count the number of kb. allocated */
-    psi= (long  int**)malloc((nv)*sizeof(long int*));
-    if (psi == NULL)
+    m_max_deg=t_max_deg;
+    m_nvar=t_nvar;
+    mem=(t_nvar-1)*sizeof(int*); /* this is to count the number of kb. allocated */
+    m_num_mon= (long  int**)malloc((t_nvar)*sizeof(long int*));
+    if (m_num_mon == NULL)
     {
         puts("Manip error. no memory (1).");
         exit(1);
     }
-    psi -= sizeof(long  int*);
-    for (i=1; i<=nv; i++)
+    m_num_mon -= sizeof(long  int*);
+    for (i=1; i<=t_nvar; i++)
     {
-        psi[i]=(long int*)malloc((nr+1)*sizeof(long  int));
-        if (psi[i] == NULL)
+        m_num_mon[i]=(long int*)malloc((t_max_deg+1)*sizeof(long  int));
+        if (m_num_mon[i] == NULL)
         {
             puts("Manip error. no memory (2).");
             exit(1);
         }
-        mem += (nr+1)*sizeof(int);
+        mem += (t_max_deg+1)*sizeof(int);
     }
-    for (j=0; j<=nr; j++) psi[1][j]=1;
+    for (j=0; j<=t_max_deg; j++) m_num_mon[1][j]=1;
 
-    if(nv > 1)
+    if(t_nvar > 1)
     {
-        for (j=0; j<=nr; j++) psi[2][j]=j+1;
-        for (i=3; i<=nv; i++)
+        for (j=0; j<=t_max_deg; j++) m_num_mon[2][j]=j+1;
+        for (i=3; i<=t_nvar; i++)
         {
-            for (j=0; j<=nr; j++)
+            for (j=0; j<=t_max_deg; j++)
             {
-                psi[i][j]=0;
-                for (l=0; l<=j; l++) psi[i][j] += psi[i-1][l];
+                m_num_mon[i][j]=0;
+                for (l=0; l<=j; l++) m_num_mon[i][j] += m_num_mon[i-1][l];
             }
         }
     }
-    mem += (nr+1)*sizeof(int*);
+    mem += (t_max_deg+1)*sizeof(int*);
     mem /= 1024;
 
     return(mem);
@@ -103,7 +103,7 @@ int  Manip::init(int nv, int nr)
 void  Manip::free()
 {
     int i;
-    if (nor == 0)
+    if (m_max_deg == 0)
     {
         puts("**************************************************");
         printf("%s warning message:\n"," free");
@@ -113,45 +113,45 @@ void  Manip::free()
 
         return;
     }
-    cout << "nov: " << nov << endl;
-    for (i=1; i<=nov; i++)
+    cout << "m_nvar: " << m_nvar << endl;
+    for (i=1; i<=m_nvar; i++)
     {
         cout << "i: " << i << endl;
-        delete psi[i];
+        delete m_num_mon[i];
     }
-    psi += sizeof(long  int*);
-    delete psi;
-    nor=0;
-    nov=0;
+    m_num_mon += sizeof(long  int*);
+    delete m_num_mon;
+    m_max_deg=0;
+    m_nvar=0;
     return;
 }
 
 /**
- *   \brief Returns the number of monomials of degree nr with nv variables,
- *          making use of the table Manip::psi.
+ *   \brief Returns the number of monomials of degree t_max_deg with t_nvar variables,
+ *          making use of the table Manip::m_num_mon.
  *
  *  parameters:
- *  nv: number of variables
- *  nr: order we are interested in (input).
+ *  t_nvar: number of variables
+ *  t_max_deg: order we are interested in (input).
  *  returned value: number of monomials of order no.
  **/
-long int Manip::nmon(int nv, int nr)
+long int Manip::nmon(int t_nvar, int t_max_deg)
 {
-    if (nr > nor)
+    if (t_max_deg > m_max_deg)
     {
-        printf("nmon: error, the requested degree %i is greater than nor=%i.\n", nr, nor );
+        printf("nmon: error, the requested degree %i is greater than m_max_deg=%i.\n", t_max_deg, m_max_deg );
         exit(1);
     }
-    if (nv > nov)
+    if (t_nvar > m_nvar)
     {
-        puts("nmon: error, the requested numver of variable is greater than nov.");
+        puts("nmon: error, the requested numver of variable is greater than m_nvar.");
         exit(1);
     }
 
-    if(nv <= 1)
+    if(t_nvar <= 1)
         return 1;
     else
-    return(psi[nv][nr]);
+    return(m_num_mon[t_nvar][t_max_deg]);
 
 }
 
@@ -160,32 +160,32 @@ long int Manip::nmon(int nv, int nr)
  *  according to the (reverse) lexicographic order.
  *
  *  parameters:
- *  k: array of nv components containing the multiindex. It is overwritten on exit
+ *  t_array: array of t_nvar components containing the multiindex. It is overwritten on exit
  *  (input and output).
  **/
-void  Manip::prxkt(int k[], int nv)
+void  Manip::prxkt(int t_array[], int t_nvar)
 {
-    if(nv == 0)
+    if(t_nvar == 0)
     {
-        k[0]++;
+        t_array[0]++;
         return;
     }
     else
     {
         int i;
-        if (k[0] != 0)
+        if (t_array[0] != 0)
         {
-            k[0]--;
-            k[1]++;
+            t_array[0]--;
+            t_array[1]++;
             return;
         }
-        for(i=1; i<nv-1; i++)
+        for(i=1; i<t_nvar-1; i++)
         {
-            if (k[i] != 0)
+            if (t_array[i] != 0)
             {
-                k[0]=k[i]-1;
-                k[i]=0;
-                k[i+1]++;
+                t_array[0]=t_array[i]-1;
+                t_array[i]=0;
+                t_array[i+1]++;
                 return;
             }
         }
@@ -195,22 +195,22 @@ void  Manip::prxkt(int k[], int nv)
 }
 
 /**
- *   \brief Returns the number of product operation in a taylor serie product
+ *   \brief Returns the number of product operation in a taylor series product
  **/
-long int pdk(int nv, int n)
+long int pdk(int t_nvar, int t_order)
 {
     long int result = 0;
     int k,i;
-    for(k=0; k<=n; k++)
+    for(k=0; k<=t_order; k++)
     {
-        for(i=0; i<=k; i++) result+= Manip::nmon(nv,i)* Manip::nmon(nv,k-i); //result+=binomial(nv+i-1, nv-1)*binomial(nv+k-i-1, nv-1); //
+        for(i=0; i<=k; i++) result+= Manip::nmon(t_nvar,i)* Manip::nmon(t_nvar,k-i); //result+=binomial(t_nvar+i-1, t_nvar-1)*binomial(t_nvar+k-i-1, t_nvar-1); //
     }
     return result;
 }
 
 
 //----------------------------------------------------------------------------------------
-//Binomial coefficients. These routines do not make use of Manip::psi.
+//Binomial coefficients. These routines do not make use of Manip::m_num_mon.
 //----------------------------------------------------------------------------------------
 /**
  * \brief Computes the binomial coefficient (x y).
@@ -247,15 +247,15 @@ unsigned long binomial(unsigned long n, unsigned long k)
     {
         if (r >= ULONG_MAX/n)    /* Possible overflow */
         {
-            unsigned long nr, dr;  /* reduced numerator / denominator */
+            unsigned long t_max_deg, dr;  /* reduced numerator / denominator */
             g = gcd_ui(n, d);
-            nr = n/g;
+            t_max_deg = n/g;
             dr = d/g;
             g = gcd_ui(r, dr);
             r = r/g;
             dr = dr/g;
-            if (r >= ULONG_MAX/nr) return 0;  /* Unavoidable overflow */
-            r *= nr;
+            if (r >= ULONG_MAX/t_max_deg) return 0;  /* Unavoidable overflow */
+            r *= t_max_deg;
             r /= dr;
             n--;
         }

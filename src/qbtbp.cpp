@@ -1,85 +1,144 @@
 /**
  * \file qbtbp.cpp
- * \brief Routines of the Quasi-Bicircular Three-Body Problem (QBTBP) (src)
- * \author BLB.
- * \date May 2015
- * \version 1.0
+ * \brief Routines of the Quasi-Bicircular Three-Body Problem (QBTBP) (src). This file
+ *        contains the routine to compute and store the QBTBP in Fourier series format.
+ *        It also contains the routines to compute and store the coefficients of the
+ *        Hamiltonian and the vector field of the Quasi-Bicircular Problem (QBCP).
+ *        The main routine is
+ *                              void qbtbp_and_qbcp(int is_test_on, int is_stored)
+ *
+ *        Note that is also contains routines to do the same for the Bicircular Problem
+ *        (BCP), with the same Fourier format.
+ *
+ * \author BLB
  */
+
 #include "qbtbp.h"
 using namespace std;
 
 
-//-----------------------------------------------------------------------------
-// Main routine: computation of the QBTBP
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
+// Main routine: computation of the QBTBP & the QBCP
+//----------------------------------------------------------------------------------------
 /**
- *  \brief Main routine to compute the QBTBP in Ofs format. The iteratives equation of the QBTBP are solved using qbtbp_ofs.
- *   If necessary, the result is tested using qbtbp_test.
- *  \param isTestOn: if true, the following tests are performed:
+ *  \brief Main routine to compute the Quasi-Bicircular Three-Body Problem (QBTBP).
+ *         The iteratives equation of the QBTBP are solved using qbtbp_ofts.
+ *         The output is the Earth-Moon inner motion z(t) and Sun(Earth+Moon) outer motion
+ *         Z(t) in Fourier series, up to the order OFS_ORDER.
+ *         The coefficients of the vector field of the Four-Body Quasi-Bicircular Problem
+ *        (QBCP) are also computed in stored if is_stored == true.
+ *
+ *  \param is_stored: if true, the following data is stored:
+ *              - The inner and outer motion of the QBTBP are saved in data/qbtbp, using
+ *                the routine qbtbp_ofs_alg_bj_cj.
+ *              - The Fourier coefficients of the equations of motion of the QBCP
+ *                are computed from the inner and outer motion of the QBTBP and saved in
+ *                data/VF/QBCP using qbtbp_ofs_fft_alpha, and qbtbp_ofs_fft_delta. These
+ *                equations of motion are computed about EML1,2,3 and SEL1,2,3.
+ *
+ *  \param is_test_on: if true, the following tests are performed:
  *                   - a test on a full period is performed vs the numerical integration of the QBTBP.
- *                   - a comparison between the coefficients obtained with FFT and the ones obtained via algebraic manipulations on Ofs objects.
  *                   - a test of the results in Earth-Moon/Inertial/Sun-Earth frameworks.
- */
-void qbtbp(int li_EM, int li_SEM, int isTestOn, int coordsys)
+ *                   - a comparison between the coefficients obtained with FFT and the
+ *                     ones obtained via algebraic manipulations on Ofs objects.
+ **/
+void qbtbp_and_qbcp(int is_test_on, int is_stored)
 {
+    //------------------------------------------------------------------------------------
+    // Splash
+    //------------------------------------------------------------------------------------
     cout << "---------------------------------------------------" << endl;
     cout << "                                                   " << endl;
-    cout << "               Resolution of the                   " << endl;
+    cout << "       Resolution of the Sun-Earth-Moon            " << endl;
     cout << "   Quasi-Bicircular Three-Body Problem (QBTBP)     " << endl;
+    cout << "    Quasi-Bicircular Four-Body Problem (QBCP)      " << endl;
     cout << "                                                   " << endl;
     cout << "---------------------------------------------------" << endl;
-    cout << std::showpos << setiosflags(ios::scientific)  << setprecision(15);
-    cout << " qbtbp. The qbtbp will be computed up to order " << OFS_ORDER << endl;
+    cout << " qbtbp. The computation will be made up to order " << OFS_ORDER << endl;
+    Config::configManager().coutmp();
 
-    //-------------------------------------
-    //Initialization the integration tools
-    //-------------------------------------
-    //Init the fbp
+
+    //------------------------------------------------------------------------------------
+    // Initialization of environement via an FBPL structure
+    //------------------------------------------------------------------------------------
+    cout << " qbtbp. Initializing the environment..." << endl;
+    //Init the Sun-Earth-Moon FBP structure
     FBP fbp;
-    init_FBP(&fbp, Csts::SUN, Csts::EARTH, Csts::MOON);
+    init_fbp(&fbp, Csts::SUN, Csts::EARTH, Csts::MOON);
 
-    //Init the fbp focused on one libration point
+    //Init the Sun-Earth-Moon FBPL structure, with arbitrary configuration
     FBPL fbpl;
-    init_FBPL(&fbpl, &fbp, li_EM, li_SEM, Csts::QBCP, coordsys, Csts::GRAPH, Csts::MAN_CENTER, Csts::MAN_CENTER, true, true); //note PM style and type are not used
+    init_fbp_lib(&fbpl, &fbp, 1, 1, Csts::QBCP, Csts::EM, Csts::GRAPH,
+              Csts::MAN_CENTER, Csts::MAN_CENTER, true, true);
 
     //Init of the internal/external motions
-    Ofts<Ofsd> ofts_z(1,OFS_ORDER,2,OFS_ORDER);
-    Ofts<Ofsd> ofts_Z(1,OFS_ORDER,2,OFS_ORDER);
+    Oftsd ofts_z(1,OFS_ORDER,2,OFS_ORDER);
+    Oftsd ofts_Z(1,OFS_ORDER,2,OFS_ORDER);
 
-    cout << " qbtbp. end of initialization." << endl;
+    //------------------------------------------------------------------------------------
+    // Computation of the QBTBP
+    //------------------------------------------------------------------------------------
+    cout << " qbtbp. Solving the QBTBP..." << endl;
+    qbtbp_ofts(ofts_z, ofts_Z, fbpl.us_em, fbpl.cs, is_stored);
+    cout << " qbtbp. Done." << endl;
 
-    //-------------------------------------
-    //Computation of the QBTBP
-    //-------------------------------------
-    tic();
-    qbtbp_ofs(ofts_z, ofts_Z, fbpl);
-    cout << " qbtbp. end of computation in: " << toc() << "s." << endl;
-
-    //If the user wants to test the results
-    if(isTestOn)
+    //------------------------------------------------------------------------------------
+    // Storage (if desired)
+    //------------------------------------------------------------------------------------
+    if(is_stored)
     {
-        //----------------------------
+        //Storage of the inner and outer motions in double and complex form
+        cout << " qbtbp. Storing the QBTBP inner and outer motions in data/qbtbp/" << endl;
+        qbtbp_ofs_alg_bj_cj(ofts_z, ofts_Z, OFS_ORDER, fbpl.us_em);
+
+        //Computation of the coeffs of the vector field for EML1
+        cout << " qbtbp. Storing the vector field about EML1 in " << fbpl.cs_em_l1.F_COEF << endl;
+        qbtbp_ofs_fft_alpha(ofts_z, ofts_Z, OFS_ORDER, fbpl.us_em, fbpl.cs_em_l1);
+
+        //Computation of the coeffs of the vector field for EML2
+        cout << " qbtbp. Storing the vector field about EML2 in " << fbpl.cs_em_l2.F_COEF << endl;
+        qbtbp_ofs_fft_alpha(ofts_z, ofts_Z, OFS_ORDER, fbpl.us_em, fbpl.cs_em_l2);
+
+        //Computation of the coeffs of the vector field for EML3
+        cout << " qbtbp. Storing the vector field about EML3 in " << fbpl.cs_em_l3.F_COEF << endl;
+        qbtbp_ofs_fft_alpha(ofts_z, ofts_Z, OFS_ORDER, fbpl.us_em, fbpl.cs_em_l3);
+
+        //Computation of the coeffs of the vector field for SEL1
+        cout << " qbtbp. Storing the vector field about SEL1 in " << fbpl.cs_sem_l1.F_COEF << endl;
+        qbtbp_ofs_fft_delta(ofts_z, ofts_Z, OFS_ORDER, fbpl.us_em, fbpl.us_sem, fbpl.cs_sem_l1);
+
+        //Computation of the coeffs of the vector field for SEL2
+        cout << " qbtbp. Storing the vector field about SEL2 in " << fbpl.cs_sem_l2.F_COEF << endl;
+        qbtbp_ofs_fft_delta(ofts_z, ofts_Z, OFS_ORDER, fbpl.us_em, fbpl.us_sem, fbpl.cs_sem_l2);
+
+        //Computation of the coeffs of the vector field for SEL3
+        cout << " qbtbp. Storing the vector field about SEL3 in " << fbpl.cs_sem_l3.F_COEF << endl;
+        qbtbp_ofs_fft_delta(ofts_z, ofts_Z, OFS_ORDER, fbpl.us_em, fbpl.us_sem, fbpl.cs_sem_l3);
+    }
+
+    //------------------------------------------------------------------------------------
+    // Test (if desired)
+    //------------------------------------------------------------------------------------
+    if(is_test_on)
+    {
+        //--------------------------------------------------------------------------------
         //Init the integration tools
-        //----------------------------
+        //--------------------------------------------------------------------------------
         //Stepper
-        const gsl_odeiv2_step_type *T = gsl_odeiv2_step_rk8pd;
+        const gsl_odeiv2_step_type* T = gsl_odeiv2_step_rk8pd;
         OdeStruct ode_s;
-        //Root-finding
-        const gsl_root_fsolver_type *T_root = gsl_root_fsolver_brent; //Brent-Dekker root finding method
+        //Brent-Dekker root finding method
+        const gsl_root_fsolver_type* T_root = gsl_root_fsolver_brent;
         //Ode solver parameters
         double param[2];
         param[0] = fbpl.us_em.mu_EM; //note that the qbtbp is computed in EM framework
         param[1] = fbpl.us_em.ms;    //note that the qbtbp is computed in EM framework
         //General structures
-        init_ode_structure(&ode_s, T, T_root, Config::configManager().G_PREC_ABS(),
-        Config::configManager().G_PREC_REL(), Config::configManager().G_PREC_ROOT(),
-        8, Config::configManager().G_PREC_HSTART(),
-        qbtbp_derivatives, NULL, param);
+        init_ode_structure(&ode_s, T, T_root, 8, qbtbp_derivatives, param);
 
-        //----------------------------
-        //Init the external/internal
-        //motion in Ofs format
-        //----------------------------
+        //--------------------------------------------------------------------------------
+        //Init the inner/outer motions in Ofs format (Fourier series)
+        //--------------------------------------------------------------------------------
         Ofsd bj(OFS_ORDER);
         Ofsd cj(OFS_ORDER);
         Ofsc bjc(OFS_ORDER);
@@ -92,917 +151,253 @@ void qbtbp(int li_EM, int li_SEM, int isTestOn, int coordsys)
         fts2fs(&bj, ofts_z, eps);
         fts2fs(&cj, ofts_Z, eps);
 
-        //From double to cdouble
-        doubleToComplex(bj, bjc);
-        doubleToComplex(cj, cjc);
+        //From double to complex double
+        ofs_double_to_complex(bj, bjc);
+        ofs_double_to_complex(cj, cjc);
 
-        //----------------------------
+        //--------------------------------------------------------------------------------
+        // Splash
+        //--------------------------------------------------------------------------------
+        cout << "---------------------------------------------------" << endl;
+        cout << "                Test of the QBTBP                  " << endl;
+        cout << "---------------------------------------------------" << endl;
+        cout << "Three consecutive tests are performed:             " << endl;
+
+        //--------------------------------------------------------------------------------
         //Analytical Vs Numerical results
-        //----------------------------
-        char ch;
-        cout << " qbtbp. The test is performed on one full period by default." << endl;
+        //--------------------------------------------------------------------------------
+        cout << " 1. The inner and outer motion z(t) and Z(t) are   " << endl;
+        cout << " integrated on one period T of the QBTBP, and the  " << endl;
+        cout << " consistency between the integration and the       " << endl;
+        cout << " parameterization (Fourier series) is checked.     " << endl;
         qbtbp_test(2*M_PI, bjc, cjc, ode_s, fbpl);
-        cout << "Press Enter to proceed with the tests." << endl;
-        scanf("%c",&ch);
-        qbtbp_test_FFT_vs_OFS(bjc, cjc, OFS_ORDER, 500, 1, ode_s, fbpl);
-        cout << "Press Enter to proceed with the tests." << endl;
-        scanf("%c",&ch);
-        qbtbp_test_IN_EM_SEM(0.0*M_PI, bjc, cjc);
-        cout << "Press Enter to end the test session." << endl;
-        scanf("%c",&ch);
+        pressEnter(true, "Press Enter to proceed with the tests.");
 
+        cout << " 2. The change of coordinates between Earth-Moon,     " << endl;
+        cout << " Inertial, and Sun-Earth coordinates are tested,      " << endl;
+        cout << " by looking at how state vectors of the primaries,    " << endl;
+        cout << " which are functions of z(t) and Z(t), are transposed " << endl;
+        cout << " by these COCs.                                       " << endl;
+        qbtbp_test_in_em_sem(0.0*M_PI, bjc, cjc);
+        pressEnter(true, "Press Enter to proceed with the tests.");
+
+        cout << " 3. The resulting coefficients of the Earth-Moon equations of motion " << endl;
+        cout << " (alpha functions) are tested. These coefficients have been computed " << endl;
+        cout << " from z(t) and Z(t) using two different strategies:                  " << endl;
+        cout << "  - Using algebraic operations of Fourier series (OFS in the sequel)." << endl;
+        cout << "  - Using Fast Fourier Transform (FFT in the sequel).                " << endl;
+        cout << " Both are compared.                                                  " << endl;
+        cout << " This test is performed only if qbtbp has been called                " << endl;
+        cout << " with is_stored == true...                                            " << endl;
+
+        if(is_stored)
+        {
+            cout << "... which is the case. " << endl;
+            qbtbp_test_FFT_vs_OFS(bjc, cjc, OFS_ORDER, 500, 1, ode_s, fbpl);
+        }
+        else
+        {
+            cout << "... which is not the case. " << endl;
+        }
+
+        pressEnter(true, "Press Enter to end the test session.");
     }
 }
 
-//-----------------------------------------------------------------------------
-// Main routine: computation of the BCP
-//-----------------------------------------------------------------------------
-void bcp_alpha(FBPL &fbpl)
-{
-    //--------------------------------------------------------------------
-    //Parameters for one specific libration point
-    //--------------------------------------------------------------------
-    double mu_EM = fbpl.us_em.mu_EM;
-    double gamma = fbpl.cs_em.gamma;
-    double c1    = fbpl.cs_em.c1;
-    double ms    = fbpl.us_em.ms;
-    double as    = fbpl.us_em.as;
-    int nf       = fbpl.nf;
 
-    //--------------------------------------------------------------------
-    // 3. Set all alpha functions
-    //--------------------------------------------------------------------
-    Ofs<cdouble > alpha1c(nf);
-    Ofs<cdouble > alpha2c(nf);
-    Ofs<cdouble > alpha3c(nf);
-    Ofs<cdouble > alpha4c(nf);
-    Ofs<cdouble > alpha5c(nf);
-    Ofs<cdouble > alpha6c(nf);
-    Ofs<cdouble > alpha7c(nf);
-    Ofs<cdouble > alpha8c(nf);
-    Ofs<cdouble > alpha9c(nf);
-    Ofs<cdouble > alpha10c(nf);
-    Ofs<cdouble > alpha11c(nf);
-    Ofs<cdouble > alpha12c(nf);
-    Ofs<cdouble > alpha13c(nf);
-    Ofs<cdouble > alpha14c(nf);
-
-    //Redundancy for the positions of the primaries
-    Ofs<cdouble > Xe(nf);
-    Ofs<cdouble > Ye(nf);
-    Ofs<cdouble > Ze(nf);
-    Ofs<cdouble > Xm(nf);
-    Ofs<cdouble > Ym(nf);
-    Ofs<cdouble > Zm(nf);
-    Ofs<cdouble > Xs(nf);
-    Ofs<cdouble > Ys(nf);
-    Ofs<cdouble > Zs(nf);
-
-    //Positions of the primaries in NC coordinates
-    Ofs<cdouble > xe(nf);
-    Ofs<cdouble > ye(nf);
-    Ofs<cdouble > ze(nf);
-    Ofs<cdouble > xm(nf);
-    Ofs<cdouble > ym(nf);
-    Ofs<cdouble > zm(nf);
-    Ofs<cdouble > xs(nf);
-    Ofs<cdouble > ys(nf);
-    Ofs<cdouble > zs(nf);
-
-    //-------------------------
-    // The alphas
-    //-------------------------
-    //alpha1 = 1
-    alpha1c.setCoef(1.0+0.0*I, 0);
-    //alpha2 = 0
-    //alpha3 = 1
-    alpha3c.setCoef(1.0+0.0*I, 0);
-    //alpha4 = ms/as^2*cos(theta) = ms/(2*as^2)*(exp(itheta) + exp(-itheta))
-    alpha4c.setCoef(0.5*ms/(as*as)+0.0*I, -1);
-    alpha4c.setCoef(0.5*ms/(as*as)+0.0*I, +1);
-    //alpha5 = -ms/as^2*sin(theta) = +I*ms/(2*as^2)*(exp(itheta) - exp(-itheta))
-    alpha5c.setCoef(-0.5*ms/(as*as)*I, -1);
-    alpha5c.setCoef(+0.5*ms/(as*as)*I, +1);
-    //alpha6 = 1
-    alpha6c.setCoef(1.0+0.0*I, 0);
-    //alpha13 = alpha4/gamma-c1
-    alpha13c.ofs_mult(alpha4c, 1.0/gamma+0.0*I);
-    alpha13c.addCoef(-c1+0.0*I, 0);
-    //alpha14 = alpha5/gamma
-    alpha14c.ofs_mult(alpha5c, 1.0/gamma+0.0*I);
-
-    //-------------------------
-    // Primaries
-    //-------------------------
-    //Earth
-    alpha9c.setCoef(+mu_EM+0.0*I, 0);
-    //Moon
-    alpha11c.setCoef(+mu_EM-1.0+0.0*I, 0);
-    //Sun
-    //alpha7 = as*cos(theta) = as/2*(exp(itheta) + exp(-itheta))
-    alpha7c.setCoef(0.5*as+0.0*I, -1);
-    alpha7c.setCoef(0.5*as+0.0*I, +1);
-    //alpha8 = -as*sin(theta) = +I*as/2*(exp(itheta) - exp(-itheta))
-    alpha8c.setCoef(-0.5*as*I, -1);
-    alpha8c.setCoef(+0.5*as*I, +1);
-
-    //-------------------------
-    // The primaries, again
-    //-------------------------
-    //Earth, EM coordinates
-    Xe.setCoef(+mu_EM+0.0*I, 0);
-    //Earth, NC coordinates
-    xe.setCoef(c1 - mu_EM/gamma + 0.0*I, 0);
-    //Moon, EM coordinates
-    Xm.setCoef(+mu_EM-1.0+0.0*I, 0);
-    //Moon, NC coordinates
-    xm.setCoef(c1 - (mu_EM-1.0)/gamma + 0.0*I, 0);
-
-    //Sun, EM coordinates
-    //---------------
-    //Xs = as*cos(theta) = as/2*(exp(itheta) + exp(-itheta))
-    Xs.setCoef(0.5*as+0.0*I, -1);
-    Xs.setCoef(0.5*as+0.0*I, +1);
-    //Ys = -as*sin(theta) = +I*as/2*(exp(itheta) - exp(-itheta))
-    Ys.setCoef(-0.5*as*I, -1);
-    Ys.setCoef(+0.5*as*I, +1);
-    //Sun, NC coordinates;
-    //---------------
-    xs.ofs_smult(Xs, -1.0/gamma);
-    xs.addCoef(c1, 0);
-    ys.ofs_smult(Ys, -1.0/gamma);
-
-    //--------------------------
-    //Put in data file
-    //--------------------------
-    cout << "bcp. storage in txt files. " << endl;
-    ofs_sst(alpha1c, fbpl.cs_em.F_COEF+"alpha1", 1, "_fft");
-    ofs_sst(alpha2c, fbpl.cs_em.F_COEF+"alpha2", 0, "_fft");
-    ofs_sst(alpha3c, fbpl.cs_em.F_COEF+"alpha3", 1, "_fft");
-    ofs_sst(alpha4c, fbpl.cs_em.F_COEF+"alpha4", 1, "_fft");
-    ofs_sst(alpha5c, fbpl.cs_em.F_COEF+"alpha5", 0, "_fft");
-    ofs_sst(alpha6c, fbpl.cs_em.F_COEF+"alpha6", 1, "_fft");
-     //Sun
-    ofs_sst(alpha7c, fbpl.cs_em.F_COEF+"alpha7", 1, "_fft");
-    ofs_sst(alpha8c, fbpl.cs_em.F_COEF+"alpha8", 0, "_fft");
-    //Earth
-    ofs_sst(alpha9c,  fbpl.cs_em.F_COEF+"alpha9",  1, "_fft");
-    ofs_sst(alpha10c, fbpl.cs_em.F_COEF+"alpha10", 0, "_fft");
-    //Moon
-    ofs_sst(alpha11c, fbpl.cs_em.F_COEF+"alpha11", 1, "_fft");
-    ofs_sst(alpha12c, fbpl.cs_em.F_COEF+"alpha12", 0, "_fft");
-    //NC additional coeffs
-    ofs_sst(alpha13c, fbpl.cs_em.F_COEF+"alpha13", 1, "_fft");
-    ofs_sst(alpha14c, fbpl.cs_em.F_COEF+"alpha14", 0, "_fft");
-
-    //---------------
-    //Primary, EM coordinates
-    //Note that, at this step, the vertical motion of the primaries is undefined,
-    //so we can put either Even or Odd in the ofs_sst option of gsl_Zc without much difference
-    //---------------
-    ofs_sst(Xs, fbpl.cs_em.F_COEF+"Ps1", 1, "_fft");
-    ofs_sst(Ys, fbpl.cs_em.F_COEF+"Ps2", 0, "_fft");
-    ofs_sst(Zs, fbpl.cs_em.F_COEF+"Ps3", 1, "_fft");
-
-    ofs_sst(Xm, fbpl.cs_em.F_COEF+"Pm1", 1, "_fft");
-    ofs_sst(Ym, fbpl.cs_em.F_COEF+"Pm2", 0, "_fft");
-    ofs_sst(Zm, fbpl.cs_em.F_COEF+"Pm3", 1, "_fft");
-
-    ofs_sst(Xe, fbpl.cs_em.F_COEF+"Pe1", 1, "_fft");
-    ofs_sst(Ye, fbpl.cs_em.F_COEF+"Pe2", 0, "_fft");
-    ofs_sst(Ze, fbpl.cs_em.F_COEF+"Pe3", 1, "_fft");
-
-
-    //---------------
-    //Primary, NC coordinates
-    //Note that, at this step, the vertical motion of the primaries is undefined,
-    //so we can put either Even or Odd in the ofs_sst option of gsl_zc without much difference
-    //---------------
-    ofs_sst(xs, fbpl.cs_em.F_COEF+"ps1", 1, "_fft");
-    ofs_sst(ys, fbpl.cs_em.F_COEF+"ps2", 0, "_fft");
-    ofs_sst(zs, fbpl.cs_em.F_COEF+"ps3", 1, "_fft");
-
-    ofs_sst(xm, fbpl.cs_em.F_COEF+"pm1", 1, "_fft");
-    ofs_sst(ym, fbpl.cs_em.F_COEF+"pm2", 0, "_fft");
-    ofs_sst(zm, fbpl.cs_em.F_COEF+"pm3", 1, "_fft");
-
-    ofs_sst(xe, fbpl.cs_em.F_COEF+"pe1", 1, "_fft");
-    ofs_sst(ye, fbpl.cs_em.F_COEF+"pe2", 0, "_fft");
-    ofs_sst(ze, fbpl.cs_em.F_COEF+"pe3", 1, "_fft");
-}
-
-void bcp_delta(FBPL &fbpl)
-{
-    //--------------------------------------------------------------------
-    //Parameters for one specific libration point
-    //--------------------------------------------------------------------
-    double mu_SE  = fbpl.us_sem.mu_SEM;
-    double gamma  = fbpl.cs_sem.gamma;
-    double c1     = fbpl.cs_sem.c1;
-    //double mm     = fbpl.us_sem.mm;
-    double am     = fbpl.us_sem.ai;
-    int nf        = fbpl.nf;
-
-    //--------------------------------------------------------------------
-    // 3. Set all delta functions
-    //--------------------------------------------------------------------
-    Ofs<cdouble > delta1c(nf);
-    Ofs<cdouble > delta2c(nf);
-    Ofs<cdouble > delta3c(nf);
-    Ofs<cdouble > delta4c(nf);
-    Ofs<cdouble > delta5c(nf);
-    Ofs<cdouble > delta6c(nf);
-    Ofs<cdouble > delta7c(nf);
-    Ofs<cdouble > delta8c(nf);
-    Ofs<cdouble > delta9c(nf);
-    Ofs<cdouble > delta10c(nf);
-    Ofs<cdouble > delta11c(nf);
-    Ofs<cdouble > delta12c(nf);
-    Ofs<cdouble > delta13c(nf);
-    Ofs<cdouble > delta14c(nf);
-
-    //Redundancy for the positions of the primaries
-    Ofs<cdouble > Xe(nf);
-    Ofs<cdouble > Ye(nf);
-    Ofs<cdouble > Ze(nf);
-    Ofs<cdouble > Xm(nf);
-    Ofs<cdouble > Ym(nf);
-    Ofs<cdouble > Zm(nf);
-    Ofs<cdouble > Xs(nf);
-    Ofs<cdouble > Ys(nf);
-    Ofs<cdouble > Zs(nf);
-
-    //Positions of the primaries in NC coordinates
-    Ofs<cdouble > xe(nf);
-    Ofs<cdouble > ye(nf);
-    Ofs<cdouble > ze(nf);
-    Ofs<cdouble > xm(nf);
-    Ofs<cdouble > ym(nf);
-    Ofs<cdouble > zm(nf);
-    Ofs<cdouble > xs(nf);
-    Ofs<cdouble > ys(nf);
-    Ofs<cdouble > zs(nf);
-
-    //-------------------------
-    // The deltas
-    //-------------------------
-    //delta1 = 1
-    delta1c.setCoef(1.0+0.0*I, 0);
-    //delta2 = 0
-    //delta3 = 1
-    delta3c.setCoef(1.0+0.0*I, 0);
-    //delta4 = -mm/am^2*cos(theta) = -mm/(2*am^2)*(exp(itheta) + exp(-itheta))
-    //delta4c.setCoef(-0.5*mm/(am*am)+0.0*I, -1);
-    //delta4c.setCoef(-0.5*mm/(am*am)+0.0*I, +1);
-    //delta5 = -mm/am^2*sin(theta) = +I*mm/(2*am^2)*(exp(itheta) - exp(-itheta))
-    //delta5c.setCoef(-0.5*mm/(am*am)*I, -1);
-    //delta5c.setCoef(+0.5*mm/(am*am)*I, +1);
-    //delta6 = 1
-    delta6c.setCoef(1.0+0.0*I, 0);
-    //delta13 = delta4/gamma-c1
-    delta13c.ofs_mult(delta4c, 1.0/gamma+0.0*I);
-    delta13c.addCoef(-c1+0.0*I, 0);
-    //delta14 = delta5/gamma
-    delta14c.ofs_mult(delta5c, 1.0/gamma+0.0*I);
-
-    //-------------------------
-    // Primaries
-    //-------------------------
-    //Earth
-    delta9c.setCoef(+mu_SE-1.0+0.0*I, 0);
-    //Sun
-    delta7c.setCoef(+mu_SE+0.0*I, 0);
-    //Moon
-    //delta11 = -am*cos(theta) + mu_SE-1.0 = -am/2*(exp(itheta) + exp(-itheta)) + mu_SE-1.0
-    delta11c.setCoef(mu_SE-1.0 +0.0*I, 0);
-    delta11c.setCoef(-0.5*am+0.0*I, -1);
-    delta11c.setCoef(-0.5*am+0.0*I, +1);
-    //delta12 = -am*sin(theta) = +I*am/2*(exp(itheta) - exp(-itheta))
-    delta12c.setCoef(-0.5*am*I, -1);
-    delta12c.setCoef(+0.5*am*I, +1);
-
-    //-------------------------
-    // The primaries, again
-    //-------------------------
-    //Earth, EM coordinates
-    Xe.setCoef(mu_SE-1.0+0.0*I, 0);
-    //Earth, NC coordinates
-    xe.setCoef(c1 - (mu_SE-1.0)/gamma + 0.0*I, 0);
-    //Sun, EM coordinates
-    Xs.setCoef(+mu_SE+0.0*I, 0);
-    //Sun, NC coordinates
-    xs.setCoef(c1 - mu_SE/gamma + 0.0*I, 0);
-
-    //Moon, EM coordinates
-    //---------------
-    //Xm = -am*cos(theta) + mu_SE - 1 = am/2*(exp(itheta) + exp(-itheta)) + mu_SE - 1
-    Xm.setCoef(mu_SE-1.0 +0.0*I, 0);
-    Xm.setCoef(-0.5*am+0.0*I, -1);
-    Xm.setCoef(-0.5*am+0.0*I, +1);
-    //Ym = -am*sin(theta) = +I*am/2*(exp(itheta) - exp(-itheta))
-    Ym.setCoef(-0.5*am*I, -1);
-    Ym.setCoef(+0.5*am*I, +1);
-    //Moon, NC coordinates;
-    //---------------
-    xm.ofs_smult(Xm, -1.0/gamma);
-    xm.addCoef(c1, 0);
-    ym.ofs_smult(Ym, -1.0/gamma);
-
-    //--------------------------
-    //Put in data file
-    //--------------------------
-    cout << "bcp. storage in txt files. " << endl;
-    ofs_sst(delta1c, fbpl.cs_sem.F_COEF+"alpha1", 1, "_fft");
-    ofs_sst(delta2c, fbpl.cs_sem.F_COEF+"alpha2", 0, "_fft");
-    ofs_sst(delta3c, fbpl.cs_sem.F_COEF+"alpha3", 1, "_fft");
-    ofs_sst(delta4c, fbpl.cs_sem.F_COEF+"alpha4", 1, "_fft");
-    ofs_sst(delta5c, fbpl.cs_sem.F_COEF+"alpha5", 0, "_fft");
-    ofs_sst(delta6c, fbpl.cs_sem.F_COEF+"alpha6", 1, "_fft");
-     //Sun
-    ofs_sst(delta7c, fbpl.cs_sem.F_COEF+"alpha7", 1, "_fft");
-    ofs_sst(delta8c, fbpl.cs_sem.F_COEF+"alpha8", 0, "_fft");
-    //Earth
-    ofs_sst(delta9c,  fbpl.cs_sem.F_COEF+"alpha9",  1, "_fft");
-    ofs_sst(delta10c, fbpl.cs_sem.F_COEF+"alpha10", 0, "_fft");
-    //Moon
-    ofs_sst(delta11c, fbpl.cs_sem.F_COEF+"alpha11", 1, "_fft");
-    ofs_sst(delta12c, fbpl.cs_sem.F_COEF+"alpha12", 0, "_fft");
-    //NC additional coeffs
-    ofs_sst(delta13c, fbpl.cs_sem.F_COEF+"alpha13", 1, "_fft");
-    ofs_sst(delta14c, fbpl.cs_sem.F_COEF+"alpha14", 0, "_fft");
-
-    //---------------
-    //Primary, EM coordinates
-    //Note that, at this step, the vertical motion of the primaries is undefined,
-    //so we can put either Even or Odd in the ofs_sst option of gsl_Zc without much difference
-    //---------------
-    ofs_sst(Xs, fbpl.cs_sem.F_COEF+"Ps1", 1, "_fft");
-    ofs_sst(Ys, fbpl.cs_sem.F_COEF+"Ps2", 0, "_fft");
-    ofs_sst(Zs, fbpl.cs_sem.F_COEF+"Ps3", 1, "_fft");
-
-    ofs_sst(Xm, fbpl.cs_sem.F_COEF+"Pm1", 1, "_fft");
-    ofs_sst(Ym, fbpl.cs_sem.F_COEF+"Pm2", 0, "_fft");
-    ofs_sst(Zm, fbpl.cs_sem.F_COEF+"Pm3", 1, "_fft");
-
-    ofs_sst(Xe, fbpl.cs_sem.F_COEF+"Pe1", 1, "_fft");
-    ofs_sst(Ye, fbpl.cs_sem.F_COEF+"Pe2", 0, "_fft");
-    ofs_sst(Ze, fbpl.cs_sem.F_COEF+"Pe3", 1, "_fft");
-
-
-    //---------------
-    //Primary, NC coordinates
-    //Note that, at this step, the vertical motion of the primaries is undefined,
-    //so we can put either Even or Odd in the ofs_sst option of gsl_zc without much difference
-    //---------------
-    ofs_sst(xs, fbpl.cs_sem.F_COEF+"ps1", 1, "_fft");
-    ofs_sst(ys, fbpl.cs_sem.F_COEF+"ps2", 0, "_fft");
-    ofs_sst(zs, fbpl.cs_sem.F_COEF+"ps3", 1, "_fft");
-
-    ofs_sst(xm, fbpl.cs_sem.F_COEF+"pm1", 1, "_fft");
-    ofs_sst(ym, fbpl.cs_sem.F_COEF+"pm2", 0, "_fft");
-    ofs_sst(zm, fbpl.cs_sem.F_COEF+"pm3", 1, "_fft");
-
-    ofs_sst(xe, fbpl.cs_sem.F_COEF+"pe1", 1, "_fft");
-    ofs_sst(ye, fbpl.cs_sem.F_COEF+"pe2", 0, "_fft");
-    ofs_sst(ze, fbpl.cs_sem.F_COEF+"pe3", 1, "_fft");
-}
-
-void bcp_delta_2(FBPL &fbpl)
-{
-    //--------------------------------------------------------------------
-    //Parameters for one specific libration point
-    //--------------------------------------------------------------------
-    double mu_EM  = fbpl.us_sem.mu_EM;
-    double mu_SE  = fbpl.us_sem.mu_SEM;
-    double gamma  = fbpl.cs_sem.gamma;
-    double c1     = fbpl.cs_sem.c1;
-    //double mm     = fbpl.us_sem.mm;
-    //double me     = fbpl.us_sem.me;
-    double ai     = fbpl.us_sem.ai;
-    int nf        = fbpl.nf;
-    //Distance of Earth & Moon from their barycenter
-    double am = (1- mu_EM)*ai;
-    double ae = mu_EM*ai;
-    //Factor that appears in the definition of the deltas.
-    //double fem = mm/(am*am) - me/(ae*ae);
-
-    //--------------------------------------------------------------------
-    // 3. Set all delta functions
-    //--------------------------------------------------------------------
-    Ofs<cdouble > delta1c(nf);
-    Ofs<cdouble > delta2c(nf);
-    Ofs<cdouble > delta3c(nf);
-    Ofs<cdouble > delta4c(nf);
-    Ofs<cdouble > delta5c(nf);
-    Ofs<cdouble > delta6c(nf);
-    Ofs<cdouble > delta7c(nf);
-    Ofs<cdouble > delta8c(nf);
-    Ofs<cdouble > delta9c(nf);
-    Ofs<cdouble > delta10c(nf);
-    Ofs<cdouble > delta11c(nf);
-    Ofs<cdouble > delta12c(nf);
-    Ofs<cdouble > delta13c(nf);
-    Ofs<cdouble > delta14c(nf);
-
-    //Redundancy for the positions of the primaries
-    Ofs<cdouble > Xe(nf);
-    Ofs<cdouble > Ye(nf);
-    Ofs<cdouble > Ze(nf);
-    Ofs<cdouble > Xm(nf);
-    Ofs<cdouble > Ym(nf);
-    Ofs<cdouble > Zm(nf);
-    Ofs<cdouble > Xs(nf);
-    Ofs<cdouble > Ys(nf);
-    Ofs<cdouble > Zs(nf);
-
-    //Positions of the primaries in NC coordinates
-    Ofs<cdouble > xe(nf);
-    Ofs<cdouble > ye(nf);
-    Ofs<cdouble > ze(nf);
-    Ofs<cdouble > xm(nf);
-    Ofs<cdouble > ym(nf);
-    Ofs<cdouble > zm(nf);
-    Ofs<cdouble > xs(nf);
-    Ofs<cdouble > ys(nf);
-    Ofs<cdouble > zs(nf);
-
-    //-------------------------
-    // The deltas
-    //-------------------------
-    //delta1 = 1
-    delta1c.setCoef(1.0+0.0*I, 0);
-    //delta2 = 0
-    //delta3 = 1
-    delta3c.setCoef(1.0+0.0*I, 0);
-    //delta4 = 0; // OR -fem*cos(theta) = -0.5*fem*(exp(itheta) + exp(-itheta))
-    //delta4c.setCoef(-0.5*fem+0.0*I, -1);
-    //delta4c.setCoef(-0.5*fem+0.0*I, +1);
-    //delta5 = 0; // OR -fem*sin(theta) = +I*0.5*fem*(exp(itheta) - exp(-itheta))
-    //delta5c.setCoef(-0.5*fem*I, -1);
-    //delta5c.setCoef(+0.5*fem*I, +1);
-    //delta6 = 1
-    delta6c.setCoef(1.0+0.0*I, 0);
-    //delta13 = delta4/gamma-c1
-    delta13c.ofs_mult(delta4c, 1.0/gamma+0.0*I);
-    delta13c.addCoef(-c1+0.0*I, 0);
-    //delta14 = delta5/gamma
-    delta14c.ofs_mult(delta5c, 1.0/gamma+0.0*I);
-
-    //-------------------------
-    // Primaries
-    //-------------------------
-    //Earth
-    //delta9 = +ae*cos(theta) + mu_SE-1.0  = ae/2*(exp(itheta) + exp(-itheta)) + mu_SE-1.0
-    delta9c.setCoef(mu_SE-1.0 +0.0*I, 0);
-    delta9c.setCoef(0.5*ae+0.0*I, -1);
-    delta9c.setCoef(0.5*ae+0.0*I, +1);
-    //delta10 = +ae*sin(theta) = -I*ae/2*(exp(itheta) - exp(-itheta))
-    delta10c.setCoef(+0.5*ae*I, -1);
-    delta10c.setCoef(-0.5*ae*I, +1);
-
-    //Sun
-    delta7c.setCoef(+mu_SE+0.0*I, 0);
-
-    //Moon
-    //delta11 = -am*cos(theta) + mu_SE-1.0  = -am/2*(exp(itheta) + exp(-itheta)) + mu_SE-1.0
-    delta11c.setCoef(mu_SE-1.0 +0.0*I, 0);
-    delta11c.setCoef(-0.5*am+0.0*I, -1);
-    delta11c.setCoef(-0.5*am+0.0*I, +1);
-    //delta12 = -am*sin(theta) = +I*am/2*(exp(itheta) - exp(-itheta))
-    delta12c.setCoef(-0.5*am*I, -1);
-    delta12c.setCoef(+0.5*am*I, +1);
-
-    //-------------------------
-    // The primaries, again
-    //-------------------------
-    //Earth, EM coordinates
-    //---------------
-    //Xe = +ae*cos(theta) + mu_SE-1.0  = ae/2*(exp(itheta) + exp(-itheta)) + mu_SE-1.0
-    Xe.setCoef(mu_SE-1.0 +0.0*I, 0);
-    Xe.setCoef(0.5*ae+0.0*I, -1);
-    Xe.setCoef(0.5*ae+0.0*I, +1);
-    //Ye = +ae*sin(theta) = -I*ae/2*(exp(itheta) - exp(-itheta))
-    Ye.setCoef(+0.5*ae*I, -1);
-    Ye.setCoef(-0.5*ae*I, +1);
-    //Earth, NC coordinates;
-    //---------------
-    xe.ofs_smult(Xe, -1.0/gamma);
-    xe.addCoef(c1, 0);
-    ye.ofs_smult(Ye, -1.0/gamma);
-
-    //Sun, EM coordinates
-    Xs.setCoef(+mu_SE+0.0*I, 0);
-    //Sun, NC coordinates
-    xs.setCoef(c1 - mu_SE/gamma + 0.0*I, 0);
-
-    //Moon, EM coordinates
-    //---------------
-    //Xm = -am*cos(theta) + mu_SE-1.0  = am/2*(exp(itheta) + exp(-itheta)) + mu_SE-1.0
-    Xm.setCoef(mu_SE-1.0 +0.0*I, 0);
-    Xm.setCoef(-0.5*am+0.0*I, -1);
-    Xm.setCoef(-0.5*am+0.0*I, +1);
-    //Ym = -am*sin(theta) = +I*am/2*(exp(itheta) - exp(-itheta))
-    Ym.setCoef(-0.5*am*I, -1);
-    Ym.setCoef(+0.5*am*I, +1);
-    //Moon, NC coordinates;
-    //---------------
-    xm.ofs_smult(Xm, -1.0/gamma);
-    xm.addCoef(c1, 0);
-    ym.ofs_smult(Ym, -1.0/gamma);
-
-    //--------------------------
-    //Put in data file
-    //--------------------------
-    cout << "bcp. storage in txt files. " << endl;
-    ofs_sst(delta1c, fbpl.cs_sem.F_COEF+"alpha1", 1, "_fft");
-    ofs_sst(delta2c, fbpl.cs_sem.F_COEF+"alpha2", 0, "_fft");
-    ofs_sst(delta3c, fbpl.cs_sem.F_COEF+"alpha3", 1, "_fft");
-    ofs_sst(delta4c, fbpl.cs_sem.F_COEF+"alpha4", 1, "_fft");
-    ofs_sst(delta5c, fbpl.cs_sem.F_COEF+"alpha5", 0, "_fft");
-    ofs_sst(delta6c, fbpl.cs_sem.F_COEF+"alpha6", 1, "_fft");
-     //Sun
-    ofs_sst(delta7c, fbpl.cs_sem.F_COEF+"alpha7", 1, "_fft");
-    ofs_sst(delta8c, fbpl.cs_sem.F_COEF+"alpha8", 0, "_fft");
-    //Earth
-    ofs_sst(delta9c,  fbpl.cs_sem.F_COEF+"alpha9",  1, "_fft");
-    ofs_sst(delta10c, fbpl.cs_sem.F_COEF+"alpha10", 0, "_fft");
-    //Moon
-    ofs_sst(delta11c, fbpl.cs_sem.F_COEF+"alpha11", 1, "_fft");
-    ofs_sst(delta12c, fbpl.cs_sem.F_COEF+"alpha12", 0, "_fft");
-    //NC additional coeffs
-    ofs_sst(delta13c, fbpl.cs_sem.F_COEF+"alpha13", 1, "_fft");
-    ofs_sst(delta14c, fbpl.cs_sem.F_COEF+"alpha14", 0, "_fft");
-
-    //---------------
-    //Primary, EM coordinates
-    //Note that, at this step, the vertical motion of the primaries is undefined,
-    //so we can put either Even or Odd in the ofs_sst option of gsl_Zc without much difference
-    //---------------
-    ofs_sst(Xs, fbpl.cs_sem.F_COEF+"Ps1", 1, "_fft");
-    ofs_sst(Ys, fbpl.cs_sem.F_COEF+"Ps2", 0, "_fft");
-    ofs_sst(Zs, fbpl.cs_sem.F_COEF+"Ps3", 1, "_fft");
-
-    ofs_sst(Xm, fbpl.cs_sem.F_COEF+"Pm1", 1, "_fft");
-    ofs_sst(Ym, fbpl.cs_sem.F_COEF+"Pm2", 0, "_fft");
-    ofs_sst(Zm, fbpl.cs_sem.F_COEF+"Pm3", 1, "_fft");
-
-    ofs_sst(Xe, fbpl.cs_sem.F_COEF+"Pe1", 1, "_fft");
-    ofs_sst(Ye, fbpl.cs_sem.F_COEF+"Pe2", 0, "_fft");
-    ofs_sst(Ze, fbpl.cs_sem.F_COEF+"Pe3", 1, "_fft");
-
-
-    //---------------
-    //Primary, NC coordinates
-    //Note that, at this step, the vertical motion of the primaries is undefined,
-    //so we can put either Even or Odd in the ofs_sst option of gsl_zc without much difference
-    //---------------
-    ofs_sst(xs, fbpl.cs_sem.F_COEF+"ps1", 1, "_fft");
-    ofs_sst(ys, fbpl.cs_sem.F_COEF+"ps2", 0, "_fft");
-    ofs_sst(zs, fbpl.cs_sem.F_COEF+"ps3", 1, "_fft");
-
-    ofs_sst(xm, fbpl.cs_sem.F_COEF+"pm1", 1, "_fft");
-    ofs_sst(ym, fbpl.cs_sem.F_COEF+"pm2", 0, "_fft");
-    ofs_sst(zm, fbpl.cs_sem.F_COEF+"pm3", 1, "_fft");
-
-    ofs_sst(xe, fbpl.cs_sem.F_COEF+"pe1", 1, "_fft");
-    ofs_sst(ye, fbpl.cs_sem.F_COEF+"pe2", 0, "_fft");
-    ofs_sst(ze, fbpl.cs_sem.F_COEF+"pe3", 1, "_fft");
-}
-
-
+//----------------------------------------------------------------------------------------
+// Solving the QBTBP
+//----------------------------------------------------------------------------------------
 /**
- *  \brief Main routine to compute the Bicircular Three-Body Problem in Ofs format.
+ *  \brief Computes the Sun-Earth-Moon Quasi-Bicircular Three-Body Problem in Ofts format.
+ *         The iteratives equation of the QBTBP are solved. See appendix A of BLB 2017.
+ *         The outputs are zr_ofts and Zr_ofts, two Fourier-Taylor series (Ofts) that
+ *         describe the inner and outer motions of the QBTBP. The USYS structure us_em
+ *         contains the constants of the QBCP in Earth-Moon normalized units.
  */
-void bcp(int li_EM, int li_SEM, int coordsys)
+void qbtbp_ofts(Oftsd& zr_ofts, Oftsd& Zr_ofts, USYS& us_em, CSYS& cs, int is_stored)
 {
-
-    //--------------------------------------------------------------------
-    // 1. Init
-    //--------------------------------------------------------------------
-    //Init the fbp
-    FBP fbp;
-    init_FBP(&fbp, Csts::SUN, Csts::EARTH, Csts::MOON);
-
-    //Init the fbp focused on one libration point
-    FBPL fbpl;
-    init_FBPL(&fbpl, &fbp, li_EM, li_SEM, Csts::BCP, coordsys, Csts::GRAPH, Csts::MAN_CENTER, Csts::MAN_CENTER, true, true);  //Note: PM style is NOT used
-
-    //--------------------------------------------------------------------
-    // 2. Splash
-    //--------------------------------------------------------------------
-    cout << "---------------------------------------------------" << endl;
-    cout << "                                                   " << endl;
-    cout << "              Storage of the                       " << endl;
-    cout << "    Bicircular Three-Body Problem (BCP)            " << endl;
-    cout << "                                                   " << endl;
-    cout << "      save in " << fbpl.cs_em.F_COEF               << endl;
-    cout << "      save in " << fbpl.cs_sem.F_COEF              << endl;
-    cout << "---------------------------------------------------" << endl;
-    cout << std::showpos << setiosflags(ios::scientific)  << setprecision(15);
-
-    //--------------------------------------------------------------------
-    // 3. Alphas
-    //--------------------------------------------------------------------
-    bcp_alpha(fbpl);
-
-    //--------------------------------------------------------------------
-    // 4. Deltas
-    //--------------------------------------------------------------------
-    //bcp_delta(fbpl); //libration point on the Earth-Sun line
-    bcp_delta_2(fbpl); //libration points on the Sun-Bem line
-}
-
-//-----------------------------------------------------------------------------
-// Computing the QBTBP
-//-----------------------------------------------------------------------------
-/**
- *  \brief Computes the QBTBP in Ofs format.
- *
- *   The iteratives equation of the QBTBP are solved. The periodic functions \f$ \alpha_i \f$ (from the Earth-Moon p.o.v) and
- *   \f$ \beta_i \f$ (from the Sun-(Earth+Moon) p.o.v) are computed in stored in txt files.
- *   These functions are computed both through operations on Fourier series and FFT of the integrated motion.
- */
-void qbtbp_ofs(Ofts< Ofsd > &zr_ofts, Ofts< Ofsd > &Zr_ofts, FBPL& fbpl)
-{
-    //---------------------------------------------------------
+    //------------------------------------------------------------------------------------
     //Parameters
-    //---------------------------------------------------------
-    int order  = zr_ofts.getOrder();         //order of the Taylor expansion
-    int nv     = zr_ofts.getNV();            //number of variables of the Taylor expansion
-    int nf     = zr_ofts.getCOrder();        //order of the Fourier coefficient
-    int cnv    = zr_ofts.getCVariables();    //number of variables of the Fourier coefficient
+    //------------------------------------------------------------------------------------
+    int n_order_taylor      = zr_ofts.get_order();         //order of the Taylor expansion
+    int n_var_taylor   = zr_ofts.get_nvar();            //number of variables of the Taylor expansion
+    int n_order_fourier     = zr_ofts.get_coef_order();        //order of the Fourier coefficient
+    int n_var_fourier  = zr_ofts.get_coef_nvar();    //number of variables of the Fourier coefficient
 
     //Physical param
-    double n  = fbpl.us_em.n;  //mean angular motion in EM units
-    double as = fbpl.us_em.as; //Sun-(Earth+Moon barycenter) average distance in EM units
-    double ms = fbpl.us_em.ms; //Sun mass in EM units
+    double n  = us_em.n;  //mean angular motion in EM units
+    double as = us_em.as;           //Sun-(Earth+Moon barycenter) average distance in EM units
+    double ms = us_em.ms;           //Sun mass in EM units
 
-    //---------------------------------------------------------
+    //------------------------------------------------------------------------------------
     //Declaration of the variables
-    //---------------------------------------------------------
+    //------------------------------------------------------------------------------------
     //Order 1
-    Ofsd u1(nf);
-    Ofsd v1(nf);
+    Ofsd u1(n_order_fourier);
+    Ofsd v1(n_order_fourier);
     //Order n of zr and Zr
-    Ofts< Ofsd > z1(nv, order, cnv, nf);     //z1 = \bar{zr_ofts}
-    Ofts< Ofsd > z2(nv, order, cnv, nf);     //z2 = \bar{zr_ofts}^(-3/2)
-    Ofts< Ofsd > z3(nv, order, cnv, nf);     //z3 = zr_ofts^(-1/2)
-    Ofts< Ofsd > z4(nv, order, cnv, nf);     //z4 = z2*z3 = zr_ofts^(-1/2)*\bar{zr_ofts}^(-3/2)
-    Ofts< Ofsd > z5(nv, order, cnv, nf);     //z5 = \bar{zr_ofts}^(-1/2)
-    Ofts< Ofsd > z6(nv, order, cnv, nf);     //z6 = z3*z5 = (zr_ofts*\bar{zr_ofts})^(-1/2)
+    Oftsd z1(n_var_taylor, n_order_taylor, n_var_fourier, n_order_fourier);     //z1 = \bar{zr_ofts}
+    Oftsd z2(n_var_taylor, n_order_taylor, n_var_fourier, n_order_fourier);     //z2 = \bar{zr_ofts}^(-3/2)
+    Oftsd z3(n_var_taylor, n_order_taylor, n_var_fourier, n_order_fourier);     //z3 = zr_ofts^(-1/2)
+    Oftsd z4(n_var_taylor, n_order_taylor, n_var_fourier, n_order_fourier);     //z4 = z2*z3 = zr_ofts^(-1/2)*\bar{zr_ofts}^(-3/2)
+    Oftsd z5(n_var_taylor, n_order_taylor, n_var_fourier, n_order_fourier);     //z5 = \bar{zr_ofts}^(-1/2)
+    Oftsd z6(n_var_taylor, n_order_taylor, n_var_fourier, n_order_fourier);     //z6 = z3*z5 = (zr_ofts*\bar{zr_ofts})^(-1/2)
 
-    Ofts< Ofsd > a1(nv, order, cnv, nf);     //a1 = mu*exp(itheta)*zr_ofts
-    Ofts< Ofsd > a2(nv, order, cnv, nf);     //a2 = epsilon*a1
-    Ofts< Ofsd > a3(nv, order, cnv, nf);     //a3 = Zr_ofts-mu*exp(itheta)*epsilon*zr_ofts
-    Ofts< Ofsd > a4(nv, order, cnv, nf);     //a4 = a3^(-1/2).
-    Ofts< Ofsd > a5(nv, order, cnv, nf);     //a5 = \bar{a3}
-    Ofts< Ofsd > a6(nv, order, cnv, nf);     //a6 = a5^(-3/2).
-    Ofts< Ofsd > a7(nv, order, cnv, nf);     //a7 = a4*a6;
+    Oftsd a1(n_var_taylor, n_order_taylor, n_var_fourier, n_order_fourier);     //a1 = mu*exp(itheta)*zr_ofts
+    Oftsd a2(n_var_taylor, n_order_taylor, n_var_fourier, n_order_fourier);     //a2 = epsilon*a1
+    Oftsd a3(n_var_taylor, n_order_taylor, n_var_fourier, n_order_fourier);     //a3 = Zr_ofts-mu*exp(itheta)*epsilon*zr_ofts
+    Oftsd a4(n_var_taylor, n_order_taylor, n_var_fourier, n_order_fourier);     //a4 = a3^(-1/2).
+    Oftsd a5(n_var_taylor, n_order_taylor, n_var_fourier, n_order_fourier);     //a5 = \bar{a3}
+    Oftsd a6(n_var_taylor, n_order_taylor, n_var_fourier, n_order_fourier);     //a6 = a5^(-3/2).
+    Oftsd a7(n_var_taylor, n_order_taylor, n_var_fourier, n_order_fourier);     //a7 = a4*a6;
 
-    Ofts< Ofsd > b1(nv, order, cnv, nf);     //b1 = (1-mu)*exp(ithetb)*zr_ofts
-    Ofts< Ofsd > b2(nv, order, cnv, nf);     //b2 = epsilon*b1
-    Ofts< Ofsd > b3(nv, order, cnv, nf);     //b3 = Zr_ofts+(1-mu)*exp(ithetb)*epsilon*zr_ofts
-    Ofts< Ofsd > b4(nv, order, cnv, nf);     //b4 = b3^(-1/2)
-    Ofts< Ofsd > b5(nv, order, cnv, nf);     //b5 = \bar{b3}
-    Ofts< Ofsd > b6(nv, order, cnv, nf);     //b6 = b5^(-3/2)
-    Ofts< Ofsd > b7(nv, order, cnv, nf);     //b7 = b4*b6;
+    Oftsd b1(n_var_taylor, n_order_taylor, n_var_fourier, n_order_fourier);     //b1 = (1-mu)*exp(ithetb)*zr_ofts
+    Oftsd b2(n_var_taylor, n_order_taylor, n_var_fourier, n_order_fourier);     //b2 = epsilon*b1
+    Oftsd b3(n_var_taylor, n_order_taylor, n_var_fourier, n_order_fourier);     //b3 = Zr_ofts+(1-mu)*exp(ithetb)*epsilon*zr_ofts
+    Oftsd b4(n_var_taylor, n_order_taylor, n_var_fourier, n_order_fourier);     //b4 = b3^(-1/2)
+    Oftsd b5(n_var_taylor, n_order_taylor, n_var_fourier, n_order_fourier);     //b5 = \bar{b3}
+    Oftsd b6(n_var_taylor, n_order_taylor, n_var_fourier, n_order_fourier);     //b6 = b5^(-3/2)
+    Oftsd b7(n_var_taylor, n_order_taylor, n_var_fourier, n_order_fourier);     //b7 = b4*b6;
 
-    Ofts< Ofsd > Pm(nv, order, cnv, nf);     //Pm = -ms/as^2*exp(-itheta)*b7 + ms/as^2*exp(-itheta)*a7 - z4
-    Ofts< Ofsd > Qm(nv, order, cnv, nf);     //Qm = -ns^2*mu*b7 - ns^2*(1-mu)*a7
+    Oftsd Pm(n_var_taylor, n_order_taylor, n_var_fourier, n_order_fourier);     //Pm = -ms/as^2*exp(-itheta)*b7 + ms/as^2*exp(-itheta)*a7 - z4
+    Oftsd Qm(n_var_taylor, n_order_taylor, n_var_fourier, n_order_fourier);     //Qm = -ns^2*mu*b7 - ns^2*(1-mu)*a7
 
-    //Ofs used to solve the system at each order n
-    Ofsd  Pfm(nf);
-    Ofsd  Qfm(nf);
-    Ofsd  ufm(nf);
-    Ofsd  vfm(nf);
+    //Ofs used to solve the system at each order
+    Ofsd  Pfm(n_order_fourier);
+    Ofsd  Qfm(n_order_fourier);
+    Ofsd  ufm(n_order_fourier);
+    Ofsd  vfm(n_order_fourier);
 
-    //---------------------------------------------------------
+    //------------------------------------------------------------------------------------
     //Specific Ofs and Ofts objects
-    //---------------------------------------------------------
+    //------------------------------------------------------------------------------------
     //sigma1 = exp(-itheta)
-    Ofsd sigma1(nf);
-    sigma1.setCoef(1.0, -1);
+    Ofsd sigma1(n_order_fourier);
+    sigma1.set_coef(1.0, -1);
     //sigma2 = exp(+itheta)
-    Ofsd sigma2(nf);
-    sigma2.setCoef(1.0, 1);
+    Ofsd sigma2(n_order_fourier);
+    sigma2.set_coef(1.0, 1);
     //epsilon = Ofts with just 1.0 at order 1
-    Ofts< Ofsd > epsilon(nv, order, cnv, nf);
-    epsilon.setCoef0(1.0, 1, 0);
+    Oftsd epsilon(n_var_taylor, n_order_taylor, n_var_fourier, n_order_fourier);
+    epsilon.set_coef0(1.0, 1, 0);
 
-    //---------------------------------------------------------
+    //------------------------------------------------------------------------------------
     //Order 0 of zr and Zr
-    //---------------------------------------------------------
-    zr_ofts.setCoef0(1.0, 0, 0);
-    Zr_ofts.setCoef0(1.0, 0, 0);
+    //------------------------------------------------------------------------------------
+    zr_ofts.set_coef0(1.0, 0, 0);
+    Zr_ofts.set_coef0(1.0, 0, 0);
 
-    //---------------------------------------------------------
+    //------------------------------------------------------------------------------------
     //Order 1 (optionnal)
-    //---------------------------------------------------------
-    u1.setCoef(-ms/(as*as)/6.0, 0);
-    u1.setCoef(-ms/(as*as)*(24.0*n*n+24*n+9.0)/(64*pow(n,4.0)-16*n*n), -2);
-    u1.setCoef(+ms/(as*as)*9.0/(64*pow(n,4.0)-16*n*n), 2);
+    //------------------------------------------------------------------------------------
+    u1.set_coef(-ms/(as*as)/6.0, 0);
+    u1.set_coef(-ms/(as*as)*(24.0*n*n+24*n+9.0)/(64*pow(n,4.0)-16*n*n), -2);
+    u1.set_coef(+ms/(as*as)*9.0/(64*pow(n,4.0)-16*n*n), 2);
 
-    //Fourier to Taylor
-    //fs2ts(zr_ofts.getCoef(1,0), u1);
-    //fs2ts(Zr_ofts.getCoef(1,0), v1);
-
-    //---------------------------------------------------------
+    //------------------------------------------------------------------------------------
     //Order 0 of the recurrence
-    //---------------------------------------------------------
+    //------------------------------------------------------------------------------------
     int m = 0;
-    qbtbp_ofs_recurrence(zr_ofts, Zr_ofts, z1, z2, z3, z4, z5, z6,
-                         a1, a2, a3, a4, a5, a6, a7,
-                         b1, b2, b3, b4, b5, b6, b7,
-                         Pm, Qm, epsilon, Pfm, Qfm, ufm, vfm,
-                         sigma1, sigma2, m, nf, fbpl);
+    qbtbp_ofts_recurrence(zr_ofts, Zr_ofts, z1, z2, z3, z4, z5, z6,
+                          a1, a2, a3, a4, a5, a6, a7,
+                          b1, b2, b3, b4, b5, b6, b7,
+                          Pm, Qm, epsilon, Pfm, Qfm, ufm, vfm,
+                          sigma1, sigma2, m, n_order_fourier, us_em);
 
-    //---------------------------------------------------------
-    //Recurrence: m = 1 to zr_ofts.getOrder()
-    //---------------------------------------------------------
-    for(m = 1; m <= zr_ofts.getOrder(); m++)
+    //------------------------------------------------------------------------------------
+    //Recurrence: m = 1 to zr_ofts.get_order()
+    //------------------------------------------------------------------------------------
+    for(m = 1; m <= zr_ofts.get_order(); m++)
     {
-        qbtbp_ofs_recurrence(zr_ofts, Zr_ofts, z1, z2, z3, z4, z5, z6,
-                             a1, a2, a3, a4, a5, a6, a7,
-                             b1, b2, b3, b4, b5, b6, b7,
-                             Pm, Qm, epsilon, Pfm, Qfm, ufm, vfm,
-                             sigma1, sigma2, m, nf, fbpl);
-    }
-    cout << "   qbtbp_ofs. end of recursive computation." << endl;
-
-    //---------------------------------------------------------
-    //Manipulation and Storage in txt files of the OFS
-    //---------------------------------------------------------
-
-    //---------------------
-    //Computation of the vector field coefficient for the EMLi libration point of fbpl
-    //---------------------
-    qbtbp_ofs_fft_alpha(zr_ofts, Zr_ofts, nf, fbpl);
-
-    //---------------------
-    //Computation of the vector field coefficient for the SEMLi libration point of fbpl
-    //---------------------
-    qbtbp_ofs_fft_delta(zr_ofts, Zr_ofts, nf, fbpl);
-
-    //---------------------
-    // DEPRECATED.
-    // - Computation of the vector field coefficient
-    // for the EMLi libration point of fbpl through OFS manipulation.
-    // - Storage in data files of the general QBTBP.
-    // - Note that ONLY the element stored in qbtbp folder can be used
-    // the rest is DEPRECATED. Use FFT coefficients instead.
-    // TO BE ENHANCED: isolate the computation in qbtbp folder
-    //---------------------
-    qbtbp_ofs_storage(zr_ofts, Zr_ofts, z1, z2, z3, z4, z5, z6,
-                      a1, a2, a3, a4, a5, a6, a7,
-                      b1, b2, b3, b4, b5, b6, b7,
-                      Pm, Qm, Pfm, Qfm, ufm, vfm,
-                      sigma1, sigma2, nf, fbpl);
-
-
-    cout << "   qbtbp_ofs. end of the computation of the alphas and betas" << endl;
-}
-
-//-----------------------------------------------------------------------------
-// Storing the results.
-//-----------------------------------------------------------------------------
-/**
- *  \brief Computes one specific FFT and stores it txt file.
- *  \param xGSL0: a GSL vector of size N which contains the discrete evaluations of the function f on which to perform the FFT.
- *  \param filename: a string. The final result is stored in the file filename+"_fft.txt"
- *  \param nf: an integer. The order of the Fourier series obtained after FFT.
- *  \param flag: a boolean. If true, the function f is supposed even (sum of cosinus). If false, f is supposed odd (sum of sinus).
- */
-void qbtbp_ofs_fft_unpack(gsl_vector *xGSL0, string filename, int nf, int N, int flag)
-{
-    //Copy of xGSL0 into temp vector
-    gsl_vector *xGSL = gsl_vector_calloc(N);
-    gsl_vector_memcpy(xGSL, xGSL0);
-
-    gsl_vector_complex *data_complex = gsl_vector_complex_calloc(N);
-    gsl_fft_real_wavetable * wavetable = gsl_fft_real_wavetable_alloc (N);
-    gsl_fft_real_workspace * workspace = gsl_fft_real_workspace_alloc (N);
-    Ofsc xFFT(nf);
-    ofstream curentStream;
-
-    gsl_fft_real_transform (xGSL->data, 1, N, wavetable, workspace);
-    gsl_fft_halfcomplex_unpack(xGSL->data , data_complex->data ,  xGSL->stride ,xGSL->size);
-    //Order 0
-    if(flag) //even case
-        xFFT.setCoef(+GSL_REAL(gsl_vector_complex_get(data_complex, 0))/N+I*GSL_IMAG(gsl_vector_complex_get(data_complex, 0))/N,  0);
-    else //odd case
-        xFFT.setCoef(0.0,  0);
-
-    //Order n
-    for(int i = 1; i<= nf; i++)
-    {
-        if(flag) //even case
-        {
-            //Negative frequencies
-            xFFT.setCoef(+GSL_REAL(gsl_vector_complex_get(data_complex, N-i))/N, -i);
-            //Positive frequencies
-            xFFT.setCoef(+GSL_REAL(gsl_vector_complex_get(data_complex, i))/N,  i);
-        }
-        else //odd case
-        {
-            //Negative frequencies
-            xFFT.setCoef(I*GSL_IMAG(gsl_vector_complex_get(data_complex, N-i))/N, -i);
-            //Positive frequencies
-            xFFT.setCoef(I*GSL_IMAG(gsl_vector_complex_get(data_complex, i))/N,  i);
-        }
-
-    }
-
-    //Storage in txt file
-    curentStream.open((filename+"_fft.txt").c_str());
-    curentStream <<  xFFT << endl;
-    curentStream.close();
-
-
-    if(flag) //even case
-    {
-        //Cosinus expansion version
-        curentStream.open((filename+"c_fft.txt").c_str());
-        curentStream << 0 << " " << creal(xFFT.ofs_getCoef(0)) << endl;
-        for(int l = 1; l<=nf; l++) curentStream << l << " " << creal(xFFT.ofs_getCoef(-l) + xFFT.ofs_getCoef(l))  <<  endl;
-        curentStream.close();
-    }
-    else //odd case
-    {
-        //Sinus expansion version
-        curentStream.open((filename+"c_fft.txt").c_str());
-        for(int l = 0; l<=nf; l++)
-            curentStream << l << " " <<  cimag(xFFT.ofs_getCoef(-l) - xFFT.ofs_getCoef(l)) << endl;
-        curentStream.close();
+        qbtbp_ofts_recurrence(zr_ofts, Zr_ofts, z1, z2, z3, z4, z5, z6,
+                              a1, a2, a3, a4, a5, a6, a7,
+                              b1, b2, b3, b4, b5, b6, b7,
+                              Pm, Qm, epsilon, Pfm, Qfm, ufm, vfm,
+                              sigma1, sigma2, m, n_order_fourier, us_em);
     }
 
 
-    gsl_vector_complex_free(data_complex);
-    gsl_vector_free(xGSL);
-    gsl_fft_real_wavetable_free(wavetable);
-    gsl_fft_real_workspace_free(workspace);
+    //------------------------------------------------------------------------------------
+    // Storage: we compute and store here the first 8 coefficients of the vector field
+    // of the QBCP in EM coordinates. These series are obtained through algebraic
+    // manipulation of Ofsc (Fourier series) objects. Such results are not used anymore
+    // for the evaluation of the vector field. They have been replaced by the coefficients
+    // obtained via FFT. However, they are kept here for consistency and for testing
+    // purposes. This part could probably be avoided in the future.
+    //------------------------------------------------------------------------------------
+    if(is_stored)
+    {
+        qbtbp_ofs_alg_alpha(zr_ofts, Zr_ofts, z1, z2, z3, z4, z5, sigma1, sigma2, n_order_fourier, us_em, cs);
+    }
 }
 
 
-
+//----------------------------------------------------------------------------------------
+// Storing the results using FFT
+//----------------------------------------------------------------------------------------
 /**
- *  \brief FFT and Storage in txt files of OFS objects alpha_i in qbtbp_ofs. Makes use of FFT routines via qbtbp_ofs_fft_unpack.
+ *  \brief FFT and Storage in txt files of the alpha_i Fourier series. Makes use
+ *         of FFT routines via qbtbp_ofs_fft_unpack.
  *         The following coefficients are computed and stored:
- *              - The alpha (1 to 14).
- *              - The position of the primaries in EM coordinates system (redundant with alpha7-12): Xe, Ye, Ze
- *              - The position of the primaries in NC coordinates system: xe, ye, ze
+ *              - The alpha series (1 to 18).
+ *              - The position of the primaries in EM coordinates
+ *                (redundant with alpha7-12): Xe, Ye, Ze
+ *              - The position of the primaries in EMNC coordinates xe, ye, ze
  */
-void qbtbp_ofs_fft_alpha( Ofts< Ofsd > &zt,     //zt = normalized Earth-Moon motion
-                          Ofts< Ofsd > &Zt,     //Zt = normalized Sun-(Earth+Moon) motion
-                          int nf,               //order of the Fourier expansions
-                          FBPL& fbpl)       //QBCP
+void qbtbp_ofs_fft_alpha( Oftsd& zt,             //zt = normalized Earth-Moon motion
+                          Oftsd& Zt,             //Zt = normalized Sun-(Earth+Moon) motion
+                          int n_order_fourier,   //Order of the Fourier expansions
+                          USYS& us_em,           //Constants in EM units
+                          CSYS& cs_em)           //Coefficients in EM units
 {
-    //--------------------------
+    //------------------------------------------------------------------------------------
     //Physical params specific to the FBPL
-    //--------------------------
-    double c1    = fbpl.cs_em.c1;
-    double gamma = fbpl.cs_em.gamma;
+    //------------------------------------------------------------------------------------
+    double c1    = cs_em.c1;
+    double gamma = cs_em.gamma;
 
-    //--------------------------
+    //------------------------------------------------------------------------------------
     //Mass ratio
-    //--------------------------
-    double mu_EM = fbpl.us_em.mu_EM;
+    //------------------------------------------------------------------------------------
+    double mu_EM = us_em.mu_EM;
 
-    //--------------------------
+    //------------------------------------------------------------------------------------
     //Physical params in EM units
-    //--------------------------
-    double ns = fbpl.us_em.ns;  //Sun-(Earth+Moon) mean angular motion
-    double ni = fbpl.us_em.ni;  //Earth-Moon mean angular motion
-    double n  = fbpl.us_em.n;   //n = ni - ns
-    double as = fbpl.us_em.as;  //Sun-(Earth+Moon) mean distance
-    double ai = fbpl.us_em.ai;  //Earth-Moon mean distance
-    double ms = fbpl.us_em.ms;  //Sun mass
+    //------------------------------------------------------------------------------------
+    double ns = us_em.ns;  //Sun-(Earth+Moon) mean angular motion
+    double ni = us_em.ni;  //Earth-Moon mean angular motion
+    double n  = us_em.n;   //n = ni - ns
+    double as = us_em.as;  //Sun-(Earth+Moon) mean distance
+    double ai = us_em.ai;  //Earth-Moon mean distance
+    double ms = us_em.ms;  //Sun mass
 
-    //--------------------------
+    //------------------------------------------------------------------------------------
     //FFT params
-    //--------------------------
+    //------------------------------------------------------------------------------------
     int N      = pow(2,12);
     double tf  = 2*M_PI/n;
     double t   = 0;
     double eps = 1.0/as;
 
-    //--------------------------
+    //------------------------------------------------------------------------------------
     //QBTBP init
-    //--------------------------
-    Ofsd bj(nf);
-    Ofsd cj(nf);
-    Ofsc ztc(nf);
-    Ofsc Ztc(nf);
+    //------------------------------------------------------------------------------------
+    Ofsd bj(n_order_fourier);
+    Ofsd cj(n_order_fourier);
+    Ofsc ztc(n_order_fourier);
+    Ofsc Ztc(n_order_fourier);
 
-    //--------------------------
+    //------------------------------------------------------------------------------------
     //Building z(t) and Z(t)
-    //--------------------------
+    //------------------------------------------------------------------------------------
     //From ots to ofs
     fts2fs(&bj, zt, eps);
     fts2fs(&cj, Zt, eps);
 
     //From double to cdouble in ztc and Ztc
-    doubleToComplex(bj, ztc);
-    doubleToComplex(cj, Ztc);
+    ofs_double_to_complex(bj, ztc);
+    ofs_double_to_complex(cj, Ztc);
 
     //Derivatives
     Ofsc ztcdot(ztc);
@@ -1025,54 +420,54 @@ void qbtbp_ofs_fft_alpha( Ofts< Ofsd > &zt,     //zt = normalized Earth-Moon mot
     cdouble ziddot;
     cdouble Ziddot;
 
-    //--------------------------
+    //------------------------------------------------------------------------------------
     // GSL objects
-    //--------------------------
-    gsl_vector *gsl_alpha1  = gsl_vector_calloc(N);
-    gsl_vector *gsl_alpha2  = gsl_vector_calloc(N);
-    gsl_vector *gsl_alpha3  = gsl_vector_calloc(N);
-    gsl_vector *gsl_alpha4  = gsl_vector_calloc(N);
-    gsl_vector *gsl_alpha5  = gsl_vector_calloc(N);
-    gsl_vector *gsl_alpha6  = gsl_vector_calloc(N);
-    gsl_vector *gsl_alpha7  = gsl_vector_calloc(N);
-    gsl_vector *gsl_alpha8  = gsl_vector_calloc(N);
-    gsl_vector *gsl_alpha9  = gsl_vector_calloc(N);
-    gsl_vector *gsl_alpha10 = gsl_vector_calloc(N);
-    gsl_vector *gsl_alpha11 = gsl_vector_calloc(N);
-    gsl_vector *gsl_alpha12 = gsl_vector_calloc(N);
-    gsl_vector *gsl_alpha13 = gsl_vector_calloc(N);
-    gsl_vector *gsl_alpha14 = gsl_vector_calloc(N);
+    //------------------------------------------------------------------------------------
+    gsl_vector* gsl_alpha1  = gsl_vector_calloc(N);
+    gsl_vector* gsl_alpha2  = gsl_vector_calloc(N);
+    gsl_vector* gsl_alpha3  = gsl_vector_calloc(N);
+    gsl_vector* gsl_alpha4  = gsl_vector_calloc(N);
+    gsl_vector* gsl_alpha5  = gsl_vector_calloc(N);
+    gsl_vector* gsl_alpha6  = gsl_vector_calloc(N);
+    gsl_vector* gsl_alpha7  = gsl_vector_calloc(N);
+    gsl_vector* gsl_alpha8  = gsl_vector_calloc(N);
+    gsl_vector* gsl_alpha9  = gsl_vector_calloc(N);
+    gsl_vector* gsl_alpha10 = gsl_vector_calloc(N);
+    gsl_vector* gsl_alpha11 = gsl_vector_calloc(N);
+    gsl_vector* gsl_alpha12 = gsl_vector_calloc(N);
+    gsl_vector* gsl_alpha13 = gsl_vector_calloc(N);
+    gsl_vector* gsl_alpha14 = gsl_vector_calloc(N);
     //rq: alpha15 is let equal to zero because of ERTBP vector field
-    gsl_vector *gsl_alpha16 = gsl_vector_calloc(N);
-    gsl_vector *gsl_alpha17 = gsl_vector_calloc(N);
-    gsl_vector *gsl_alpha18 = gsl_vector_calloc(N);
+    gsl_vector* gsl_alpha16 = gsl_vector_calloc(N);
+    gsl_vector* gsl_alpha17 = gsl_vector_calloc(N);
+    gsl_vector* gsl_alpha18 = gsl_vector_calloc(N);
 
     //Redundancy for the positions of the primaries
-    gsl_vector *gsl_Xe = gsl_vector_calloc(N);
-    gsl_vector *gsl_Ye = gsl_vector_calloc(N);
-    gsl_vector *gsl_Ze = gsl_vector_calloc(N);
-    gsl_vector *gsl_Xm = gsl_vector_calloc(N);
-    gsl_vector *gsl_Ym = gsl_vector_calloc(N);
-    gsl_vector *gsl_Zm = gsl_vector_calloc(N);
-    gsl_vector *gsl_Xs = gsl_vector_calloc(N);
-    gsl_vector *gsl_Ys = gsl_vector_calloc(N);
-    gsl_vector *gsl_Zs = gsl_vector_calloc(N);
+    gsl_vector* gsl_Xe = gsl_vector_calloc(N);
+    gsl_vector* gsl_Ye = gsl_vector_calloc(N);
+    gsl_vector* gsl_Ze = gsl_vector_calloc(N);
+    gsl_vector* gsl_Xm = gsl_vector_calloc(N);
+    gsl_vector* gsl_Ym = gsl_vector_calloc(N);
+    gsl_vector* gsl_Zm = gsl_vector_calloc(N);
+    gsl_vector* gsl_Xs = gsl_vector_calloc(N);
+    gsl_vector* gsl_Ys = gsl_vector_calloc(N);
+    gsl_vector* gsl_Zs = gsl_vector_calloc(N);
 
 
     //Positions of the primaries in NC coordinates
-    gsl_vector *gsl_xe = gsl_vector_calloc(N);
-    gsl_vector *gsl_ye = gsl_vector_calloc(N);
-    gsl_vector *gsl_ze = gsl_vector_calloc(N);
-    gsl_vector *gsl_xm = gsl_vector_calloc(N);
-    gsl_vector *gsl_ym = gsl_vector_calloc(N);
-    gsl_vector *gsl_zm = gsl_vector_calloc(N);
-    gsl_vector *gsl_xs = gsl_vector_calloc(N);
-    gsl_vector *gsl_ys = gsl_vector_calloc(N);
-    gsl_vector *gsl_zs = gsl_vector_calloc(N);
+    gsl_vector* gsl_xe = gsl_vector_calloc(N);
+    gsl_vector* gsl_ye = gsl_vector_calloc(N);
+    gsl_vector* gsl_ze = gsl_vector_calloc(N);
+    gsl_vector* gsl_xm = gsl_vector_calloc(N);
+    gsl_vector* gsl_ym = gsl_vector_calloc(N);
+    gsl_vector* gsl_zm = gsl_vector_calloc(N);
+    gsl_vector* gsl_xs = gsl_vector_calloc(N);
+    gsl_vector* gsl_ys = gsl_vector_calloc(N);
+    gsl_vector* gsl_zs = gsl_vector_calloc(N);
 
-    //--------------------------
+    //------------------------------------------------------------------------------------
     //Inner double variables
-    //--------------------------
+    //------------------------------------------------------------------------------------
     double rv2;
     double alpha1i;
     double alpha2i;
@@ -1104,30 +499,30 @@ void qbtbp_ofs_fft_alpha( Ofts< Ofsd > &zt,     //zt = normalized Earth-Moon mot
     double alpha2doti;
     double alpha3doti;
 
-    //--------------------------
+    //------------------------------------------------------------------------------------
     //Time loop to prepare the FFT
-    //--------------------------
+    //------------------------------------------------------------------------------------
     for(int i = 0 ; i < N; i++)
     {
-        //---------------
+        //--------------------------------------------------------------------------------
         //update the time
-        //---------------
+        //--------------------------------------------------------------------------------
         t = tf*i/N;
 
-        //---------------
+        //--------------------------------------------------------------------------------
         //z(t), zdot(t), Z(t) and Zdot(t)
-        //---------------
-        zi     =  evz(ztc, t, n, ni, ai);
-        Zi     =  evz(Ztc, t, n, ns, as);
-        zidot  =  evzdot(ztc, ztcdot, t, n, ni, ai);
-        ziddot =  evzddot(ztc, ztcdot, ztcddot, t, n, ni, ai);
-        Ziddot =  evzddot(Ztc, Ztcdot, Ztcddot, t, n, ns, as);
+        //--------------------------------------------------------------------------------
+        zi     =  eval_z(ztc, t, n, ni, ai);
+        Zi     =  eval_z(Ztc, t, n, ns, as);
+        zidot  =  eval_zdot(ztc, ztcdot, t, n, ni, ai);
+        ziddot =  eval_zddot(ztc, ztcdot, ztcddot, t, n, ni, ai);
+        Ziddot =  eval_zddot(Ztc, Ztcdot, Ztcddot, t, n, ns, as);
         //rv2= 1/(z*zb)
         rv2    =  creal(1.0/(zi*conj(zi)));
 
-        //---------------
+        //--------------------------------------------------------------------------------
         // The alphas
-        //---------------
+        //--------------------------------------------------------------------------------
         alpha1i  = +rv2;
         alpha2i  = -rv2*creal(zidot*conj(zi));
         alpha3i  = +rv2*cimag(zidot*conj(zi));
@@ -1164,31 +559,31 @@ void qbtbp_ofs_fft_alpha( Ofts< Ofsd > &zt,     //zt = normalized Earth-Moon mot
         //Alpha18i
         alpha18i = alpha1doti/alpha1i;
 
-        //---------------
+        //--------------------------------------------------------------------------------
         // The primaries, again
-        //---------------
+        //--------------------------------------------------------------------------------
         //Sun, EM coordinates
         Zs[0] = alpha7i;
         Zs[1] = alpha8i;
         Zs[2] = 0.0;
         //Sun, NC coordinates
-        SYStoNC_prim(Zs, zs, c1, gamma);
+        sys_to_nc_prim(Zs, zs, c1, gamma);
         //Earth, EM coordinates
         Ze[0] = alpha9i;
         Ze[1] = alpha10i;
         Ze[2] = 0.0;
         //Earth, NC coordinates
-        SYStoNC_prim(Ze, ze, c1, gamma);
+        sys_to_nc_prim(Ze, ze, c1, gamma);
         //Moon, EM coordinates
         Zm[0] = alpha11i;
         Zm[1] = alpha12i;
         Zm[2] = 0.0;
         //Moon, NC coordinates
-        SYStoNC_prim(Zm, zm, c1, gamma);
+        sys_to_nc_prim(Zm, zm, c1, gamma);
 
-        //---------------
+        //--------------------------------------------------------------------------------
         //Storage in GSL objects at each time
-        //---------------
+        //--------------------------------------------------------------------------------
         gsl_vector_set(gsl_alpha1,  i, alpha1i);
         gsl_vector_set(gsl_alpha2,  i, alpha2i);
         gsl_vector_set(gsl_alpha3,  i, alpha3i);
@@ -1208,9 +603,9 @@ void qbtbp_ofs_fft_alpha( Ofts< Ofsd > &zt,     //zt = normalized Earth-Moon mot
         gsl_vector_set(gsl_alpha17, i, alpha17i);
         gsl_vector_set(gsl_alpha18, i, alpha18i);
 
-        //---------------
+        //--------------------------------------------------------------------------------
         //Primary, EM coordinates
-        //---------------
+        //--------------------------------------------------------------------------------
         gsl_vector_set(gsl_Xs,  i, Zs[0]);
         gsl_vector_set(gsl_Ys,  i, Zs[1]);
         gsl_vector_set(gsl_Zs,  i, Zs[2]);
@@ -1223,9 +618,9 @@ void qbtbp_ofs_fft_alpha( Ofts< Ofsd > &zt,     //zt = normalized Earth-Moon mot
         gsl_vector_set(gsl_Ym,  i, Zm[1]);
         gsl_vector_set(gsl_Zm,  i, Zm[2]);
 
-        //---------------
+        //--------------------------------------------------------------------------------
         //Primary, NC coordinates
-        //---------------
+        //--------------------------------------------------------------------------------
         gsl_vector_set(gsl_xs,  i, zs[0]);
         gsl_vector_set(gsl_ys,  i, zs[1]);
         gsl_vector_set(gsl_zs,  i, zs[2]);
@@ -1240,72 +635,74 @@ void qbtbp_ofs_fft_alpha( Ofts< Ofsd > &zt,     //zt = normalized Earth-Moon mot
 
     }
 
-    //--------------------------
+    //------------------------------------------------------------------------------------
     //Unpack the FFT and put in data file
-    //--------------------------
-    qbtbp_ofs_fft_unpack(gsl_alpha1, fbpl.cs_em.F_COEF+"alpha1", nf, N, 1);
-    qbtbp_ofs_fft_unpack(gsl_alpha2, fbpl.cs_em.F_COEF+"alpha2", nf, N, 0);
-    qbtbp_ofs_fft_unpack(gsl_alpha3, fbpl.cs_em.F_COEF+"alpha3", nf, N, 1);
-    qbtbp_ofs_fft_unpack(gsl_alpha4, fbpl.cs_em.F_COEF+"alpha4", nf, N, 1);
-    qbtbp_ofs_fft_unpack(gsl_alpha5, fbpl.cs_em.F_COEF+"alpha5", nf, N, 0);
-    qbtbp_ofs_fft_unpack(gsl_alpha6, fbpl.cs_em.F_COEF+"alpha6", nf, N, 1);
+    //------------------------------------------------------------------------------------
+    qbtbp_ofs_fft_unpack(gsl_alpha1, cs_em.F_COEF+"alpha1", n_order_fourier, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_alpha2, cs_em.F_COEF+"alpha2", n_order_fourier, N, 0);
+    qbtbp_ofs_fft_unpack(gsl_alpha3, cs_em.F_COEF+"alpha3", n_order_fourier, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_alpha4, cs_em.F_COEF+"alpha4", n_order_fourier, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_alpha5, cs_em.F_COEF+"alpha5", n_order_fourier, N, 0);
+    qbtbp_ofs_fft_unpack(gsl_alpha6, cs_em.F_COEF+"alpha6", n_order_fourier, N, 1);
     //Sun
-    qbtbp_ofs_fft_unpack(gsl_alpha7, fbpl.cs_em.F_COEF+"alpha7", nf, N, 1);
-    qbtbp_ofs_fft_unpack(gsl_alpha8, fbpl.cs_em.F_COEF+"alpha8", nf, N, 0);
+    qbtbp_ofs_fft_unpack(gsl_alpha7, cs_em.F_COEF+"alpha7", n_order_fourier, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_alpha8, cs_em.F_COEF+"alpha8", n_order_fourier, N, 0);
     //Earth
-    qbtbp_ofs_fft_unpack(gsl_alpha9,  fbpl.cs_em.F_COEF+"alpha9",  nf, N, 1);
-    qbtbp_ofs_fft_unpack(gsl_alpha10, fbpl.cs_em.F_COEF+"alpha10", nf, N, 0);
+    qbtbp_ofs_fft_unpack(gsl_alpha9,  cs_em.F_COEF+"alpha9",  n_order_fourier, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_alpha10, cs_em.F_COEF+"alpha10", n_order_fourier, N, 0);
     //Moon
-    qbtbp_ofs_fft_unpack(gsl_alpha11, fbpl.cs_em.F_COEF+"alpha11", nf, N, 1);
-    qbtbp_ofs_fft_unpack(gsl_alpha12, fbpl.cs_em.F_COEF+"alpha12", nf, N, 0);
+    qbtbp_ofs_fft_unpack(gsl_alpha11, cs_em.F_COEF+"alpha11", n_order_fourier, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_alpha12, cs_em.F_COEF+"alpha12", n_order_fourier, N, 0);
     //NC additional coef
-    qbtbp_ofs_fft_unpack(gsl_alpha13, fbpl.cs_em.F_COEF+"alpha13",  nf, N, 1);
-    qbtbp_ofs_fft_unpack(gsl_alpha14, fbpl.cs_em.F_COEF+"alpha14",  nf, N, 0);
+    qbtbp_ofs_fft_unpack(gsl_alpha13, cs_em.F_COEF+"alpha13",  n_order_fourier, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_alpha14, cs_em.F_COEF+"alpha14",  n_order_fourier, N, 0);
     //VF with velocity additional coef
-    qbtbp_ofs_fft_unpack(gsl_alpha16, fbpl.cs_em.F_COEF+"alpha16",  nf, N, 1);
-    qbtbp_ofs_fft_unpack(gsl_alpha17, fbpl.cs_em.F_COEF+"alpha17",  nf, N, 0);
-    qbtbp_ofs_fft_unpack(gsl_alpha18, fbpl.cs_em.F_COEF+"alpha18",  nf, N, 0);
+    qbtbp_ofs_fft_unpack(gsl_alpha16, cs_em.F_COEF+"alpha16",  n_order_fourier, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_alpha17, cs_em.F_COEF+"alpha17",  n_order_fourier, N, 0);
+    qbtbp_ofs_fft_unpack(gsl_alpha18, cs_em.F_COEF+"alpha18",  n_order_fourier, N, 0);
 
 
-    //---------------
+    //--------------------------------------------------------------------------------
     //Primary, EM coordinates
     //Note that, at this step, the vertical motion of the primaries is undefined,
-    //so we can put either Even or Odd in the qbtbp_ofs_fft_unpack option of gsl_Zc without much difference
-    //---------------
-    qbtbp_ofs_fft_unpack(gsl_Xs, fbpl.cs_em.F_COEF+"Ps1", nf, N, 1);
-    qbtbp_ofs_fft_unpack(gsl_Ys, fbpl.cs_em.F_COEF+"Ps2", nf, N, 0);
-    qbtbp_ofs_fft_unpack(gsl_Zs, fbpl.cs_em.F_COEF+"Ps3", nf, N, 1);
+    //so we can put either Even or Odd in the qbtbp_ofs_fft_unpack option of
+    //gsl_Zc without much difference
+    //--------------------------------------------------------------------------------
+    qbtbp_ofs_fft_unpack(gsl_Xs, cs_em.F_COEF+"Ps1", n_order_fourier, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_Ys, cs_em.F_COEF+"Ps2", n_order_fourier, N, 0);
+    qbtbp_ofs_fft_unpack(gsl_Zs, cs_em.F_COEF+"Ps3", n_order_fourier, N, 1);
 
-    qbtbp_ofs_fft_unpack(gsl_Xe, fbpl.cs_em.F_COEF+"Pe1", nf, N, 1);
-    qbtbp_ofs_fft_unpack(gsl_Ye, fbpl.cs_em.F_COEF+"Pe2", nf, N, 0);
-    qbtbp_ofs_fft_unpack(gsl_Ze, fbpl.cs_em.F_COEF+"Pe3", nf, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_Xe, cs_em.F_COEF+"Pe1", n_order_fourier, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_Ye, cs_em.F_COEF+"Pe2", n_order_fourier, N, 0);
+    qbtbp_ofs_fft_unpack(gsl_Ze, cs_em.F_COEF+"Pe3", n_order_fourier, N, 1);
 
-    qbtbp_ofs_fft_unpack(gsl_Xm, fbpl.cs_em.F_COEF+"Pm1", nf, N, 1);
-    qbtbp_ofs_fft_unpack(gsl_Ym, fbpl.cs_em.F_COEF+"Pm2", nf, N, 0);
-    qbtbp_ofs_fft_unpack(gsl_Zm, fbpl.cs_em.F_COEF+"Pm3", nf, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_Xm, cs_em.F_COEF+"Pm1", n_order_fourier, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_Ym, cs_em.F_COEF+"Pm2", n_order_fourier, N, 0);
+    qbtbp_ofs_fft_unpack(gsl_Zm, cs_em.F_COEF+"Pm3", n_order_fourier, N, 1);
 
 
-    //---------------
+    //--------------------------------------------------------------------------------
     //Primary, NC coordinates
     //Note that, at this step, the vertical motion of the primaries is undefined,
-    //so we can put either Even or Odd in the qbtbp_ofs_fft_unpack option of gsl_zc without much difference
-    //---------------
-    qbtbp_ofs_fft_unpack(gsl_xs, fbpl.cs_em.F_COEF+"ps1", nf, N, 1);
-    qbtbp_ofs_fft_unpack(gsl_ys, fbpl.cs_em.F_COEF+"ps2", nf, N, 0);
-    qbtbp_ofs_fft_unpack(gsl_zs, fbpl.cs_em.F_COEF+"ps3", nf, N, 1);
+    //so we can put either Even or Odd in the qbtbp_ofs_fft_unpack option of
+    //gsl_zc without much difference
+    //--------------------------------------------------------------------------------
+    qbtbp_ofs_fft_unpack(gsl_xs, cs_em.F_COEF+"ps1", n_order_fourier, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_ys, cs_em.F_COEF+"ps2", n_order_fourier, N, 0);
+    qbtbp_ofs_fft_unpack(gsl_zs, cs_em.F_COEF+"ps3", n_order_fourier, N, 1);
 
-    qbtbp_ofs_fft_unpack(gsl_xe, fbpl.cs_em.F_COEF+"pe1", nf, N, 1);
-    qbtbp_ofs_fft_unpack(gsl_ye, fbpl.cs_em.F_COEF+"pe2", nf, N, 0);
-    qbtbp_ofs_fft_unpack(gsl_ze, fbpl.cs_em.F_COEF+"pe3", nf, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_xe, cs_em.F_COEF+"pe1", n_order_fourier, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_ye, cs_em.F_COEF+"pe2", n_order_fourier, N, 0);
+    qbtbp_ofs_fft_unpack(gsl_ze, cs_em.F_COEF+"pe3", n_order_fourier, N, 1);
 
-    qbtbp_ofs_fft_unpack(gsl_xm, fbpl.cs_em.F_COEF+"pm1", nf, N, 1);
-    qbtbp_ofs_fft_unpack(gsl_ym, fbpl.cs_em.F_COEF+"pm2", nf, N, 0);
-    qbtbp_ofs_fft_unpack(gsl_zm, fbpl.cs_em.F_COEF+"pm3", nf, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_xm, cs_em.F_COEF+"pm1", n_order_fourier, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_ym, cs_em.F_COEF+"pm2", n_order_fourier, N, 0);
+    qbtbp_ofs_fft_unpack(gsl_zm, cs_em.F_COEF+"pm3", n_order_fourier, N, 1);
 
 
-    //--------------------------
+    //------------------------------------------------------------------------------------
     //Umemory release
-    //--------------------------
+    //------------------------------------------------------------------------------------
     gsl_vector_free(gsl_alpha1);
     gsl_vector_free(gsl_alpha2);
     gsl_vector_free(gsl_alpha3);
@@ -1345,63 +742,67 @@ void qbtbp_ofs_fft_alpha( Ofts< Ofsd > &zt,     //zt = normalized Earth-Moon mot
 
 
 /**
- *  \brief FFT and Storage in txt files of OFS objects delta_i in qbtbp_ofs. Makes use of FFT routines via qbtbp_ofs_fft_unpack.
+ *  \brief FFT and Storage in txt files of the delta_i Fourier series. Makes use of
+ *         FFT routines via qbtbp_ofs_fft_unpack.
  *         The following coefficients are computed and stored:
- *              - The deltas (1 to 14).
- *              - The position of the primaries in SE coordinates system (redundant with alpha7-12): Xe, Ye, Ze
+ *              - The delta series (1 to 18).
+ *              - The position of the primaries in SE coordinates system
+ *                (redundant with delta7-12): Xe, Ye, Ze
  *              - The position of the primaries in SENC coordinates system: xe, ye, ze
  */
-void qbtbp_ofs_fft_delta(Ofts< Ofsd > &zt,     //zt = normalized Earth-Moon motion
-                         Ofts< Ofsd > &Zt,     //Zt = normalized Sun-(Earth+Moon) motion
-                         int nf,               //order of the Fourier expansions
-                         FBPL &fbpl)       //QBCP
+void qbtbp_ofs_fft_delta(Oftsd& zt,            //zt = normalized Earth-Moon motion
+                         Oftsd& Zt,            //Zt = normalized Sun-(Earth+Moon) motion
+                         int n_order_fourier,  //Order of the Fourier expansions
+                         USYS& us_em,          //Constants in EM units
+                         USYS& us_sem,         //Constants in SEM units
+                         CSYS& cs_sem)         //Coefficients in SEM units
 {
-    //--------------------------
+    //------------------------------------------------------------------------------------
     //Physical params in EM units
-    //--------------------------
-    double as_EM  = fbpl.us_em.as;     //Sun-(Earth+Moon) mean distance
-    double ms_EM  = fbpl.us_em.ms;     //Sun mass
-    double mu_EM  = fbpl.us_em.mu_EM;  //Mass ratio
-    double mu_SEM = fbpl.us_em.mu_SEM; //Mass ratio
+    //------------------------------------------------------------------------------------
+    double as_EM  = us_em.as;     //Sun-(Earth+Moon) mean distance
+    double ms_EM  = us_em.ms;     //Sun mass
+    double mu_EM  = us_em.mu_EM;  //Mass ratio
+    double mu_SEM = us_em.mu_SEM; //Mass ratio
 
-    //--------------------------
+    //------------------------------------------------------------------------------------
     //Physical params in SE units
-    //--------------------------
-    double ns = fbpl.us_sem.ns;    //Sun-(Earth+Moon) mean angular motion
-    double ni = fbpl.us_sem.ni;    //Earth-Moon mean angular motion
-    double n  = fbpl.us_sem.n;     //n = ni - ns
-    double as = fbpl.us_sem.as;    //Sun-(Earth+Moon) mean distance
-    double ai = fbpl.us_sem.ai;    //Earth-Moon mean distance
+    //------------------------------------------------------------------------------------
+    double ns = us_sem.ns;    //Sun-(Earth+Moon) mean angular motion
+    double ni = us_sem.ni;    //Earth-Moon mean angular motion
+    double n  = us_sem.n;     //n = ni - ns
+    double as = us_sem.as;    //Sun-(Earth+Moon) mean distance
+    double ai = us_sem.ai;    //Earth-Moon mean distance
 
-    //--------------------------
+    //------------------------------------------------------------------------------------
     //Physical params specific to the FBPL
-    //--------------------------
-    double c1    = fbpl.cs_sem.c1;
-    double gamma = fbpl.cs_sem.gamma;
+    //------------------------------------------------------------------------------------
+    double c1    = cs_sem.c1;
+    double gamma = cs_sem.gamma;
 
-    //--------------------------
+    //------------------------------------------------------------------------------------
     //FFT params
-    //--------------------------
+    //------------------------------------------------------------------------------------
     int N      = pow(2,12);
     double tf  = 2*M_PI/n;
     double t   = 0;
     double eps = 1.0/as_EM;
 
-    //--------------------------
+    //------------------------------------------------------------------------------------
     // Building z(t) and Z(t)
-    //--------------------------
-    Ofsd bj(nf);
-    Ofsd cj(nf);
-    Ofsc ztc(nf);
-    Ofsc Ztc(nf);
+    //------------------------------------------------------------------------------------
+    Ofsd bj(n_order_fourier);
+    Ofsd cj(n_order_fourier);
+    Ofsc ztc(n_order_fourier);
+    Ofsc Ztc(n_order_fourier);
 
     //From ots to ofs
     fts2fs(&bj, zt, eps);
     fts2fs(&cj, Zt, eps);
 
     //From double to cdouble in ztc and Ztc
-    doubleToComplex(bj, ztc);
-    doubleToComplex(cj, Ztc);
+    ofs_double_to_complex(bj, ztc);
+    ofs_double_to_complex(cj, Ztc);
 
     //Derivatives.
     Ofsc ztcdot(ztc);
@@ -1423,56 +824,56 @@ void qbtbp_ofs_fft_delta(Ofts< Ofsd > &zt,     //zt = normalized Earth-Moon moti
     cdouble Zidot;
     cdouble Ziddot;
 
-    //--------------------------
+    //------------------------------------------------------------------------------------
     // GSL objects
-    //--------------------------
-    gsl_vector *gsl_delta1  = gsl_vector_calloc(N);
-    gsl_vector *gsl_delta2  = gsl_vector_calloc(N);
-    gsl_vector *gsl_delta3  = gsl_vector_calloc(N);
-    gsl_vector *gsl_delta4  = gsl_vector_calloc(N);
-    gsl_vector *gsl_delta5  = gsl_vector_calloc(N);
-    gsl_vector *gsl_delta6  = gsl_vector_calloc(N);
-    gsl_vector *gsl_delta7  = gsl_vector_calloc(N);
-    gsl_vector *gsl_delta8  = gsl_vector_calloc(N);
-    gsl_vector *gsl_delta9  = gsl_vector_calloc(N);
-    gsl_vector *gsl_delta10 = gsl_vector_calloc(N);
-    gsl_vector *gsl_delta11 = gsl_vector_calloc(N);
-    gsl_vector *gsl_delta12 = gsl_vector_calloc(N);
-    gsl_vector *gsl_delta13 = gsl_vector_calloc(N);
-    gsl_vector *gsl_delta14 = gsl_vector_calloc(N);
+    //------------------------------------------------------------------------------------
+    gsl_vector* gsl_delta1  = gsl_vector_calloc(N);
+    gsl_vector* gsl_delta2  = gsl_vector_calloc(N);
+    gsl_vector* gsl_delta3  = gsl_vector_calloc(N);
+    gsl_vector* gsl_delta4  = gsl_vector_calloc(N);
+    gsl_vector* gsl_delta5  = gsl_vector_calloc(N);
+    gsl_vector* gsl_delta6  = gsl_vector_calloc(N);
+    gsl_vector* gsl_delta7  = gsl_vector_calloc(N);
+    gsl_vector* gsl_delta8  = gsl_vector_calloc(N);
+    gsl_vector* gsl_delta9  = gsl_vector_calloc(N);
+    gsl_vector* gsl_delta10 = gsl_vector_calloc(N);
+    gsl_vector* gsl_delta11 = gsl_vector_calloc(N);
+    gsl_vector* gsl_delta12 = gsl_vector_calloc(N);
+    gsl_vector* gsl_delta13 = gsl_vector_calloc(N);
+    gsl_vector* gsl_delta14 = gsl_vector_calloc(N);
     //rq: delta15 is let equal to zero because of BCP vector field
-    gsl_vector *gsl_delta16 = gsl_vector_calloc(N);
-    gsl_vector *gsl_delta17 = gsl_vector_calloc(N);
-    gsl_vector *gsl_delta18 = gsl_vector_calloc(N);
+    gsl_vector* gsl_delta16 = gsl_vector_calloc(N);
+    gsl_vector* gsl_delta17 = gsl_vector_calloc(N);
+    gsl_vector* gsl_delta18 = gsl_vector_calloc(N);
 
 
     //Redundancy for the positions of the primaries
-    gsl_vector *gsl_Xe = gsl_vector_calloc(N);
-    gsl_vector *gsl_Ye = gsl_vector_calloc(N);
-    gsl_vector *gsl_Ze = gsl_vector_calloc(N);
-    gsl_vector *gsl_Xm = gsl_vector_calloc(N);
-    gsl_vector *gsl_Ym = gsl_vector_calloc(N);
-    gsl_vector *gsl_Zm = gsl_vector_calloc(N);
-    gsl_vector *gsl_Xs = gsl_vector_calloc(N);
-    gsl_vector *gsl_Ys = gsl_vector_calloc(N);
-    gsl_vector *gsl_Zs = gsl_vector_calloc(N);
+    gsl_vector* gsl_Xe = gsl_vector_calloc(N);
+    gsl_vector* gsl_Ye = gsl_vector_calloc(N);
+    gsl_vector* gsl_Ze = gsl_vector_calloc(N);
+    gsl_vector* gsl_Xm = gsl_vector_calloc(N);
+    gsl_vector* gsl_Ym = gsl_vector_calloc(N);
+    gsl_vector* gsl_Zm = gsl_vector_calloc(N);
+    gsl_vector* gsl_Xs = gsl_vector_calloc(N);
+    gsl_vector* gsl_Ys = gsl_vector_calloc(N);
+    gsl_vector* gsl_Zs = gsl_vector_calloc(N);
 
 
     //Positions of the primaries in NC coordinates
-    gsl_vector *gsl_xe = gsl_vector_calloc(N);
-    gsl_vector *gsl_ye = gsl_vector_calloc(N);
-    gsl_vector *gsl_ze = gsl_vector_calloc(N);
-    gsl_vector *gsl_xm = gsl_vector_calloc(N);
-    gsl_vector *gsl_ym = gsl_vector_calloc(N);
-    gsl_vector *gsl_zm = gsl_vector_calloc(N);
-    gsl_vector *gsl_xs = gsl_vector_calloc(N);
-    gsl_vector *gsl_ys = gsl_vector_calloc(N);
-    gsl_vector *gsl_zs = gsl_vector_calloc(N);
+    gsl_vector* gsl_xe = gsl_vector_calloc(N);
+    gsl_vector* gsl_ye = gsl_vector_calloc(N);
+    gsl_vector* gsl_ze = gsl_vector_calloc(N);
+    gsl_vector* gsl_xm = gsl_vector_calloc(N);
+    gsl_vector* gsl_ym = gsl_vector_calloc(N);
+    gsl_vector* gsl_zm = gsl_vector_calloc(N);
+    gsl_vector* gsl_xs = gsl_vector_calloc(N);
+    gsl_vector* gsl_ys = gsl_vector_calloc(N);
+    gsl_vector* gsl_zs = gsl_vector_calloc(N);
 
 
-    //--------------------------
+    //------------------------------------------------------------------------------------
     //Inner double variables
-    //--------------------------
+    //------------------------------------------------------------------------------------
     double delta1i;
     double delta2i;
     double delta3i;
@@ -1512,24 +913,24 @@ void qbtbp_ofs_fft_delta(Ofts< Ofsd > &zt,     //zt = normalized Earth-Moon moti
     //Time loop to prepare the FFT
     for(int i = 0 ; i < N; i++)
     {
-        //---------------
+        //--------------------------------------------------------------------------------
         //update time
-        //---------------
+        //--------------------------------------------------------------------------------
         t = tf*i/N;
 
-        //---------------
+        //--------------------------------------------------------------------------------
         //z(t),  Z(t) and derivatives
-        //---------------
-        zi     =  evz(ztc, t, n, ni, ai);
-        Zi     =  evz(Ztc, t, n, ns, as);
-        Zidot  =  evzdot(Ztc, Ztcdot, t, n, ns, as);
-        Ziddot =  evzddot(Ztc, Ztcdot, Ztcddot, t, n, ns, as);
+        //--------------------------------------------------------------------------------
+        zi     =  eval_z(ztc, t, n, ni, ai);
+        Zi     =  eval_z(Ztc, t, n, ns, as);
+        Zidot  =  eval_zdot(Ztc, Ztcdot, t, n, ns, as);
+        Ziddot =  eval_zddot(Ztc, Ztcdot, Ztcddot, t, n, ns, as);
         //rv2= 1/(Z*Zb)
         Rv2 = creal(1.0/(Zi*conj(Zi)));
 
-        //---------------
+        //--------------------------------------------------------------------------------
         // The deltas
-        //---------------
+        //--------------------------------------------------------------------------------
         delta1i  = +Rv2;
         delta2i  = -Rv2*creal(Zidot * conj(Zi));
         delta3i  = +Rv2*cimag(Zidot * conj(Zi));
@@ -1568,31 +969,31 @@ void qbtbp_ofs_fft_delta(Ofts< Ofsd > &zt,     //zt = normalized Earth-Moon moti
         //Delta18i
         delta18i = delta1doti/delta1i;
 
-        //---------------
+        //--------------------------------------------------------------------------------
         // The primaries, again
-        //---------------
+        //--------------------------------------------------------------------------------
         //Sun, EM coordinates
         Zs[0] = delta7i;
         Zs[1] = delta8i;
         Zs[2] = 0.0;
         //Sun, NC coordinates
-        SYStoNC_prim(Zs, zs, c1, gamma);
+        sys_to_nc_prim(Zs, zs, c1, gamma);
         //Earth, EM coordinates
         Ze[0] = delta9i;
         Ze[1] = delta10i;
         Ze[2] = 0.0;
         //Earth, NC coordinates
-        SYStoNC_prim(Ze, ze, c1, gamma);
+        sys_to_nc_prim(Ze, ze, c1, gamma);
         //Moon, EM coordinates
         Zm[0] = delta11i;
         Zm[1] = delta12i;
         Zm[2] = 0.0;
         //Moon, NC coordinates
-        SYStoNC_prim(Zm, zm, c1, gamma);
+        sys_to_nc_prim(Zm, zm, c1, gamma);
 
-        //---------------
+        //--------------------------------------------------------------------------------
         //Storage in GSL objects at each time
-        //---------------
+        //--------------------------------------------------------------------------------
         gsl_vector_set(gsl_delta1,  i, delta1i);
         gsl_vector_set(gsl_delta2,  i, delta2i);
         gsl_vector_set(gsl_delta3,  i, delta3i);
@@ -1612,9 +1013,9 @@ void qbtbp_ofs_fft_delta(Ofts< Ofsd > &zt,     //zt = normalized Earth-Moon moti
         gsl_vector_set(gsl_delta17, i, delta17i);
         gsl_vector_set(gsl_delta18, i, delta18i);
 
-        //---------------
+        //--------------------------------------------------------------------------------
         //Primary, EM coordinates
-        //---------------
+        //--------------------------------------------------------------------------------
         gsl_vector_set(gsl_Xs,  i, Zs[0]);
         gsl_vector_set(gsl_Ys,  i, Zs[1]);
         gsl_vector_set(gsl_Zs,  i, Zs[2]);
@@ -1627,9 +1028,9 @@ void qbtbp_ofs_fft_delta(Ofts< Ofsd > &zt,     //zt = normalized Earth-Moon moti
         gsl_vector_set(gsl_Ym,  i, Zm[1]);
         gsl_vector_set(gsl_Zm,  i, Zm[2]);
 
-        //---------------
+        //--------------------------------------------------------------------------------
         //Primary, NC coordinates
-        //---------------
+        //--------------------------------------------------------------------------------
         gsl_vector_set(gsl_xs,  i, zs[0]);
         gsl_vector_set(gsl_ys,  i, zs[1]);
         gsl_vector_set(gsl_zs,  i, zs[2]);
@@ -1644,71 +1045,71 @@ void qbtbp_ofs_fft_delta(Ofts< Ofsd > &zt,     //zt = normalized Earth-Moon moti
 
     }
 
-    //--------------------------
+    //------------------------------------------------------------------------------------
     //Unpack the FFT and put in data file
-    //--------------------------
-    qbtbp_ofs_fft_unpack(gsl_delta1, fbpl.cs_sem.F_COEF+"alpha1", nf, N, 1);
-    qbtbp_ofs_fft_unpack(gsl_delta2, fbpl.cs_sem.F_COEF+"alpha2", nf, N, 0);
-    qbtbp_ofs_fft_unpack(gsl_delta3, fbpl.cs_sem.F_COEF+"alpha3", nf, N, 1);
-    qbtbp_ofs_fft_unpack(gsl_delta4, fbpl.cs_sem.F_COEF+"alpha4", nf, N, 1);
-    qbtbp_ofs_fft_unpack(gsl_delta5, fbpl.cs_sem.F_COEF+"alpha5", nf, N, 0);
-    qbtbp_ofs_fft_unpack(gsl_delta6, fbpl.cs_sem.F_COEF+"alpha6", nf, N, 1);
+    //------------------------------------------------------------------------------------
+    qbtbp_ofs_fft_unpack(gsl_delta1, cs_sem.F_COEF+"alpha1", n_order_fourier, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_delta2, cs_sem.F_COEF+"alpha2", n_order_fourier, N, 0);
+    qbtbp_ofs_fft_unpack(gsl_delta3, cs_sem.F_COEF+"alpha3", n_order_fourier, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_delta4, cs_sem.F_COEF+"alpha4", n_order_fourier, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_delta5, cs_sem.F_COEF+"alpha5", n_order_fourier, N, 0);
+    qbtbp_ofs_fft_unpack(gsl_delta6, cs_sem.F_COEF+"alpha6", n_order_fourier, N, 1);
     //Sun
-    qbtbp_ofs_fft_unpack(gsl_delta7, fbpl.cs_sem.F_COEF+"alpha7", nf, N, 1);
-    qbtbp_ofs_fft_unpack(gsl_delta8, fbpl.cs_sem.F_COEF+"alpha8", nf, N, 0);
+    qbtbp_ofs_fft_unpack(gsl_delta7, cs_sem.F_COEF+"alpha7", n_order_fourier, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_delta8, cs_sem.F_COEF+"alpha8", n_order_fourier, N, 0);
     //Earth
-    qbtbp_ofs_fft_unpack(gsl_delta9,  fbpl.cs_sem.F_COEF+"alpha9",  nf, N, 1);
-    qbtbp_ofs_fft_unpack(gsl_delta10, fbpl.cs_sem.F_COEF+"alpha10", nf, N, 0);
+    qbtbp_ofs_fft_unpack(gsl_delta9,  cs_sem.F_COEF+"alpha9",  n_order_fourier, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_delta10, cs_sem.F_COEF+"alpha10", n_order_fourier, N, 0);
     //Moon
-    qbtbp_ofs_fft_unpack(gsl_delta11, fbpl.cs_sem.F_COEF+"alpha11", nf, N, 1);
-    qbtbp_ofs_fft_unpack(gsl_delta12, fbpl.cs_sem.F_COEF+"alpha12", nf, N, 0);
+    qbtbp_ofs_fft_unpack(gsl_delta11, cs_sem.F_COEF+"alpha11", n_order_fourier, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_delta12, cs_sem.F_COEF+"alpha12", n_order_fourier, N, 0);
     //NC additional coef
-    qbtbp_ofs_fft_unpack(gsl_delta13, fbpl.cs_sem.F_COEF+"alpha13",  nf, N, 1);
-    qbtbp_ofs_fft_unpack(gsl_delta14, fbpl.cs_sem.F_COEF+"alpha14",  nf, N, 0);
+    qbtbp_ofs_fft_unpack(gsl_delta13, cs_sem.F_COEF+"alpha13",  n_order_fourier, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_delta14, cs_sem.F_COEF+"alpha14",  n_order_fourier, N, 0);
     //VF with velocity additionnal coef
-    qbtbp_ofs_fft_unpack(gsl_delta16, fbpl.cs_sem.F_COEF+"alpha16",  nf, N, 1);
-    qbtbp_ofs_fft_unpack(gsl_delta17, fbpl.cs_sem.F_COEF+"alpha17",  nf, N, 0);
-    qbtbp_ofs_fft_unpack(gsl_delta18, fbpl.cs_sem.F_COEF+"alpha18",  nf, N, 0);
+    qbtbp_ofs_fft_unpack(gsl_delta16, cs_sem.F_COEF+"alpha16",  n_order_fourier, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_delta17, cs_sem.F_COEF+"alpha17",  n_order_fourier, N, 0);
+    qbtbp_ofs_fft_unpack(gsl_delta18, cs_sem.F_COEF+"alpha18",  n_order_fourier, N, 0);
 
-    //---------------
+    //--------------------------------------------------------------------------------
     //Primary, EM coordinates
     //Note that, at this step, the vertical motion of the primaries is undefined,
     //so we can put either Even or Odd in the qbtbp_ofs_fft_unpack option of gsl_Zc without much difference
-    //---------------
-    qbtbp_ofs_fft_unpack(gsl_Xs, fbpl.cs_sem.F_COEF+"Ps1", nf, N, 1);
-    qbtbp_ofs_fft_unpack(gsl_Ys, fbpl.cs_sem.F_COEF+"Ps2", nf, N, 0);
-    qbtbp_ofs_fft_unpack(gsl_Zs, fbpl.cs_sem.F_COEF+"Ps3", nf, N, 1);
+    //--------------------------------------------------------------------------------
+    qbtbp_ofs_fft_unpack(gsl_Xs, cs_sem.F_COEF+"Ps1", n_order_fourier, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_Ys, cs_sem.F_COEF+"Ps2", n_order_fourier, N, 0);
+    qbtbp_ofs_fft_unpack(gsl_Zs, cs_sem.F_COEF+"Ps3", n_order_fourier, N, 1);
 
-    qbtbp_ofs_fft_unpack(gsl_Xe, fbpl.cs_sem.F_COEF+"Pe1", nf, N, 1);
-    qbtbp_ofs_fft_unpack(gsl_Ye, fbpl.cs_sem.F_COEF+"Pe2", nf, N, 0);
-    qbtbp_ofs_fft_unpack(gsl_Ze, fbpl.cs_sem.F_COEF+"Pe3", nf, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_Xe, cs_sem.F_COEF+"Pe1", n_order_fourier, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_Ye, cs_sem.F_COEF+"Pe2", n_order_fourier, N, 0);
+    qbtbp_ofs_fft_unpack(gsl_Ze, cs_sem.F_COEF+"Pe3", n_order_fourier, N, 1);
 
-    qbtbp_ofs_fft_unpack(gsl_Xm, fbpl.cs_sem.F_COEF+"Pm1", nf, N, 1);
-    qbtbp_ofs_fft_unpack(gsl_Ym, fbpl.cs_sem.F_COEF+"Pm2", nf, N, 0);
-    qbtbp_ofs_fft_unpack(gsl_Zm, fbpl.cs_sem.F_COEF+"Pm3", nf, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_Xm, cs_sem.F_COEF+"Pm1", n_order_fourier, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_Ym, cs_sem.F_COEF+"Pm2", n_order_fourier, N, 0);
+    qbtbp_ofs_fft_unpack(gsl_Zm, cs_sem.F_COEF+"Pm3", n_order_fourier, N, 1);
 
 
-    //---------------
+    //--------------------------------------------------------------------------------
     //Primary, NC coordinates
     //Note that, at this step, the vertical motion of the primaries is undefined,
     //so we can put either Even or Odd in the qbtbp_ofs_fft_unpack option of gsl_zc without much difference
-    //---------------
-    qbtbp_ofs_fft_unpack(gsl_xs, fbpl.cs_sem.F_COEF+"ps1", nf, N, 1);
-    qbtbp_ofs_fft_unpack(gsl_ys, fbpl.cs_sem.F_COEF+"ps2", nf, N, 0);
-    qbtbp_ofs_fft_unpack(gsl_zs, fbpl.cs_sem.F_COEF+"ps3", nf, N, 1);
+    //--------------------------------------------------------------------------------
+    qbtbp_ofs_fft_unpack(gsl_xs, cs_sem.F_COEF+"ps1", n_order_fourier, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_ys, cs_sem.F_COEF+"ps2", n_order_fourier, N, 0);
+    qbtbp_ofs_fft_unpack(gsl_zs, cs_sem.F_COEF+"ps3", n_order_fourier, N, 1);
 
-    qbtbp_ofs_fft_unpack(gsl_xe, fbpl.cs_sem.F_COEF+"pe1", nf, N, 1);
-    qbtbp_ofs_fft_unpack(gsl_ye, fbpl.cs_sem.F_COEF+"pe2", nf, N, 0);
-    qbtbp_ofs_fft_unpack(gsl_ze, fbpl.cs_sem.F_COEF+"pe3", nf, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_xe, cs_sem.F_COEF+"pe1", n_order_fourier, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_ye, cs_sem.F_COEF+"pe2", n_order_fourier, N, 0);
+    qbtbp_ofs_fft_unpack(gsl_ze, cs_sem.F_COEF+"pe3", n_order_fourier, N, 1);
 
-    qbtbp_ofs_fft_unpack(gsl_xm, fbpl.cs_sem.F_COEF+"pm1", nf, N, 1);
-    qbtbp_ofs_fft_unpack(gsl_ym, fbpl.cs_sem.F_COEF+"pm2", nf, N, 0);
-    qbtbp_ofs_fft_unpack(gsl_zm, fbpl.cs_sem.F_COEF+"pm3", nf, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_xm, cs_sem.F_COEF+"pm1", n_order_fourier, N, 1);
+    qbtbp_ofs_fft_unpack(gsl_ym, cs_sem.F_COEF+"pm2", n_order_fourier, N, 0);
+    qbtbp_ofs_fft_unpack(gsl_zm, cs_sem.F_COEF+"pm3", n_order_fourier, N, 1);
 
 
-    //--------------------------
+    //------------------------------------------------------------------------------------
     //Memory release
-    //--------------------------
+    //------------------------------------------------------------------------------------
     gsl_vector_free(gsl_delta1);
     gsl_vector_free(gsl_delta2);
     gsl_vector_free(gsl_delta3);
@@ -1746,54 +1147,480 @@ void qbtbp_ofs_fft_delta(Ofts< Ofsd > &zt,     //zt = normalized Earth-Moon moti
     gsl_vector_free(gsl_zs);
 }
 
-//-----------------------------------------------------------------------------
-// Reccurence for computing the QBTBP
-//-----------------------------------------------------------------------------
 /**
- *  \brief One step of the recurrence scheme in qbtbp_ofs. See comments in src/h for the signification of the parameters.
+ *  \brief Computes one specific FFT and stores it txt file.
+ *  \param x_gsl_0: a GSL vector of size N which contains the discrete evaluations of the
+ *         function f on which to perform the FFT.
+ *  \param filename: a string. The final result is stored in the file filename+"_fft.txt"
+ *  \param n_order_fourier: an integer. The order of the Fourier series obtained after FFT.
+ *  \param flag: a boolean. If true, the function f is supposed even (sum of cosinus).
+ *         If false, f is supposed odd (sum of sinus).
  */
-void qbtbp_ofs_recurrence(Ofts< Ofsd > &zr_ofts, //zr_ofts = normalized Earth-Moon motion
-                          Ofts< Ofsd > &Zr_ofts, //Zr_ofts = normalized Sun-(Earth+Moon) motion
-                          Ofts< Ofsd > &z1,      //z1 = \bar{zr_ofts}
-                          Ofts< Ofsd > &z2,      //z2 = \bar{zr_ofts}^(-3/2)
-                          Ofts< Ofsd > &z3,      //z3 = zr_ofts^(-1/2)
-                          Ofts< Ofsd > &z4,      //z4 = z2*z3 = zr_ofts^(-1/2)*\bar{zr_ofts}^(-3/2)
-                          Ofts< Ofsd > &z5,      //z5 = \bar{zr_ofts}^(-1/2)
-                          Ofts< Ofsd > &z6,      //z6 = z3*z5 = (zr_ofts*\bar{zr_ofts})^(-1/2)
-                          Ofts< Ofsd > &a1,      //a1 = mu*exp(itheta)*zr_ofts
-                          Ofts< Ofsd > &a2,      //a2 = epsilon*a1
-                          Ofts< Ofsd > &a3,      //a3 = Zr_ofts-mu*exp(itheta)*epsilon*zr_ofts
-                          Ofts< Ofsd > &a4,      //a4 = a3^(-1/2).
-                          Ofts< Ofsd > &a5,      //a5 = \bar{a3}
-                          Ofts< Ofsd > &a6,      //a6 = a5^(-3/2).
-                          Ofts< Ofsd > &a7,      //a7 = a4*a6,
-                          Ofts< Ofsd > &b1,      //b1 = (1-mu)*exp(ithetb)*zr_ofts
-                          Ofts< Ofsd > &b2,      //b2 = epsilon*b1
-                          Ofts< Ofsd > &b3,      //b3 = Zr_ofts+(1-mu)*exp(ithetb)*epsilon*zr_ofts
-                          Ofts< Ofsd > &b4,      //b4 = b3^(-1/2)
-                          Ofts< Ofsd > &b5,      //b5 = \bar{b3}
-                          Ofts< Ofsd > &b6,      //b6 = b5^(-3/2)
-                          Ofts< Ofsd > &b7,      //b7 = b4*b6,
-                          Ofts< Ofsd > &Pm,      //Pm = -ms/as^2*exp(-itheta)*b7 + ms/as^2*exp(-itheta)*a7 - z4
-                          Ofts< Ofsd > &Qm,      //Qm = -ns^2*mu*b7 - ns^2*(1-mu)*a7
-                          Ofts< Ofsd > &epsilon, //epsilon = Ofts with just 1.0 at order 1
-                          Ofsd  &Pfm,            //Pfm = Pm(j) at order n
-                          Ofsd  &Qfm,            //Qfm = Qm(j) at order n
-                          Ofsd  &ufm,            //ufm = zr_ofts(j) at order n
-                          Ofsd  &vfm,            //vfm = Zr_ofts(j) at order n
-                          Ofsd &sigma1,          //sigma1 = exp(-itheta)
-                          Ofsd &sigma2,          //sigma2 = exp(+itheta)
-                          int m,                 //order
-                          int nf,                //order of the Fourier expansions
-                          FBPL &fbpl)        //QBCP
+void qbtbp_ofs_fft_unpack(gsl_vector* x_gsl_0, string filename, int n_order_fourier, int array_size, int flag)
+{
+    //Copy of x_gsl_0 into temp vector
+    gsl_vector* xGSL = gsl_vector_calloc(array_size);
+    gsl_vector_memcpy(xGSL, x_gsl_0);
+
+    gsl_vector_complex* data_complex = gsl_vector_complex_calloc(array_size);
+    gsl_fft_real_wavetable* wavetable = gsl_fft_real_wavetable_alloc (array_size);
+    gsl_fft_real_workspace* workspace = gsl_fft_real_workspace_alloc (array_size);
+    Ofsc xFFT(n_order_fourier);
+    ofstream curentStream;
+
+    gsl_fft_real_transform (xGSL->data, 1, array_size, wavetable, workspace);
+    gsl_fft_halfcomplex_unpack(xGSL->data , data_complex->data ,  xGSL->stride ,xGSL->size);
+    //Order 0
+    if(flag) //even case
+        xFFT.set_coef(+GSL_REAL(gsl_vector_complex_get(data_complex, 0))/array_size+I*GSL_IMAG(gsl_vector_complex_get(data_complex, 0))/array_size,  0);
+    else //odd case
+        xFFT.set_coef(0.0,  0);
+
+    //Order n
+    for(int i = 1; i<= n_order_fourier; i++)
+    {
+        if(flag) //even case
+        {
+            //Negative frequencies
+            xFFT.set_coef(+GSL_REAL(gsl_vector_complex_get(data_complex, array_size-i))/array_size, -i);
+            //Positive frequencies
+            xFFT.set_coef(+GSL_REAL(gsl_vector_complex_get(data_complex, i))/array_size,  i);
+        }
+        else //odd case
+        {
+            //Negative frequencies
+            xFFT.set_coef(I*GSL_IMAG(gsl_vector_complex_get(data_complex, array_size-i))/array_size, -i);
+            //Positive frequencies
+            xFFT.set_coef(I*GSL_IMAG(gsl_vector_complex_get(data_complex, i))/array_size,  i);
+        }
+
+    }
+
+    //Storage in txt file
+    curentStream.open((filename+"_fft.txt").c_str());
+    curentStream <<  xFFT << endl;
+    curentStream.close();
+
+
+    if(flag) //even case
+    {
+        //Cosinus expansion version
+        curentStream.open((filename+"c_fft.txt").c_str());
+        curentStream << 0 << " " << creal(xFFT.ofs_get_coef(0)) << endl;
+        for(int l = 1; l<=n_order_fourier; l++) curentStream << l << " " << creal(xFFT.ofs_get_coef(-l) + xFFT.ofs_get_coef(l))  <<  endl;
+        curentStream.close();
+    }
+    else //odd case
+    {
+        //Sinus expansion version
+        curentStream.open((filename+"c_fft.txt").c_str());
+        for(int l = 0; l<=n_order_fourier; l++)
+            curentStream << l << " " <<  cimag(xFFT.ofs_get_coef(-l) - xFFT.ofs_get_coef(l)) << endl;
+        curentStream.close();
+    }
+
+
+    gsl_vector_complex_free(data_complex);
+    gsl_vector_free(xGSL);
+    gsl_fft_real_wavetable_free(wavetable);
+    gsl_fft_real_workspace_free(workspace);
+}
+
+
+//----------------------------------------------------------------------------------------
+// Storing the results algebraic manipulations
+//----------------------------------------------------------------------------------------
+/**
+ *  \brief Computation of the Fourier form of the inner and outer motion of the QBTBP,
+ *   stored in data/qbtbp/bj and cj for the double form, bjc and cjc for the complex form
+ *  These computations are performed via algebraic manipulation on the Fourier series,
+ *  contrary to other similar routines such as qbtbp_ofs_fft_alpha that makes use of FFT.
+ *
+ *  Note that the computation and storage of the bj, cj, bjc and cjc should probably be
+ *  pur in a separate routine: indeed, these Fourier series are still used in other
+ *  computations, while the alpha functions computed in this routine are only used in test
+ *  routines.
+ **/
+void qbtbp_ofs_alg_bj_cj(Oftsd& zr_ofts,//zr_ofts = normalized Earth-Moon motion
+                         Oftsd& Zr_ofts,//Zr_ofts = normalized Sun-(Earth+Moon) motion
+                         int n_order_fourier,        //Order of the Fourier expansions
+                         USYS& us_em)   //Constants in EM units
+{
+    //------------------------------------------------------------------------------------
+    //Physical parameters
+    //------------------------------------------------------------------------------------
+    double eps = 1.0/us_em.as; //length epsilon
+
+    //------------------------------------------------------------------------------------
+    // Initialization
+    //------------------------------------------------------------------------------------
+    Ofsd bj(n_order_fourier), cj(n_order_fourier);
+    Ofsc bjc(n_order_fourier), cjc(n_order_fourier);
+
+    //------------------------------------------------------------------------------------
+    // bj and cj
+    //------------------------------------------------------------------------------------
+    //From ots to ofs
+    fts2fs(&bj, zr_ofts, eps);
+    fts2fs(&cj, Zr_ofts, eps);
+    //Store in txt files
+    ofstream curentStream;
+    curentStream.open("data/qbtbp/bj.txt");
+    curentStream << "bj: \n" << bj << endl;
+    curentStream.close();
+    curentStream.open("data/qbtbp/cj.txt");
+    curentStream << "cj: \n" << cj << endl;
+    curentStream.close();
+
+    //------------------------------------------------------------------------------------
+    // bj and cj in complex form
+    //------------------------------------------------------------------------------------
+    //From double to cdouble
+    ofs_double_to_complex(bj, bjc);
+    ofs_double_to_complex(cj, cjc);
+    //Store in txt files
+    curentStream.open("data/qbtbp/bjc.txt");
+    curentStream <<  bjc << endl;
+    curentStream.close();
+    curentStream.open("data/qbtbp/cjc.txt");
+    curentStream <<  cjc << endl;
+    curentStream.close();
+}
+
+
+
+/**
+ *  \brief Computation of:
+ *         The first 8 alpha functions of the QBCP vector field in EM coordinates.
+ *         They are saved in txt files of the form cs.F_COEF+"alpha??.txt"
+ *
+ *  These computations are performed via algebraic manipulation on the Fourier series,
+ *  contrary to other similar routines such as qbtbp_ofs_fft_alpha that makes use of FFT.
+ **/
+void qbtbp_ofs_alg_alpha(Oftsd& zr_ofts,//zr_ofts = normalized Earth-Moon motion
+                         Oftsd& Zr_ofts,//Zr_ofts = normalized Sun-(Earth+Moon) motion
+                         Oftsd& z1,     //z1 = \bar{zr_ofts}
+                         Oftsd& z2,     //z2 = \bar{zr_ofts}^(-3/2)
+                         Oftsd& z3,     //z3 = zr_ofts^(-1/2)
+                         Oftsd& z4,     //z4 = z2*z3 = zr_ofts^(-1/2)*\bar{zr_ofts}^(-3/2)
+                         Oftsd& z5,     //z5 = \bar{zr_ofts}^(-1/2)
+                         Ofsd& sigma1,  //sigma1 = exp(-itheta)
+                         Ofsd& sigma2,  //sigma2 = exp(+itheta)
+                         int n_order_fourier, //Order of the Fourier expansions
+                         USYS& us_em,   //Constants in EM units
+                         CSYS& cs)      //Coefficients in a certain unit system
+{
+    //------------------------------------------------------------------------------------
+    //Physical parameters
+    //------------------------------------------------------------------------------------
+    double n  = us_em.n;
+    double ns = us_em.ns;
+    double as = us_em.as;
+    double ms = us_em.ms;
+
+    double eps = 1.0/as;                  //length epsilon
+    int n_order_taylor        = zr_ofts.get_order();      //order of the Taylor expansion
+    int n_var_taylor     = zr_ofts.get_nvar();         //number of variables of the Taylor expansion
+    int n_var_fourier    = zr_ofts.get_coef_nvar(); //number of variables of the Fourier coefficient
+
+    //------------------------------------------------------------------------------------
+    // Initialization
+    //------------------------------------------------------------------------------------
+    Ofsd bj(n_order_fourier), cj(n_order_fourier);
+    Ofsc bjc(n_order_fourier), cjc(n_order_fourier);
+
+    //r^2  = 1/alpha1
+    Ofsd r2(n_order_fourier);                      //Ofs double version
+    Oftsd  zr2(n_var_taylor, n_order_taylor, n_var_fourier, n_order_fourier);   //Ofts version
+
+    //The pre computations
+    Ofsc d1(n_order_fourier), d2(n_order_fourier), d3(n_order_fourier), d31(n_order_fourier),
+    d4(n_order_fourier), d41(n_order_fourier), d5(n_order_fourier), d51(n_order_fourier),
+    d6(n_order_fourier), d61(n_order_fourier);
+    Ofsc d7(n_order_fourier), d71(n_order_fourier), d8(n_order_fourier), d81(n_order_fourier),
+    d9(n_order_fourier), d91(n_order_fourier), d10(n_order_fourier), d101(n_order_fourier), d11(n_order_fourier);
+    Ofsc d111(n_order_fourier), d12(n_order_fourier), d121(n_order_fourier),
+    d1r(n_order_fourier), d1i(n_order_fourier), d3r(n_order_fourier), d3i(n_order_fourier),
+    d4r(n_order_fourier), d4i(n_order_fourier);
+    Ofsc d5r(n_order_fourier), d5i(n_order_fourier), d6r(n_order_fourier),
+    d6i(n_order_fourier), d7r(n_order_fourier), d7i(n_order_fourier), d8r(n_order_fourier),
+    d8i(n_order_fourier), d9r(n_order_fourier);
+    Ofsc d9i(n_order_fourier), d10r(n_order_fourier), d10i(n_order_fourier),
+    d11r(n_order_fourier), d11i(n_order_fourier), d12r(n_order_fourier), d12i(n_order_fourier);
+
+    //The alphas
+    Ofsd alpha1(n_order_fourier), alpha6(n_order_fourier);
+    Ofs<cdouble > alpha1c(n_order_fourier), alpha2c(n_order_fourier), alpha3c(n_order_fourier),
+    alpha4c(n_order_fourier), alpha5c(n_order_fourier);
+    Ofs<cdouble > alpha6c(n_order_fourier), alpha7c(n_order_fourier), alpha8c(n_order_fourier);
+
+    //sigma1c & sigma2c
+    Ofs<cdouble > sigma1c(n_order_fourier), sigma2c(n_order_fourier);
+    ofs_double_to_complex(sigma1, sigma1c);
+    ofs_double_to_complex(sigma2, sigma2c);
+
+    //------------------------------------------------------------------------------------
+    // bj and cj
+    //------------------------------------------------------------------------------------
+    //From ots to ofs
+    fts2fs(&bj, zr_ofts, eps);
+    fts2fs(&cj, Zr_ofts, eps);
+    //From double to cdouble
+    ofs_double_to_complex(bj, bjc);
+    ofs_double_to_complex(cj, cjc);
+
+    //------------------------------------------------------------------------------------
+    // zr and Zr in complex form and derivatives. We recall that:
+    //sigma1 = exp(-itheta)
+    //sigma2 = exp(+itheta
+    //------------------------------------------------------------------------------------
+    Ofsc zr(bjc);
+    Ofsc Zr(cjc);
+    //dot
+    Ofsc zrdot(zr);
+    zrdot.dot(n);
+    Ofsc Zrdot(Zr);
+    Zrdot.dot(n);
+    //ddot
+    Ofsc zrddot(zrdot);
+    zrddot.dot(n);
+    Ofsc Zrddot(Zrdot);
+    Zrddot.dot(n);
+    //conj
+    Ofsc zrc(zr);
+    zrc.conjugate();
+    Ofsc Zrc(Zr);
+    Zrc.conjugate();
+
+    //Order 0:
+    //------------------------------------------------------------------------------------
+    //d1 = zr*conj(zr)
+    d1.ofs_prod(zr, zrc);
+    //d2 = Z*conj(Z) = as^2*Zr*conj(Zr)
+    d2.ofs_mprod(Zr, Zrc, as*as+0.0*I);
+    //d31 = zr*conj(Zr)
+    d31.ofs_prod(zr, Zrc);
+    //d3 = z*conj(Z) = as*sigma2*zr*conj(Zr)
+    d3.ofs_mprod(sigma2c, d31, as+0.0*I);
+    //d41 = Zr*conj(zr)
+    d41.ofs_prod(Zr, zrc);
+    //d4 = Z*conj(z) = as*sigma1*Zr*conj(zr)
+    d4.ofs_mprod(sigma1c, d41, as+0.0*I);
+    //d1r = real(d1), d1i = imag(d1)
+    ofs_real_part(d1, d1r);
+    ofs_imag_part(d1, d1i);
+    //d3r = real(d3), d3i = imag(d3)
+    ofs_real_part(d3, d3r);
+    ofs_imag_part(d3, d3i);
+    //d4r = real(d4), d4i = imag(d4)
+    ofs_real_part(d4, d4r);
+    ofs_imag_part(d4, d4i);
+
+
+    //First order:
+    //------------------------------------------------------------------------------------
+    //d51 = dot(zr) + i*zr
+    d51.ofs_fsum(zrdot, 1.0+0.0*I, zr, I);
+    //d5 = dot(z)*conj(z)
+    d5.ofs_prod(d51, zrc);
+
+    //d61 = sigma2*d51 = exp(int)*(dot(zr) + i*zr)
+    d61.ofs_prod(sigma2c, d51);
+    //d6 = dot(z)*conj(Z) = as*exp(int)*(dot(zr) + i*zr)*conj(Zr)
+    d6.ofs_mprod(d61, Zrc, as+0.0*I);
+
+    //d71 = dot(Zr) + i*ns*Zr
+    d71.ofs_fsum(Zrdot, 1.0+0.0*I, Zr, I*ns);
+    //d7 = dot(Z)*conj(Z) = as*as*(dot(Zr) + i*ns*Zr)*conj(Zr)
+    d7.ofs_mprod(d71, Zrc, as*as+0.0*I);
+
+    //d81 = sigma1*d71 = exp(-int)*(dot(Zr) + i*ns*Zr)
+    d81.ofs_sprod(sigma1c, d71);
+    //d8 = dot(Z)*conj(z) = as*exp(-int)*(dot(Zr) + i*ns*Zr)*conj(z)
+    d8.ofs_mprod(d81, zrc, as+0.0*I);
+
+    //d5r = real(d5), d5i = imag(d5)
+    ofs_real_part(d5, d5r);
+    ofs_imag_part(d5, d5i);
+    //d6r = real(d6), d6i = imag(d6)
+    ofs_real_part(d6, d6r);
+    ofs_imag_part(d6, d6i);
+    //d7r = real(d7), d7i = imag(d7)
+    ofs_real_part(d7, d7r);
+    ofs_imag_part(d7, d7i);
+    //d8r = real(d8), d8i = imag(d8)
+    ofs_real_part(d8, d8r);
+    ofs_imag_part(d8, d8i);
+
+    //Second order:
+    //------------------------------------------------------------------------------------
+    //d91 = ddot(zr) +2*i*dot(zr) - zr
+    d91.ofs_fsum(zrddot, 1.0+0.0*I, zrdot, 2.0*I);
+    d91.ofs_fsum(d91, 1.0+0.0*I, zr, -1.0+0.0*I);
+    //d9 = ddot(z)*conj(z)
+    d9.ofs_prod(d91, zrc);
+
+    //d101 = sigma2*d91 = exp(int)*(ddot(zr) +2*i*dot(zr) - zr)
+    d101.ofs_prod(sigma2c, d91);
+    //d10 = ddot(z)*conj(Z) = as*exp(int)*(ddot(zr) +2*i*dot(zr) - zr)*conj(Zr)
+    d10.ofs_mprod(d101, Zrc, as+0.0*I);
+
+    //d111 = ddot(Zr) +2*i*ns*dot(Zr) - ns*ns*Zr
+    d111.ofs_fsum(Zrddot, 1.0+0.0*I, Zrdot, 2*ns*I);
+    d111.ofs_fsum(d111, 1.0+0.0*I, Zr, -ns*ns+0.0*I);
+    //d11 = ddot(Z)*conj(Z) = as*as*(ddot(Zr) +2*i*ns*dot(Zr) - ns*ns*Zr)*conj(Zr)
+    d11.ofs_mprod(d111, Zrc, as*as+0.0*I);
+
+    //d121 = sigma1*d111 = exp(-int)*(ddot(Zr) +2*i*ns*dot(Zr) - ns*ns*Zr)
+    d121.ofs_prod(sigma1c, d111);
+    //d12 = ddot(Z)*conj(z) = as*exp(-int)*(ddot(Zr) +2*i*ns*dot(Zr) - ns*ns*Zr)*conj(zr)
+    d12.ofs_mprod(d121, zrc, as+0.0*I);
+
+
+    //d9r = real(d9), d9i = imag(d9)
+    ofs_real_part(d9, d9r);
+    ofs_imag_part(d9, d9i);
+
+    //d10r = real(d10), d10i = imag(d10)
+    ofs_real_part(d10, d10r);
+    ofs_imag_part(d10, d10i);
+
+    //d11r = real(d11), d11i = imag(d11)
+    ofs_real_part(d11, d11r);
+    ofs_imag_part(d11, d11i);
+
+    //d12r = real(d12), d12i = imag(d12)
+    ofs_real_part(d12, d12r);
+    ofs_imag_part(d12, d12i);
+
+
+    //------------------------------------------------------------------------------------
+    // The alphas
+    //------------------------------------------------------------------------------------
+    //alpha6
+    //-----------------------------
+    //z4 = 1/r2 = z^(-1/2)*zbar^(-1/2)
+    z4.zero();
+    z4.ofts_sprod(z3, z5);
+    //alpha6
+    fts2fs(&alpha6, z4, eps);
+    //alpha6c
+    ofs_double_to_complex(alpha6, alpha6c);
+    //Storage in txt file
+    ofs_sst(alpha6c, cs.F_COEF+"alpha6", 1, "");
+    //-----------------------------
+
+
+    //alpha1
+    //-----------------------------
+    //alpha1 = alpha6*alpha6
+    alpha1.ofs_sprod(alpha6,alpha6);
+    //alpha1c
+    ofs_double_to_complex(alpha1, alpha1c);
+    //Storage in txt file
+    ofs_sst(alpha1c, cs.F_COEF+"alpha1", 1, "");
+    //-----------------------------
+
+    //alpha2
+    //-----------------------------
+    //alpha2c = -real(dot(z)*conj(z))*1/r2
+    alpha2c.ofs_mprod(alpha1c, d5r, -1.0+0.0*I);
+    //force the zero order to zero (odd function)
+    alpha2c.set_coef(0.0, 0);
+    //force the odd nature
+    for(int l = -n_order_fourier; l< 0; l++) alpha2c.set_coef(+0.0*I-alpha2c.ofs_get_coef(-l), l);
+    //Storage in txt file
+    ofs_sst(alpha2c, cs.F_COEF+"alpha2", 0, "");
+    //-----------------------------
+
+    //alpha3
+    //-----------------------------
+    //alpha3c = +imag(dot(z)*conj(z))*1/r2
+    alpha3c.ofs_sprod(alpha1c, d5i);
+    //Storage in txt file
+    ofs_sst(alpha3c, cs.F_COEF+"alpha3", 1, "");
+    //-----------------------------
+
+    //alpha4
+    //-----------------------------
+    alpha4c+= (+0.0*I-ms/(1+ms))*d12r;
+    //Storage in txt file
+    ofs_sst(alpha4c, cs.F_COEF+"alpha4", 1, "");
+    //-----------------------------
+
+    //alpha5
+    //-----------------------------
+    alpha5c+= (+0.0*I-ms/(1+ms))*d12i;
+    //Storage in txt file
+    ofs_sst(alpha5c, cs.F_COEF+"alpha5", 0, "");
+    //-----------------------------
+
+    //alpha7
+    //-----------------------------
+    //alpha7
+    alpha7c.ofs_sprod(alpha1c, d4r);
+    //Storage in txt file
+    ofs_sst(alpha7c, cs.F_COEF+"alpha7", 1, "");
+    //-----------------------------
+
+    //alpha8
+    //-----------------------------
+    alpha8c.ofs_sprod(alpha1c, d4i);
+    alpha8c.set_coef(0.0, 0);
+    //Storage in txt file
+    ofs_sst(alpha8c, cs.F_COEF+"alpha8", 0, "");
+    //-----------------------------
+}
+
+
+//----------------------------------------------------------------------------------------
+// Reccurence for computing the QBTBP
+//----------------------------------------------------------------------------------------
+/**
+ *  \brief One step of the recurrence scheme of the QBTBP.
+ */
+void qbtbp_ofts_recurrence(Oftsd& zr_ofts, //zr_ofts = normalized Earth-Moon motion
+                           Oftsd& Zr_ofts, //Zr_ofts = normalized Sun-(Earth+Moon) motion
+                           Oftsd& z1,      //z1 = \bar{zr_ofts}
+                           Oftsd& z2,      //z2 = \bar{zr_ofts}^(-3/2)
+                           Oftsd& z3,      //z3 = zr_ofts^(-1/2)
+                           Oftsd& z4,      //z4 = z2*z3 = zr_ofts^(-1/2)*\bar{zr_ofts}^(-3/2)
+                           Oftsd& z5,      //z5 = \bar{zr_ofts}^(-1/2)
+                           Oftsd& z6,      //z6 = z3*z5 = (zr_ofts*\bar{zr_ofts})^(-1/2)
+                           Oftsd& a1,      //a1 = mu*exp(itheta)*zr_ofts
+                           Oftsd& a2,      //a2 = epsilon*a1
+                           Oftsd& a3,      //a3 = Zr_ofts-mu*exp(itheta)*epsilon*zr_ofts
+                           Oftsd& a4,      //a4 = a3^(-1/2).
+                           Oftsd& a5,      //a5 = \bar{a3}
+                           Oftsd& a6,      //a6 = a5^(-3/2).
+                           Oftsd& a7,      //a7 = a4*a6,
+                           Oftsd& b1,      //b1 = (1-mu)*exp(ithetb)*zr_ofts
+                           Oftsd& b2,      //b2 = epsilon*b1
+                           Oftsd& b3,      //b3 = Zr_ofts+(1-mu)*exp(ithetb)*epsilon*zr_ofts
+                           Oftsd& b4,      //b4 = b3^(-1/2)
+                           Oftsd& b5,      //b5 = \bar{b3}
+                           Oftsd& b6,      //b6 = b5^(-3/2)
+                           Oftsd& b7,      //b7 = b4*b6,
+                           Oftsd& Pm,      //Pm = -ms/as^2*exp(-itheta)*b7 + ms/as^2*exp(-itheta)*a7 - z4
+                           Oftsd& Qm,      //Qm = -ns^2*mu*b7 - ns^2*(1-mu)*a7
+                           Oftsd& epsilon, //epsilon = Ofts with just 1.0 at order 1
+                           Ofsd&  Pfm,     //Pfm = Pm(j) at order n
+                           Ofsd&  Qfm,     //Qfm = Qm(j) at order n
+                           Ofsd&  ufm,     //ufm = zr_ofts(j) at order n
+                           Ofsd&  vfm,     //vfm = Zr_ofts(j) at order n
+                           Ofsd& sigma1,   //sigma1 = exp(-itheta)
+                           Ofsd& sigma2,   //sigma2 = exp(+itheta)
+                           int m,          //order
+                           int n_order_fourier,         //order of the Fourier expansions
+                           USYS& us_em)    //EM units
 
 {
     //Physical param
-    double n  = fbpl.us_em.n;
-    double mu = fbpl.us_em.mu_EM;
-    double ns = fbpl.us_em.ns;
-    double as = fbpl.us_em.as;
-    double ms = fbpl.us_em.ms;
+    double n  = us_em.n;
+    double mu = us_em.mu_EM;
+    double ns = us_em.ns;
+    double as = us_em.as;
+    double ms = us_em.ms;
 
     if(m == 0)
     {
@@ -1975,18 +1802,18 @@ void qbtbp_ofs_recurrence(Ofts< Ofsd > &zr_ofts, //zr_ofts = normalized Earth-Mo
         //-------------------------
         // Solving equations
         //-------------------------
-        Pfm.ccopy(Pm.getTerm(m)->getCoef(0));
-        Qfm.ccopy(Qm.getTerm(m)->getCoef(0));
+        Pfm.ccopy(Pm.get_term(m)->get_coef(0));
+        Qfm.ccopy(Qm.get_term(m)->get_coef(0));
 
 
         //Order 0
-        ufm.setCoef(-1.0/3*Pfm.ofs_getCoef(0), 0);          //u0 = -1/3*p0
-        vfm.setCoef(-1.0/(3*ns*ns)*Qfm.ofs_getCoef(0), 0);  //v0 = -1/(3*ns^2)*p0
+        ufm.set_coef(-1.0/3*Pfm.ofs_get_coef(0), 0);          //u0 = -1/3*p0
+        vfm.set_coef(-1.0/(3*ns*ns)*Qfm.ofs_get_coef(0), 0);  //v0 = -1/(3*ns^2)*p0
 
-        //Order 1 to nf
+        //Order 1 to n_order_fourier
         //solving a 2*2 system
         double k1, k2, k3, l1, l2, l3, uj, vj;
-        for(int j = 1; j<= nf; j++)
+        for(int j = 1; j<= n_order_fourier; j++)
         {
             k1 = -pow(j*n,2.0) + 2*j*n - 3.0/2;
             k2 = -pow(j*n,2.0) - 2*j*n - 3.0/2;
@@ -1997,27 +1824,27 @@ void qbtbp_ofs_recurrence(Ofts< Ofsd > &zr_ofts, //zr_ofts = normalized Earth-Mo
             l3 = -3.0/2*ns*ns;
 
             //u-j
-            uj = ( k2*Pfm.ofs_getCoef(-j) - k3*Pfm.ofs_getCoef(j))/(k1*k2-k3*k3);
-            ufm.setCoef(uj, -j);
+            uj = ( k2*Pfm.ofs_get_coef(-j) - k3*Pfm.ofs_get_coef(j))/(k1*k2-k3*k3);
+            ufm.set_coef(uj, -j);
             //uj
-            uj = (-k3*Pfm.ofs_getCoef(-j) + k1*Pfm.ofs_getCoef(j))/(k1*k2-k3*k3);
-            ufm.setCoef(uj, j);
+            uj = (-k3*Pfm.ofs_get_coef(-j) + k1*Pfm.ofs_get_coef(j))/(k1*k2-k3*k3);
+            ufm.set_coef(uj, j);
             //v-j
-            vj = ( l2*Qfm.ofs_getCoef(-j) - l3*Qfm.ofs_getCoef(j))/(l1*l2-l3*l3);
-            vfm.setCoef(vj, -j);
+            vj = ( l2*Qfm.ofs_get_coef(-j) - l3*Qfm.ofs_get_coef(j))/(l1*l2-l3*l3);
+            vfm.set_coef(vj, -j);
             //vj
-            vj = (-l3*Qfm.ofs_getCoef(-j) + l1*Qfm.ofs_getCoef(j))/(l1*l2-l3*l3);
-            vfm.setCoef(vj, j);
+            vj = (-l3*Qfm.ofs_get_coef(-j) + l1*Qfm.ofs_get_coef(j))/(l1*l2-l3*l3);
+            vfm.set_coef(vj, j);
 
         }
 
         //Update z and Z
-        zr_ofts.getCoef(m,0)->ccopy(ufm);
-        Zr_ofts.getCoef(m,0)->ccopy(vfm);
+        zr_ofts.get_coef(m,0)->ccopy(ufm);
+        Zr_ofts.get_coef(m,0)->ccopy(vfm);
 
     }
 
-    if(m == zr_ofts.getOrder())
+    if(m == zr_ofts.get_order())
     {
         //Last update to account for final order in all series
         //---------------------------------
@@ -2035,23 +1862,27 @@ void qbtbp_ofs_recurrence(Ofts< Ofsd > &zr_ofts, //zr_ofts = normalized Earth-Mo
 
 }
 
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 // Integrating the QBTBP
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 /**
  *  \brief Derivatives of the QBTBP. To plug into GSL integrator.
  *
- * Note: the use of gsl livrary forces us to use double variables
+ * Note: the use of GSL library forces us to use double variables
  * As a consequence, in the case of z and Z, we need to use real and imaginary parts
- * as separate variables
+ * as separate variables.
  */
-int qbtbp_derivatives(double t, const double y[], double f[], void *params)
+int qbtbp_derivatives(double t, const double y[], double f[], void* params)
 {
+    //------------------------------------------------------------------------------------
     //Parameters for the qbtbp
-    double mu = * (double * ) params;
-    double ms = * ((double * ) (params)+1);
+    //------------------------------------------------------------------------------------
+    double mu = * (double* ) params;
+    double ms = * ((double* ) (params)+1);
 
+    //------------------------------------------------------------------------------------
     //Reconstruction of z and Z
+    //------------------------------------------------------------------------------------
     cdouble z = y[0] + I*y[1];
     cdouble Z = y[2] + I*y[3];
 
@@ -2064,9 +1895,9 @@ int qbtbp_derivatives(double t, const double y[], double f[], void *params)
     cdouble zdd = +0.0*I-z/pow(cabs(z), 3.0) + ms*(temp1-temp2);
     cdouble Zdd = -(1+ms)*(mu*temp2 + (1-mu)*temp1);
 
-    //-------------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------
     //Phase space derivatives
-    //-------------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------
     f[0] = y[4];
     f[1] = y[5];
     f[2] = y[6];
@@ -2079,35 +1910,32 @@ int qbtbp_derivatives(double t, const double y[], double f[], void *params)
     return GSL_SUCCESS;
 }
 
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 // Testing the QBTBP
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 /**
- *  \brief Test function to compare the analytical solution of the QBTBP to the numerical integration of the equations of motion.
+ *  \brief Test function to compare the analytical solution of the QBTBP to the
+ *         numerical integration of the equations of motion.
  */
-void qbtbp_test(double t1, Ofsc &bjc, Ofsc &cjc, OdeStruct ode_s, FBPL &fbpl)
+void qbtbp_test(double t1, Ofsc& bjc, Ofsc& cjc, OdeStruct ode_s, FBPL& fbpl)
 {
-    cout << "---------------------------------------------------" << endl;
-    cout << "               Test of the                         " << endl;
-    cout << "   Quasi-Bicircular Three-Body Problem (QBTBP)     " << endl;
-    cout << "---------------------------------------------------" << endl;
     //Initialization
     double as = fbpl.us_em.as;
     double n  = fbpl.us_em.n;
     double ns = fbpl.us_em.ns;
-    int nf    = bjc.getOrder();
+    int n_order_fourier    = bjc.get_order();
 
     //z(0) and Z(0)
     cdouble z0 = bjc.evaluate(0.0);
     cdouble Z0 = as*cjc.evaluate(0.0);
 
     //zdot(0) and Zdot(0)
-    Ofsc zdot(nf);
-    for(int l = -nf; l<=nf; l++) zdot.setCoef(I*(1.0+l*n)*bjc.ofs_getCoef(l), l);
+    Ofsc zdot(n_order_fourier);
+    for(int l = -n_order_fourier; l<=n_order_fourier; l++) zdot.set_coef(I*(1.0+l*n)*bjc.ofs_get_coef(l), l);
     cdouble zdot0 = zdot.evaluate(0.0);
 
-    Ofsc Zdot(nf);
-    for(int l = -nf; l<=nf; l++) Zdot.setCoef(I*(ns+l*n)*cjc.ofs_getCoef(l), l);
+    Ofsc Zdot(n_order_fourier);
+    for(int l = -n_order_fourier; l<=n_order_fourier; l++) Zdot.set_coef(I*(ns+l*n)*cjc.ofs_get_coef(l), l);
     cdouble Zdot0 = as*Zdot.evaluate(0.0);
 
     //Initial conditions
@@ -2121,10 +1949,10 @@ void qbtbp_test(double t1, Ofsc &bjc, Ofsc &cjc, OdeStruct ode_s, FBPL &fbpl)
     yv[6] = creal(Zdot0);
     yv[7] = cimag(Zdot0);
 
-    cout << std::showpos << setiosflags(ios::scientific)  << setprecision(15);
-    cout << "Initial positions: " << endl;
-    cout << "Internal motion: z(t=0.0) = " << creal(z0) << " + " << cimag(z0) << "i" <<  endl;
-    cout << "External motion: Z(t=0.0) = " << creal(Z0) << " + " << cimag(Z0) << "i" <<  endl;
+    cout << "-------------------------------------------" << endl;
+    cout << "Initial z and Z, at t0 = " << 0.0 << endl;
+    cout << "z(t0) = " << creal(z0) << " + " << cimag(z0) << "i" <<  endl;
+    cout << "Z(t0) = " << creal(Z0) << " + " << cimag(Z0) << "i" <<  endl;
     cout << "-------------------------------------------" << endl;
 
     //Loop
@@ -2139,15 +1967,10 @@ void qbtbp_test(double t1, Ofsc &bjc, Ofsc &cjc, OdeStruct ode_s, FBPL &fbpl)
         if (status != GSL_SUCCESS) break;
     }
 
-
     //Final state
-    cout << "-------------------------------------------" << endl;
-    cout << "End of integration." << endl;
-    cout << "Final t: " << t << endl;
-    cout << "-------------------------------------------" << endl;
-    cout << "Results from integration" << endl;
-    cout << "Internal motion: z(t=t1) = " << yv[0] << " + " << yv[1] << "i" << endl;
-    cout << "External motion: Z(t=t1) = " << yv[2] << " + " << yv[3] << "i" << endl;
+    cout << "Integrated z and Z, at t1 = " << t << endl;
+    cout << "z(t1) = " << yv[0] << " + " << yv[1] << "i" << endl;
+    cout << "Z(t1) = " << yv[2] << " + " << yv[3] << "i" << endl;
     cout << "-------------------------------------------" << endl;
 
     //Analytical final state
@@ -2158,155 +1981,94 @@ void qbtbp_test(double t1, Ofsc &bjc, Ofsc &cjc, OdeStruct ode_s, FBPL &fbpl)
     cdouble Zdotfinal = as*(cos(ns*t1)+I*sin(ns*t1))*Zdot.evaluate(n*t1);
 
 
-    cout << "Analytical results" << endl;
-    cout << "Internal motion: z(t=t1) = " << creal(zfinal) << " + " << cimag(zfinal) << "i" <<  endl;
-    cout << "External motion: Z(t=t1) = " << creal(Zfinal) << " + " << cimag(Zfinal) << "i" <<  endl;
+    cout << "Semi-analytical z and Z, at t1 = " << t << endl;
+    cout << "z(t1) = " << creal(zfinal) << " + " << cimag(zfinal) << "i" <<  endl;
+    cout << "Z(t1) = " << creal(Zfinal) << " + " << cimag(Zfinal) << "i" <<  endl;
     cout << "-------------------------------------------" << endl;
 
 
     cout << "Absolute delta between analytical and numerical results: " << endl;
-    cout << "dz    = " << cabs(zfinal - yv[0]-I*yv[1])/*/cabs(zfinal)*100 << " %" */<< endl;
-    cout << "dzdot = " << cabs(zdotfinal - yv[4]-I*yv[5])/*/cabs(zdotfinal)*100 << " %" */<< endl;
-    cout << "dZ    = " << cabs(Zfinal - yv[2]-I*yv[3])/*/cabs(zfinal)*100 << " %" */<< endl;
-    cout << "dZdot = " << cabs(Zdotfinal - yv[6]-I*yv[7])/*/cabs(Zdotfinal)*100 << " %" */<< endl;
+    cout << "dz(t1)    = " << cabs(zfinal - yv[0]-I*yv[1])/*/cabs(zfinal)*100 << " %" */<< endl;
+    cout << "dzdot(t1) = " << cabs(zdotfinal - yv[4]-I*yv[5])/*/cabs(zdotfinal)*100 << " %" */<< endl;
+    cout << "dZ(t1)    = " << cabs(Zfinal - yv[2]-I*yv[3])/*/cabs(zfinal)*100 << " %" */<< endl;
+    cout << "dZdot(t1) = " << cabs(Zdotfinal - yv[6]-I*yv[7])/*/cabs(Zdotfinal)*100 << " %" */<< endl;
     cout << "-------------------------------------------" << endl;
 }
 
 /**
- *  \brief Test function used inside qbtbp_test_IN_EM_SEM.
+ *  \brief Test function to check the changes of coordinates between EM, Inertial and SEM
+ *         coordinates, using the state vector of the Sun, the Earth, and the Moon.
  */
-void qbpcomp(const double xe0_SEM[],
-             const double xe0_EM[],
-             const double ye0_IN[],
-             double t0,
-             double t0c)
-{
-    //State vectors
-    double xem_SEM[6];
-    double xem_EM[6];
-    double xe0_IN_from_SEM[6];
-    double xe0_IN_from_EM[6];
-    double xe0_EM2[6];
-    double xe0_SEM2[6];
-
-    //-----------------------------
-    // SEM -> EM -> IN
-    //-----------------------------
-    //Planet position & momenta in SEM ref and SEM units
-    SEMvtoSEMm(t0c, xe0_SEM, xem_SEM, &SEML);
-    //Planet position & momenta in EM ref and EM units
-    SEMmtoEMm(t0c, xem_SEM, xem_EM, &SEML);
-    //Planet position & velocity in EM ref and EM units
-    EMmtoEMv(t0, xem_EM, xe0_EM2, &SEML);
-    //Planet position & velocity in IN ref and EM units
-    EMtoIN(t0, xe0_EM2, xe0_IN_from_SEM,  &SEML);
-
-    //-----------------------------
-    // EM -> IN
-    //-----------------------------
-    //Planet position & velocities in IN ref and EM units
-    EMtoIN(t0, xe0_EM, xe0_IN_from_EM,  &SEML);
-    cout << "-------------------------------------------" << endl;
-    cout << "Error in initial planet position & velocity wrt IN" << endl;
-    cout << "SEM -> EM -> IN         EM->IN  " << endl;
-    for(int i = 0; i < 6; i++)
-    {
-        cout <<  xe0_IN_from_SEM[i]-ye0_IN[i] << "    " << xe0_IN_from_EM[i]-ye0_IN[i] << endl;
-    }
-
-    //-----------------------------
-    // EM -> IN -> SE
-    //-----------------------------
-    //Planet position & momenta in EM ref and EM units
-    EMvtoEMm(t0, xe0_EM, xem_EM, &SEML);
-    //Planet position & momenta in SEM ref and SEM units
-    EMmtoSEMm(t0, xem_EM, xem_SEM, &SEML);
-    //Planet position & velocity in SEM ref and SEM units
-    SEMmtoSEMv(t0c, xem_SEM, xe0_SEM2, &SEML);
-
-    cout << "-------------------------------------------" << endl;
-    cout << "SEM          EM -> IN -> SEM     Delta " << endl;
-    for(int i = 0; i < 6; i++)
-    {
-        cout << xe0_SEM[i] << "    " <<  xe0_SEM2[i] << "    " <<  xe0_SEM[i]-xe0_SEM2[i] << endl;
-    }
-    cout << "-------------------------------------------" << endl;
-}
-
-/**
- *  \brief Test function to compare the analytical solutions found in IN, EM, and SEM coordinates
- */
-void qbtbp_test_IN_EM_SEM(double t1, Ofsc &bjc, Ofsc &cjc)
+void qbtbp_test_in_em_sem(double t1, Ofsc& bjc, Ofsc& cjc)
 {
     //Initialization
     USYS us_em  = SEML.us_em;
     USYS us_sem = SEML.us_sem;
-    int nf      = SEML.nf;
+    int n_order_fourier      = SEML.n_order_fourier;
     //Derivatives of z and Z
     Ofsc zdot(bjc);
     Ofsc Zdot(cjc);
     zdot.dot(us_em.n);
     Zdot.dot(us_em.n);
 
-    cout << "---------------------------------------------------" << endl;
-    cout << "               Test in SEM units                   " << endl;
-    cout << "---------------------------------------------------" << endl;
+    cout << "-------------------------------------------" << endl;
+    cout << "           Test in SEM units               " << endl;
+    cout << "-------------------------------------------" << endl;
     double t0 = t1;             //new t0 in EM units
     double t0c =t0*us_em.ns;    //new t0 in SEM units
 
     //z(t0) and Z(t0)
-    cdouble z0 = evz(bjc, t0, us_em.n, us_em.ni, us_em.ai);
-    cdouble Z0 = evz(cjc, t0, us_em.n, us_em.ns, us_em.as);
-    cdouble zdot0 = evzdot(bjc, zdot, t0, us_em.n, us_em.ni, us_em.ai);
-    cdouble Zdot0 = evzdot(cjc, Zdot, t0, us_em.n, us_em.ns, us_em.as);
+    cdouble z0 = eval_z(bjc, t0, us_em.n, us_em.ni, us_em.ai);
+    cdouble Z0 = eval_z(cjc, t0, us_em.n, us_em.ns, us_em.as);
+    cdouble zdot0 = eval_zdot(bjc, zdot, t0, us_em.n, us_em.ni, us_em.ai);
+    cdouble Zdot0 = eval_zdot(cjc, Zdot, t0, us_em.n, us_em.ns, us_em.as);
 
-    //-------------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------
     //Evaluate the deltas @t = t0c
-    //-------------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------
     double delta[15];
-    evaluateCoef(delta, t0c, us_sem.n, nf, SEML.cs_sem.coeffs, 15);
+    eval_array_coef(delta, t0c, us_sem.n, n_order_fourier, SEML.cs_sem.coeffs, 15);
     double deltad[15];
-    evaluateCoefDerivatives(deltad, t0c, us_sem.n, nf, SEML.cs_sem.coeffs, 15);
+    eval_array_coef_der(deltad, t0c, us_sem.n, n_order_fourier, SEML.cs_sem.coeffs, 15);
 
-    //-------------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------
     //Evaluate the alphas @t = t0
-    //-------------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------
     double alpha[15];
-    evaluateCoef(alpha, t0, us_em.n, nf, SEML.cs_em.coeffs, 15);
+    eval_array_coef(alpha, t0, us_em.n, n_order_fourier, SEML.cs_em.coeffs, 15);
     double alphad[15];
-    evaluateCoefDerivatives(alphad, t0, us_em.n, nf, SEML.cs_em.coeffs, 15);
+    eval_array_coef_der(alphad, t0, us_em.n, n_order_fourier, SEML.cs_em.coeffs, 15);
 
-    cout << "---------------------------------------------------" << endl;
-    cout << "Earth  " << endl;
+    cout << "State of the Earth  " << endl;
     //Earth position & momenta in SEM ref and SEM units
-    double xe0_SEM[6];
-    xe0_SEM[0] = delta[8];
-    xe0_SEM[1] = delta[9];
-    xe0_SEM[2] = 0.0;
-    xe0_SEM[3] = deltad[8];
-    xe0_SEM[4] = deltad[9];
-    xe0_SEM[5] = 0.0;
+    double xe_0_sem[6];
+    xe_0_sem[0] = delta[8];
+    xe_0_sem[1] = delta[9];
+    xe_0_sem[2] = 0.0;
+    xe_0_sem[3] = deltad[8];
+    xe_0_sem[4] = deltad[9];
+    xe_0_sem[5] = 0.0;
     //Earth position & momenta in EM ref and EM units
-    double xe0_EM[6];
-    xe0_EM[0] = us_em.mu_EM;
-    xe0_EM[1] = 0.0;
-    xe0_EM[2] = 0.0;
-    xe0_EM[3] = 0.0;
-    xe0_EM[4] = 0.0;
-    xe0_EM[5] = 0.0;
+    double xe_0_em[6];
+    xe_0_em[0] = us_em.mu_EM;
+    xe_0_em[1] = 0.0;
+    xe_0_em[2] = 0.0;
+    xe_0_em[3] = 0.0;
+    xe_0_em[4] = 0.0;
+    xe_0_em[5] = 0.0;
     //Earth position & momenta in IN ref and EM units
-    double ye0_IN[6];
-    ye0_IN[0] = -us_em.ms/(1.0+us_em.ms)*creal(Z0) + us_em.mu_EM*creal(z0);
-    ye0_IN[1] = -us_em.ms/(1.0+us_em.ms)*cimag(Z0) + us_em.mu_EM*cimag(z0);
-    ye0_IN[2] = 0.0;
-    ye0_IN[3] = -us_em.ms/(1.0+us_em.ms)*creal(Zdot0) + us_em.mu_EM*creal(zdot0);
-    ye0_IN[4] = -us_em.ms/(1.0+us_em.ms)*cimag(Zdot0) + us_em.mu_EM*cimag(zdot0);
-    ye0_IN[5] = 0.0;
+    double ye_0_in[6];
+    ye_0_in[0] = -us_em.ms/(1.0+us_em.ms)*creal(Z0) + us_em.mu_EM*creal(z0);
+    ye_0_in[1] = -us_em.ms/(1.0+us_em.ms)*cimag(Z0) + us_em.mu_EM*cimag(z0);
+    ye_0_in[2] = 0.0;
+    ye_0_in[3] = -us_em.ms/(1.0+us_em.ms)*creal(Zdot0) + us_em.mu_EM*creal(zdot0);
+    ye_0_in[4] = -us_em.ms/(1.0+us_em.ms)*cimag(Zdot0) + us_em.mu_EM*cimag(zdot0);
+    ye_0_in[5] = 0.0;
     //Comparison
-    qbpcomp(xe0_SEM, xe0_EM, ye0_IN, t0, t0c);
+    qbtbp_prim_test(xe_0_sem, xe_0_em, ye_0_in, t0, t0c);
 
-    cout << "---------------------------------------------------" << endl;
-    cout << "Moon  " << endl;
+    cout << "-------------------------------------------" << endl;
+    cout << "State of the Moon  " << endl;
     //Moon position & velocity in SEM ref and SEM units
     double xm0_SEM[6];
     xm0_SEM[0] = delta[10];
@@ -2332,11 +2094,11 @@ void qbtbp_test_IN_EM_SEM(double t1, Ofsc &bjc, Ofsc &cjc)
     ym0_IN[4] = -us_em.ms/(1.0+us_em.ms)*cimag(Zdot0) - (1-us_em.mu_EM)*cimag(zdot0);
     ym0_IN[5] = 0.0;
     //Comparison
-    qbpcomp(xm0_SEM, xm0_EM, ym0_IN, t0, t0c);
+    qbtbp_prim_test(xm0_SEM, xm0_EM, ym0_IN, t0, t0c);
 
 
-    cout << "---------------------------------------------------" << endl;
-    cout << "Sun  " << endl;
+    cout << "-------------------------------------------" << endl;
+    cout << "State of the Sun  " << endl;
     //Sun position & velocity in SEM ref and SEM units
     double xs0_SEM[6];
     xs0_SEM[0] = us_sem.mu_SEM;
@@ -2362,41 +2124,116 @@ void qbtbp_test_IN_EM_SEM(double t1, Ofsc &bjc, Ofsc &cjc)
     ys0_IN[4] = 1.0/(1.0+us_em.ms)*cimag(Zdot0);
     ys0_IN[5] = 0.0;
     //Comparison
-    qbpcomp(xs0_SEM, xs0_EM, ys0_IN, t0, t0c);
+    qbtbp_prim_test(xs0_SEM, xs0_EM, ys0_IN, t0, t0c);
+    cout << "-------------------------------------------" << endl;
 
 }
 
 /**
- *  \brief Comparison of the QBTBP computed via FFT or via OFS computations
+ *  \brief Test function used inside qbtbp_test_in_em_sem.
  */
-void qbtbp_test_FFT_vs_OFS(Ofsc &bjc,       //zt(t)
-                           Ofsc &cjc,       //Zt(t)
-                           int nf,          //order of the Fourier expansions
-                           int N,           //Number of points
-                           int type,        //Type of reference
-                           OdeStruct ode_s, //ode structure
-                           FBPL& fbpl)  //QBCP
+void qbtbp_prim_test(const double xe_0_sem[],
+                     const double xe_0_em[],
+                     const double ye_0_in[],
+                     double t0,
+                     double t0c)
+{
+    //State vectors
+    double xem_sem[6];
+    double xem_em[6];
+    double xe_0_in_from_sem[6];
+    double xe_0_in_from_em[6];
+    double xe_0_em_2[6];
+    double xe_0_sem_from_em[6];
+    double xe0_SEM_from_IN[6];
+
+    //------------------------------------------------------------------------------------
+    // SEM -> EM -> IN
+    //------------------------------------------------------------------------------------
+    //Planet position & momenta in SEM ref and SEM units
+    SEMvtoSEMm(t0c, xe_0_sem, xem_sem, &SEML);
+    //Planet position & momenta in EM ref and EM units
+    SEMmtoEMm(t0c, xem_sem, xem_em, &SEML);
+    //Planet position & velocity in EM ref and EM units
+    EMmtoEMv(t0, xem_em, xe_0_em_2, &SEML);
+    //Planet position & velocity in IN ref and EM units
+    EMtoIN(t0, xe_0_em_2, xe_0_in_from_sem,  &SEML);
+
+    //------------------------------------------------------------------------------------
+    // EM -> IN
+    //------------------------------------------------------------------------------------
+    //Planet position & velocities in IN ref and EM units
+    EMtoIN(t0, xe_0_em, xe_0_in_from_em,  &SEML);
+
+    cout << " The state vector of the primary is computed in SEM (Sun-Earth), " << endl;
+    cout << " EM (Earth-Moon) and IN (Inertial) coordinates, at time t0 = " << t0 << endl;
+    cout << " Then, the SEM and EM states are transposed in IN coordinates " << endl;
+    cout << " in order to compare them with the original IN state vector." << endl;
+    cout << "-------------------------------------------" << endl;
+    cout << "(SEM -> IN) vs IN     (EM->IN) vs IN " << endl;
+    for(int i = 0; i < 6; i++)
+    {
+        cout <<  fabs(xe_0_in_from_sem[i]-ye_0_in[i]) << "          " << fabs(xe_0_in_from_em[i]-ye_0_in[i]) << endl;
+    }
+    cout << "-------------------------------------------" << endl;
+
+    //------------------------------------------------------------------------------------
+    // EM -> IN -> SE
+    //------------------------------------------------------------------------------------
+    //Planet position & momenta in EM ref and EM units
+    EMvtoEMm(t0, xe_0_em, xem_em, &SEML);
+    //Planet position & momenta in SEM ref and SEM units
+    EMmtoSEMm(t0, xem_em, xem_sem, &SEML);
+    //Planet position & velocity in SEM ref and SEM units
+    SEMmtoSEMv(t0c, xem_sem, xe_0_sem_from_em, &SEML);
+    //Planet position & velocity in SEM ref and SEM units
+    INtoSEM(t0c, ye_0_in, xe0_SEM_from_IN, &SEML);
+
+
+    cout << "The same is done with EM vs SEM" << endl;
+    cout << "-------------------------------------------" << endl;
+    cout << "(EM -> SEM) vs SEM " << endl;
+
+    for(int i = 0; i < 6; i++)
+    {
+        cout <<  fabs(xe_0_sem[i]-xe_0_sem_from_em[i]) << endl;
+    }
+    cout << "-------------------------------------------" << endl;
+}
+
+
+/**
+ *  \brief Comparison of the QBTBP computed via FFT or via OFS (algebraic manipulations).
+ */
+void qbtbp_test_FFT_vs_OFS(Ofsc& bjc,             //zt(t)
+                           Ofsc& cjc,             //Zt(t)
+                           int n_order_fourier,   //order of the Fourier expansions
+                           int n_points,          //Number of points
+                           int type,              //Type of reference
+                           OdeStruct ode_s,       //ode structure
+                           FBPL& fbpl)            //QBCP
 {
     reset_ode_structure(&ode_s);
-    //For print
-    cout << std::showpos << setiosflags(ios::scientific)  << setprecision(15);
 
     //Creation of the matrices of results
-    double **alpha_INT_VS_OFS = dmatrix(0, 7, 0, N-1);
-    double **alpha_INT_VS_FFT = dmatrix(0, 7, 0, N-1);
-    double **alpha_INT        = dmatrix(0, 7, 0, N-1);
+    double** alpha_INT_VS_OFS = dmatrix(0, 7, 0, n_points-1);
+    double** alpha_INT_VS_FFT = dmatrix(0, 7, 0, n_points-1);
+    double** alpha_INT        = dmatrix(0, 7, 0, n_points-1);
 
     //Retrieving from txt files
-    double *alpha_OFS = dvector(0, 8*(nf+1)-1);
-    double *alpha_FFT = dvector(0, 8*(nf+1)-1);
+    double* alpha_OFS = dvector(0, 8*(n_order_fourier+1)-1);
+    double* alpha_FFT = dvector(0, 8*(n_order_fourier+1)-1);
 
-    cout << "Retrieving OFS coefficients " << endl;
-    read_fourier_coef(fbpl.cs.F_COEF+"alpha", alpha_OFS, nf, 0, 0, 8);
-    cout << "Retrieving FFT coefficients " << endl;
-    read_fourier_coef(fbpl.cs.F_COEF+"alpha", alpha_FFT, nf, 0, 1, 8);
 
+    cout << "-------------------------------------------" << endl;
+    cout << "Retrieving the coefficients computed via alebraic operations (OFS) " << endl;
+    read_fourier_coef(fbpl.cs.F_COEF+"alpha", alpha_OFS, n_order_fourier, 0, 0, 8);
+    cout << "Retrieving the coefficients computed via FFT " << endl;
+    read_fourier_coef(fbpl.cs.F_COEF+"alpha", alpha_FFT, n_order_fourier, 0, 1, 8);
+
+    //------------------------------------------------------------------------------------
     //Physical params in EM units
-    //--------------------------
+    //------------------------------------------------------------------------------------
     double ns = fbpl.us_em.ns;  //Sun-(Earth+Moon) mean angular motion
     double ni = fbpl.us_em.ni;  //Earth-Moon mean angular motion
     double n  = fbpl.us_em.n;   //n = ni - ns
@@ -2404,8 +2241,9 @@ void qbtbp_test_FFT_vs_OFS(Ofsc &bjc,       //zt(t)
     double ai = fbpl.us_em.ai;  //Earth-Moon mean distance
     double ms = fbpl.us_em.ms;  //Sun mass
 
+    //------------------------------------------------------------------------------------
     //QBTBP init
-    //--------------------------
+    //------------------------------------------------------------------------------------
     Ofsc ztc(bjc);
     Ofsc Ztc(cjc);
     //Derivatives
@@ -2443,12 +2281,12 @@ void qbtbp_test_FFT_vs_OFS(Ofsc &bjc,       //zt(t)
     cdouble Z0 = as*cjc.evaluate(0.0);
 
     //zdot(0) and Zdot(0)
-    Ofsc zdot(nf);
-    for(int l = -nf; l<=nf; l++) zdot.setCoef(I*(1.0+l*n)*bjc.ofs_getCoef(l), l);
+    Ofsc zdot(n_order_fourier);
+    for(int l = -n_order_fourier; l<=n_order_fourier; l++) zdot.set_coef(I*(1.0+l*n)*bjc.ofs_get_coef(l), l);
     cdouble zdot0 = zdot.evaluate(0.0);
 
-    Ofsc Zdot(nf);
-    for(int l = -nf; l<=nf; l++) Zdot.setCoef(I*(ns+l*n)*cjc.ofs_getCoef(l), l);
+    Ofsc Zdot(n_order_fourier);
+    for(int l = -n_order_fourier; l<=n_order_fourier; l++) Zdot.set_coef(I*(ns+l*n)*cjc.ofs_get_coef(l), l);
     cdouble Zdot0 = as*Zdot.evaluate(0.0);
 
     //Initial conditions
@@ -2468,10 +2306,10 @@ void qbtbp_test_FFT_vs_OFS(Ofsc &bjc,       //zt(t)
     double t   = 0.0;
     int status;
     double f[8];
-    for(int i = 0 ; i < N; i++)
+    for(int i = 0 ; i < n_points; i++)
     {
         //update
-        ti = tf*i/N;
+        ti = tf*i/n_points;
 
         //Computing the reference values
         if(type == 0)
@@ -2490,17 +2328,17 @@ void qbtbp_test_FFT_vs_OFS(Ofsc &bjc,       //zt(t)
         else
         {
             //z(t), zdot(t), Z(t) and Zdot(t) if the type of reference is the Fourier expansion (type = 1)
-            zi     =  evz(ztc, t, n, ni, ai);
-            Zi     =  evz(Ztc, t, n, ns, as);
-            zidot  =  evzdot(ztc, ztcdot, t, n, ni, ai);
-            Ziddot =  evzddot(Ztc, Ztcdot, Ztcddot, t, n, ns, as);
+            zi     =  eval_z(ztc, t, n, ni, ai);
+            Zi     =  eval_z(Ztc, t, n, ns, as);
+            zidot  =  eval_zdot(ztc, ztcdot, t, n, ni, ai);
+            Ziddot =  eval_zddot(Ztc, Ztcdot, Ztcddot, t, n, ns, as);
             rv2    =  creal(1.0/(zi*conj(zi)));
         }
 
 
         //Evalutation of FFT and OFS results
-        evaluateCoef(eval_OFS, t, n, nf, alpha_OFS, 8);
-        evaluateCoef(eval_FFT, t, n, nf, alpha_FFT, 8);
+        eval_array_coef(eval_OFS, t, n, n_order_fourier, alpha_OFS, 8);
+        eval_array_coef(eval_FFT, t, n, n_order_fourier, alpha_FFT, 8);
 
         alpha1i  = rv2;
         alpha2i  = -rv2*creal(zidot*conj(zi));
@@ -2552,7 +2390,7 @@ void qbtbp_test_FFT_vs_OFS(Ofsc &bjc,       //zt(t)
         max_INT[j]        = alpha_INT[j][0];
     }
 
-    for(int i = 1 ; i < N; i++)
+    for(int i = 1 ; i < n_points; i++)
     {
         for(int j = 0; j < 8; j++)
         {
@@ -2563,40 +2401,55 @@ void qbtbp_test_FFT_vs_OFS(Ofsc &bjc,       //zt(t)
     }
 
     //Print
-    cout << "---------------------------------------" << endl;
-    cout << "       FFT vs OFS                      " << endl;
-    cout << "---------------------------------------" << endl;
-    if(type == 0) cout << "The numerical integration is used to compute the reference values " << endl;
-    else          cout << "The Fourier expansions computed in qbtbp(int) are used to compute the reference values " << endl;
-    cout << std::showpos << setiosflags(ios::scientific)  << setprecision(3);
-    cout << "i         max REF           max REF vs OFS       max REF vs FFT      " << endl;
+    cout << "-------------------------------------------" << endl;
+    cout << "      Comparison: FFT vs OFS               " << endl;
+    cout << "-------------------------------------------" << endl;
+    cout << " - The first 8 coefficients (alpha functions) of the         " << endl;
+    cout << " QBCP vector field are compared against a common reference." << endl;
+    cout << " - Only the maxima are compared." << endl;
+
+    if(type == 0)
+    {
+        cout << "The numerical integration is used to compute the reference values (REF) " << endl;
+    }
+    else
+    {
+        cout << "Numerical evaluations of the Fourier expansions of z(t) and Z(t) " << endl;
+        cout << "are used to compute the reference values (REF) " << endl;
+    }
+    cout << "i         max(REF)        |max(REF) - max(OFS)|    |max(REF) - max(FFT)|       " << endl;
     for(int j = 0; j < 8; j++)
     {
         cout << j << "      " << max_INT[j] << "           " << max_INT_VS_OFS[j]  << "            " <<  max_INT_VS_FFT[j]  << endl;
     }
-    cout << "---------------------------------------" << endl;
+    cout << "-------------------------------------------" << endl;
 
     //Conclusion
     cout << "Conclusion: " << endl;
-    cout << "- OFS and FFT coefficients both represent quite well the real integrated system (see comparison with type == 0). " << endl;
-    cout << "- However, the FFT coefficients are better suited to represent the approximated system given by the Fourier expansions computed in qbtbp(int) (see comparison with type == 1). " << endl;
-    cout << "- This is ought to the approximations made to compute z(OFS)^{-a}, a > 0, when computing the OFS coefficients." << endl;
+    cout << "- OFS and FFT coefficients both represent quite well " << endl;
+    cout << " the real integrated system  (see comparison with type == 0). " << endl;
+    cout << "- However, the FFT coefficients are better suited " << endl;
+    cout << " to represent the approximated system given by " << endl;
+    cout << " the Fourier expansions computed in qbtbp (see comparison with type == 1). " << endl;
+    cout << "- This is ought to the approximations made to compute z(OFS)^{-a}, a > 0, " << endl;
+    cout << " when computing the OFS coefficients." << endl;
+    cout << "-------------------------------------------" << endl;
 
     //Memory release
-    free_dvector(alpha_OFS, 0, 8*(nf+1)-1);
-    free_dvector(alpha_FFT, 0, 8*(nf+1)-1);
-    free_dmatrix(alpha_INT_VS_OFS, 0, 7, 0, N-1);
-    free_dmatrix(alpha_INT       , 0, 7, 0, N-1);
-    free_dmatrix(alpha_INT_VS_FFT, 0, 7, 0, N-1);
+    free_dvector(alpha_OFS, 0, 8*(n_order_fourier+1)-1);
+    free_dvector(alpha_FFT, 0, 8*(n_order_fourier+1)-1);
+    free_dmatrix(alpha_INT_VS_OFS, 0, 7, 0, n_points-1);
+    free_dmatrix(alpha_INT       , 0, 7, 0, n_points-1);
+    free_dmatrix(alpha_INT_VS_FFT, 0, 7, 0, n_points-1);
 }
 
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 // Evaluating the QBTBP
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 /**
  *  \brief Evaluate z(t), with \f$ z(t) = e^{it} z_r(t) \f$ in Earth-Moon units.
  */
-cdouble evz(Ofsc& zt, double t, double n, double ni, double ai)
+cdouble eval_z(Ofsc& zt, double t, double n, double ni, double ai)
 {
     return ai*(cos(ni*t)+I*sin(ni*t))*zt.evaluate(n*t);
 }
@@ -2604,7 +2457,7 @@ cdouble evz(Ofsc& zt, double t, double n, double ni, double ai)
 /**
  *  \brief Evaluate dz(t)/dt, with \f$ z(t) = e^{it} z_r(t) \f$ in Earth-Moon units.
  */
-cdouble evzdot(Ofsc& zt, Ofsc& ztdot, double t, double n, double ni, double ai)
+cdouble eval_zdot(Ofsc& zt, Ofsc& ztdot, double t, double n, double ni, double ai)
 {
     return ai*(cos(ni*t)+I*sin(ni*t))*(ztdot.evaluate(n*t) + I*ni*zt.evaluate(n*t));
 }
@@ -2612,29 +2465,30 @@ cdouble evzdot(Ofsc& zt, Ofsc& ztdot, double t, double n, double ni, double ai)
 /**
  *  \brief Evaluate d2z(t)/dt2, with \f$ z(t) = e^{it} z_r(t) \f$ in Earth-Moon units.
  */
-cdouble evzddot(Ofsc& zt, Ofsc& ztdot, Ofsc& ztddot, double t, double n, double ni, double ai)
+cdouble eval_zddot(Ofsc& zt, Ofsc& ztdot, Ofsc& ztddot, double t, double n, double ni, double ai)
 {
     return ai*(cos(ni*t)+I*sin(ni*t))*( 2*I*ni*ztdot.evaluate(n*t) - ni*ni*zt.evaluate(n*t) + ztddot.evaluate(n*t));
 }
 
 
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 //Evaluation of parts or all the alpha/beta routines at a given time
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 /**
- *  \brief Evaluation of Fourier series given as an array of coefficients, at a given time t.
+ *  \brief Evaluation of Fourier series given as an array of coefficients,
+ *         at a given time t.
  */
-void evaluateCoef(double *alpha, double t, double omega, int order, double *params, int number)
+void eval_array_coef(double* alpha, double t, double omega, int n_order, double* params, int number)
 {
-    double *header;
+    double* header;
     int l;
-    double cR[order];
-    double sR[order];
+    double cR[n_order];
+    double sR[n_order];
 
     cR[0] = cos(omega*t);
     sR[0] = sin(omega*t);
 
-    for(int i = 1; i< order; i++)
+    for(int i = 1; i< n_order; i++)
     {
         //From trigo formulae (fastest)
         cR[i] =  cR[i-1]*cR[0] - sR[i-1]*sR[0];
@@ -2647,56 +2501,57 @@ void evaluateCoef(double *alpha, double t, double omega, int order, double *para
         //sR[i] =  sin((i+1)*omega*t);
     }
 
-    for(l = 0, header = params; l < number ; l++, header+=(order+1))
+    for(l = 0, header = params; l < number ; l++, header+=(n_order+1))
     {
         alpha[l] = 0.0;
-        if(l==1 || l== 4 || l==7 || l==9 || l==11 || l==13) alpha[l] = evaluateOdd(order, header, sR);    //Odd funtions (alpha_2,5,8,10,12,14)
-        else  alpha[l] = evaluateEven(order, header, cR);                                                  //Even functions
+        if(l==1 || l== 4 || l==7 || l==9 || l==11 || l==13) alpha[l] = eval_odd_trigo(n_order, header, sR);    //Odd funtions (alpha_2,5,8,10,12,14)
+        else  alpha[l] = eval_even_trigo(n_order, header, cR);                                                 //Even functions
     }
 }
 
 /**
- *  \brief Evaluation of the time derivatives Fourier series given as an array of coefficients, at a given time t.
+ *  \brief Evaluation of the time derivatives Fourier series given as an array of
+ *         coefficients, at a given time t.
  */
-void evaluateCoefDerivatives(double *alpha, double t, double omega, int order, double *params, int number)
+void eval_array_coef_der(double* alpha, double t, double omega, int n_order, double* params, int number)
 {
-    double *header;
+    double* header;
     int l;
-    double cR[order];
-    double sR[order];
+    double cR[n_order];
+    double sR[n_order];
 
     cR[0] = cos(omega*t);
     sR[0] = sin(omega*t);
 
-    for(int i = 1; i< order; i++)
+    for(int i = 1; i< n_order; i++)
     {
         cR[i] =  cR[i-1]*cR[0] - sR[i-1]*sR[0];
         sR[i] =  sR[i-1]*cR[0] + cR[i-1]*sR[0];
     }
 
-    for(l = 0, header = params; l < number ; l++, header+=(order+1))
+    for(l = 0, header = params; l < number ; l++, header+=(n_order+1))
     {
         alpha[l] = 0.0;
         if(l==1 || l== 4 || l==7 || l==9 || l==11 || l==13)
         {
-            alpha[l] = evaluateOddDerivative(omega , order, header, cR); //Odd funtions (alpha_2,5,8,10,12,14)
+            alpha[l] = eval_odd_trigo_der(omega , n_order, header, cR); //Odd funtions (alpha_2,5,8,10,12,14)
         }
-        else  alpha[l] = evaluateEvenDerivative(omega, order, header, sR);   //Even functions
+        else  alpha[l] = eval_even_trigo_der(omega, n_order, header, sR);   //Even functions
     }
 }
 
 
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 //Evalution of individual alpha/beta
 //or derivative of alpha/beta of a given type (Odd or Even)
-//-----------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 /**
  *  \brief Evaluate the sum \f$ \sum_{k = 0}^N coef(k) cos(k \omega t)  \f$.
  */
-double evaluateEven(int order, double *coef, double *cR)
+double eval_even_trigo(int n_order, double* coef, double* cR)
 {
     double result = 0.0;
-    for(int i= order; i>=1; i--) result += coef[i]*cR[i-1];//even type
+    for(int i= n_order; i>=1; i--) result += coef[i]*cR[i-1];//even type
     result += coef[0];
     return result;
 }
@@ -2704,790 +2559,474 @@ double evaluateEven(int order, double *coef, double *cR)
 /**
  *  \brief Evaluate the sum \f$ \sum_{k = 0}^N - k \omega coef(k) sin(k \omega t)  \f$.
  */
-double evaluateEvenDerivative(double omega,  int order, double *coef, double *sR)
+double eval_even_trigo_der(double omega,  int n_order, double* coef, double* sR)
 {
     double result = 0.0;
-    for(int i= order; i>=1; i--) result += -omega*i*coef[i]*sR[i-1];//even type
+    for(int i= n_order; i>=1; i--) result += -omega*i*coef[i]*sR[i-1];//even type
     return result;
 }
 
 /**
  *  \brief Evaluate the sum \f$ \sum_{k = 0}^N coef(k) sin(k \omega t)  \f$.
  */
-double evaluateOdd(int order, double *coef, double *sR)
+double eval_odd_trigo(int n_order, double* coef, double* sR)
 {
     double result = 0.0;
-    for(int i= order; i>=1; i--) result += coef[i]*sR[i-1]; //odd type
+    for(int i= n_order; i>=1; i--) result += coef[i]*sR[i-1]; //odd type
     return result;
 }
 
 /**
  *  \brief Evaluate the sum \f$ \sum_{k = 0}^N  k \omega coef(k) cos(k \omega t)  \f$.
  */
-double evaluateOddDerivative( double omega,  int order, double *coef, double *cR)
+double eval_odd_trigo_der( double omega,  int n_order, double* coef, double* cR)
 {
     double result = 0.0;
-    for(int i= order; i>=1; i--) result += omega*i*coef[i]*cR[i-1];//odd type
+    for(int i= n_order; i>=1; i--) result += omega*i*coef[i]*cR[i-1];//odd type
     return result;
 }
 
 
-
-//-------------------------------------------------------------------------------------------------------------------------------------------------------------------
-// Deprecated routine for the computation of the alphas and betas
-//-------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
+// Computation of the BCP
+//----------------------------------------------------------------------------------------
 /**
- *  \brief Computation of the coefficients alphas and betas that appear in the QBCP vector field. NOT USED ANYMORE
- *         These computations are performed via algebraic manipulation on the Fourier series, contrary to other similar routines
- *         Such as qbtbp_ofs_fft_alpha (for the alpha coefficients) that makes use of FFT procedures.
- **/
-void qbtbp_ofs_storage(   Ofts< Ofsd > &zr_ofts,//zr_ofts = normalized Earth-Moon motion
-                          Ofts< Ofsd > &Zr_ofts,//Zr_ofts = normalized Sun-(Earth+Moon) motion
-                          Ofts< Ofsd > &z1,     //z1 = \bar{zr_ofts}
-                          Ofts< Ofsd > &z2,     //z2 = \bar{zr_ofts}^(-3/2)
-                          Ofts< Ofsd > &z3,     //z3 = zr_ofts^(-1/2)
-                          Ofts< Ofsd > &z4,     //z4 = z2*z3 = zr_ofts^(-1/2)*\bar{zr_ofts}^(-3/2)
-                          Ofts< Ofsd > &z5,     //z5 = \bar{zr_ofts}^(-1/2)
-                          Ofts< Ofsd > &z6,     //z6 = z3*z5 = (zr_ofts*\bar{zr_ofts})^(-1/2)
-                          Ofts< Ofsd > &a1,     //a1 = mu*exp(itheta)*zr_ofts
-                          Ofts< Ofsd > &a2,     //a2 = epsilon*a1
-                          Ofts< Ofsd > &a3,     //a3 = Zr_ofts-mu*exp(itheta)*epsilon*zr_ofts
-                          Ofts< Ofsd > &a4,     //a4 = a3^(-1/2).
-                          Ofts< Ofsd > &a5,     //a5 = \bar{a3}
-                          Ofts< Ofsd > &a6,     //a6 = a5^(-3/2).
-                          Ofts< Ofsd > &a7,     //a7 = a4*a6,
-                          Ofts< Ofsd > &b1,     //b1 = (1-mu)*exp(ithetb)*zr_ofts
-                          Ofts< Ofsd > &b2,     //b2 = epsilon*b1
-                          Ofts< Ofsd > &b3,     //b3 = Zr_ofts+(1-mu)*exp(ithetb)*epsilon*zr_ofts
-                          Ofts< Ofsd > &b4,     //b4 = b3^(-1/2)
-                          Ofts< Ofsd > &b5,     //b5 = \bar{b3}
-                          Ofts< Ofsd > &b6,     //b6 = b5^(-3/2)
-                          Ofts< Ofsd > &b7,     //b7 = b4*b6,
-                          Ofts< Ofsd > &Pm,     //Pm = -ms/as^2*exp(-itheta)*b7 + ms/as^2*exp(-itheta)*a7 - z4
-                          Ofts< Ofsd > &Qm,     //Qm = -ns^2*mu*b7 - ns^2*(1-mu)*a7
-                          Ofsd  &Pfm,            //Pfm = Pm(j) at order n
-                          Ofsd  &Qfm,            //Qfm = Qm(j) at order n
-                          Ofsd  &ufm,            //ufm = zr_ofts(j) at order n
-                          Ofsd  &vfm,            //vfm = Zr_ofts(j) at order n
-                          Ofsd &sigma1,          //sigma1 = exp(-itheta)
-                          Ofsd &sigma2,          //sigma2 = exp(+itheta)
-                          int nf,                       //order of the Fourier expansions
-                          FBPL& fbpl)             //QBCP
+ *  \brief Main routine to compute the Bicircular Problem in Fourier series format.
+ *         Note that this routine computes and stores the coefficients of the BCP with the
+ *         same format as the QBCP. Since the time-dependent coefficients of the BCP are
+ *         only of order one in theta, this leads to very sparse Fourier series.
+ *         However, the QBCP format is kept so that the BCP can be used in the same
+ *         routines.
+ */
+void bcp()
 {
-    //Physical param
-    double n  = fbpl.us_em.n;
-    double mu = fbpl.us_em.mu_EM;
-    double ns = fbpl.us_em.ns;
-    double as = fbpl.us_em.as;
-    double ms = fbpl.us_em.ms;
-    double muSE = fbpl.us_em.mu_SE;
-
-    double eps = 1.0/as;                     //length epsilon
-    int order  = zr_ofts.getOrder();         //order of the Taylor expansion
-    int nv     = zr_ofts.getNV();            //number of variables of the Taylor expansion
-    int cnv    = zr_ofts.getCVariables();    //number of variables of the Fourier coefficient
-
-    //----------------------------------------------------------------------
-    // Init
-    //----------------------------------------------------------------------
-    Ofsd bj(nf);
-    Ofsd cj(nf);
-    Ofsc bjc(nf);
-    Ofsc cjc(nf);
-
-    //r^2  = 1/alpha1
-    Ofsd r2(nf);                             //Ofs double version
-    Ofts< Ofsd >  zr2(nv, order, cnv, nf);   //Ofts version
-
-
-    //The pre computations
-    Ofsc d1(nf);
-    Ofsc d2(nf);
-    Ofsc d3(nf);
-    Ofsc d31(nf);
-    Ofsc d4(nf);
-    Ofsc d41(nf);
-    Ofsc d5(nf);
-    Ofsc d51(nf);
-    Ofsc d6(nf);
-    Ofsc d61(nf);
-    Ofsc d7(nf);
-    Ofsc d71(nf);
-    Ofsc d8(nf);
-    Ofsc d81(nf);
-    Ofsc d9(nf);
-    Ofsc d91(nf);
-    Ofsc d10(nf);
-    Ofsc d101(nf);
-    Ofsc d11(nf);
-    Ofsc d111(nf);
-    Ofsc d12(nf);
-    Ofsc d121(nf);
-
-
-    Ofsc d1r(nf);
-    Ofsc d1i(nf);
-    Ofsc d3r(nf);
-    Ofsc d3i(nf);
-    Ofsc d4r(nf);
-    Ofsc d4i(nf);
-    Ofsc d5r(nf);
-    Ofsc d5i(nf);
-    Ofsc d6r(nf);
-    Ofsc d6i(nf);
-    Ofsc d7r(nf);
-    Ofsc d7i(nf);
-    Ofsc d8r(nf);
-    Ofsc d8i(nf);
-
-    Ofsc d9r(nf);
-    Ofsc d9i(nf);
-    Ofsc d10r(nf);
-    Ofsc d10i(nf);
-    Ofsc d11r(nf);
-    Ofsc d11i(nf);
-    Ofsc d12r(nf);
-    Ofsc d12i(nf);
-
-    //The alphas
-    Ofsd alpha1(nf);
-    Ofsd alpha6(nf);
-    Ofs<cdouble > alpha1c(nf);
-    Ofs<cdouble > alpha2c(nf);
-    Ofs<cdouble > alpha3c(nf);
-    Ofs<cdouble > alpha4c(nf);
-    Ofs<cdouble > alpha5c(nf);
-    Ofs<cdouble > alpha6c(nf);
-    Ofs<cdouble > alpha7c(nf);
-    Ofs<cdouble > alpha8c(nf);
-    //Note that alpha9 is not defined in Andreu (the numerotation seems to have jumped one term)
-    //Note alpha10...19 are defined in Andreu but not used here
-    //For consistency, their name have not been used for other variables
-    Ofs<cdouble > alpha20c(nf);
-    Ofs<cdouble > alpha21c(nf);
-    Ofs<cdouble > alpha22c(nf);
-    Ofs<cdouble > alpha23c(nf);
-    Ofs<cdouble > alpha24c(nf);
-    Ofs<cdouble > alpha25c(nf);
-    Ofs<cdouble > alpha26c(nf);
-    Ofs<cdouble > alpha27c(nf);
-    Ofs<cdouble > alpha28c(nf);
-
-    //sigma1c & sigma2c
-    Ofs<cdouble > sigma1c(nf);
-    Ofs<cdouble > sigma2c(nf);
-    doubleToComplex(sigma1, sigma1c);
-    doubleToComplex(sigma2, sigma2c);
-
-    //----------------------------------------------------------------------
-    // bj and cj
-    //----------------------------------------------------------------------
-    //From ots to ofs
-    fts2fs(&bj, zr_ofts, eps);
-    fts2fs(&cj, Zr_ofts, eps);
-    //Store in txt files
-    ofstream curentStream;
-    curentStream.open("data/qbtbp/bj.txt");
-    curentStream << "bj: \n" << bj << endl;
-    curentStream.close();
-    curentStream.open("data/qbtbp/cj.txt");
-    curentStream << "cj: \n" << cj << endl;
-    curentStream.close();
-
-    //----------------------------------------------------------------------
-    // bj and cj in complex form
-    //----------------------------------------------------------------------
-    //From double to cdouble
-    doubleToComplex(bj, bjc);
-    doubleToComplex(cj, cjc);
-    //Store in txt files
-    curentStream.open("data/qbtbp/bjc.txt");
-    curentStream <<  bjc << endl;
-    curentStream.close();
-    curentStream.open("data/qbtbp/cjc.txt");
-    curentStream <<  cjc << endl;
-    curentStream.close();
-
-
-    //----------------------------------------------------------------------
-    // zr and Zr in complex form and derivatives. We recall that:
-    //sigma1 = exp(-itheta)
-    //sigma2 = exp(+itheta
-    //----------------------------------------------------------------------
-    Ofsc zr(bjc);
-    Ofsc Zr(cjc);
-    //dot
-    Ofsc zrdot(zr);
-    zrdot.dot(n);
-    Ofsc Zrdot(Zr);
-    Zrdot.dot(n);
-    //ddot
-    Ofsc zrddot(zrdot);
-    zrddot.dot(n);
-    Ofsc Zrddot(Zrdot);
-    Zrddot.dot(n);
-    //conj
-    Ofsc zrc(zr);
-    zrc.conjugate();
-    Ofsc Zrc(Zr);
-    Zrc.conjugate();
-
-    //Order 0:
-    //----------------------------------
-    //d1 = zr*conj(zr)
-    d1.ofs_prod(zr, zrc);
-    //d2 = Z*conj(Z) = as^2*Zr*conj(Zr)
-    d2.ofs_mprod(Zr, Zrc, as*as+0.0*I);
-    //d31 = zr*conj(Zr)
-    d31.ofs_prod(zr, Zrc);
-    //d3 = z*conj(Z) = as*sigma2*zr*conj(Zr)
-    d3.ofs_mprod(sigma2c, d31, as+0.0*I);
-    //d41 = Zr*conj(zr)
-    d41.ofs_prod(Zr, zrc);
-    //d4 = Z*conj(z) = as*sigma1*Zr*conj(zr)
-    d4.ofs_mprod(sigma1c, d41, as+0.0*I);
-    //d1r = real(d1), d1i = imag(d1)
-    realPart(d1, d1r);
-    imagPart(d1, d1i);
-    //d3r = real(d3), d3i = imag(d3)
-    realPart(d3, d3r);
-    imagPart(d3, d3i);
-    //d4r = real(d4), d4i = imag(d4)
-    realPart(d4, d4r);
-    imagPart(d4, d4i);
-
-
-    //First order:
-    //----------------------------------
-    //d51 = dot(zr) + i*zr
-    d51.ofs_fsum(zrdot, 1.0+0.0*I, zr, I);
-    //d5 = dot(z)*conj(z)
-    d5.ofs_prod(d51, zrc);
-
-    //d61 = sigma2*d51 = exp(int)*(dot(zr) + i*zr)
-    d61.ofs_prod(sigma2c, d51);
-    //d6 = dot(z)*conj(Z) = as*exp(int)*(dot(zr) + i*zr)*conj(Zr)
-    d6.ofs_mprod(d61, Zrc, as+0.0*I);
-
-    //d71 = dot(Zr) + i*ns*Zr
-    d71.ofs_fsum(Zrdot, 1.0+0.0*I, Zr, I*ns);
-    //d7 = dot(Z)*conj(Z) = as*as*(dot(Zr) + i*ns*Zr)*conj(Zr)
-    d7.ofs_mprod(d71, Zrc, as*as+0.0*I);
-
-    //d81 = sigma1*d71 = exp(-int)*(dot(Zr) + i*ns*Zr)
-    d81.ofs_sprod(sigma1c, d71);
-    //d8 = dot(Z)*conj(z) = as*exp(-int)*(dot(Zr) + i*ns*Zr)*conj(z)
-    d8.ofs_mprod(d81, zrc, as+0.0*I);
-
-    //d5r = real(d5), d5i = imag(d5)
-    realPart(d5, d5r);
-    imagPart(d5, d5i);
-    //d6r = real(d6), d6i = imag(d6)
-    realPart(d6, d6r);
-    imagPart(d6, d6i);
-    //d7r = real(d7), d7i = imag(d7)
-    realPart(d7, d7r);
-    imagPart(d7, d7i);
-    //d8r = real(d8), d8i = imag(d8)
-    realPart(d8, d8r);
-    imagPart(d8, d8i);
-
-    //Second order:
-    //----------------------------------
-    //d91 = ddot(zr) +2*i*dot(zr) - zr
-    d91.ofs_fsum(zrddot, 1.0+0.0*I, zrdot, 2.0*I);
-    d91.ofs_fsum(d91, 1.0+0.0*I, zr, -1.0+0.0*I);
-    //d9 = ddot(z)*conj(z)
-    d9.ofs_prod(d91, zrc);
-
-    //d101 = sigma2*d91 = exp(int)*(ddot(zr) +2*i*dot(zr) - zr)
-    d101.ofs_prod(sigma2c, d91);
-    //d10 = ddot(z)*conj(Z) = as*exp(int)*(ddot(zr) +2*i*dot(zr) - zr)*conj(Zr)
-    d10.ofs_mprod(d101, Zrc, as+0.0*I);
-
-    //d111 = ddot(Zr) +2*i*ns*dot(Zr) - ns*ns*Zr
-    d111.ofs_fsum(Zrddot, 1.0+0.0*I, Zrdot, 2*ns*I);
-    d111.ofs_fsum(d111, 1.0+0.0*I, Zr, -ns*ns+0.0*I);
-    //d11 = ddot(Z)*conj(Z) = as*as*(ddot(Zr) +2*i*ns*dot(Zr) - ns*ns*Zr)*conj(Zr)
-    d11.ofs_mprod(d111, Zrc, as*as+0.0*I);
-
-    //d121 = sigma1*d111 = exp(-int)*(ddot(Zr) +2*i*ns*dot(Zr) - ns*ns*Zr)
-    d121.ofs_prod(sigma1c, d111);
-    //d12 = ddot(Z)*conj(z) = as*exp(-int)*(ddot(Zr) +2*i*ns*dot(Zr) - ns*ns*Zr)*conj(zr)
-    d12.ofs_mprod(d121, zrc, as+0.0*I);
-
-
-    //d9r = real(d9), d9i = imag(d9)
-    realPart(d9, d9r);
-    imagPart(d9, d9i);
-
-    //d10r = real(d10), d10i = imag(d10)
-    realPart(d10, d10r);
-    imagPart(d10, d10i);
-
-    //d11r = real(d11), d11i = imag(d11)
-    realPart(d11, d11r);
-    imagPart(d11, d11i);
-
-    //d12r = real(d12), d12i = imag(d12)
-    realPart(d12, d12r);
-    imagPart(d12, d12i);
-
-
-    //----------------------------------------------------------------------
-    // The alphas
-    //----------------------------------------------------------------------
-    //r^2 (square radius) = 1/alpha1 = alpha27
-    //----------------------------------------
-    alpha27c.ccopy(d1);
-    //Storage in txt file
-    curentStream.open((fbpl.cs.F_COEF+"r2.txt").c_str());
-    curentStream << alpha27c << endl;
-    curentStream.close();
-    //Storage in txt file (alpha27 !!)
-    ofs_sst(alpha27c, fbpl.cs.F_COEF+"alpha27", 1, "");
-    //-----------------------------
-
-    //alpha6
-    //-----------------------------
-    //z4 = 1/r2 = z^(-1/2)*zbar^(-1/2)
-    z4.zero();
-    z4.ofts_sprod(z3, z5);
-    //alpha6
-    fts2fs(&alpha6, z4, eps);
-    //alpha6c
-    doubleToComplex(alpha6, alpha6c);
-    //Storage in txt file
-    ofs_sst(alpha6c, fbpl.cs.F_COEF+"alpha6", 1, "");
-    //-----------------------------
-
-    //alpha25 = c2 * alpha6
-    //-----------------------------
-    alpha25c.ofs_mult(alpha6c, cn(fbpl, 2)+0.0*I);
-    //Storage in txt file
-    ofs_sst(alpha25c, fbpl.cs.F_COEF+"alpha25", 1, "");
-    //-----------------------------
-
-    //alpha1
-    //-----------------------------
-    //alpha1 = alpha6*alpha6
-    alpha1.ofs_sprod(alpha6,alpha6);
-    //alpha1c
-    doubleToComplex(alpha1, alpha1c);
-    //Storage in txt file
-    ofs_sst(alpha1c, fbpl.cs.F_COEF+"alpha1", 1, "");
-    //-----------------------------
-
-    //alpha2
-    //-----------------------------
-    //alpha2c = -real(dot(z)*conj(z))*1/r2
-    alpha2c.ofs_mprod(alpha1c, d5r, -1.0+0.0*I);
-    //force the zero order to zero (odd function)
-    alpha2c.setCoef(0.0, 0);
-    //force the odd nature
-    for(int l = -nf; l< 0; l++) alpha2c.setCoef(+0.0*I-alpha2c.ofs_getCoef(-l), l);
-    //Storage in txt file
-    ofs_sst(alpha2c, fbpl.cs.F_COEF+"alpha2", 0, "");
-    //-----------------------------
-
-    //alpha3
-    //-----------------------------
-    //alpha3c = +imag(dot(z)*conj(z))*1/r2
-    alpha3c.ofs_sprod(alpha1c, d5i);
-    //Storage in txt file
-    ofs_sst(alpha3c, fbpl.cs.F_COEF+"alpha3", 1, "");
-    //-----------------------------
-
-    //alpha4
-    //-----------------------------
-    alpha4c+= (+0.0*I-ms/(1+ms))*d12r;
-    //Storage in txt file
-    ofs_sst(alpha4c, fbpl.cs.F_COEF+"alpha4", 1, "");
-    //-----------------------------
-
-    //alpha5
-    //-----------------------------
-    alpha5c+= (+0.0*I-ms/(1+ms))*d12i;
-    //Storage in txt file
-    ofs_sst(alpha5c, fbpl.cs.F_COEF+"alpha5", 0, "");
-    //-----------------------------
-
-    //alpha7
-    //-----------------------------
-    //alpha7
-    alpha7c.ofs_sprod(alpha1c, d4r);
-    //Storage in txt file
-    ofs_sst(alpha7c, fbpl.cs.F_COEF+"alpha7", 1, "");
-    //-----------------------------
-
-    //alpha8
-    //-----------------------------
-    alpha8c.ofs_sprod(alpha1c, d4i);
-    alpha8c.setCoef(0.0, 0);
-    //Storage in txt file
-    ofs_sst(alpha8c, fbpl.cs.F_COEF+"alpha8", 0, "");
-    //-----------------------------
-
-
-    //----------------------------------------------------------------------
-    // alpha28 = 1/sqrt(tilde(alpha7)^2 + tilde(alpha8)^2)
-    //----------------------------------------------------------------------
-    Ofs<cdouble > alpha78c(nf);
-    alpha78c.ofs_smprod(alpha7c, alpha7c, 1.0/(as*as)+0.0*I);
-    alpha78c.ofs_smprod(alpha8c, alpha8c, 1.0/(as*as)+0.0*I);
-
-    //Normalized version
-    Ofs<cdouble > e1(nf);
-    e1.ofs_smult(alpha78c, 1.0/alpha78c.ofs_getCoef(0));
-
-    //e1^(-3/2)
-    Ofs<cdouble > e2(nf);
-    e2.ofs_epspow(e1, -1.0/2+0.0*I);
-    //e2*cpow(alpha78c.getCoef(0), -1.0/2)
-    alpha28c.ofs_smult(e2, cpow(alpha78c.ofs_getCoef(0), -1.0/2+0.0*I));
-
-    //Test: uncomment to check
-    //---------------------------------------------------------------------
-//    double alpha = -1.0/2;
-//    double t = 1.0;
-//    cdouble a78i   = alpha78c.evaluate(n*t);
-//    cdouble a78i32 = cpow(a78i, alpha);
-//    cdouble alpha28ci    = alpha28c.evaluate(n*t);
-//    cout <<  setiosflags(ios::scientific) << setprecision(15);
-//    cout << "------------------------------------------------" << endl;
-//    cout << " Test of the inverse alpha28 = pow(a78, -1/2)" << endl;
-//    cout << "------------------------------------------------" << endl;
-//    cout << "alpha28(t) = " << creal(alpha28ci) << "  " << cimag(alpha28ci) << endl;
-//    cout << "pow(a78, -1/2) = " << creal(a78i32) << "  " << cimag(a78i32) << endl;
-//    cout << "alpha28(t)-pow(a78, -1/2) = " << creal(alpha28ci)-creal(a78i32)
-//         << "  " << cimag(alpha28ci)-cimag(a78i32) << endl;
-//    cout << "------------------------------------------------" << endl;
-    //---------------------------------------------------------------------
-
-    //Storage in txt file
-    ofs_sst(alpha28c, fbpl.cs.F_COEF+"alpha28", 1, "");
-    //-----------------------------
-
-    //alpha20 = alpha6*alpha28*ms/as^2
-    //-----------------------------
-    //alpha20
-    alpha20c.ofs_smprod(alpha6c, alpha28c, ms/(as*as)+0.0*I);
-    //Storage in txt file
-    ofs_sst(alpha20c, fbpl.cs.F_COEF+"alpha20", 1, "");
-    //-----------------------------
-
-
-    //alpha21 = alpha28*alpha28
-    //-----------------------------
-    //alpha21
-    alpha21c.ofs_prod(alpha28c, alpha28c);
-    //Storage in txt file
-    ofs_sst(alpha21c, fbpl.cs.F_COEF+"alpha21", 1, "");
-    //-----------------------------
-
-    //alpha22 = alpha28*alpha28*tilde(alpha7) = alpha21*alpha7/as
-    //-----------------------------
-    //alpha22
-    alpha22c.ofs_mprod(alpha7c, alpha21c, 1.0/as+0.0*I);
-    //Storage in txt file
-    ofs_sst(alpha22c, fbpl.cs.F_COEF+"alpha22", 1, "");
-    //-----------------------------
-
-    //alpha23 = alpha28*alpha28*tilde(alpha8) = alpha21*alpha8/as
-    //-----------------------------
-    //alpha23
-    alpha23c.ofs_mprod(alpha8c, alpha21c, 1.0/as+0.0*I);
-    //Storage in txt file
-    ofs_sst(alpha23c, fbpl.cs.F_COEF+"alpha23", 0, "");
-    //-----------------------------
-
-
-    //Derivatives useful in the forthcoming computations
-    Ofs<cdouble > alpha1dotc(alpha1c);
-    Ofs<cdouble > alpha2dotc(alpha2c);
-    Ofs<cdouble > alpha3dotc(alpha3c);
-    alpha1dotc.dot(n);
-    alpha2dotc.dot(n);
-    alpha3dotc.dot(n);
-
-    //Spares
-    Ofsc sp1(nf);
-    Ofsc sp2(nf);
-    Ofsc sp3(nf);
-    Ofsc sp4(nf);
-    Ofsc sp5(nf);
-    Ofsc sp6(nf);
-    Ofsc sp7(nf);
-    Ofsc sp8(nf);
-    //sp1 = alpha2dotc*alpha1c - alpha1dotc*alpha2c
-    sp1.ofs_prod(alpha2dotc, alpha1c);
-    sp2.ofs_prod(alpha1dotc, alpha2c);
-    sp1.ofs_fsum(sp1,  1.0+0.0*I, sp2,  -1.0+0.0*I); //fsum used in place
-    //sp4 = alpha27^2*(alpha2dotc*alpha1c - alpha1dotc*alpha2c)
-    sp3.ofs_prod(alpha27c, alpha27c);
-    sp4.ofs_prod(sp3, sp1);
-    //sp5 = alpha2^2+alpha3^2
-    sp5.ofs_prod(alpha2c, alpha2c);
-    sp6.ofs_prod(alpha3c, alpha3c);
-    sp5.ofs_fsum(sp5, 1.0+0.0*I, sp6, 1.0+0.0*I); //fsum used in place
-    //sp7 = alpha27*(alpha2^2+alpha3^2)
-    sp7.ofs_prod(alpha27c, sp5);
-    //sp8 = - sp4 - sp7
-    //BEWARE: the definition of alpha24 has changed, so alpha6c*c1 is not added anymore!
-    sp8.ofs_smult(sp7,  -1.0+0.0*I);
-    sp8.ofs_smult(sp4,  -1.0+0.0*I);
-
-    //alpha24
-    //-----------------------------
-    alpha24c.ofs_fsum(sp8, fbpl.cs.c1+0.0*I, alpha4c, 1.0/fbpl.cs.gamma+0.0*I);
-    //Storage in txt file
-    ofs_sst(alpha24c, fbpl.cs.F_COEF+"alpha24", 1, "");
-    //WARNING: alpha9 is set equal to alpha24 for now (needs improvement, avoid double definition!)
-    ofs_sst(alpha24c, fbpl.cs.F_COEF+"alpha9", 1, "");
-    //-----------------------------
-
-    //Spares are used again
-    //sp1 = alpha3dotc*alpha1c - alpha1dotc*alpha3c
-    sp1.ofs_prod(alpha3dotc, alpha1c);
-    sp2.ofs_prod(alpha1dotc, alpha3c);
-    sp1.ofs_fsum(sp1, 1.0+0.0*I, sp2, -1.0+0.0*I); //fsum used in place
-    //sp4 = alpha27^2*(alpha3dotc*alpha1c - alpha1dotc*alpha3c)
-    sp4.ofs_prod(sp3, sp1);
-
-    //alpha26
-    //-----------------------------
-    alpha26c.ofs_fsum(sp4, fbpl.cs.c1+0.0*I, alpha5c, 1.0/fbpl.cs.gamma+0.0*I);
-    //Storage in txt file
-    ofs_sst(alpha26c, fbpl.cs.F_COEF+"alpha26", 0, "");
-    //WARNING: alpha10 is set equal to alpha26 for now (needs improvement, avoid double definition!)
-    ofs_sst(alpha26c, fbpl.cs.F_COEF+"alpha10", 0, "");
-    //-----------------------------
-
-
-    //---------------------------------------------------------------------------------------------------------------------------------
-    // The gammas
-    //---------------------------------------------------------------------------------------------------------------------------------
-    Ofsc g1(nf);
-    Ofsc g2(nf);
-    Ofsc g3(nf);
-    Ofsc g31(nf);
-    Ofsc g32(nf);
-    Ofsc g4(nf);
-    Ofsc g41(nf);
-    Ofsc g42(nf);
-    Ofsc g51(nf);
-    Ofsc g61(nf);
-
-    //g1 = d7r + mu*mu*d5r - mu*(d6r+d8r);
-    g1.ofs_fsum(d7r, 1.0+0.0*I, d5r,  mu*mu+0.0*I);
-    g1.ofs_fsum(g1,  1.0+0.0*I, d6r, -mu+0.0*I);
-    g1.ofs_fsum(g1,  1.0+0.0*I, d8r, -mu+0.0*I);
-
-    //g2 = d7i + mu*mu*d5i - mu*(d6i+d8i);
-    g2.ofs_fsum(d7i, 1.0+0.0*I, d5i,  mu*mu+0.0*I);
-    g2.ofs_fsum(g2 , 1.0+0.0*I, d6i, -mu+0.0*I);
-    g2.ofs_fsum(g2 , 1.0+0.0*I, d8i, -mu+0.0*I);
-
-    //g31 = re(ddot(Z)*conj(zh)) = re(ddot(Z)*conj(Z)) - mu*re(ddot(Z)*conj(z)) = d11r - mu*d12r
-    g31.ofs_fsum(d11r, 1.0+0.0*I, d12r, -mu+0.0*I);
-    //g32 = re(ddot(z)*conj(zh)) = re(ddot(z)*conj(Z)) - mu*re(ddot(z)*conj(z)) = d10r - mu*d9r
-    g32.ofs_fsum(d10r, 1.0+0.0*I, d9r, -mu+0.0*I);
-    //g3 = mu/(1-mu+ms)*(ms/(1+ms)*g31 + (1-mu)*g32)
-    g3.ofs_fsum(g31, mu/(1-mu+ms)*ms/(1+ms)+0.0*I, g32, mu/(1-mu+ms)*(1-mu)+0.0*I);
-
-    //g41 = im(ddot(Z)*conj(zh)) = im(ddot(Z)*conj(Z)) - mu*im(ddot(Z)*conj(z)) = d11i - mu*d12i
-    g41.ofs_fsum(d11i, 1.0+0.0*I, d12i, -mu+0.0*I);
-    //g42 = im(ddot(z)*conj(zh)) = im(ddot(z)*conj(Z)) - mu*im(ddot(z)*conj(z)) = d10i - mu*d9i
-    g42.ofs_fsum(d10i, 1.0+0.0*I, d9i, -mu+0.0*I);
-    //g4 = mu/(1-mu+ms)*(ms/(1+ms)*g41 + (1-mu)*g42)
-    g4.ofs_fsum(g41, mu/(1-mu+ms)*ms/(1+ms)+0.0*I, g42, mu/(1-mu+ms)*(1-mu)+0.0*I);
-
-    //g51 = re(z*zh) = re(z*conj(Z)) - mu*Re(z*conj(z))
-    g51.ofs_fsum(d3r, 1.0+0.0*I, d1r, -mu+0.0*I);
-    //g61 = im(z*zh) = im(z*conj(Z)) - mu*im(z*conj(z))
-    g61.ofs_fsum(d3i, 1.0+0.0*I, d1i, -mu+0.0*I);
-    //Note: g5 and g6 are not computed since:
-    // - the expansion 1/h2 = beta1 is needed
-    // - beta7 = gamma5 and beta8 = gamma6, so they can be computed as betas instead of gammas
-
-    //----------------------------------------------------------------------
-    // The betas
-    //----------------------------------------------------------------------
-    Ofts< Ofsd >  zh(nv, order, cnv, nf);       //zh = Z-mu*z
-    Ofsd zh0(nf);                               //order 0
-
-    //zh+= -mu*zr_ofts
-    zh.ofts_smult_u(zr_ofts, -mu);
-    //zh+= Z*as*sigma1
-    zh.ofts_smult_tu(Zr_ofts, sigma1, as);
-
-    //Take the order 0
-    zh0.ccopy(zh.getTerm(0)->getCoef(0));
-
-    //zp = 1 - mu/as*exp(int)
-    Ofsd zp(nf);
-    zp.setCoef(1.0, 0);
-    zp.setCoef(-mu/as, 1);
-
-    //zp1= 1/zp
-    Ofsd zp1(nf);
-    zp1.ofs_epspow(zp, -1.0);
-
-    //zh0inv = 1/as*exp(int)*1/zp = inverse of order 0 of zh
-    Ofsd zh0inv(nf);
-    zh0inv.ofs_sprod(zp1, sigma2);
-    zh0inv *= 1.0/as;
-
-    //zhinv= zh^-1
-    Ofts< Ofsd >  zhinv(nv, order, cnv, nf);
-    zhinv.pows(zh,  zh0inv, zh0inv, -1.0);
-
-    //To Ofs
-    Ofsd zh_ofs(nf);
-    Ofsd zhinv_ofs(nf);
-    fts2fs(&zh_ofs, zh, eps);
-    fts2fs(&zhinv_ofs, zhinv, eps);
-
-
-    //Test: uncomment to check
-    //---------------------------------------------------------------------
-    //    alpha = -1.0;
-    //    t = 1.0;
-    //    cout <<  setiosflags(ios::scientific) << setprecision(15);
-    //    cout << "------------------------------------------------" << endl;
-    //    cout << " Test of the inverse of zh = Z - mu * z         " << endl;
-    //    cout << "------------------------------------------------" << endl;
-    //    cout << "zhinv_ofs(t) = " << creal(zhinv_ofs.evaluate(t)) << "  " << cimag(zhinv_ofs.evaluate(t)) << endl;
-    //    cout << "1/zh_ofs(t) = " << creal(cpow(zh_ofs.evaluate(t), alpha)) << "  " << cimag(cpow(zh_ofs.evaluate(t), alpha)) << endl;
-    //    cout << "zhinv_ofs(t)-1/zh_ofs(t) = " << creal(zhinv_ofs.evaluate(t))-creal(cpow(zh_ofs.evaluate(t), alpha))
-    //         << "  " << cimag(zhinv_ofs.evaluate(t))-cimag(cpow(zh_ofs.evaluate(t), alpha)) << endl;
-    //    cout << "------------------------------------------------" << endl;
-    //---------------------------------------------------------------------
-
-
-    //zh is divided by as*exp(-int) i.e. is multiplied by sigma2/as
-    Ofts< Ofsd >  zhn(nv, order, cnv, nf);
-    zhn.ofts_smult_tu(zh, sigma2, 1.0/as);
-
-    //zp1= pow(zp, -1/2)
-    Ofsd zp12(nf);
-    zp12.ofs_epspow(zp, -1.0/2);
-
-    //zh2inv= zhn^-1/2
-    Ofts< Ofsd >  zh2inv(nv, order, cnv, nf);
-    zh2inv.pows(zhn, zp1, zp12, -1.0/2);
-
-    //To Ofs
-    Ofsd zh2inv_ofs(nf);
-    fts2fs(&zh2inv_ofs, zh2inv, eps);
-
-    //beta6
-    //-----------------------------
-    Ofsc zh2invc(nf);
-    Ofsc zh2invconj(nf);
-    doubleToComplex(zh2inv_ofs, zh2invc);
-    doubleToComplex(zh2inv_ofs, zh2invconj);
-    zh2invconj.conjugate();
-
-    //beta6 = zh2invc*zh2invc
-    Ofsc beta6c(nf);
-    beta6c.ofs_prod(zh2invc, zh2invconj);
-    beta6c.ofs_mult(beta6c, 1.0/as+0.0*I);
-
-    //Test: uncomment to check
-    //---------------------------------------------------------------------
-    //alpha = -1.0/2;
-    //t = 1.0;
-    //cdouble zhi = zh_ofs.evaluate(t);
-    //cdouble hi2  = zhi*conj(zhi);
-    //cdouble hi = cpow(hi2, alpha);
-    //cout <<  setiosflags(ios::scientific) << setprecision(15);
-    //cout << "------------------------------------------------" << endl;
-    //cout << " Test of the inverse beta6 = 1/h" << endl;
-    //cout << "------------------------------------------------" << endl;
-    //cout << "beta6(t) = " << creal(beta6c.evaluate(t)) << "  " << cimag(beta6c.evaluate(t)) << endl;
-    //cout << "pow(zh_ofs(t), -1/2) = " << creal(hi) << "  " << cimag(hi) << endl;
-    //cout << "beta6(t)-pow(zh_ofs(t), -1/2) = " << creal(beta6c.evaluate(t))-creal(hi)
-    //     << "  " << cimag(beta6c.evaluate(t))-cimag(hi) << endl;
-    //cout << "------------------------------------------------" << endl;
-    //---------------------------------------------------------------------
-
-
-    //Storage in txt file
-    ofs_sst(beta6c, fbpl.cs.F_COEF+"beta6", 1, "");
-    //-----------------------------
-
-
-    //beta1
-    //-----------------------------
-    Ofsc zhinvc(nf);
-    Ofsc zhinvconj(nf);
-    doubleToComplex(zhinv_ofs, zhinvc);
-    doubleToComplex(zhinv_ofs, zhinvconj);
-    zhinvconj.conjugate();
-
-    //beta1 = zhinvc*zhinvc
-    Ofsc beta1c(nf);
-    beta1c.ofs_prod(zhinvc, zhinvconj);
-
-    //Storage in txt file
-    ofs_sst(beta1c, fbpl.cs.F_COEF+"beta1", 1, "");
-    //-----------------------------
-
-
-    //beta2
-    //-----------------------------
-    Ofsc beta2c(nf);
-    //beta2 = - gamma1/h2 = -beta1*gamma1
-    beta2c.ofs_mprod(g1, beta1c, -1.0+0.0*I);
-    beta2c.setCoef(0.0, 0);
-    //Storage in txt file
-    ofs_sst(beta2c, fbpl.cs.F_COEF+"beta2", 0, "");
-    //-----------------------------
-
-
-    //beta3
-    //-----------------------------
-    Ofsc beta3c(nf);
-    //beta3 = + gamma2/h2 = +beta1*gamma2
-    beta3c.ofs_prod(g2, beta1c);
-    //Storage in txt file
-    ofs_sst(beta3c, fbpl.cs.F_COEF+"beta3", 1, "");
-    //-----------------------------
-
-
-    //beta4
-    //-----------------------------
-    Ofsc beta4c(g3);
-    //Storage in txt file
-    ofs_sst(beta4c, fbpl.cs.F_COEF+"beta4", 1, "");
-    //-----------------------------
-
-    //beta5
-    //-----------------------------
-    Ofsc beta5c(g4);
-    //Storage in txt file
-    ofs_sst(beta5c, fbpl.cs.F_COEF+"beta5", 0, "");
-    //-----------------------------
-
-    //beta7
-    //-----------------------------
-    //beta7 = muSE - 1 + beta1*g51
-    Ofsc beta7c(nf);
-    beta7c.setCoef(muSE - 1, 0);
-    beta7c.ofs_sprod(beta1c, g51);
-    //Storage in txt file
-    ofs_sst(beta7c, fbpl.cs.F_COEF+"beta7", 1, "");
-    //-----------------------------
-
-    //beta8
-    //-----------------------------
-    //beta8 = beta1*g61
-    Ofsc beta8c(nf);
-    beta8c.ofs_sprod(beta1c, g61);
-    beta8c.setCoef(0.0, 0);
-    //Storage in txt file
-    ofs_sst(beta8c, fbpl.cs.F_COEF+"beta8", 0, "");
-    //-----------------------------
-
+    //------------------------------------------------------------------------------------
+    // Splash
+    //------------------------------------------------------------------------------------
+    cout << "---------------------------------------------------" << endl;
+    cout << "                                                   " << endl;
+    cout << "       Resolution of the Sun-Earth-Moon            " << endl;
+    cout << "      Bicircular Four-Body Problem (BCP)           " << endl;
+    cout << "                                                   " << endl;
+    cout << "---------------------------------------------------" << endl;
+    Config::configManager().coutmp();
+
+
+    //------------------------------------------------------------------------------------
+    // Initialization of environement via an FBPL structure
+    //------------------------------------------------------------------------------------
+    cout << " bcp. Initializing the environment..." << endl;
+    //Init the Sun-Earth-Moon FBP structure
+    FBP fbp;
+    init_fbp(&fbp, Csts::SUN, Csts::EARTH, Csts::MOON);
+
+    //Init the Sun-Earth-Moon FBPL structure, with arbitrary configuration
+    FBPL fbpl;
+    init_fbp_lib(&fbpl, &fbp, 1, 1, Csts::BCP, Csts::EM, Csts::GRAPH,
+              Csts::MAN_CENTER, Csts::MAN_CENTER, true, true);
+
+
+    //------------------------------------------------------------------------------------
+    // 3. Alphas
+    //------------------------------------------------------------------------------------
+    //Computation of the coeffs of the vector field for EML1
+    cout << " bcp. Storing the vector field about EML1 in " << fbpl.cs_em_l1.F_COEF << endl;
+    bcp_alpha(OFS_ORDER, fbpl.us_em, fbpl.cs_em_l1);
+
+    //Computation of the coeffs of the vector field for EML2
+    cout << " bcp. Storing the vector field about EML2 in " << fbpl.cs_em_l2.F_COEF << endl;
+    bcp_alpha(OFS_ORDER, fbpl.us_em, fbpl.cs_em_l2);
+
+    //------------------------------------------------------------------------------------
+    // 4. Deltas
+    //------------------------------------------------------------------------------------
+    //Computation of the coeffs of the vector field for SEL1
+    cout << " bcp. Storing the vector field about SEL1 in " << fbpl.cs_sem_l1.F_COEF << endl;
+    bcp_delta(OFS_ORDER, fbpl.us_sem, fbpl.cs_sem_l1); //libration points on the Sun-Bem line
+
+    //Computation of the coeffs of the vector field for SEL2
+    cout << " bcp. Storing the vector field about SEL2 in " << fbpl.cs_sem_l2.F_COEF << endl;
+    bcp_delta(OFS_ORDER, fbpl.us_sem, fbpl.cs_sem_l2); //libration points on the Sun-Bem line
 }
+
+/**
+ *  \brief Computes and stores the coefficients of the vector field of the BCP from the
+ *         Earth-Moon point of view.
+ **/
+void bcp_alpha(int n_order_fourier, USYS &us_em, CSYS &cs_em)
+{
+    //------------------------------------------------------------------------------------
+    //Parameters for one specific libration point
+    //------------------------------------------------------------------------------------
+    double mu_EM = us_em.mu_EM;
+    double gamma = cs_em.gamma;
+    double c1    = cs_em.c1;
+    double ms    = us_em.ms;
+    double as    = us_em.as;
+
+    //------------------------------------------------------------------------------------
+    // 3. Set all alpha functions
+    //------------------------------------------------------------------------------------
+    Ofs<cdouble > alpha1c(n_order_fourier);
+    Ofs<cdouble > alpha2c(n_order_fourier);
+    Ofs<cdouble > alpha3c(n_order_fourier);
+    Ofs<cdouble > alpha4c(n_order_fourier);
+    Ofs<cdouble > alpha5c(n_order_fourier);
+    Ofs<cdouble > alpha6c(n_order_fourier);
+    Ofs<cdouble > alpha7c(n_order_fourier);
+    Ofs<cdouble > alpha8c(n_order_fourier);
+    Ofs<cdouble > alpha9c(n_order_fourier);
+    Ofs<cdouble > alpha10c(n_order_fourier);
+    Ofs<cdouble > alpha11c(n_order_fourier);
+    Ofs<cdouble > alpha12c(n_order_fourier);
+    Ofs<cdouble > alpha13c(n_order_fourier);
+    Ofs<cdouble > alpha14c(n_order_fourier);
+
+    //Redundancy for the positions of the primaries
+    Ofs<cdouble > Xe(n_order_fourier);
+    Ofs<cdouble > Ye(n_order_fourier);
+    Ofs<cdouble > Ze(n_order_fourier);
+    Ofs<cdouble > Xm(n_order_fourier);
+    Ofs<cdouble > Ym(n_order_fourier);
+    Ofs<cdouble > Zm(n_order_fourier);
+    Ofs<cdouble > Xs(n_order_fourier);
+    Ofs<cdouble > Ys(n_order_fourier);
+    Ofs<cdouble > Zs(n_order_fourier);
+
+    //Positions of the primaries in NC coordinates
+    Ofs<cdouble > xe(n_order_fourier);
+    Ofs<cdouble > ye(n_order_fourier);
+    Ofs<cdouble > ze(n_order_fourier);
+    Ofs<cdouble > xm(n_order_fourier);
+    Ofs<cdouble > ym(n_order_fourier);
+    Ofs<cdouble > zm(n_order_fourier);
+    Ofs<cdouble > xs(n_order_fourier);
+    Ofs<cdouble > ys(n_order_fourier);
+    Ofs<cdouble > zs(n_order_fourier);
+
+    //-------------------------
+    // The alphas
+    //-------------------------
+    //alpha1 = 1
+    alpha1c.set_coef(1.0+0.0*I, 0);
+    //alpha2 = 0
+    //alpha3 = 1
+    alpha3c.set_coef(1.0+0.0*I, 0);
+    //alpha4 = ms/as^2*cos(theta) = ms/(2*as^2)*(exp(itheta) + exp(-itheta))
+    alpha4c.set_coef(0.5*ms/(as*as)+0.0*I, -1);
+    alpha4c.set_coef(0.5*ms/(as*as)+0.0*I, +1);
+    //alpha5 = -ms/as^2*sin(theta) = +I*ms/(2*as^2)*(exp(itheta) - exp(-itheta))
+    alpha5c.set_coef(-0.5*ms/(as*as)*I, -1);
+    alpha5c.set_coef(+0.5*ms/(as*as)*I, +1);
+    //alpha6 = 1
+    alpha6c.set_coef(1.0+0.0*I, 0);
+    //alpha13 = alpha4/gamma-c1
+    alpha13c.ofs_mult(alpha4c, 1.0/gamma+0.0*I);
+    alpha13c.add_coef(-c1+0.0*I, 0);
+    //alpha14 = alpha5/gamma
+    alpha14c.ofs_mult(alpha5c, 1.0/gamma+0.0*I);
+
+    //-------------------------
+    // Primaries
+    //-------------------------
+    //Earth
+    alpha9c.set_coef(+mu_EM+0.0*I, 0);
+    //Moon
+    alpha11c.set_coef(+mu_EM-1.0+0.0*I, 0);
+    //Sun
+    //alpha7 = as*cos(theta) = as/2*(exp(itheta) + exp(-itheta))
+    alpha7c.set_coef(0.5*as+0.0*I, -1);
+    alpha7c.set_coef(0.5*as+0.0*I, +1);
+    //alpha8 = -as*sin(theta) = +I*as/2*(exp(itheta) - exp(-itheta))
+    alpha8c.set_coef(-0.5*as*I, -1);
+    alpha8c.set_coef(+0.5*as*I, +1);
+
+    //-------------------------
+    // The primaries, again
+    //-------------------------
+    //Earth, EM coordinates
+    Xe.set_coef(+mu_EM+0.0*I, 0);
+    //Earth, NC coordinates
+    xe.set_coef(c1 - mu_EM/gamma + 0.0*I, 0);
+    //Moon, EM coordinates
+    Xm.set_coef(+mu_EM-1.0+0.0*I, 0);
+    //Moon, NC coordinates
+    xm.set_coef(c1 - (mu_EM-1.0)/gamma + 0.0*I, 0);
+
+    //Sun, EM coordinates
+    //--------------------------------------------------------------------------------
+    //Xs = as*cos(theta) = as/2*(exp(itheta) + exp(-itheta))
+    Xs.set_coef(0.5*as+0.0*I, -1);
+    Xs.set_coef(0.5*as+0.0*I, +1);
+    //Ys = -as*sin(theta) = +I*as/2*(exp(itheta) - exp(-itheta))
+    Ys.set_coef(-0.5*as*I, -1);
+    Ys.set_coef(+0.5*as*I, +1);
+    //Sun, NC coordinates;
+    //--------------------------------------------------------------------------------
+    xs.ofs_smult(Xs, -1.0/gamma);
+    xs.add_coef(c1, 0);
+    ys.ofs_smult(Ys, -1.0/gamma);
+
+    //------------------------------------------------------------------------------------
+    //Put in data file
+    //------------------------------------------------------------------------------------
+    ofs_sst(alpha1c, cs_em.F_COEF+"alpha1", 1, "_fft");
+    ofs_sst(alpha2c, cs_em.F_COEF+"alpha2", 0, "_fft");
+    ofs_sst(alpha3c, cs_em.F_COEF+"alpha3", 1, "_fft");
+    ofs_sst(alpha4c, cs_em.F_COEF+"alpha4", 1, "_fft");
+    ofs_sst(alpha5c, cs_em.F_COEF+"alpha5", 0, "_fft");
+    ofs_sst(alpha6c, cs_em.F_COEF+"alpha6", 1, "_fft");
+    //Sun
+    ofs_sst(alpha7c, cs_em.F_COEF+"alpha7", 1, "_fft");
+    ofs_sst(alpha8c, cs_em.F_COEF+"alpha8", 0, "_fft");
+    //Earth
+    ofs_sst(alpha9c,  cs_em.F_COEF+"alpha9",  1, "_fft");
+    ofs_sst(alpha10c, cs_em.F_COEF+"alpha10", 0, "_fft");
+    //Moon
+    ofs_sst(alpha11c, cs_em.F_COEF+"alpha11", 1, "_fft");
+    ofs_sst(alpha12c, cs_em.F_COEF+"alpha12", 0, "_fft");
+    //NC additional coeffs
+    ofs_sst(alpha13c, cs_em.F_COEF+"alpha13", 1, "_fft");
+    ofs_sst(alpha14c, cs_em.F_COEF+"alpha14", 0, "_fft");
+
+    //--------------------------------------------------------------------------------
+    //Primary, EM coordinates
+    //Note that, at this step, the vertical motion of the primaries is undefined,
+    //so we can put either Even or Odd in the ofs_sst option of gsl_Zc without much difference
+    //--------------------------------------------------------------------------------
+    ofs_sst(Xs, cs_em.F_COEF+"Ps1", 1, "_fft");
+    ofs_sst(Ys, cs_em.F_COEF+"Ps2", 0, "_fft");
+    ofs_sst(Zs, cs_em.F_COEF+"Ps3", 1, "_fft");
+
+    ofs_sst(Xm, cs_em.F_COEF+"Pm1", 1, "_fft");
+    ofs_sst(Ym, cs_em.F_COEF+"Pm2", 0, "_fft");
+    ofs_sst(Zm, cs_em.F_COEF+"Pm3", 1, "_fft");
+
+    ofs_sst(Xe, cs_em.F_COEF+"Pe1", 1, "_fft");
+    ofs_sst(Ye, cs_em.F_COEF+"Pe2", 0, "_fft");
+    ofs_sst(Ze, cs_em.F_COEF+"Pe3", 1, "_fft");
+
+
+    //--------------------------------------------------------------------------------
+    //Primary, NC coordinates
+    //Note that, at this step, the vertical motion of the primaries is undefined,
+    //so we can put either Even or Odd in the ofs_sst option of gsl_zc without much difference
+    //--------------------------------------------------------------------------------
+    ofs_sst(xs, cs_em.F_COEF+"ps1", 1, "_fft");
+    ofs_sst(ys, cs_em.F_COEF+"ps2", 0, "_fft");
+    ofs_sst(zs, cs_em.F_COEF+"ps3", 1, "_fft");
+
+    ofs_sst(xm, cs_em.F_COEF+"pm1", 1, "_fft");
+    ofs_sst(ym, cs_em.F_COEF+"pm2", 0, "_fft");
+    ofs_sst(zm, cs_em.F_COEF+"pm3", 1, "_fft");
+
+    ofs_sst(xe, cs_em.F_COEF+"pe1", 1, "_fft");
+    ofs_sst(ye, cs_em.F_COEF+"pe2", 0, "_fft");
+    ofs_sst(ze, cs_em.F_COEF+"pe3", 1, "_fft");
+}
+
+/**
+ *  \brief Computes and stores the coefficients of the vector field of the BCP from the
+ *         Sun-Earth point of view.
+ **/
+void bcp_delta(int n_order_fourier, USYS &us_sem, CSYS &cs_sem)
+{
+    //------------------------------------------------------------------------------------
+    //Parameters for one specific libration point
+    //------------------------------------------------------------------------------------
+    double mu_EM  = us_sem.mu_EM;
+    double mu_SE  = us_sem.mu_SEM;
+    double gamma  = cs_sem.gamma;
+    double c1     = cs_sem.c1;
+    //double mm     = us_sem.mm;
+    //double me     = us_sem.me;
+    double ai     = us_sem.ai;
+
+    //Distance of Earth & Moon from their barycenter
+    double am = (1- mu_EM)*ai;
+    double ae = mu_EM*ai;
+    //Factor that appears in the definition of the deltas.
+    //double fem = mm/(am*am) - me/(ae*ae);
+
+    //------------------------------------------------------------------------------------
+    // 3. Set all delta functions
+    //------------------------------------------------------------------------------------
+    Ofs<cdouble > delta1c(n_order_fourier);
+    Ofs<cdouble > delta2c(n_order_fourier);
+    Ofs<cdouble > delta3c(n_order_fourier);
+    Ofs<cdouble > delta4c(n_order_fourier);
+    Ofs<cdouble > delta5c(n_order_fourier);
+    Ofs<cdouble > delta6c(n_order_fourier);
+    Ofs<cdouble > delta7c(n_order_fourier);
+    Ofs<cdouble > delta8c(n_order_fourier);
+    Ofs<cdouble > delta9c(n_order_fourier);
+    Ofs<cdouble > delta10c(n_order_fourier);
+    Ofs<cdouble > delta11c(n_order_fourier);
+    Ofs<cdouble > delta12c(n_order_fourier);
+    Ofs<cdouble > delta13c(n_order_fourier);
+    Ofs<cdouble > delta14c(n_order_fourier);
+
+    //Redundancy for the positions of the primaries
+    Ofs<cdouble > Xe(n_order_fourier);
+    Ofs<cdouble > Ye(n_order_fourier);
+    Ofs<cdouble > Ze(n_order_fourier);
+    Ofs<cdouble > Xm(n_order_fourier);
+    Ofs<cdouble > Ym(n_order_fourier);
+    Ofs<cdouble > Zm(n_order_fourier);
+    Ofs<cdouble > Xs(n_order_fourier);
+    Ofs<cdouble > Ys(n_order_fourier);
+    Ofs<cdouble > Zs(n_order_fourier);
+
+    //Positions of the primaries in NC coordinates
+    Ofs<cdouble > xe(n_order_fourier);
+    Ofs<cdouble > ye(n_order_fourier);
+    Ofs<cdouble > ze(n_order_fourier);
+    Ofs<cdouble > xm(n_order_fourier);
+    Ofs<cdouble > ym(n_order_fourier);
+    Ofs<cdouble > zm(n_order_fourier);
+    Ofs<cdouble > xs(n_order_fourier);
+    Ofs<cdouble > ys(n_order_fourier);
+    Ofs<cdouble > zs(n_order_fourier);
+
+    //-------------------------
+    // The deltas
+    //-------------------------
+    //delta1 = 1
+    delta1c.set_coef(1.0+0.0*I, 0);
+    //delta2 = 0
+    //delta3 = 1
+    delta3c.set_coef(1.0+0.0*I, 0);
+    //delta4 = 0; // OR -fem*cos(theta) = -0.5*fem*(exp(itheta) + exp(-itheta))
+    //delta4c.set_coef(-0.5*fem+0.0*I, -1);
+    //delta4c.set_coef(-0.5*fem+0.0*I, +1);
+    //delta5 = 0; // OR -fem*sin(theta) = +I*0.5*fem*(exp(itheta) - exp(-itheta))
+    //delta5c.set_coef(-0.5*fem*I, -1);
+    //delta5c.set_coef(+0.5*fem*I, +1);
+    //delta6 = 1
+    delta6c.set_coef(1.0+0.0*I, 0);
+    //delta13 = delta4/gamma-c1
+    delta13c.ofs_mult(delta4c, 1.0/gamma+0.0*I);
+    delta13c.add_coef(-c1+0.0*I, 0);
+    //delta14 = delta5/gamma
+    delta14c.ofs_mult(delta5c, 1.0/gamma+0.0*I);
+
+    //-------------------------
+    // Primaries
+    //-------------------------
+    //Earth
+    //delta9 = +ae*cos(theta) + mu_SE-1.0  = ae/2*(exp(itheta) + exp(-itheta)) + mu_SE-1.0
+    delta9c.set_coef(mu_SE-1.0 +0.0*I, 0);
+    delta9c.set_coef(0.5*ae+0.0*I, -1);
+    delta9c.set_coef(0.5*ae+0.0*I, +1);
+    //delta10 = +ae*sin(theta) = -I*ae/2*(exp(itheta) - exp(-itheta))
+    delta10c.set_coef(+0.5*ae*I, -1);
+    delta10c.set_coef(-0.5*ae*I, +1);
+
+    //Sun
+    delta7c.set_coef(+mu_SE+0.0*I, 0);
+
+    //Moon
+    //delta11 = -am*cos(theta) + mu_SE-1.0  = -am/2*(exp(itheta) + exp(-itheta)) + mu_SE-1.0
+    delta11c.set_coef(mu_SE-1.0 +0.0*I, 0);
+    delta11c.set_coef(-0.5*am+0.0*I, -1);
+    delta11c.set_coef(-0.5*am+0.0*I, +1);
+    //delta12 = -am*sin(theta) = +I*am/2*(exp(itheta) - exp(-itheta))
+    delta12c.set_coef(-0.5*am*I, -1);
+    delta12c.set_coef(+0.5*am*I, +1);
+
+    //-------------------------
+    // The primaries, again
+    //-------------------------
+    //Earth, EM coordinates
+    //--------------------------------------------------------------------------------
+    //Xe = +ae*cos(theta) + mu_SE-1.0  = ae/2*(exp(itheta) + exp(-itheta)) + mu_SE-1.0
+    Xe.set_coef(mu_SE-1.0 +0.0*I, 0);
+    Xe.set_coef(0.5*ae+0.0*I, -1);
+    Xe.set_coef(0.5*ae+0.0*I, +1);
+    //Ye = +ae*sin(theta) = -I*ae/2*(exp(itheta) - exp(-itheta))
+    Ye.set_coef(+0.5*ae*I, -1);
+    Ye.set_coef(-0.5*ae*I, +1);
+    //Earth, NC coordinates;
+    //--------------------------------------------------------------------------------
+    xe.ofs_smult(Xe, -1.0/gamma);
+    xe.add_coef(c1, 0);
+    ye.ofs_smult(Ye, -1.0/gamma);
+
+    //Sun, EM coordinates
+    Xs.set_coef(+mu_SE+0.0*I, 0);
+    //Sun, NC coordinates
+    xs.set_coef(c1 - mu_SE/gamma + 0.0*I, 0);
+
+    //Moon, EM coordinates
+    //--------------------------------------------------------------------------------
+    //Xm = -am*cos(theta) + mu_SE-1.0  = am/2*(exp(itheta) + exp(-itheta)) + mu_SE-1.0
+    Xm.set_coef(mu_SE-1.0 +0.0*I, 0);
+    Xm.set_coef(-0.5*am+0.0*I, -1);
+    Xm.set_coef(-0.5*am+0.0*I, +1);
+    //Ym = -am*sin(theta) = +I*am/2*(exp(itheta) - exp(-itheta))
+    Ym.set_coef(-0.5*am*I, -1);
+    Ym.set_coef(+0.5*am*I, +1);
+    //Moon, NC coordinates;
+    //--------------------------------------------------------------------------------
+    xm.ofs_smult(Xm, -1.0/gamma);
+    xm.add_coef(c1, 0);
+    ym.ofs_smult(Ym, -1.0/gamma);
+
+    //------------------------------------------------------------------------------------
+    //Put in data file
+    //------------------------------------------------------------------------------------
+    ofs_sst(delta1c, cs_sem.F_COEF+"alpha1", 1, "_fft");
+    ofs_sst(delta2c, cs_sem.F_COEF+"alpha2", 0, "_fft");
+    ofs_sst(delta3c, cs_sem.F_COEF+"alpha3", 1, "_fft");
+    ofs_sst(delta4c, cs_sem.F_COEF+"alpha4", 1, "_fft");
+    ofs_sst(delta5c, cs_sem.F_COEF+"alpha5", 0, "_fft");
+    ofs_sst(delta6c, cs_sem.F_COEF+"alpha6", 1, "_fft");
+    //Sun
+    ofs_sst(delta7c, cs_sem.F_COEF+"alpha7", 1, "_fft");
+    ofs_sst(delta8c, cs_sem.F_COEF+"alpha8", 0, "_fft");
+    //Earth
+    ofs_sst(delta9c,  cs_sem.F_COEF+"alpha9",  1, "_fft");
+    ofs_sst(delta10c, cs_sem.F_COEF+"alpha10", 0, "_fft");
+    //Moon
+    ofs_sst(delta11c, cs_sem.F_COEF+"alpha11", 1, "_fft");
+    ofs_sst(delta12c, cs_sem.F_COEF+"alpha12", 0, "_fft");
+    //NC additional coeffs
+    ofs_sst(delta13c, cs_sem.F_COEF+"alpha13", 1, "_fft");
+    ofs_sst(delta14c, cs_sem.F_COEF+"alpha14", 0, "_fft");
+
+    //--------------------------------------------------------------------------------
+    //Primary, EM coordinates
+    //Note that, at this step, the vertical motion of the primaries is undefined,
+    //so we can put either Even or Odd in the ofs_sst option of gsl_Zc without much difference
+    //--------------------------------------------------------------------------------
+    ofs_sst(Xs, cs_sem.F_COEF+"Ps1", 1, "_fft");
+    ofs_sst(Ys, cs_sem.F_COEF+"Ps2", 0, "_fft");
+    ofs_sst(Zs, cs_sem.F_COEF+"Ps3", 1, "_fft");
+
+    ofs_sst(Xm, cs_sem.F_COEF+"Pm1", 1, "_fft");
+    ofs_sst(Ym, cs_sem.F_COEF+"Pm2", 0, "_fft");
+    ofs_sst(Zm, cs_sem.F_COEF+"Pm3", 1, "_fft");
+
+    ofs_sst(Xe, cs_sem.F_COEF+"Pe1", 1, "_fft");
+    ofs_sst(Ye, cs_sem.F_COEF+"Pe2", 0, "_fft");
+    ofs_sst(Ze, cs_sem.F_COEF+"Pe3", 1, "_fft");
+
+
+    //--------------------------------------------------------------------------------
+    //Primary, NC coordinates
+    //Note that, at this step, the vertical motion of the primaries is undefined,
+    //so we can put either Even or Odd in the ofs_sst option of gsl_zc without much difference
+    //--------------------------------------------------------------------------------
+    ofs_sst(xs, cs_sem.F_COEF+"ps1", 1, "_fft");
+    ofs_sst(ys, cs_sem.F_COEF+"ps2", 0, "_fft");
+    ofs_sst(zs, cs_sem.F_COEF+"ps3", 1, "_fft");
+
+    ofs_sst(xm, cs_sem.F_COEF+"pm1", 1, "_fft");
+    ofs_sst(ym, cs_sem.F_COEF+"pm2", 0, "_fft");
+    ofs_sst(zm, cs_sem.F_COEF+"pm3", 1, "_fft");
+
+    ofs_sst(xe, cs_sem.F_COEF+"pe1", 1, "_fft");
+    ofs_sst(ye, cs_sem.F_COEF+"pe2", 0, "_fft");
+    ofs_sst(ze, cs_sem.F_COEF+"pe3", 1, "_fft");
+}
+

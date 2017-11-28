@@ -1,26 +1,24 @@
-//############################################################################
-// Implementation of the Ofs template class
-//############################################################################
+//########################################################################################
+// Implementation of the Ofs template class (this file is included in ofs.h)
+//########################################################################################
 
 /**
  * \file ofs.tpp
- * \brief Fourier series template class (src)
+ * \brief Fourier series template class. See ofs.h for details.
  * \author BLB
- * \date May 2015
- * \version 1.0
  */
 
 
-//---------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 //Create
-//---------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 /**
  *  \brief Default constructor of the class Ofs<T>.
  */
 template <typename T> Ofs<T>::Ofs()
 {
-    order = OFS_ORDER;
-    coef = new T[2*order+1];
+    m_ofs_order = OFS_ORDER;
+    m_ofs_coef = new T[2*m_ofs_order+1];
     this->zero(); //all coefficients to zero
 }
 
@@ -30,8 +28,8 @@ template <typename T> Ofs<T>::Ofs()
 template <typename T>
 Ofs<T>::Ofs(const int newOrder)
 {
-    order = newOrder;
-    coef = new T[2*order+1];
+    m_ofs_order = newOrder;
+    m_ofs_coef = new T[2*m_ofs_order+1];
     this->zero(); //all coefficients to zero
 }
 
@@ -40,39 +38,39 @@ Ofs<T>::Ofs(const int newOrder)
  */
 template <typename T> Ofs<T>::Ofs(Ofs const& b)
 {
-    order = b.order;
-    coef = new T[2*order+1];
-    for(int i = -order ; i<= order; i++) coef[i+order] = b.coef[i+order]; //this->setCoef(b.getCoef(i), i);
+    m_ofs_order = b.m_ofs_order;
+    m_ofs_coef = new T[2*m_ofs_order+1];
+    for(int i = -m_ofs_order ; i<= m_ofs_order; i++) m_ofs_coef[i+m_ofs_order] = b.m_ofs_coef[i+m_ofs_order];
 }
 
-//---------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 //Delete
-//---------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 /**
  *  \brief Default destructor of the class Ofs<T>.
  */
 template <typename T> Ofs<T>::~Ofs<T>()
 {
-    if(coef != NULL) delete coef;
-    coef = 0;
+    if(m_ofs_coef != NULL) delete m_ofs_coef;
+    m_ofs_coef = 0;
 }
 
-//---------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 //Copy
-//---------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 /**
  *  \brief  Copy from a given Ofs object (only the coefficients).
  */
 template <typename T> Ofs<T>& Ofs<T>::ccopy(Ofs<T> const& b)
 {
-    if(order != b.order)
+    if(m_ofs_order != b.m_ofs_order)
     {
         cout << "Erreur in Ofs<T>::ccopy: orders do not match. Nothing is done." << endl;
         return *this;
     }
     else
     {
-        for(int i = -order ; i<= order; i++) coef[i+order] = b.coef[i+order];//this->setCoef(b.getCoef(i), i);
+        for(int i = -m_ofs_order ; i<= m_ofs_order; i++) m_ofs_coef[i+m_ofs_order] = b.m_ofs_coef[i+m_ofs_order];//this->set_coef(b.get_coef(i), i);
         return *this;
     }
 }
@@ -82,87 +80,92 @@ template <typename T> Ofs<T>& Ofs<T>::ccopy(Ofs<T> const& b)
  */
 template <typename T> Ofs<T>& Ofs<T>::lcopy(Ofs<T> const& b)
 {
-    order = b.order;
-    coef = b.coef;
+    m_ofs_order = b.m_ofs_order;
+    m_ofs_coef = b.m_ofs_coef;
     return *this;
 }
 
-//---------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 //Setters
-//---------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 /**
- *  \brief Sets a coefficient at a given position in the serie.
+ *  \brief Sets a coefficient at a given position in the series.
  */
-template <typename T> void Ofs<T>::setCoef(T const& value, int const& pos)
+template <typename T> void Ofs<T>::set_coef(T const& value, int const& pos)
 {
-    if(fabs(pos) <= order) coef[pos+order] = value;
-    else cout << "Error in Ofs<T>::setCoef: position is out of scope. No coefficient is set." << endl;
+    if(fabs(pos) <= m_ofs_order) m_ofs_coef[pos+m_ofs_order] = value;
+    else cout << "Error in Ofs<T>::set_coef: position is out of scope. No coefficient is set." << endl;
 }
 
 /**
- *  \brief Sets a coefficient at a given position in the serie (cdouble version)
+ *  \brief Sets a coefficient at a given position in the series (cdouble version)
  */
-template <typename T> template <typename U> void Ofs<T>::setCoef(U const& value, int const& pos)
+template <typename T> template <typename U> void Ofs<T>::set_coef(U const& value, int const& pos)
 {
-    if(fabs(pos) <= order) coef[pos+order] = value+0.0*I;
-    else cout << "Error in Ofs<T>::setCoef: position is out of scope. No coefficient is set." << endl;
+    if(fabs(pos) <= m_ofs_order) m_ofs_coef[pos+m_ofs_order] = value+0.0*I;
+    else cout << "Error in Ofs<T>::set_coef: position is out of scope. No coefficient is set." << endl;
 }
 
 /**
- *  \brief Adds a coefficient at a given position in the serie.
+ *  \brief Adds a coefficient at a given position in the series.
  */
-template <typename T> void Ofs<T>::addCoef(T const& value, int const& pos)
+template <typename T> void Ofs<T>::add_coef(T const& value, int const& pos)
 {
-    if(fabs(pos) <= order) coef[pos+order] += value;
-    else cout << "Error in Ofs<T>::addCoef: position is out of scope\n" << endl;
+    if(fabs(pos) <= m_ofs_order) m_ofs_coef[pos+m_ofs_order] += value;
+    else cout << "Error in Ofs<T>::add_coef: position is out of scope\n" << endl;
 }
 
 /**
- *  \brief Sets a coefficient to all positions in the serie.
+ *  \brief Sets a coefficient to all positions in the series.
  */
-template <typename T> void Ofs<T>::setAllCoefs(T const& value)
+template <typename T> void Ofs<T>::set_all_coefs(T const& value)
 {
-    for(int pos = -order; pos <= order; pos++) this->setCoef(value, pos);
+    for(int pos = -m_ofs_order; pos <= m_ofs_order; pos++) this->set_coef(value, pos);
 }
 
 /**
- *  \brief Sets random coefficients to all positions in the serie.
+ *  \brief Sets random coefficients to all positions in the series.
  */
-template <typename T> void Ofs<T>::setRandomCoefs()
+template <typename T> void Ofs<T>::set_random_coefs()
 {
-    //all coefficients between -1 and 1
-    //for(int pos = -order; pos <= order; pos++)  this->setCoef(2.0*((double) rand()/RAND_MAX - 0.5), pos);
-    for(int pos = -order; pos <= order; pos++)  this->setCoef((double)rand()/(10.0*(fabs(pow(pos,7.0))+1)*RAND_MAX), pos);
+    for(int pos = -m_ofs_order; pos <= m_ofs_order; pos++)
+    {
+        this->set_coef((double)rand()/(10.0*(fabs(pow(pos,7.0))+1)*RAND_MAX), pos);
+    }
 }
 
 /**
- *  \brief Sets random cdouble coefficients to all positions in the serie.
+ *  \brief Sets random cdouble coefficients to all positions in the series.
  */
-template <> inline void Ofsc::setRandomCoefs()
+template <> inline void Ofsc::set_random_coefs()
 {
     //all coefficients between expect order zero.
-    for(int pos = -order; pos <= order; pos++)  this->setCoef((double)rand()/(10.0*(fabs(pow(pos,7.0))+1)*RAND_MAX) + I*(double)rand()/(10.0*(fabs(pow(pos,7.0))+1)*RAND_MAX), pos);
-    //warning: order zero is set real! (important for precision).
+    for(int pos = -m_ofs_order; pos <= m_ofs_order; pos++)
+    {
+        this->set_coef(  (double)rand()/(10.0*(fabs(pow(pos,7.0))+1)*RAND_MAX) +
+                      I*(double)rand()/(10.0*(fabs(pow(pos,7.0))+1)*RAND_MAX), pos);
+    }
+    //Warning: order zero is set real! (important for precision).
     double rd = (double) rand();
     cdouble fac = (cdouble) (rd/(10.0*(fabs(pow(0,7.0))+1)*RAND_MAX) + 0.0I);
-    this->setCoef(fac, 0);
+    this->set_coef(fac, 0);
 }
 
-//---------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 //Getters
-//---------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 /**
- *  \brief  Gets the order of the serie.
+ *  \brief  Gets the order of the series.
  */
-template <typename T> int Ofs<T>::getOrder() const
+template <typename T> int Ofs<T>::get_order() const
 {
-    return order;
+    return m_ofs_order;
 }
 
 /**
  *  \brief  Gets the pointer address of the Ofs object
  */
-template <typename T> Ofs<T>* Ofs<T>::getAddress() const
+template <typename T> Ofs<T>* Ofs<T>::get_ptr() const
 {
     return (Ofs<T>*) this;
 }
@@ -172,12 +175,12 @@ template <typename T> Ofs<T>* Ofs<T>::getAddress() const
  *
  *   If the position is out of scope, 0.0 is returned by default, and a warning is sent.
  */
-template <typename T> T Ofs<T>::tfs_getCoef(int pos) const
+template <typename T> T Ofs<T>::tfs_get_coef(int pos) const
 {
-    if(pos < 2*order+1) return coef[pos];
+    if(pos < 2*m_ofs_order+1) return m_ofs_coef[pos];
     else
     {
-        cout << "Warning in Ofs<T>::getCoef: position " << pos << " is out of scope. 0.0 is returned by default." << endl;
+        cout << "Warning in Ofs<T>::get_coef: position " << pos << " is out of scope. 0.0 is returned by default." << endl;
         return (T) 0.0;
     }
 }
@@ -187,12 +190,12 @@ template <typename T> T Ofs<T>::tfs_getCoef(int pos) const
  *
  *   If the position is out of scope, 0.0 is returned by default, and a warning is sent.
  */
-template <> inline cdouble Ofsc::tfs_getCoef(int pos) const
+template <> inline cdouble Ofsc::tfs_get_coef(int pos) const
 {
-    if(pos < 2*order+1)  return coef[pos];
+    if(pos < 2*m_ofs_order+1)  return m_ofs_coef[pos];
     else
     {
-        cout << "Warning in Ofs<T>::getCoef: position " << pos << " is out of scope. 0.0 is returned by default." << endl;
+        cout << "Warning in Ofs<T>::get_coef: position " << pos << " is out of scope. 0.0 is returned by default." << endl;
         return 0.0+0.0*I;
     }
 }
@@ -202,12 +205,12 @@ template <> inline cdouble Ofsc::tfs_getCoef(int pos) const
  *
  *   If the position is out of scope, 0.0 is returned by default, and a warning is sent.
  */
-template <typename T> T Ofs<T>::ofs_getCoef(int pos) const
+template <typename T> T Ofs<T>::ofs_get_coef(int pos) const
 {
-    if(fabs(pos) <= order)  return coef[pos+order];
+    if(fabs(pos) <= m_ofs_order)  return m_ofs_coef[pos+m_ofs_order];
     else
     {
-        cout << "Warning in Ofs<T>::getCoef: position " << pos << " is out of scope. 0.0 is returned by default." << endl;
+        cout << "Warning in Ofs<T>::get_coef: position " << pos << " is out of scope. 0.0 is returned by default." << endl;
         return (T) 0.0;
     }
 }
@@ -215,12 +218,12 @@ template <typename T> T Ofs<T>::ofs_getCoef(int pos) const
 /**
  *  \brief  Gets the coefficient at a given position. cdouble case
  */
-template <> inline cdouble Ofsc::ofs_getCoef(int pos) const
+template <> inline cdouble Ofsc::ofs_get_coef(int pos) const
 {
-    if(fabs(pos) <= order)  return coef[pos+order];
+    if(fabs(pos) <= m_ofs_order)  return m_ofs_coef[pos+m_ofs_order];
     else
     {
-        cout << "Warning in Ofs<T>::getCoef: position " << pos << " is out of scope. 0.0 is returned by default." << endl;
+        cout << "Warning in Ofs<T>::get_coef: position " << pos << " is out of scope. 0.0 is returned by default." << endl;
         return  0.0+0.0*I;
     }
 }
@@ -228,18 +231,18 @@ template <> inline cdouble Ofsc::ofs_getCoef(int pos) const
 /**
  *  \brief  Computes the maximum coefficient in norm.
  */
-template <typename T> void Ofs<T>::getCoefMaxNorm(double maxAbs[]) const
+template <typename T> void Ofs<T>::get_coef_max_norm(double maxAbs[]) const
 {
-    int n = this->getOrder();
-    maxAbs[0] = cabs(coef[-n+order]);//cabs(this->getCoef(-n));
+    int n = this->get_order();
+    maxAbs[0] = cabs(m_ofs_coef[-n+m_ofs_order]);//cabs(this->get_coef(-n));
     maxAbs[1] = -n;
 
     //Loop on all the coefficient but -n
     for(int i = -n+1; i <= n; i++)
     {
-        if(cabs(coef[i+order]) > maxAbs[0])
+        if(cabs(m_ofs_coef[i+m_ofs_order]) > maxAbs[0])
         {
-            maxAbs[0] = cabs(coef[i+order]);
+            maxAbs[0] = cabs(m_ofs_coef[i+m_ofs_order]);
             maxAbs[1] = i;
         }
     }
@@ -248,17 +251,17 @@ template <typename T> void Ofs<T>::getCoefMaxNorm(double maxAbs[]) const
 /**
  *  \brief  Computes the maximum coefficient in norm.
  */
-template <typename T> double Ofs<T>::getCoefMaxNorm() const
+template <typename T> double Ofs<T>::get_coef_max_norm() const
 {
-    int n = this->getOrder();
-    double maxAbs = cabs(coef[-n+order]);//cabs(this->getCoef(-n));
+    int n = this->get_order();
+    double maxAbs = cabs(m_ofs_coef[-n+m_ofs_order]);//cabs(this->get_coef(-n));
 
     //Loop on all the coefficient but -n
     for(int i = -n+1; i <= n; i++)
     {
-        if(cabs(coef[i+order]) > maxAbs)
+        if(cabs(m_ofs_coef[i+m_ofs_order]) > maxAbs)
         {
-            maxAbs =cabs(coef[i+order]);
+            maxAbs =cabs(m_ofs_coef[i+m_ofs_order]);
         }
     }
 
@@ -268,24 +271,24 @@ template <typename T> double Ofs<T>::getCoefMaxNorm() const
 /**
  *  \brief  Is the Ofs object equal to zero, at order ofs_order?
  */
-template <typename T> bool Ofs<T>::isnull(const int ofs_order) const
+template <typename T> bool Ofs<T>::is_null(const int ofs_order) const
 {
-    for(int i = -min(ofs_order, order); i <= min(ofs_order, order); i++)
+    for(int i = -min(ofs_order, m_ofs_order); i <= min(ofs_order, m_ofs_order); i++)
     {
-        if(cabs(ofs_getCoef(i)) != 0.0) return false;
+        if(cabs(ofs_get_coef(i)) != 0.0) return false;
     }
     return true;
 }
 
-//---------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 //Zeroing
-//---------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 /**
  *  \brief  Sets all coefficients to zero.
  */
 template <typename T> void Ofs<T>::zero()
 {
-    for(int i = -order ; i<= order; i++) coef[i+order] = 0.0;
+    for(int i = -m_ofs_order ; i<= m_ofs_order; i++) m_ofs_coef[i+m_ofs_order] = 0.0;
 }
 
 /**
@@ -293,13 +296,13 @@ template <typename T> void Ofs<T>::zero()
  */
 template <> inline void Ofsc::zero()
 {
-    for(int i = -order ; i<= order; i++) coef[i+order] = 0.0+0.0*I;
+    for(int i = -m_ofs_order ; i<= m_ofs_order; i++) m_ofs_coef[i+m_ofs_order] = 0.0+0.0*I;
 }
 
 
-//---------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 // Frequency domain <--> Time domain
-//---------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 /**
  *  \brief  From Frequency domain to time domain.
  */
@@ -308,17 +311,17 @@ template <typename T> void Ofs<T>::tfs_from_ofs(Ofs<T> const& a)
     //---------------------
     //if wrong orders, stop
     //---------------------
-    if(order < a.getOrder())
+    if(m_ofs_order < a.get_order())
     {
         cout << "tfs_from_ofs. Wrong orders. Stop." << endl;
         return;
     }
 
-    int N = 2*order+1;
+    int N = 2*m_ofs_order+1;
     //---------------------
-    //Copy the coefficients in coef
+    //Copy the coefficients in m_ofs_coef
     //---------------------
-    for(int i = 0; i < N; i++) coef[i] = ((Ofs<T>)a).evaluate(i*2*M_PI/((double)N));
+    for(int i = 0; i < N; i++) m_ofs_coef[i] = ((Ofs<T>)a).evaluate(i*2*M_PI/((double)N));
 }
 
 /**
@@ -329,7 +332,7 @@ template <typename T> void Ofs<T>::tfs_from_ofs_inline(Ofs<T>& temp)
     //---------------------
     //if wrong orders, stop
     //---------------------
-    if(order != temp.getOrder())
+    if(m_ofs_order != temp.get_order())
     {
         cout << "tfs_from_ofs. Wrong orders. Stop." << endl;
         return;
@@ -340,11 +343,11 @@ template <typename T> void Ofs<T>::tfs_from_ofs_inline(Ofs<T>& temp)
     //---------------------
     temp.ccopy(*this);
 
-    int N = 2*order+1;
+    int N = 2*m_ofs_order+1;
     //---------------------
-    //Copy the coefficients in coef
+    //Copy the coefficients in m_ofs_coef
     //---------------------
-    for(int i = 0; i < N; i++) coef[i] = temp.evaluate(i*2*M_PI/((double)N));
+    for(int i = 0; i < N; i++) m_ofs_coef[i] = temp.evaluate(i*2*M_PI/((double)N));
 }
 
 /**
@@ -355,7 +358,7 @@ template <typename T> void Ofs<T>::tfs_to_ofs(Ofs<T> const& a)
     //---------------------
     // If wrong orders, stop
     //---------------------
-    if(order > a.getOrder())
+    if(m_ofs_order > a.get_order())
     {
         cout << "tfs_to_ofs. Wrong orders. Stop." << endl;
         return;
@@ -364,7 +367,7 @@ template <typename T> void Ofs<T>::tfs_to_ofs(Ofs<T> const& a)
     //---------------------
     // FFT structures
     //---------------------
-    int N = 2*a.getOrder()+1;
+    int N = 2*a.get_order()+1;
     gsl_vector_complex *data_fft          = gsl_vector_complex_calloc(N);
     gsl_fft_complex_wavetable *wavetable  = gsl_fft_complex_wavetable_alloc (N);
     gsl_fft_complex_workspace *workspace  = gsl_fft_complex_workspace_alloc (N);
@@ -372,7 +375,7 @@ template <typename T> void Ofs<T>::tfs_to_ofs(Ofs<T> const& a)
     //---------------------
     //Copy a in data_fft
     //---------------------
-    for(int i = 0; i < N; i++) gsl_vector_complex_set(data_fft, i, gslc_complex(creal(a.coef[i]), cimag(a.coef[i])));
+    for(int i = 0; i < N; i++) gsl_vector_complex_set(data_fft, i, gslc_complex(creal(a.m_ofs_coef[i]), cimag(a.m_ofs_coef[i])));
 
     //---------------------
     //FFT
@@ -382,22 +385,22 @@ template <typename T> void Ofs<T>::tfs_to_ofs(Ofs<T> const& a)
     //---------------------
     //Order 0
     //---------------------
-    this->setCoef(+GSL_REAL(gsl_vector_complex_get(data_fft, 0))/(double)N+I*GSL_IMAG(gsl_vector_complex_get(data_fft, 0))/(double)N,  0);
-    //Version without setCoef
-    //this->coef[order] = +GSL_REAL(gsl_vector_complex_get(data_fft, 0))/(double)N+I*GSL_IMAG(gsl_vector_complex_get(data_fft, 0))/(double)N;
+    this->set_coef(+GSL_REAL(gsl_vector_complex_get(data_fft, 0))/(double)N+I*GSL_IMAG(gsl_vector_complex_get(data_fft, 0))/(double)N,  0);
+    //Version without set_coef
+    //this->m_ofs_coef[m_ofs_order] = +GSL_REAL(gsl_vector_complex_get(data_fft, 0))/(double)N+I*GSL_IMAG(gsl_vector_complex_get(data_fft, 0))/(double)N;
 
     //---------------------
     //Order n
     //---------------------
-    for(int i = 1; i<= order; i++)
+    for(int i = 1; i<= m_ofs_order; i++)
     {
         //Negative frequecies
-        this->setCoef(+GSL_REAL(gsl_vector_complex_get(data_fft, N-i))/(double)N+I*GSL_IMAG(gsl_vector_complex_get(data_fft, N-i))/(double)N, -i);
+        this->set_coef(+GSL_REAL(gsl_vector_complex_get(data_fft, N-i))/(double)N+I*GSL_IMAG(gsl_vector_complex_get(data_fft, N-i))/(double)N, -i);
         //Positive frequencies
-        this->setCoef(+GSL_REAL(gsl_vector_complex_get(data_fft, i))/(double)N+I*GSL_IMAG(gsl_vector_complex_get(data_fft, i))/(double)N,  i);
-        //Version without setCoef
-        //this->coef[order-i] = +GSL_REAL(gsl_vector_complex_get(data_fft, N-i))/(double)N+I*GSL_IMAG(gsl_vector_complex_get(data_fft, N-i))/(double)N;
-        //this->coef[order+i] = +GSL_REAL(gsl_vector_complex_get(data_fft, i))/(double)N+I*GSL_IMAG(gsl_vector_complex_get(data_fft, i))/(double)N;
+        this->set_coef(+GSL_REAL(gsl_vector_complex_get(data_fft, i))/(double)N+I*GSL_IMAG(gsl_vector_complex_get(data_fft, i))/(double)N,  i);
+        //Version without set_coef
+        //this->m_ofs_coef[m_ofs_order-i] = +GSL_REAL(gsl_vector_complex_get(data_fft, N-i))/(double)N+I*GSL_IMAG(gsl_vector_complex_get(data_fft, N-i))/(double)N;
+        //this->m_ofs_coef[m_ofs_order+i] = +GSL_REAL(gsl_vector_complex_get(data_fft, i))/(double)N+I*GSL_IMAG(gsl_vector_complex_get(data_fft, i))/(double)N;
     }
 
     //------------------------
@@ -416,7 +419,7 @@ template <typename T> void Ofs<T>::tfs_to_ofs_inline()
     //---------------------
     // FFT structures
     //---------------------
-    int N = 2*order+1;
+    int N = 2*m_ofs_order+1;
     gsl_vector_complex *data_fft          = gsl_vector_complex_calloc(N);
     gsl_fft_complex_wavetable *wavetable  = gsl_fft_complex_wavetable_alloc (N);
     gsl_fft_complex_workspace *workspace  = gsl_fft_complex_workspace_alloc (N);
@@ -424,7 +427,7 @@ template <typename T> void Ofs<T>::tfs_to_ofs_inline()
     //---------------------
     //Copy a in data_fft
     //---------------------
-    for(int i = 0; i < N; i++) gsl_vector_complex_set(data_fft, i, gslc_complex(creal(this->coef[i]), cimag(this->coef[i])));
+    for(int i = 0; i < N; i++) gsl_vector_complex_set(data_fft, i, gslc_complex(creal(this->m_ofs_coef[i]), cimag(this->m_ofs_coef[i])));
 
     //---------------------
     //FFT
@@ -434,22 +437,22 @@ template <typename T> void Ofs<T>::tfs_to_ofs_inline()
     //---------------------
     //Order 0
     //---------------------
-    this->setCoef(+GSL_REAL(gsl_vector_complex_get(data_fft, 0))/(double)N+I*GSL_IMAG(gsl_vector_complex_get(data_fft, 0))/(double)N,  0);
-    //Version without setCoef
-    //this->coef[order] = +GSL_REAL(gsl_vector_complex_get(data_fft, 0))/(double)N+I*GSL_IMAG(gsl_vector_complex_get(data_fft, 0))/(double)N;
+    this->set_coef(+GSL_REAL(gsl_vector_complex_get(data_fft, 0))/(double)N+I*GSL_IMAG(gsl_vector_complex_get(data_fft, 0))/(double)N,  0);
+    //Version without set_coef
+    //this->m_ofs_coef[m_ofs_order] = +GSL_REAL(gsl_vector_complex_get(data_fft, 0))/(double)N+I*GSL_IMAG(gsl_vector_complex_get(data_fft, 0))/(double)N;
 
     //---------------------
     //Order n
     //---------------------
-    for(int i = 1; i<= order; i++)
+    for(int i = 1; i<= m_ofs_order; i++)
     {
         //Negative frequecies
-        this->setCoef(+GSL_REAL(gsl_vector_complex_get(data_fft, N-i))/(double)N+I*GSL_IMAG(gsl_vector_complex_get(data_fft, N-i))/(double)N, -i);
+        this->set_coef(+GSL_REAL(gsl_vector_complex_get(data_fft, N-i))/(double)N+I*GSL_IMAG(gsl_vector_complex_get(data_fft, N-i))/(double)N, -i);
         //Positive frequencies
-        this->setCoef(+GSL_REAL(gsl_vector_complex_get(data_fft, i))/(double)N+I*GSL_IMAG(gsl_vector_complex_get(data_fft, i))/(double)N,  i);
-        //Version without setCoef
-        //this->coef[order-i] = +GSL_REAL(gsl_vector_complex_get(data_fft, N-i))/(double)N+I*GSL_IMAG(gsl_vector_complex_get(data_fft, N-i))/(double)N;
-        //this->coef[order+i] = +GSL_REAL(gsl_vector_complex_get(data_fft, i))/(double)N+I*GSL_IMAG(gsl_vector_complex_get(data_fft, i))/(double)N;
+        this->set_coef(+GSL_REAL(gsl_vector_complex_get(data_fft, i))/(double)N+I*GSL_IMAG(gsl_vector_complex_get(data_fft, i))/(double)N,  i);
+        //Version without set_coef
+        //this->m_ofs_coef[m_ofs_order-i] = +GSL_REAL(gsl_vector_complex_get(data_fft, N-i))/(double)N+I*GSL_IMAG(gsl_vector_complex_get(data_fft, N-i))/(double)N;
+        //this->m_ofs_coef[m_ofs_order+i] = +GSL_REAL(gsl_vector_complex_get(data_fft, i))/(double)N+I*GSL_IMAG(gsl_vector_complex_get(data_fft, i))/(double)N;
     }
 
     //------------------------
@@ -468,7 +471,7 @@ template <typename T> void Ofs<T>::tfs_to_ofs_F(Ofs<T>& a)
     //---------------------
     // If wrong orders, stop
     //---------------------
-    if(order > a.getOrder())
+    if(m_ofs_order > a.get_order())
     {
         cout << "tfs_to_ofs. Wrong orders. Stop." << endl;
         return;
@@ -477,27 +480,27 @@ template <typename T> void Ofs<T>::tfs_to_ofs_F(Ofs<T>& a)
     //---------------------
     //FFT
     //---------------------
-    int N = 2*order+1;
-    int M = order;
+    int N = 2*m_ofs_order+1;
+    int M = m_ofs_order;
     double CSF[M+1], SIF[M+1], F[N];
-    for(int i = 0; i < N; i++) F[i]  = creal(a.coef[i]);
+    for(int i = 0; i < N; i++) F[i]  = creal(a.m_ofs_coef[i]);
     foun_(F, &N, &M, CSF, SIF);
 
 
     //---------------------
     //Order 0
     //---------------------
-    this->setCoef(CSF[0],  0);
+    this->set_coef(CSF[0],  0);
 
     //---------------------
     //Order n
     //---------------------
-    for(int i = 1; i<= order; i++)
+    for(int i = 1; i<= m_ofs_order; i++)
     {
         //Negative frequecies
-        this->setCoef(0.5*(CSF[i] + I*SIF[i]), -i);
+        this->set_coef(0.5*(CSF[i] + I*SIF[i]), -i);
         //Positive frequencies
-        this->setCoef(0.5*(CSF[i] - I*SIF[i]),  i);
+        this->set_coef(0.5*(CSF[i] - I*SIF[i]),  i);
     }
 
 }
@@ -505,12 +508,14 @@ template <typename T> void Ofs<T>::tfs_to_ofs_F(Ofs<T>& a)
 /**
  *  \brief  From Time domain to Frequency domain. Version with externalized GSL structures.
  */
-template <typename T> void Ofs<T>::tfs_to_ofs(Ofs<T>& a, gsl_vector_complex *data_fft, gsl_fft_complex_wavetable *wavetable, gsl_fft_complex_workspace *workspace)
+template <typename T> void Ofs<T>::tfs_to_ofs(Ofs<T>& a, gsl_vector_complex *data_fft,
+                                              gsl_fft_complex_wavetable *wavetable,
+                                              gsl_fft_complex_workspace *workspace)
 {
     //---------------------
     // If wrong orders, stop
     //---------------------
-    if(order != a.getOrder())
+    if(m_ofs_order != a.get_order())
     {
         cout << "tfs_from_ofs. Wrong orders. Stop." << endl;
         return;
@@ -519,12 +524,12 @@ template <typename T> void Ofs<T>::tfs_to_ofs(Ofs<T>& a, gsl_vector_complex *dat
     //---------------------
     // FFT structures
     //---------------------
-    int N = 2*order+1;
+    int N = 2*m_ofs_order+1;
 
     //---------------------
     //Copy a in data_fft
     //---------------------
-    for(int i = 0; i < N; i++) gsl_vector_complex_set(data_fft, i, gslc_complex(creal(a.coef[i]), cimag(a.coef[i])));
+    for(int i = 0; i < N; i++) gsl_vector_complex_set(data_fft, i, gslc_complex(creal(a.m_ofs_coef[i]), cimag(a.m_ofs_coef[i])));
 
     //---------------------
     //FFT
@@ -534,29 +539,29 @@ template <typename T> void Ofs<T>::tfs_to_ofs(Ofs<T>& a, gsl_vector_complex *dat
     //---------------------
     //Order 0
     //---------------------
-    this->setCoef(+GSL_REAL(gsl_vector_complex_get(data_fft, 0))/(double)N+I*GSL_IMAG(gsl_vector_complex_get(data_fft, 0))/(double)N,  0);
-    //Version without setCoef
-    //this->coef[order] = +GSL_REAL(gsl_vector_complex_get(data_fft, 0))/(double)N+I*GSL_IMAG(gsl_vector_complex_get(data_fft, 0))/(double)N;
+    this->set_coef(+GSL_REAL(gsl_vector_complex_get(data_fft, 0))/(double)N+I*GSL_IMAG(gsl_vector_complex_get(data_fft, 0))/(double)N,  0);
+    //Version without set_coef
+    //this->m_ofs_coef[m_ofs_order] = +GSL_REAL(gsl_vector_complex_get(data_fft, 0))/(double)N+I*GSL_IMAG(gsl_vector_complex_get(data_fft, 0))/(double)N;
 
     //---------------------
     //Order n
     //---------------------
-    for(int i = 1; i<= order; i++)
+    for(int i = 1; i<= m_ofs_order; i++)
     {
         //Negative frequecies
-        this->setCoef(+GSL_REAL(gsl_vector_complex_get(data_fft, N-i))/(double)N+I*GSL_IMAG(gsl_vector_complex_get(data_fft, N-i))/(double)N, -i);
+        this->set_coef(+GSL_REAL(gsl_vector_complex_get(data_fft, N-i))/(double)N+I*GSL_IMAG(gsl_vector_complex_get(data_fft, N-i))/(double)N, -i);
         //Positive frequencies
-        this->setCoef(+GSL_REAL(gsl_vector_complex_get(data_fft, i))/(double)N+I*GSL_IMAG(gsl_vector_complex_get(data_fft, i))/(double)N,  i);
-        //Version without setCoef
-        //this->coef[order-i] = +GSL_REAL(gsl_vector_complex_get(data_fft, N-i))/(double)N+I*GSL_IMAG(gsl_vector_complex_get(data_fft, N-i))/(double)N;
-        //this->coef[order+i] = +GSL_REAL(gsl_vector_complex_get(data_fft, i))/(double)N+I*GSL_IMAG(gsl_vector_complex_get(data_fft, i))/(double)N;
+        this->set_coef(+GSL_REAL(gsl_vector_complex_get(data_fft, i))/(double)N+I*GSL_IMAG(gsl_vector_complex_get(data_fft, i))/(double)N,  i);
+        //Version without set_coef
+        //this->m_ofs_coef[m_ofs_order-i] = +GSL_REAL(gsl_vector_complex_get(data_fft, N-i))/(double)N+I*GSL_IMAG(gsl_vector_complex_get(data_fft, N-i))/(double)N;
+        //this->m_ofs_coef[m_ofs_order+i] = +GSL_REAL(gsl_vector_complex_get(data_fft, i))/(double)N+I*GSL_IMAG(gsl_vector_complex_get(data_fft, i))/(double)N;
     }
 }
 
 
-//---------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 //Operators (+=, -=, ...)
-//---------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 /**
  *  \brief  An operator. Constructor from a given Ofs object (only the coefficients).
  */
@@ -564,10 +569,10 @@ template <typename T> Ofs<T>& Ofs<T>::operator = (Ofs<T> const& b)
 {
     if(this != &b)
     {
-        order = b.order;
-        if(coef != NULL) delete coef;
-        coef = new T[2*order+1];
-        for(int i = -order ; i<= order; i++) coef[i+order] = b.coef[i+order]; //this->setCoef(b.getCoef(i), i);
+        m_ofs_order = b.m_ofs_order;
+        if(m_ofs_coef != NULL) delete m_ofs_coef;
+        m_ofs_coef = new T[2*m_ofs_order+1];
+        for(int i = -m_ofs_order ; i<= m_ofs_order; i++) m_ofs_coef[i+m_ofs_order] = b.m_ofs_coef[i+m_ofs_order]; //this->set_coef(b.get_coef(i), i);
     }
     return *this; //same object if returned
 }
@@ -577,9 +582,9 @@ template <typename T> Ofs<T>& Ofs<T>::operator = (Ofs<T> const& b)
  */
 template <typename T> Ofs<T>& Ofs<T>::operator  = (T const& coef0)
 {
-    order = 0;
-    coef = new T[2*order+1];
-    coef[order] = coef0;
+    m_ofs_order = 0;
+    m_ofs_coef = new T[2*m_ofs_order+1];
+    m_ofs_coef[m_ofs_order] = coef0;
     return *this;
 }
 
@@ -588,11 +593,11 @@ template <typename T> Ofs<T>& Ofs<T>::operator  = (T const& coef0)
  */
 template <typename T> bool Ofs<T>::isEqual(Ofs<T> const& b) const
 {
-    if(order != b.order) return false;
+    if(m_ofs_order != b.m_ofs_order) return false;
     else
     {
         bool result = true;
-        for(int i = 0 ; i< 2*order + 1; i++) result = result&&(coef[i] == b.coef[i]);
+        for(int i = 0 ; i< 2*m_ofs_order + 1; i++) result = result&&(m_ofs_coef[i] == b.m_ofs_coef[i]);
         return result;
     }
 
@@ -601,50 +606,50 @@ template <typename T> bool Ofs<T>::isEqual(Ofs<T> const& b) const
 /**
  *  \brief  An operator. Adds all coefficients term by term  from a given Ofs object.
  *
- *   Allows b.order != order.
+ *   Allows b.m_ofs_order != m_ofs_order.
  */
 template <typename T>  Ofs<T>& Ofs<T>::operator += (Ofs<T> const& b)
 {
-    if(b.order > order) //if b.order > order, a new array of coefficients must be set
+    if(b.m_ofs_order > m_ofs_order) //if b.m_ofs_order > m_ofs_order, a new array of coefficients must be set
     {
-        //Copy coef into temporary array
-        T temp[2*order+1];
-        for(int i = 0 ; i< 2*order + 1; i++) temp[i] = coef[i];
+        //Copy m_ofs_coef into temporary array
+        T temp[2*m_ofs_order+1];
+        for(int i = 0 ; i< 2*m_ofs_order + 1; i++) temp[i] = m_ofs_coef[i];
         //Recreate a good array
-        delete coef;
-        coef = new T[2*b.order+1];
+        delete m_ofs_coef;
+        m_ofs_coef = new T[2*b.m_ofs_order+1];
         //Store the coefficients again
-        for(int i = -order ; i<= order; i++) coef[i+b.order] = temp[i+order];
-        order = b.order;
+        for(int i = -m_ofs_order ; i<= m_ofs_order; i++) m_ofs_coef[i+b.m_ofs_order] = temp[i+m_ofs_order];
+        m_ofs_order = b.m_ofs_order;
     }
 
     //Adding the coefficients
-    for(int i = -b.order ; i <= b.order ; i++) coef[i+order] += b.coef[i+b.order];
+    for(int i = -b.m_ofs_order ; i <= b.m_ofs_order ; i++) m_ofs_coef[i+m_ofs_order] += b.m_ofs_coef[i+b.m_ofs_order];
     return *this;
 }
 
 /**
  *  \brief  An operator. Subtracts all coefficients term by term  from a given Ofs object.
  *
- *   Allows b.order != order.
+ *   Allows b.m_ofs_order != m_ofs_order.
  */
 template <typename T>  Ofs<T>& Ofs<T>::operator -= (Ofs<T> const& b)
 {
-    if(b.order > order) //if b.order > order, a new array of coefficients must be set
+    if(b.m_ofs_order > m_ofs_order) //if b.m_ofs_order > m_ofs_order, a new array of coefficients must be set
     {
-        //Copy coef into temporary array
-        T temp[2*order+1];
-        for(int i = 0 ; i< 2*order + 1; i++) temp[i] = coef[i];
+        //Copy m_ofs_coef into temporary array
+        T temp[2*m_ofs_order+1];
+        for(int i = 0 ; i< 2*m_ofs_order + 1; i++) temp[i] = m_ofs_coef[i];
         //Recreate a good array
-        delete coef;
-        coef = new T[2*b.order+1];
+        delete m_ofs_coef;
+        m_ofs_coef = new T[2*b.m_ofs_order+1];
         //Store the coefficients again
-        for(int i = -order ; i<= order; i++) coef[i+b.order] = temp[i+order];
-        order = b.order;
+        for(int i = -m_ofs_order ; i<= m_ofs_order; i++) m_ofs_coef[i+b.m_ofs_order] = temp[i+m_ofs_order];
+        m_ofs_order = b.m_ofs_order;
     }
 
     //Adding the coefficients
-    for(int i = -b.order ; i <= b.order ; i++) coef[i+order] -= b.coef[i+b.order];
+    for(int i = -b.m_ofs_order ; i <= b.m_ofs_order ; i++) m_ofs_coef[i+m_ofs_order] -= b.m_ofs_coef[i+b.m_ofs_order];
     return *this;
 }
 
@@ -653,7 +658,7 @@ template <typename T>  Ofs<T>& Ofs<T>::operator -= (Ofs<T> const& b)
  */
 template <typename T>  Ofs<T>& Ofs<T>::operator *= (T const& c)
 {
-    for(int i=0; i<2*order+1; i++) coef[i] *= c;
+    for(int i=0; i<2*m_ofs_order+1; i++) m_ofs_coef[i] *= c;
     return *this;
 }
 
@@ -662,21 +667,21 @@ template <typename T>  Ofs<T>& Ofs<T>::operator *= (T const& c)
  */
 template <typename T>  Ofs<T>& Ofs<T>::operator /= (T const& c)
 {
-    for(int i=0; i<2*order+1; i++) coef[i] /= c;
+    for(int i=0; i<2*m_ofs_order+1; i++) m_ofs_coef[i] /= c;
     return *this;
 }
 
 
-//---------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 //Operators (sprod, smult, ...)
-//---------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 /**
  *  \brief Conjugates the Ofs object.
  */
 template <typename T> void Ofs<T>::conjugate()
 {
     Ofs ofs_temp(*this);
-    for(int k = -order; k <=order; k++) coef[k+order] = ofs_temp.coef[-k+order];//this->setCoef(ofs_temp.getCoef(-k), k);
+    for(int k = -m_ofs_order; k <=m_ofs_order; k++) m_ofs_coef[k+m_ofs_order] = ofs_temp.m_ofs_coef[-k+m_ofs_order];//this->set_coef(ofs_temp.get_coef(-k), k);
 }
 
 /**
@@ -685,28 +690,28 @@ template <typename T> void Ofs<T>::conjugate()
 template <> inline void Ofs<cdouble >::conjugate()
 {
     Ofs ofs_temp(*this);
-    for(int k = -order; k <=order; k++) coef[k+order] = conj(ofs_temp.coef[-k+order]);//this->setCoef(conj(ofs_temp.getCoef(-k)), k);
+    for(int k = -m_ofs_order; k <=m_ofs_order; k++) m_ofs_coef[k+m_ofs_order] = conj(ofs_temp.m_ofs_coef[-k+m_ofs_order]);//this->set_coef(conj(ofs_temp.get_coef(-k)), k);
 }
 
 /**
  *  \brief  An operation. Adds the product: \c this \f$ += a \times b \f$.
 
     Notes:
-    1. \c this \f$ += a \times b \f$. with new order = max(order, a.order, b.order): the sum is truncated at max(a.getOrder(),b.getOrder()).
-    2. WARNING: Need improvement: for n <= a.getOrder(), b.getOrder(), some products are out of scope in: this->addCoef(a.getCoef(p)*b.getCoef(n-p), n). The getCoef function set these coefficients to zero, which guarantees the good result. However, unecessary product are made. psup and pinf must be redefined.
-    3. Works fine when a.order = b.order which is the default case.
+    1. \c this \f$ += a \times b \f$. with new m_ofs_order = max(m_ofs_order, a.m_ofs_order, b.m_ofs_order): the sum is truncated at max(a.get_order(),b.get_order()).
+    2. WARNING: Need improvement: for n <= a.get_order(), b.get_order(), some products are out of scope in: this->add_coef(a.get_coef(p)*b.get_coef(n-p), n). The get_coef function set these coefficients to zero, which guarantees the good result. However, unecessary product are made. psup and pinf must be redefined.
+    3. Works fine when a.m_ofs_order = b.m_ofs_order which is the default case.
  */
 template <typename T>  void Ofs<T>::ofs_sprod(Ofs<T> const& a, Ofs<T> const& b)
 {
     int psup, pinf;
     //Product
-    for(int n=-order ; n<= order; n++)
+    for(int n=-m_ofs_order ; n<= m_ofs_order; n++)
     {
-        //psup = n>0? order: n+order;//min(n+order,  order);
-        //pinf = n>0? n-order: -order;//max(n-order, -order);
-        psup = min(n+order,  order);
-        pinf = max(n-order, -order);
-        for(int p=pinf; p<= psup; p++) coef[n+order] += a.coef[p+order]*b.coef[n-p+order];
+        //psup = n>0? m_ofs_order: n+m_ofs_order;//min(n+m_ofs_order,  m_ofs_order);
+        //pinf = n>0? n-m_ofs_order: -m_ofs_order;//max(n-m_ofs_order, -m_ofs_order);
+        psup = min(n+m_ofs_order,  m_ofs_order);
+        pinf = max(n-m_ofs_order, -m_ofs_order);
+        for(int p=pinf; p<= psup; p++) m_ofs_coef[n+m_ofs_order] += a.m_ofs_coef[p+m_ofs_order]*b.m_ofs_coef[n-p+m_ofs_order];
     }
 }
 
@@ -725,22 +730,22 @@ template <typename T>  void Ofs<T>::ofs_smprod_t(Ofs<T> const& a, Ofs<T> const& 
  *  \brief  An operation. Adds the product: \c this \f$  += m a \times b \f$.
 
     Notes:
-    1. \c this \f$ += a \times b \f$. with new order = max(order, a.order, b.order): the sum is truncated at max(a.getOrder(),b.getOrder()).
-    2. WARNING: Need improvement: for n <= a.getOrder(), b.getOrder(), some products are out of scope in: this->addCoef(a.getCoef(p)*b.getCoef(n-p), n). The getCoef function set these coefficients to zero, which guarantees the good result. However, unecessary product are made. psup and pinf must be redefined.
-    3. Works fine when a.order = b.order which is the default case.
+    1. \c this \f$ += a \times b \f$. with new m_ofs_order = max(m_ofs_order, a.m_ofs_order, b.m_ofs_order): the sum is truncated at max(a.get_order(),b.get_order()).
+    2. WARNING: Need improvement: for n <= a.get_order(), b.get_order(), some products are out of scope in: this->add_coef(a.get_coef(p)*b.get_coef(n-p), n). The get_coef function set these coefficients to zero, which guarantees the good result. However, unecessary product are made. psup and pinf must be redefined.
+    3. Works fine when a.m_ofs_order = b.m_ofs_order which is the default case.
  */
 template <typename T>  void Ofs<T>::ofs_smprod(Ofs<T> const& a, Ofs<T> const& b, T const& m)
 {
     int psup, pinf;
     //Product
-    for(int n=-order ; n<= order; n++)
+    for(int n=-m_ofs_order ; n<= m_ofs_order; n++)
     {
-        psup = min(n+order,  order);
-        pinf = max(n-order, -order);
+        psup = min(n+m_ofs_order,  m_ofs_order);
+        pinf = max(n-m_ofs_order, -m_ofs_order);
         for(int p=pinf; p<= psup; p++)
         {
             //indix
-            coef[n+order] += m*a.coef[p+order]*b.coef[n-p+order];
+            m_ofs_coef[n+m_ofs_order] += m*a.m_ofs_coef[p+m_ofs_order]*b.m_ofs_coef[n-p+m_ofs_order];
         }
     }
 }
@@ -755,15 +760,15 @@ template <typename T> void Ofs<T>::ofs_prod(Ofs<T> const& a, Ofs<T> const& b)
     int psup, pinf;
     //Product
 
-    for(int n=-order ; n<= order; n++)
+    for(int n=-m_ofs_order ; n<= m_ofs_order; n++)
     {
-        //psup = n>0? order: n+order;//min(n+order,  order);
-        //pinf = n>0? n-order: -order;//max(n-order, -order);
-        psup = min(n+order,  order);
-        pinf = max(n-order, -order);
-        coef[n+order] = 0.0; //reset
+        //psup = n>0? m_ofs_order: n+m_ofs_order;//min(n+m_ofs_order,  m_ofs_order);
+        //pinf = n>0? n-m_ofs_order: -m_ofs_order;//max(n-m_ofs_order, -m_ofs_order);
+        psup = min(n+m_ofs_order,  m_ofs_order);
+        pinf = max(n-m_ofs_order, -m_ofs_order);
+        m_ofs_coef[n+m_ofs_order] = 0.0; //reset
 
-       for(int p=pinf; p<= psup; p++) coef[n+order] += a.coef[p+order]*b.coef[n-p+order];
+       for(int p=pinf; p<= psup; p++) m_ofs_coef[n+m_ofs_order] += a.m_ofs_coef[p+m_ofs_order]*b.m_ofs_coef[n-p+m_ofs_order];
     }
 }
 
@@ -777,15 +782,15 @@ template <> inline void Ofsc::ofs_prod(Ofsc const& a, Ofsc const& b)
     int psup, pinf;
     //Product
 
-    for(int n=-order ; n<= order; n++)
+    for(int n=-m_ofs_order ; n<= m_ofs_order; n++)
     {
-        //psup = n>0? order: n+order;//min(n+order,  order);
-        //pinf = n>0? n-order: -order;//max(n-order, -order);
-        psup = min(n+order,  order);
-        pinf = max(n-order, -order);
-        coef[n+order] = 0.0+0.0*I; //reset
+        //psup = n>0? m_ofs_order: n+m_ofs_order;//min(n+m_ofs_order,  m_ofs_order);
+        //pinf = n>0? n-m_ofs_order: -m_ofs_order;//max(n-m_ofs_order, -m_ofs_order);
+        psup = min(n+m_ofs_order,  m_ofs_order);
+        pinf = max(n-m_ofs_order, -m_ofs_order);
+        m_ofs_coef[n+m_ofs_order] = 0.0+0.0*I; //reset
 
-       for(int p=pinf; p<= psup; p++) coef[n+order] += a.coef[p+order]*b.coef[n-p+order];
+       for(int p=pinf; p<= psup; p++) m_ofs_coef[n+m_ofs_order] += a.m_ofs_coef[p+m_ofs_order]*b.m_ofs_coef[n-p+m_ofs_order];
     }
 }
 
@@ -798,15 +803,15 @@ template <typename T>  void Ofs<T>::ofs_mprod(Ofs<T> const& a, Ofs<T> const& b, 
 {
     int psup, pinf;
     //Product
-    for(int n=-order ; n<= order; n++)
+    for(int n=-m_ofs_order ; n<= m_ofs_order; n++)
     {
-        psup = min(n+order,  order);
-        pinf = max(n-order, -order);
-        coef[n+order] = 0.0; //reset
+        psup = min(n+m_ofs_order,  m_ofs_order);
+        pinf = max(n-m_ofs_order, -m_ofs_order);
+        m_ofs_coef[n+m_ofs_order] = 0.0; //reset
         for(int p=pinf; p<= psup; p++)
         {
             //indix
-            coef[n+order] += m*a.coef[p+order]*b.coef[n-p+order];
+            m_ofs_coef[n+m_ofs_order] += m*a.m_ofs_coef[p+m_ofs_order]*b.m_ofs_coef[n-p+m_ofs_order];
         }
     }
 }
@@ -820,15 +825,15 @@ template <>  inline  void Ofsc::ofs_mprod(Ofsc const& a, Ofsc const& b, cdouble 
 {
     int psup, pinf;
     //Product
-    for(int n=-order ; n<= order; n++)
+    for(int n=-m_ofs_order ; n<= m_ofs_order; n++)
     {
-        psup = min(n+order,  order);
-        pinf = max(n-order, -order);
-        coef[n+order] = 0.0+0.0*I; //reset
+        psup = min(n+m_ofs_order,  m_ofs_order);
+        pinf = max(n-m_ofs_order, -m_ofs_order);
+        m_ofs_coef[n+m_ofs_order] = 0.0+0.0*I; //reset
         for(int p=pinf; p<= psup; p++)
         {
             //indix
-            coef[n+order] += m*a.coef[p+order]*b.coef[n-p+order];
+            m_ofs_coef[n+m_ofs_order] += m*a.m_ofs_coef[p+m_ofs_order]*b.m_ofs_coef[n-p+m_ofs_order];
         }
     }
 }
@@ -840,15 +845,15 @@ template <>  inline  void Ofsc::ofs_mprod(Ofsc const& a, Ofsc const& b, cdouble 
  */
 template<typename T> void Ofs<T>::ofs_smult(Ofs<T> const& a, T const& c)
 {
-    if(order != a.order)
+    if(m_ofs_order != a.m_ofs_order)
     {
-        cout << "Error using smult: the order of variables does not match. Initial Ofs<T> is returned" << endl;
+        cout << "Error using smult: the m_ofs_order of variables does not match. Initial Ofs<T> is returned" << endl;
         return;
     }
     else
     {
         //Sum
-        for(int i = -order; i <= order; i++) coef[i+order] += c*a.coef[i+order];//addCoef(c*a.getCoef(i), i);
+        for(int i = -m_ofs_order; i <= m_ofs_order; i++) m_ofs_coef[i+m_ofs_order] += c*a.m_ofs_coef[i+m_ofs_order];//add_coef(c*a.get_coef(i), i);
     }
 }
 
@@ -862,7 +867,7 @@ template<typename T> void Ofs<T>::ofs_smult(Ofs<T> const& a, T const& c, int eff
     //Sum
     for(int i = -eff_order; i <= eff_order; i++)
     {
-        addCoef(c*a.ofs_getCoef(i), i);
+        add_coef(c*a.ofs_get_coef(i), i);
     }
 }
 
@@ -873,15 +878,15 @@ template<typename T> void Ofs<T>::ofs_smult(Ofs<T> const& a, T const& c, int eff
  */
 template<typename T> void Ofs<T>::ofs_mult(Ofs<T> const& a, T const& c)
 {
-    if(order != a.order)
+    if(m_ofs_order != a.m_ofs_order)
     {
-        cout << "Error using smult: the order of variables does not match. Initial Ofs<T> is returned" << endl;
+        cout << "Error using smult: the m_ofs_order of variables does not match. Initial Ofs<T> is returned" << endl;
         return;
     }
     else
     {
         //Sum
-        for(int i=0; i<2*order+1; i++) coef[i] = c*a.coef[i];
+        for(int i=0; i<2*m_ofs_order+1; i++) m_ofs_coef[i] = c*a.m_ofs_coef[i];
     }
 }
 
@@ -892,16 +897,16 @@ template<typename T> void Ofs<T>::ofs_mult(Ofs<T> const& a, T const& c)
  */
 template<typename T> void Ofs<T>::ofs_fsum(Ofs<T> const& a, T const& ma, Ofs<T> const& b, T const& mb)
 {
-    if(order != a.order ||  order != b.order)
+    if(m_ofs_order != a.m_ofs_order ||  m_ofs_order != b.m_ofs_order)
     {
-        cout << "Error using fsum: the order does not match. Initial Ofs<T> is returned" << endl;
+        cout << "Error using fsum: the m_ofs_order does not match. Initial Ofs<T> is returned" << endl;
         return;
     }
     else
     {
-        for(int i=-order; i<=order; i++)
+        for(int i=-m_ofs_order; i<=m_ofs_order; i++)
         {
-            coef[i+order] = ma*a.coef[i+order] + mb*b.coef[i+order];//setCoef(ma*a.getCoef(i)+mb*b.getCoef(i), i);
+            m_ofs_coef[i+m_ofs_order] = ma*a.m_ofs_coef[i+m_ofs_order] + mb*b.m_ofs_coef[i+m_ofs_order];//set_coef(ma*a.get_coef(i)+mb*b.get_coef(i), i);
         }
     }
 }
@@ -916,29 +921,29 @@ template<typename T> void Ofs<T>::ofs_epspow(Ofs<T> const& a, T const& alpha)
     //set to zero
     this->zero();
     //order 0
-    this->setCoef(1.0, 0);
+    this->set_coef(1.0, 0);
     //order 1
     Ofs<T> a0(a);
-    a0.setCoef(0.0,0); //a0 = a without the first order
+    a0.set_coef(0.0,0); //a0 = a without the first order
     Ofs<T> ak(a0);
     Ofs<T> akc(a0);
-    int nf = a.getOrder();
+    int n_order_fourier = a.get_order();
     double facinv = 1;
-    T coef = alpha;
+    T m_ofs_coef = alpha;
     //this = this + alpha*a
-    this->ofs_smult(ak, facinv*coef);
-    for(int k = 2; k<= nf; k++)
+    this->ofs_smult(ak, facinv*m_ofs_coef);
+    for(int k = 2; k<= n_order_fourier; k++)
     {
         //1/fac(k)
         facinv*=1.0/k;
         //alpha*(alpha-1)...*(alpha-k+1)
-        coef*= alpha - k + 1;
+        m_ofs_coef*= alpha - k + 1;
         //akc = ak;
         akc.ccopy(ak);
         //ak = akc*a0
         ak.ofs_prod(akc, a0);
-        //this += facinv*coef*ak
-        this->ofs_smult(ak, facinv*coef);
+        //this += facinv*m_ofs_coef*ak
+        this->ofs_smult(ak, facinv*m_ofs_coef);
     }
 }
 
@@ -952,9 +957,9 @@ template<typename T> void Ofs<T>::ofs_pows(Ofs<T> const& a, T const& alpha)
     this->tfs_to_ofs_inline();
 }
 
-//---------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 // TFS operations
-//---------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 //-----------------
 // pows
 //-----------------
@@ -963,7 +968,7 @@ template<typename T> void Ofs<T>::ofs_pows(Ofs<T> const& a, T const& alpha)
  */
 template<typename T> void Ofs<T>::tfs_pows(Ofs<T> const& a, T const& alpha)
 {
-    for(int i = 0; i < 2*order+1; i++) coef[i] = cpow(a.coef[i], alpha);
+    for(int i = 0; i < 2*m_ofs_order+1; i++) m_ofs_coef[i] = cpow(a.m_ofs_coef[i], alpha);
 }
 
 /**
@@ -971,7 +976,7 @@ template<typename T> void Ofs<T>::tfs_pows(Ofs<T> const& a, T const& alpha)
  */
 template<typename T> void Ofs<T>::tfs_pows(T const& alpha)
 {
-    for(int i = 0; i < 2*order+1; i++) coef[i] = cpow(coef[i], alpha);
+    for(int i = 0; i < 2*m_ofs_order+1; i++) m_ofs_coef[i] = cpow(m_ofs_coef[i], alpha);
 }
 
 //-----------------
@@ -981,13 +986,13 @@ template<typename T> void Ofs<T>::tfs_pows(T const& alpha)
  *  \brief  An operation. Adds the product: \c this \f$ += a \times b \f$ in time domain.
 
     Notes:
-    1. \c this \f$ += a \times b \f$. with new order = max(order, a.order, b.order): the sum is truncated at max(a.getOrder(),b.getOrder()).
-    2. WARNING: Need improvement: for n <= a.getOrder(), b.getOrder(), some products are out of scope in: this->addCoef(a.getCoef(p)*b.getCoef(n-p), n). The getCoef function set these coefficients to zero, which guarantees the good result. However, unecessary product are made. psup and pinf must be redefined.
-    3. Works fine when a.order = b.order which is the default case.
+    1. \c this \f$ += a \times b \f$. with new m_ofs_order = max(m_ofs_order, a.m_ofs_order, b.m_ofs_order): the sum is truncated at max(a.get_order(),b.get_order()).
+    2. WARNING: Need improvement: for n <= a.get_order(), b.get_order(), some products are out of scope in: this->add_coef(a.get_coef(p)*b.get_coef(n-p), n). The get_coef function set these coefficients to zero, which guarantees the good result. However, unecessary product are made. psup and pinf must be redefined.
+    3. Works fine when a.m_ofs_order = b.m_ofs_order which is the default case.
  */
 template <typename T>  void Ofs<T>::tfs_sprod(Ofs<T> const& a, Ofs<T> const& b)
 {
-    for(int k=0 ; k< 2*order+1; k++) coef[k] += a.coef[k]*b.coef[k];
+    for(int k=0 ; k< 2*m_ofs_order+1; k++) m_ofs_coef[k] += a.m_ofs_coef[k]*b.m_ofs_coef[k];
 }
 
 /**
@@ -995,7 +1000,7 @@ template <typename T>  void Ofs<T>::tfs_sprod(Ofs<T> const& a, Ofs<T> const& b)
  */
 template <typename T>  void Ofs<T>::tfs_smprod_t(Ofs<T> const& a, Ofs<T> const& b, Ofs<T> const& c)
 {
-    for(int k=0 ; k< 2*order+1; k++) coef[k] += a.coef[k]*b.coef[k]*c.coef[k];
+    for(int k=0 ; k< 2*m_ofs_order+1; k++) m_ofs_coef[k] += a.m_ofs_coef[k]*b.m_ofs_coef[k]*c.m_ofs_coef[k];
 }
 
 /**
@@ -1003,7 +1008,7 @@ template <typename T>  void Ofs<T>::tfs_smprod_t(Ofs<T> const& a, Ofs<T> const& 
  */
 template <typename T> template<typename U> void Ofs<T>::tfs_smprod_tu(Ofs<T> const& a, Ofs<T> const& b, Ofs<T> const& c, U const& m)
 {
-    for(int k=0 ; k< 2*order+1; k++) coef[k] += m*a.coef[k]*b.coef[k]*c.coef[k];
+    for(int k=0 ; k< 2*m_ofs_order+1; k++) m_ofs_coef[k] += m*a.m_ofs_coef[k]*b.m_ofs_coef[k]*c.m_ofs_coef[k];
 }
 
 /**
@@ -1011,19 +1016,19 @@ template <typename T> template<typename U> void Ofs<T>::tfs_smprod_tu(Ofs<T> con
  */
 template <typename T> void Ofs<T>::tfs_smprod(Ofs<T> const& a, Ofs<T> const& b,  T const& m)
 {
-    for(int k=0 ; k< 2*order+1; k++) coef[k] += m*a.coef[k]*b.coef[k];
+    for(int k=0 ; k< 2*m_ofs_order+1; k++) m_ofs_coef[k] += m*a.m_ofs_coef[k]*b.m_ofs_coef[k];
 }
 
-//---------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 //Derivation
-//---------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 /**
  *  \brief  An operation. Set the time derivative of object \c a with pulsation \f$ \omega = n \f$, so that \c this \f$ = \dot{a} \f$ in frequency domain.
  */
 template<typename T> void Ofs<T>::dot(Ofs<T> const& a, double const& n)
 {
     //d(a_k)/dt = k*n*I*a_k
-    for(int k=-order; k<= order; k++) coef[k+order] = k*n*I*a.coef[k+order];
+    for(int k=-m_ofs_order; k<= m_ofs_order; k++) m_ofs_coef[k+m_ofs_order] = k*n*I*a.m_ofs_coef[k+m_ofs_order];
 }
 
 /**
@@ -1032,12 +1037,12 @@ template<typename T> void Ofs<T>::dot(Ofs<T> const& a, double const& n)
 template<typename T> void Ofs<T>::dot(double const& n)
 {
     //d(a_k)/dt = k*n*I*a_k
-    for(int k=-order; k<= order; k++) coef[k+order] = k*n*I*coef[k+order];
+    for(int k=-m_ofs_order; k<= m_ofs_order; k++) m_ofs_coef[k+m_ofs_order] = k*n*I*m_ofs_coef[k+m_ofs_order];
 }
 
-//---------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 // Functions (+, -,...)
-//---------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 /**
  * \fn template<typename T> bool   operator == (Ofs<T> const& a, Ofs<T> const& b)
  * \brief An operator. Compares two Ofs objects
@@ -1071,23 +1076,23 @@ template <typename T>  Ofs<T> operator - (Ofs<T> const& a, Ofs<T> const& b)
 
 /**
  * \fn template<typename T> Ofs<T> operator - (Ofs<T> const& b)
- * \brief Returns -b at order b.order
+ * \brief Returns -b at order b.m_ofs_order
  */
 template <typename T>  Ofs<T> operator - (Ofs<T> const& b)
 {
-    Ofs<T> ofs(b.getOrder());
-    for(int i = -b.getOrder(); i<= b.getOrder() ; i++) ofs.setCoef(-b.ofs_getCoef(i),i);
+    Ofs<T> ofs(b.get_order());
+    for(int i = -b.get_order(); i<= b.get_order() ; i++) ofs.set_coef(-b.ofs_get_coef(i),i);
     return ofs;
 }
 
 /**
  * \fn template<typename T> Ofs<T> operator - (Ofs<T> const& b). cdouble case
- * \brief Returns -b at order b.order
+ * \brief Returns -b at order b.m_ofs_order
  */
 template <>  inline  Ofsc operator - (Ofsc const& b)
 {
-    Ofsc ofs(b.getOrder());
-    for(int i = -b.getOrder(); i<= b.getOrder() ; i++) ofs.setCoef(0.0*I-b.ofs_getCoef(i),i);
+    Ofsc ofs(b.get_order());
+    for(int i = -b.get_order(); i<= b.get_order() ; i++) ofs.set_coef(0.0*I-b.ofs_get_coef(i),i);
     return ofs;
 }
 
@@ -1135,20 +1140,20 @@ template <typename T>  Ofs<T> operator / (Ofs<T> const& a, T const& c)
 template <typename T>  Ofs<T>  operator * (Ofs<T> const& a, Ofs<T> const& b)
 {
     int n, p, tO, psup, pinf;
-    tO = max(a.getOrder(), b.getOrder());
+    tO = max(a.get_order(), b.get_order());
 
-    //Virgin ofs of same order
+    //Virgin ofs of same m_ofs_order
     Ofs<T> temp(tO);
 
     //Product
     for(n=-tO ; n<= tO; n++)
     {
-        psup = min(n+a.getOrder(),  a.getOrder());
-        pinf = max(n-b.getOrder(), -b.getOrder());
+        psup = min(n+a.get_order(),  a.get_order());
+        pinf = max(n-b.get_order(), -b.get_order());
         for(p=pinf; p<= psup; p++)
         {
             //indix
-            temp.addCoef(a.ofs_getCoef(p)*b.ofs_getCoef(n-p), n);
+            temp.add_coef(a.ofs_get_coef(p)*b.ofs_get_coef(n-p), n);
         }
     }
 
@@ -1156,59 +1161,59 @@ template <typename T>  Ofs<T>  operator * (Ofs<T> const& a, Ofs<T> const& b)
 }
 
 
-//---------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 // Functions (change of format)
-//---------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 /**
- * \fn void inline doubleToComplex(Ofsd& xr, Ofsc& xc)
+ * \fn void inline ofs_double_to_complex(Ofsd& xr, Ofsc& xc)
  * \brief Copy from Ofsd to Ofsc.
  */
-void inline doubleToComplex(Ofsd const& xr, Ofsc& xc)
+void inline ofs_double_to_complex(Ofsd const& xr, Ofsc& xc)
 {
-    int nf = xr.getOrder(); //order of the expansion
-    if(nf != xc.getOrder()) //checking that the orders match
+    int n_order_fourier = xr.get_order(); //m_ofs_order of the expansion
+    if(n_order_fourier != xc.get_order()) //checking that the orders match
     {
-        cout << "doubleToComplex: orders do not match." << endl;
+        cout << "ofs_double_to_complex: orders do not match." << endl;
     }
-    else for(int l = -nf; l<=nf; l++) xc.setCoef((cdouble) (xr.ofs_getCoef(l)+I*0.0), l); //copy from double to cdouble
+    else for(int l = -n_order_fourier; l<=n_order_fourier; l++) xc.set_coef((cdouble) (xr.ofs_get_coef(l)+I*0.0), l); //copy from double to cdouble
 }
 
 
-//---------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 // Functions (Real and Imaginary part)
-//---------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 /**
- * \fn void inline realPart(Ofsc& x, Ofsc& const xr)
+ * \fn void inline ofs_real_part(Ofsc& x, Ofsc& const xr)
  * \brief Takes the real part of an Ofsc object: xr = real(x).
  */
-void inline realPart(Ofsc const& x, Ofsc& xr)
+void inline ofs_real_part(Ofsc const& x, Ofsc& xr)
 {
-    int nf = x.getOrder();
+    int n_order_fourier = x.get_order();
     //xc = conj(xc)
     Ofsc xc(x);
     xc.conjugate();
     //Storing the real part
-    for(int l = -nf; l<=nf; l++) xr.setCoef(0.5*(x.ofs_getCoef(l) + xc.ofs_getCoef(l)), l);
+    for(int l = -n_order_fourier; l<=n_order_fourier; l++) xr.set_coef(0.5*(x.ofs_get_coef(l) + xc.ofs_get_coef(l)), l);
 }
 
 /**
- * \fn void inline realPart(Ofsc& x, Ofsc& const xr)
+ * \fn void inline ofs_real_part(Ofsc& x, Ofsc& const xr)
  * \brief Takes the real part of an Ofsc object: xi = imag(x).
  */
-void inline imagPart(Ofsc const& x, Ofsc& xi)
+void inline ofs_imag_part(Ofsc const& x, Ofsc& xi)
 {
-    int nf = x.getOrder();
+    int n_order_fourier = x.get_order();
     //xc = conj(xc)
     Ofsc xc(x);
     xc.conjugate();
     //Storing the imag part
-    for(int l = -nf; l<=nf; l++) xi.setCoef(-0.5*I*(x.ofs_getCoef(l) - xc.ofs_getCoef(l)), l);
+    for(int l = -n_order_fourier; l<=n_order_fourier; l++) xi.set_coef(-0.5*I*(x.ofs_get_coef(l) - xc.ofs_get_coef(l)), l);
 }
 
 
-//---------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 // Functions (evaluate)
-//---------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 /**
  *  \brief  Evaluates the Ofs object at angle theta (theta = nt) and at a certain order eff_order.
  *
@@ -1219,9 +1224,9 @@ template <typename T>  cdouble Ofs<T>::fevaluate(double cR[], double sR[], int e
 {
     cdouble result = 0+0.0*I;
     //Order -k and +k are calculated together to avoid any additionnal roundoff errors
-    for(int k=eff_order; k>=1; k--) result+= cR[k-1]*(coef[k+order] + coef[-k+order]) + I*sR[k-1]*(coef[k+order] - coef[-k+order]);
+    for(int k=eff_order; k>=1; k--) result+= cR[k-1]*(m_ofs_coef[k+m_ofs_order] + m_ofs_coef[-k+m_ofs_order]) + I*sR[k-1]*(m_ofs_coef[k+m_ofs_order] - m_ofs_coef[-k+m_ofs_order]);
     //Order 0
-    result+= coef[0+order];
+    result+= m_ofs_coef[0+m_ofs_order];
     //Return result
     return result;
 }
@@ -1238,17 +1243,17 @@ template <typename T>  cdouble Ofs<T>::evaluate(double const& theta, int eff_ord
     double cR[eff_order];
     double sR[eff_order];
 
-    //Initialisation of the cosinus/sinus arrays
-    initcRsR(theta, cR, sR, eff_order);
+    //Initialization of the cosinus/sinus arrays
+    init_cR_sR(theta, cR, sR, eff_order);
 
     //Order -k and +k are calculated together to avoid any additionnal roundoff errors
-    for(int k=eff_order; k>=1; k--) result+= cR[k-1]*(coef[k+order] + coef[-k+order]) + I*sR[k-1]*(coef[k+order] - coef[-k+order]);
+    for(int k=eff_order; k>=1; k--) result+= cR[k-1]*(m_ofs_coef[k+m_ofs_order] + m_ofs_coef[-k+m_ofs_order]) + I*sR[k-1]*(m_ofs_coef[k+m_ofs_order] - m_ofs_coef[-k+m_ofs_order]);
     //Order 0
-    result+= coef[0+order];//getCoef(0);
+    result+= m_ofs_coef[0+m_ofs_order];//get_coef(0);
 
 
     return result;
-    //Obsolete: for(int k=-order; k<=order; k++) result+= getCoef(k)*(cos((double)k*theta) + I*sin((double)k*theta));
+    //Obsolete: for(int k=-m_ofs_order; k<=m_ofs_order; k++) result+= get_coef(k)*(cos((double)k*theta) + I*sin((double)k*theta));
 }
 
 /**
@@ -1260,19 +1265,19 @@ template <typename T>  cdouble Ofs<T>::evaluate(double const& theta, int eff_ord
 template <typename T>  cdouble Ofs<T>::evaluate(double const& theta)
 {
     cdouble result = 0+0.0*I;
-    double cR[order];
-    double sR[order];
+    double cR[m_ofs_order];
+    double sR[m_ofs_order];
 
-    //Initialisation of the cosinus/sinus arrays
-    initcRsR(theta, cR, sR, order);
+    //Initialization of the cosinus/sinus arrays
+    init_cR_sR(theta, cR, sR, m_ofs_order);
 
     //Order -k and +k are calculated together to avoid any additionnal roundoff errors
-    for(int k=order; k>=1; k--) result+= cR[k-1]*(coef[k+order] + coef[-k+order]) + I*sR[k-1]*(coef[k+order] - coef[-k+order]);
+    for(int k=m_ofs_order; k>=1; k--) result+= cR[k-1]*(m_ofs_coef[k+m_ofs_order] + m_ofs_coef[-k+m_ofs_order]) + I*sR[k-1]*(m_ofs_coef[k+m_ofs_order] - m_ofs_coef[-k+m_ofs_order]);
     //Order 0
-    result+= coef[0+order];//getCoef(0);
+    result+= m_ofs_coef[0+m_ofs_order];//get_coef(0);
 
     return result;
-    //Obsolete: for(int k=-order; k<=order; k++) result+= getCoef(k)*(cos((double)k*theta) + I*sin((double)k*theta));
+    //Obsolete: for(int k=-m_ofs_order; k<=m_ofs_order; k++) result+= get_coef(k)*(cos((double)k*theta) + I*sin((double)k*theta));
 }
 
 /**
@@ -1284,17 +1289,17 @@ template <typename T>  cdouble Ofs<T>::evaluate(double const& theta)
 template <typename T>  cdouble Ofs<T>::evaluatedot(double const& theta, double const& n)
 {
     cdouble result = 0+0.0*I;
-    double cR[order];
-    double sR[order];
+    double cR[m_ofs_order];
+    double sR[m_ofs_order];
 
-    //Initialisation of the cosinus/sinus arrays
-    initcRsR(theta, cR, sR, order);
+    //Initialization of the cosinus/sinus arrays
+    init_cR_sR(theta, cR, sR, m_ofs_order);
 
     //Order -k and +k are calculated together to avoid any additionnal roundoff errors
-    for(int k=order; k>=1; k--) result+= -n*k*sR[k-1]*(coef[k+order] + coef[-k+order]) + I*n*k*cR[k-1]*(coef[k+order] - coef[-k+order]);
+    for(int k=m_ofs_order; k>=1; k--) result+= -n*k*sR[k-1]*(m_ofs_coef[k+m_ofs_order] + m_ofs_coef[-k+m_ofs_order]) + I*n*k*cR[k-1]*(m_ofs_coef[k+m_ofs_order] - m_ofs_coef[-k+m_ofs_order]);
 
     return result;
-    //Obsolete: for(int k=-order; k<=order; k++) result+= getCoef(k)*(cos((double)k*t) + I*sin((double)k*t));
+    //Obsolete: for(int k=-m_ofs_order; k<=m_ofs_order; k++) result+= get_coef(k)*(cos((double)k*t) + I*sin((double)k*t));
 }
 
 /**
@@ -1309,66 +1314,66 @@ template <typename T>  cdouble Ofs<T>::evaluatedot(double const& theta, double c
     double cR[eff_order];
     double sR[eff_order];
 
-    //Initialisation of the cosinus/sinus arrays
-    initcRsR(theta, cR, sR, eff_order);
+    //Initialization of the cosinus/sinus arrays
+    init_cR_sR(theta, cR, sR, eff_order);
 
     //Order -k and +k are calculated together to avoid any additionnal roundoff errors
-    for(int k=eff_order; k>=1; k--) result+= -n*k*sR[k-1]*(coef[k+order] + coef[-k+order]) + I*n*k*cR[k-1]*(coef[k+order] - coef[-k+order]);
+    for(int k=eff_order; k>=1; k--) result+= -n*k*sR[k-1]*(m_ofs_coef[k+m_ofs_order] + m_ofs_coef[-k+m_ofs_order]) + I*n*k*cR[k-1]*(m_ofs_coef[k+m_ofs_order] - m_ofs_coef[-k+m_ofs_order]);
 
     return result;
-    //Obsolete: for(int k=-order; k<=order; k++) result+= getCoef(k)*(cos((double)k*t) + I*sin((double)k*t));
+    //Obsolete: for(int k=-m_ofs_order; k<=m_ofs_order; k++) result+= get_coef(k)*(cos((double)k*t) + I*sin((double)k*t));
 }
 
 /**
- *  \brief  Expected error on the product: \c this \f$ += a \times b \f$ at times t. Works only when a.order = b.order which is the default case.
+ *  \brief  Expected error on the product: \c this \f$ += a \times b \f$ at times t. Works only when a.m_ofs_order = b.m_ofs_order which is the default case.
  */
-template <typename T>  cdouble sprod_expectedError(Ofs<T> const& a, Ofs<T> const& b, double const& t)
+template <typename T>  cdouble sprod_expct_error(Ofs<T> const& a, Ofs<T> const& b, double const& t)
 {
     cdouble result = 0.0+0.0*I;
-    for(int n= a.getOrder()+1 ; n<= 2*a.getOrder(); n++)
+    for(int n= a.get_order()+1 ; n<= 2*a.get_order(); n++)
     {
-        for(int p=n-a.getOrder(); p<= a.getOrder(); p++)
+        for(int p=n-a.get_order(); p<= a.get_order(); p++)
         {
             //indix
-            result += a.ofs_getCoef(p)*b.ofs_getCoef(n-p)*(cos(n*t) + I*sin(n*t));
-            result += a.ofs_getCoef(-p)*b.ofs_getCoef(-n+p)*(cos(-n*t) + I*sin(-n*t));
+            result += a.ofs_get_coef(p)*b.ofs_get_coef(n-p)*(cos(n*t) + I*sin(n*t));
+            result += a.ofs_get_coef(-p)*b.ofs_get_coef(-n+p)*(cos(-n*t) + I*sin(-n*t));
         }
     }
     return result;
 }
 
 /**
- *  \brief  Expected error on the product: \c this \f$ += c*a \times b \f$ at times t. Works only when a.order = b.order which is the default case.
+ *  \brief  Expected error on the product: \c this \f$ += c*a \times b \f$ at times t. Works only when a.m_ofs_order = b.m_ofs_order which is the default case.
  */
-template <typename T>  cdouble smprod_expectedError(Ofs<T> const& a, Ofs<T> const& b, T const& c, double const& t)
+template <typename T>  cdouble smprod_expct_error(Ofs<T> const& a, Ofs<T> const& b, T const& c, double const& t)
 {
     cdouble result = 0.0+0.0*I;
-    for(int n= a.getOrder()+1 ; n<= 2*a.getOrder(); n++)
+    for(int n= a.get_order()+1 ; n<= 2*a.get_order(); n++)
     {
-        for(int p=n-a.getOrder(); p<= a.getOrder(); p++)
+        for(int p=n-a.get_order(); p<= a.get_order(); p++)
         {
             //indix
-            result += c*a.ofs_getCoef(p)*b.ofs_getCoef(n-p)*(cos(n*t) + I*sin(n*t));
-            result += c*a.ofs_getCoef(-p)*b.ofs_getCoef(-n+p)*(cos(-n*t) + I*sin(-n*t));
+            result += c*a.ofs_get_coef(p)*b.ofs_get_coef(n-p)*(cos(n*t) + I*sin(n*t));
+            result += c*a.ofs_get_coef(-p)*b.ofs_get_coef(-n+p)*(cos(-n*t) + I*sin(-n*t));
         }
     }
     return result;
 }
 
 //Stream
-//---------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 /**
  *  \brief  A stream operator
  */
 template <typename T>  std::ostream& operator << (std::ostream& stream, Ofs<T> const& ofs)
 {
-    //stream << "Fourier serie" << endl;
+    //stream << "Fourier series" << endl;
     //Order
-    //stream << "Order : " << ofs.order << endl;
+    //stream << "Order : " << ofs.m_ofs_order << endl;
     //Coefficients
-    for(int i = 0 ; i< 2*ofs.order + 1; i++)
+    for(int i = 0 ; i< 2*ofs.m_ofs_order + 1; i++)
     {
-        stream << setw(3) << setiosflags(ios::right) << std::showpos << i-ofs.order << "   " <<  setiosflags(ios::scientific) << setprecision(15) << ofs.coef[i] << endl;
+        stream << setw(3) << setiosflags(ios::right) << std::showpos << i-ofs.m_ofs_order << "   " <<  setiosflags(ios::scientific) << setprecision(15) << ofs.m_ofs_coef[i] << endl;
 
     }
     return stream;
@@ -1380,9 +1385,9 @@ template <typename T>  std::ostream& operator << (std::ostream& stream, Ofs<T> c
 template <>  inline std::ostream& operator << (std::ostream& stream, Ofs< cdouble > const& ofs)
 {
     //Coefficients
-    for(int i = 0 ; i< 2*ofs.order + 1; i++)
+    for(int i = 0 ; i< 2*ofs.m_ofs_order + 1; i++)
     {
-        stream << setw(3) << setiosflags(ios::right) << std::showpos << i-ofs.order << "   " <<  setiosflags(ios::scientific) << setprecision(16) << creal(ofs.coef[i]) << "  " << cimag(ofs.coef[i]) << endl;
+        stream << setw(3) << setiosflags(ios::right) << std::showpos << i-ofs.m_ofs_order << "   " <<  setiosflags(ios::scientific) << setprecision(16) << creal(ofs.m_ofs_coef[i]) << "  " << cimag(ofs.m_ofs_coef[i]) << endl;
 
     }
     return stream;
@@ -1405,7 +1410,7 @@ template<typename T> double Ofs<T>::l1norm()
 //    }
 //    return l1n;
     double l1n = 0.0;
-    for(int i = 0 ; i< 2*order + 1; i++) l1n += cabs(coef[i]);
+    for(int i = 0 ; i< 2*m_ofs_order + 1; i++) l1n += cabs(m_ofs_coef[i]);
     return l1n;
 }
 
@@ -1415,9 +1420,9 @@ template<typename T> double Ofs<T>::l1norm()
 template<typename T> int Ofs<T>::nsd(int odmax, double sdmax)
 {
     int res = 0;
-    for(int i = -odmax; i <= odmax; i++) if(cabs(this->ofs_getCoef(i)) < sdmax)
+    for(int i = -odmax; i <= odmax; i++) if(cabs(this->ofs_get_coef(i)) < sdmax)
         {
-            //cout << i << " sd = " << creal(this->ofs_getCoef(i)) << " " << cimag(this->ofs_getCoef(i)) << endl;
+            //cout << i << " sd = " << creal(this->ofs_get_coef(i)) << " " << cimag(this->ofs_get_coef(i)) << endl;
             res++;
         }
     return res;
@@ -1428,43 +1433,43 @@ template<typename T> int Ofs<T>::nsd(int odmax, double sdmax)
  */
 template<typename T> void Ofs<T>::fprint_0(ofstream& stream)
 {
-    stream << setw(3) << setiosflags(ios::right) << std::showpos << 0 << "   " <<  setiosflags(ios::scientific) << setprecision(15) << creal(this->ofs_getCoef(0)) << "  " << cimag(this->ofs_getCoef(0)) << endl;
+    stream << setw(3) << setiosflags(ios::right) << std::showpos << 0 << "   " <<  setiosflags(ios::scientific) << setprecision(15) << creal(this->ofs_get_coef(0)) << "  " << cimag(this->ofs_get_coef(0)) << endl;
 }
 
 
-//-------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 // Reading an OFS from a text file
-//-------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 /**
- * \fn void inline readOFS_txt(Ofsc& xFFT, string filename, int fftN)
+ * \fn void inline read_ofs_txt(Ofsc& xFFT, string filename, int fftN)
  * \brief Reading an Ofsc object from a text file.
  */
-void inline readOFS_txt(Ofsc& xFFT, string filename)
+void inline read_ofs_txt(Ofsc& xFFT, string filename)
 {
     //Init
     ifstream readStream;
     double ct, cr, ci;
-    int fftN = xFFT.getOrder();
+    int fftN = xFFT.get_order();
 
     //Reading
     readStream.open((filename+".txt").c_str());
     for(int i = -fftN; i<=fftN; i++)
     {
-        readStream >> ct;  //current order
+        readStream >> ct;  //current m_ofs_order
         readStream >> cr;  //real part
         readStream >> ci;  //imag part
-        xFFT.setCoef(cr+I*ci, i);
+        xFFT.set_coef(cr+I*ci, i);
     }
     readStream.close();
 }
 
-//-------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 // Array cos/sin computation
-//-------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 /**
  *  \brief Initializes the arrays cR[] and sR[], containing the numbers cos(t), cos(nt), ... cos(ofs_order*n*t) and sin(t), sin(nt), ... sin(ofs_order*n*t), respectively.
  **/
-void inline initcRsR(double t, double cR[], double sR[], int ofs_order)
+void inline init_cR_sR(double t, double cR[], double sR[], int ofs_order)
 {
     cR[0] = cos(t);
     sR[0] = sin(t);
@@ -1475,15 +1480,15 @@ void inline initcRsR(double t, double cR[], double sR[], int ofs_order)
     }
 }
 
-//--------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 // Single storage
-//--------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 /**
  *  \brief Single storage of a QBTBP Ofs object in txt files + its cosinus/sinus version.
  */
 inline void ofs_sst(Ofsc &xOFS, string filename, int flag, string suffix)
 {
-    int nf = xOFS.getOrder();
+    int n_order_fourier = xOFS.get_order();
     ofstream curentStream;
 
     //Storage in txt file
@@ -1495,15 +1500,15 @@ inline void ofs_sst(Ofsc &xOFS, string filename, int flag, string suffix)
     if(flag) //even case
     {
         //Cosinus expansion version
-        curentStream << 0 << " " << creal(xOFS.ofs_getCoef(0)) << endl;
-        for(int l = 1; l<=nf; l++) curentStream << l << " " << creal(xOFS.ofs_getCoef(-l) + xOFS.ofs_getCoef(l))  <<  endl;
+        curentStream << 0 << " " << creal(xOFS.ofs_get_coef(0)) << endl;
+        for(int l = 1; l<=n_order_fourier; l++) curentStream << l << " " << creal(xOFS.ofs_get_coef(-l) + xOFS.ofs_get_coef(l))  <<  endl;
 
     }
     else //odd case
     {
         //Sinus expansion version
-        for(int l = 0; l<=nf; l++)
-            curentStream << l << " " <<  cimag(xOFS.ofs_getCoef(-l) - xOFS.ofs_getCoef(l)) << endl;
+        for(int l = 0; l<=n_order_fourier; l++)
+            curentStream << l << " " <<  cimag(xOFS.ofs_get_coef(-l) - xOFS.ofs_get_coef(l)) << endl;
         curentStream.close();
     }
     curentStream.close();

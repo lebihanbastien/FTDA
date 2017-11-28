@@ -162,7 +162,7 @@ struct Orbit
  *   \param pmap a reference to the Poincare map parameters
  *   \param isPlot if true, the Poincare map is plotted during the computation
  *
- *    Requires initCM and initCOC
+ *    Requires init_inv_man and init_coc
  **/
 void pmap_build(Pmap &pmap, int append, int return_method, bool isPar);
 
@@ -171,7 +171,7 @@ void pmap_build(Pmap &pmap, int append, int return_method, bool isPar);
  *   \param pmap a reference to the Stroboscopic map parameters
  *   \param isPlot if true, the Stroboscopic map is plotted during the computation
  *
- *    Requires initCM and initCOC
+ *    Requires init_inv_man and init_coc
  **/
 void tmap_build(Pmap &pmap, int append, int method, bool isPlot, bool isPar);
 
@@ -179,7 +179,7 @@ void tmap_build(Pmap &pmap, int append, int method, bool isPlot, bool isPar);
  *   \brief Precision on a Poincare map. Parallelized version
  *   \param pmap a reference to the Poincare maps parameters
  *
- *    Requires initCM and initCOC
+ *    Requires init_inv_man and init_coc
  *
  *   REMARK: may be good to "force" p36(t0= 0.0) (e.g. pmap.t0 =  +1.044814582930593 for L2) so that each IC begins on z = 0 plane
  *   If so, the way H(0) = cst is guaranteed must be changed because we need also to ensure that s4 = 0.0 (which is not the case, since it is the variable
@@ -193,7 +193,7 @@ void pmap_precision(Pmap &pmap, int append, bool isPar);
  *   \param hzmax the maximum energy value allowed.
  *          Note that only positive dhz are selected
  *
- *    Requires initCM and initCOC
+ *    Requires init_inv_man and init_coc
  *
  *   REMARK: may be good to "force" p36(t0= 0.0) (e.g. pmap.t0 =  +1.044814582930593 for L2) so that each IC begins on z = 0 plane
  *   If so, the way H(0) = cst is guaranteed must be changed because we need also to ensure that s4 = 0.0 (which is not the case, since it is the variable
@@ -207,7 +207,7 @@ void pmap_invariance_error(Pmap &pmap, int append, bool isPar, double hzmax);
  *   \param hzmax the maximum energy value allowed.
  *          Note that only positive dhz are selected
  *
- *    Requires initCM and initCOC
+ *    Requires init_inv_man and init_coc
  *
  *   REMARK: may be good to "force" p36(t0= 0.0) (e.g. pmap.t0 =  +1.044814582930593 for L2) so that each IC begins on z = 0 plane
  *   If so, the way H(0) = cst is guaranteed must be changed because we need also to ensure that s4 = 0.0 (which is not the case, since it is the variable
@@ -223,7 +223,7 @@ void pmap_invariance_error_random(Pmap& pmap, int append, bool isPar, double hzm
  *   \param hzmax the maximum energy value allowed.
  *          Note that only positive dhz are selected
  *
- *    Requires initCM and initCOC
+ *    Requires init_inv_man and init_coc
  *
  *   REMARK: may be good to "force" p36(t0= 0.0) (e.g. pmap.t0 =  +1.044814582930593 for L2) so that each IC begins on z = 0 plane
  *   If so, the way H(0) = cst is guaranteed must be changed because we need also to ensure that s4 = 0.0 (which is not the case, since it is the variable
@@ -235,7 +235,7 @@ void pmap_test_error(Pmap &pmap, int append, bool isPar, double hzmax);
  *   \brief Energy of the initial conditions on a Poincare map. Parallelized version
  *   \param pmap a reference to the Poincare maps parameters
  *
- *    Requires initCM and initCOC
+ *    Requires init_inv_man and init_coc
  *
  *   REMARK: may be good to "force" p36(t0= 0.0) (e.g. pmap.t0 =  +1.044814582930593 for L2) so that each IC begins on z = 0 plane
  *   If so, the way H(0) = cst is guaranteed must be changed because we need also to ensure that s4 = 0.0 (which is not the case, since it is the variable
@@ -249,7 +249,7 @@ void pmap_energy(Pmap &pmap, int append, bool isPar, double hzmax);
  *   \param hzmax the maximum energy value allowed.
  *          Note that only positive dhz are selected
  *
- *    Requires initCM and initCOC
+ *    Requires init_inv_man and init_coc
  *
  *   REMARK: may be good to "force" p36(t0= 0.0) (e.g. pmap.t0 =  +1.044814582930593 for L2) so that each IC begins on z = 0 plane
  *   If so, the way H(0) = cst is guaranteed must be changed because we need also to ensure that s4 = 0.0 (which is not the case, since it is the variable

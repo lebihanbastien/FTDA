@@ -308,7 +308,7 @@ void CCM8toRVF8(const double s8[],
                 double f8[]);
 
 /**
- *  \brief Test of the RCMtoNC routines. Requires initCM().
+ *  \brief Test of the RCMtoNC routines. Requires init_inv_man().
  **/
 void testRCMtoNC();
 

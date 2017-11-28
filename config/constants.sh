@@ -40,6 +40,7 @@ export MAN_CENTER_US=3
 # MODEL (MODEL)
 # CRTBP = 0; QBCP = 1; BCP = 2; ERTBP = 3
 #-----------------------------------------------------------------------------------------
+export RTBP=0
 export CRTBP=0
 export QBCP=1
 export BCP=2  
@@ -60,6 +61,10 @@ export EML1=1
 export EML2=2
 export SEL1=3
 export SEL2=4
+
+#Copy for consistency with previous notations
+export SEML1=3
+export SEML2=4
 
 #-----------------------------------------------------------------------------------------
 # Normalization (ISNORM)

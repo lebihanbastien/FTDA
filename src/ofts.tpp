@@ -1,46 +1,44 @@
-//############################################################################
+//########################################################################################
 // Implementation of the Ofts template class
-//############################################################################
+//########################################################################################
 
 /**
  * \file ofts.tpp
- * \brief Fourier-Taylor series template class (src)
+ * \brief Fourier-Taylor series template class. See ofts.h for details.
  * \author BLB
- * \date May 2015
- * \version 1.0
  */
 
-//---------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 //Create
-//---------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 /**
  *  \brief Default constructor of the class Ofts<T>.
  */
 template<typename T> Ofts<T>::Ofts()
 {
     int i, index;
-    nv     = REDUCED_NV;
-    order  = OFTS_ORDER;
-    cnv    = Csts::OFS_NV;
+    m_ofts_nvar     = REDUCED_NV;
+    m_ofts_order  = OFTS_ORDER;
+    m_ofs_nvar    = Csts::OFS_NV;
     corder = OFS_ORDER;
 
     //New array of coefficients
-    coefs = (Ofs<complex double>*) calloc(binomial(nv+order,nv), sizeof(Ofs<complex double>)); //new T[binomial(nv+order, nv)]();
-    for(unsigned k= 0; k< binomial(nv + order, nv); k++) coefs[k] = Ofs<complex double>(corder);
+    m_ofts_coefs = (Ofs<complex double>*) calloc(binomial(m_ofts_nvar+m_ofts_order,m_ofts_nvar), sizeof(Ofs<complex double>)); //new T[binomial(m_ofts_nvar+m_ofts_order, m_ofts_nvar)]();
+    for(unsigned k= 0; k< binomial(m_ofts_nvar + m_ofts_order, m_ofts_nvar); k++) m_ofts_coefs[k] = Ofs<complex double>(corder);
 
     //Allocation of the homogeneous polynomials
-    term = new Oftsh<T>*[order+1];
-    //term = (Oftsh<T>**) calloc(binomial(nv+order,nv), sizeof(Oftsh<T>*));//new Oftsh<T>*[order+1];
+    m_ofts_term = new Oftsh<T>*[m_ofts_order+1];
+    //m_ofts_term = (Oftsh<T>**) calloc(binomial(m_ofts_nvar+m_ofts_order,m_ofts_nvar), sizeof(Oftsh<T>*));//new Oftsh<T>*[m_ofts_order+1];
 
     //Allocation of the coefficients
     index = 0;
-    for(i=0; i<=order; i++)
+    for(i=0; i<=m_ofts_order; i++)
     {
         //Allocation of each hp
-        term[i] = new Oftsh<T>(nv, i);
+        m_ofts_term[i] = new Oftsh<T>(m_ofts_nvar, i);
         //Link h to coefs at each level of the tree
-        term[i]->linkCoefs(coefs+index);
-        index+=  Manip::nmon(nv,i);
+        m_ofts_term[i]->link_coefs(m_ofts_coefs+index);
+        index+=  Manip::nmon(m_ofts_nvar,i);
     }
 }
 
@@ -51,27 +49,27 @@ template<typename T> Ofts<T>::Ofts(int newNv, int newOrder, int newCnv, int newC
 {
     int i, index;
 
-    nv = newNv;
-    order = newOrder;
-    cnv = newCnv;
+    m_ofts_nvar = newNv;
+    m_ofts_order = newOrder;
+    m_ofs_nvar = newCnv;
     corder = newCorder;
 
     //New array of coefficients
-    coefs = (T*) calloc(binomial(nv+order,nv), sizeof(T)); //new T[binomial(nv+order, nv)]();
+    m_ofts_coefs = (T*) calloc(binomial(m_ofts_nvar+m_ofts_order,m_ofts_nvar), sizeof(T)); //new T[binomial(m_ofts_nvar+m_ofts_order, m_ofts_nvar)]();
 
     //Allocation of the homogeneous polynomials
-    term = new Oftsh<T>*[order+1];
+    m_ofts_term = new Oftsh<T>*[m_ofts_order+1];
 
     //Allocation of the coefficients
     index = 0;
-    for(i=0; i<=order; i++)
+    for(i=0; i<=m_ofts_order; i++)
     {
         //Allocation of each hp
-        term[i] = new Oftsh<T>(nv, i);//allocate_homog(nv, i);
+        m_ofts_term[i] = new Oftsh<T>(m_ofts_nvar, i);//allocate_homog(m_ofts_nvar, i);
         //Link h to coefs at each level of the tree
-        term[i]->linkCoefs(coefs+index);
-        //term[i]->linkCoefs(new T[Manip::nmon(nv,i)]);
-        index+=  Manip::nmon(nv,i);
+        m_ofts_term[i]->link_coefs(m_ofts_coefs+index);
+        //m_ofts_term[i]->link_coefs(new T[Manip::nmon(m_ofts_nvar,i)]);
+        index+=  Manip::nmon(m_ofts_nvar,i);
     }
 }
 
@@ -82,28 +80,28 @@ template<> inline Ofts< Ofs<complex double> >::Ofts(int newNv, int newOrder, int
 {
     int i, index;
 
-    nv = newNv;
-    order = newOrder;
-    cnv = newCnv;
+    m_ofts_nvar = newNv;
+    m_ofts_order = newOrder;
+    m_ofs_nvar = newCnv;
     corder = newCorder;
 
     //New array of coefficients
-    coefs = (Ofs<complex double>*) calloc(binomial(nv+order,nv), sizeof(Ofs<complex double>)); //new T[binomial(nv+order, nv)]();
-    for(unsigned k= 0; k< binomial(nv + order, nv); k++) coefs[k]  = Ofs<complex double>(corder);
+    m_ofts_coefs = (Ofs<complex double>*) calloc(binomial(m_ofts_nvar+m_ofts_order,m_ofts_nvar), sizeof(Ofs<complex double>)); //new T[binomial(m_ofts_nvar+m_ofts_order, m_ofts_nvar)]();
+    for(unsigned k= 0; k< binomial(m_ofts_nvar + m_ofts_order, m_ofts_nvar); k++) m_ofts_coefs[k]  = Ofs<complex double>(corder);
 
     //Allocation of the homogeneous polynomials
-    term = new Oftsh< Ofs<complex double> >*[order+1];
+    m_ofts_term = new Oftsh< Ofs<complex double> >*[m_ofts_order+1];
 
     //Allocation of the coefficients
     index = 0;
-    for(i=0; i<=order; i++)
+    for(i=0; i<=m_ofts_order; i++)
     {
         //Allocation of each hp
-        term[i] = new Oftsh< Ofs<complex double> >(nv, i);//allocate_homog(nv, i);
+        m_ofts_term[i] = new Oftsh< Ofs<complex double> >(m_ofts_nvar, i);//allocate_homog(m_ofts_nvar, i);
         //Link h to coefs at each level of the tree
-        term[i]->linkCoefs(coefs+index);
-        //term[i]->linkCoefs(new T[Manip::nmon(nv,i)]);
-        index+=  Manip::nmon(nv,i);
+        m_ofts_term[i]->link_coefs(m_ofts_coefs+index);
+        //m_ofts_term[i]->link_coefs(new T[Manip::nmon(m_ofts_nvar,i)]);
+        index+=  Manip::nmon(m_ofts_nvar,i);
     }
 }
 
@@ -114,30 +112,30 @@ template<> inline Ofts< Ofsd >::Ofts(int newNv, int newOrder, int newCnv, int ne
 {
     int i, index;
 
-    nv = newNv;
-    order = newOrder;
-    cnv = newCnv;
+    m_ofts_nvar = newNv;
+    m_ofts_order = newOrder;
+    m_ofs_nvar = newCnv;
     corder = newCorder;
 
     //New array of coefficients
     //-------------------------------------------------------
-    //Replacing T *coefs = new T[binomial(nv+order, nv)]();
-    coefs = (Ofsd*) calloc(binomial(nv+order,nv), sizeof(Ofsd));
-    for(unsigned k= 0; k< binomial(nv + order, nv); k++) coefs[k]  = Ofsd(corder);
+    //Replacing T *m_ofts_coefs = new T[binomial(m_ofts_nvar+m_ofts_order, m_ofts_nvar)]();
+    m_ofts_coefs = (Ofsd*) calloc(binomial(m_ofts_nvar+m_ofts_order,m_ofts_nvar), sizeof(Ofsd));
+    for(unsigned k= 0; k< binomial(m_ofts_nvar + m_ofts_order, m_ofts_nvar); k++) m_ofts_coefs[k]  = Ofsd(corder);
     //-------------------------------------------------------
 
     //Allocation of the homogeneous polynomials
-    term = new Oftsh< Ofsd >*[order+1];
+    m_ofts_term = new Oftsh< Ofsd >*[m_ofts_order+1];
 
     //Allocation of the coefficients
     index = 0;
-    for(i=0; i<=order; i++)
+    for(i=0; i<=m_ofts_order; i++)
     {
         //Allocation of each hp
-        term[i] = new Oftsh< Ofsd >(nv, i);//allocate_homog(nv, i);
+        m_ofts_term[i] = new Oftsh< Ofsd >(m_ofts_nvar, i);//allocate_homog(m_ofts_nvar, i);
         //Link h to coefs at each level of the tree
-        term[i]->linkCoefs(coefs+index);
-        index+=  Manip::nmon(nv,i);
+        m_ofts_term[i]->link_coefs(m_ofts_coefs+index);
+        index+=  Manip::nmon(m_ofts_nvar,i);
     }
 }
 
@@ -148,36 +146,36 @@ template<typename T> Ofts<T>::Ofts(Ofts<T> const& b)
 {
     int nrc, index;
 
-    //Same nv/order
-    nv = b.nv;
-    order = b.order;
-    cnv = b.cnv;
+    //Same m_ofts_nvar/m_ofts_order
+    m_ofts_nvar = b.m_ofts_nvar;
+    m_ofts_order = b.m_ofts_order;
+    m_ofs_nvar = b.m_ofs_nvar;
     corder = b.corder;
 
     //Copy of all the coefficients at every order in new array
-    //coefs = new T[binomial(nv+b.order, b.nv)]();
-    coefs = (Ofs<complex double>*) calloc(binomial(nv+order,nv), sizeof(Ofs<complex double>)); //new T[binomial(nv+order, nv)]();
-    for(unsigned k= 0; k< binomial(nv + order, nv); k++) coefs[k]  = Ofs<complex double>(corder);
+    //m_ofts_coefs = new T[binomial(m_ofts_nvar+b.m_ofts_order, b.m_ofts_nvar)]();
+    m_ofts_coefs = (Ofs<complex double>*) calloc(binomial(m_ofts_nvar+m_ofts_order,m_ofts_nvar), sizeof(Ofs<complex double>)); //new T[binomial(m_ofts_nvar+m_ofts_order, m_ofts_nvar)]();
+    for(unsigned k= 0; k< binomial(m_ofts_nvar + m_ofts_order, m_ofts_nvar); k++) m_ofts_coefs[k]  = Ofs<complex double>(corder);
 
     index = 0;
-    for(int nrc=0; nrc<= order; nrc++)
+    for(int nrc=0; nrc<= m_ofts_order; nrc++)
     {
-        for (int i=0; i< Manip::nmon(nv, nrc); i++)  coefs[index+i] = b.term[nrc]->getCoef(i);
-        index+=  Manip::nmon(nv,nrc);
+        for (int i=0; i< Manip::nmon(m_ofts_nvar, nrc); i++)  m_ofts_coefs[index+i] = b.m_ofts_term[nrc]->get_coef(i);
+        index+=  Manip::nmon(m_ofts_nvar,nrc);
     }
 
     //Allocation of the homogeneous polynomials
-    term = new Oftsh<T>*[order+1];
+    m_ofts_term = new Oftsh<T>*[m_ofts_order+1];
 
     //Allocation of the coefficients
     index = 0;
-    for(nrc=0; nrc<=order; nrc++)
+    for(nrc=0; nrc<=m_ofts_order; nrc++)
     {
         //Allocation of each hp
-        term[nrc] = new Oftsh<T>(nv, nrc);//allocate_homog(nv, i);
+        m_ofts_term[nrc] = new Oftsh<T>(m_ofts_nvar, nrc);//allocate_homog(m_ofts_nvar, i);
         //Link h to coefs at each level of the tree
-        term[nrc]->linkCoefs(coefs+index);
-        index+=  Manip::nmon(nv,nrc);
+        m_ofts_term[nrc]->link_coefs(m_ofts_coefs+index);
+        index+=  Manip::nmon(m_ofts_nvar,nrc);
     }
 }
 
@@ -190,35 +188,35 @@ template<typename T> Ofts<T>& Ofts<T>::operator = (Ofts<T> const& b)
     {
         int nrc, index;
 
-        //Same nv/order
-        nv = b.nv;
-        order = b.order;
-        cnv = b.cnv;
+        //Same m_ofts_nvar/m_ofts_order
+        m_ofts_nvar = b.m_ofts_nvar;
+        m_ofts_order = b.m_ofts_order;
+        m_ofs_nvar = b.m_ofs_nvar;
         corder = b.corder;
 
         //Copy of all the coefficients at every order in new array
-        T *coef0 = new T[binomial(nv+order, nv)]();
+        T *coef0 = new T[binomial(m_ofts_nvar+m_ofts_order, m_ofts_nvar)]();
         index = 0;
-        for(int nrc=0; nrc<= order; nrc++)
+        for(int nrc=0; nrc<= m_ofts_order; nrc++)
         {
-            for (int i=0; i< Manip::nmon(nv, nrc); i++)  coef0[index+i] = b.term[nrc]->getCoef(i);
-            index+=  Manip::nmon(nv,nrc);
+            for (int i=0; i< Manip::nmon(m_ofts_nvar, nrc); i++)  coef0[index+i] = b.m_ofts_term[nrc]->get_coef(i);
+            index+=  Manip::nmon(m_ofts_nvar,nrc);
         }
 
-        delete term;
+        delete m_ofts_term;
 
         //Allocation of the homogeneous polynomials
-        term = new Oftsh<T>*[order+1];
+        m_ofts_term = new Oftsh<T>*[m_ofts_order+1];
 
         //Allocation of the coefficients
         index = 0;
-        for(nrc=0; nrc<=order; nrc++)
+        for(nrc=0; nrc<=m_ofts_order; nrc++)
         {
             //Allocation of each hp
-            term[nrc] = new Oftsh<T>(nv, nrc);//allocate_homog(nv, i);
+            m_ofts_term[nrc] = new Oftsh<T>(m_ofts_nvar, nrc);//allocate_homog(m_ofts_nvar, i);
             //Link h to coefs at each level of the tree
-            term[nrc]->linkCoefs(coef0+index);
-            index+=  Manip::nmon(nv,nrc);
+            m_ofts_term[nrc]->link_coefs(coef0+index);
+            index+=  Manip::nmon(m_ofts_nvar,nrc);
         }
 
     }
@@ -227,37 +225,36 @@ template<typename T> Ofts<T>& Ofts<T>::operator = (Ofts<T> const& b)
 }
 
 
-//---------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 //Delete
-//---------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 /**
- *  \brief Default destructor of the class Ofts<T>. WARNING: memory leak here, through the terms of type Oftsh.
- *
- * Certainly a problem here: the line thats delete the coefficient is commented, because it leads to an error when programs end.
- * May lead to memory leak if the objects are created "on the fly", which may be the case in some inner routines like smprod_t.
+ *  \brief Default destructor of the class Ofts<T>.
+ *         WARNING: memory leak here, through the terms of type Oftsh.
  */
 template<typename T> Ofts<T>::~Ofts<T>()
 {
-    //if(coefs != NULL) delete coefs;
-    if(term != NULL)
+    //if(m_ofts_coefs != NULL) delete m_ofts_coefs;
+    if(m_ofts_term != NULL)
     {
-        //Certainly a problem at this point: since the delete routine of Oftsh is empty, only the first leaf of the Oftsh tree is deleted...
-        for(int i =0; i<= order ; i++) delete term[i];
+        //Certainly a problem at this point: since the delete routine of Oftsh is empty,
+        // only the first leaf of the Oftsh tree is deleted...
+        for(int i =0; i<= m_ofts_order ; i++) delete m_ofts_term[i];
     }
 }
 
-//---------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 //Copy
-//---------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 /**
  *  \brief  Linked copy from a given Ofs object (exact same object is obtained).
  */
 template<typename T> Ofts<T>& Ofts<T>::lcopy (Ofts<T> const& b)
 {
-    order = b.order;
-    nv = b.nv;
-    term = b.term;
-    cnv = b.cnv;
+    m_ofts_order = b.m_ofts_order;
+    m_ofts_nvar = b.m_ofts_nvar;
+    m_ofts_term = b.m_ofts_term;
+    m_ofs_nvar = b.m_ofs_nvar;
     corder = b.corder;
     return *this;
 }
@@ -269,7 +266,7 @@ template<typename T> Ofts<T>& Ofts<T>::lcopy (Ofts<T> const& b)
  */
 template<typename T> Ofts<T>& Ofts<T>::ccopy (Ofts<T> const& b)
 {
-    if(order != b.order || nv != b.nv || corder != b.corder || cnv != b.cnv)
+    if(m_ofts_order != b.m_ofts_order || m_ofts_nvar != b.m_ofts_nvar || corder != b.corder || m_ofs_nvar != b.m_ofs_nvar)
     {
         cout << "Error using ccopy : the order and/or number of variables does not match. Initial Ofts<T> is returned" << endl;
         return *this;
@@ -277,7 +274,7 @@ template<typename T> Ofts<T>& Ofts<T>::ccopy (Ofts<T> const& b)
     else
     {
         //Copy of all the coefficients at every order
-        for(int nrc=0; nrc<= order; nrc++) for (int i=0; i< Manip::nmon(nv, nrc); i++)  term[nrc]->setCoef(b.term[nrc]->getCoef(i), i);
+        for(int nrc=0; nrc<= m_ofts_order; nrc++) for (int i=0; i< Manip::nmon(m_ofts_nvar, nrc); i++)  m_ofts_term[nrc]->set_coef(b.m_ofts_term[nrc]->get_coef(i), i);
         return *this;
     }
 }
@@ -289,7 +286,7 @@ template<typename T> Ofts<T>& Ofts<T>::ccopy (Ofts<T> const& b)
  */
 template<typename T> Ofts<T>& Ofts<T>::ccopy (Ofts<T> const& b, int const& nrc)
 {
-    if(nrc > min(order, b.order) || nv != b.nv || corder != b.corder || cnv != b.cnv)
+    if(nrc > min(m_ofts_order, b.m_ofts_order) || m_ofts_nvar != b.m_ofts_nvar || corder != b.corder || m_ofs_nvar != b.m_ofs_nvar)
     {
         cout << "Error using ccopy : the order and/or number of variables does not match. Initial Ofts<T> is returned" << endl;
         return *this;
@@ -297,155 +294,155 @@ template<typename T> Ofts<T>& Ofts<T>::ccopy (Ofts<T> const& b, int const& nrc)
     else
     {
         //Copy of all the coefficients at every order
-        for (int i=0; i< Manip::nmon(nv, nrc); i++)  term[nrc]->setCoef(b.term[nrc]->getCoef(i), i);
+        for (int i=0; i< Manip::nmon(m_ofts_nvar, nrc); i++)  m_ofts_term[nrc]->set_coef(b.m_ofts_term[nrc]->get_coef(i), i);
         return *this;
     }
 }
 
 
-//---------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 //Setters
-//---------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 /**
- *  \brief Sets a coefficient at a given order \c ord and a given position \c i at this order in the serie.
+ *  \brief Sets a coefficient at a given order \c ord and a given position \c i at this order in the series.
  *
  * Set of given coefficient at term ord and position i in this term
  *   - ord gives the order of the homogeneous polynomial (hp)
  *   - i gives the positions wihtin this hp
- * Ex: setCoef(m, 2, 0) sets the x^2 coef
- * Ex: setCoef(m, 2, 1) sets the x*y coef
+ * Ex: set_coef(m, 2, 0) sets the x^2 coef
+ * Ex: set_coef(m, 2, 1) sets the x*y coef
  */
-template<typename T> void Ofts<T>::setCoef(T const& m, int ord, int i)
+template<typename T> void Ofts<T>::set_coef(T const& m, int ord, int i)
 {
-    term[ord]->setCoef(m, i);
+    m_ofts_term[ord]->set_coef(m, i);
 }
 
 /**
- *  \brief Adds a coefficient at a given order \c ord and a given position \c i at this order in the serie.
+ *  \brief Adds a coefficient at a given order \c ord and a given position \c i at this order in the series.
  *
  * Set of given coefficient at term ord and position i in this term
  *   - ord gives the order of the homogeneous polynomial (hp)
  *   - i gives the positions wihtin this hp
- * Ex: addCoef(m, 2, 0) adds to the x^2 coef
- * Ex: addCoef(m, 2, 1) adds to the x*y coef
+ * Ex: add_coef(m, 2, 0) adds to the x^2 coef
+ * Ex: add_coef(m, 2, 1) adds to the x*y coef
  */
-template<typename T> void Ofts<T>::addCoef(T const& m, int ord, int i)
+template<typename T> void Ofts<T>::add_coef(T const& m, int ord, int i)
 {
-    term[ord]->addCoef(m, i);
+    m_ofts_term[ord]->add_coef(m, i);
 }
 
 /**
  *  \brief Sets of a given double/complex (typename U) subcoefficient everywhere (at each order and in each coefficient).
  */
-template<typename T> template < typename U > void Ofts<T>::setAllCoefs(U const& m)
+template<typename T> template < typename U > void Ofts<T>::set_all_coefs(U const& m)
 {
-    for(int nrc=0; nrc<= order; nrc++) for (int i=0; i< Manip::nmon(nv, nrc); i++)  term[nrc]->setSubCoef(m, i);
+    for(int nrc=0; nrc<= m_ofts_order; nrc++) for (int i=0; i< Manip::nmon(m_ofts_nvar, nrc); i++)  m_ofts_term[nrc]->set_sub_coef(m, i);
 }
 
 /**
- *  \brief Sets random coefficients to all positions in the serie.
+ *  \brief Sets random coefficients to all positions in the series.
  */
-template<typename T> void Ofts<T>::setRandomCoefs()
+template<typename T> void Ofts<T>::set_random_coefs()
 {
-    for(int nrc=0; nrc<= order/2; nrc++)
+    for(int nrc=0; nrc<= m_ofts_order/2; nrc++)
     {
-        term[nrc]->setRandomCoefs();
+        m_ofts_term[nrc]->set_random_coefs();
     }
 }
 
 /**
  *  \brief Sets of a given U subcoefficient at order zero of the coefficient at position \c i of term of order \c n.
  */
-template<typename T> template < typename U > void Ofts<T>::setCoef0(U const& m, int const& ord, int const& i)
+template<typename T> template < typename U > void Ofts<T>::set_coef0(U const& m, int const& ord, int const& i)
 {
-    //term[ord]->setT0Coef(m, i);
-    term[ord]->setSubCoef(m, i, 0);
+    //m_ofts_term[ord]->setT0Coef(m, i);
+    m_ofts_term[ord]->set_sub_coef(m, i, 0);
 }
 
 
-//---------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 //Getters
-//---------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 /**
- *  \brief  Gets the order of the serie.
+ *  \brief  Gets the order of the series.
  */
-template<typename T> int Ofts<T>::getOrder() const
+template<typename T> int Ofts<T>::get_order() const
 {
-    return order;
+    return m_ofts_order;
 }
 
 /**
  *  \brief  Gets the order of the coefficients.
  */
-template<typename T> int Ofts<T>::getCOrder() const
+template<typename T> int Ofts<T>::get_coef_order() const
 {
     return corder;
 }
 
 /**
- *  \brief  Gets the number of variables of serie.
+ *  \brief  Gets the number of variables of series.
  */
-template<typename T> int Ofts<T>::getNV() const
+template<typename T> int Ofts<T>::get_nvar() const
 {
-    return nv;
+    return m_ofts_nvar;
 }
 
 /**
  *  \brief  Gets the number of variables of the coefficients.
  */
-template<typename T> int Ofts<T>::getCVariables() const
+template<typename T> int Ofts<T>::get_coef_nvar() const
 {
-    return cnv;
+    return m_ofs_nvar;
 }
 
 /**
  *  \brief  Gets the adress of the coefficient at order \c ord and position \c pos
  */
-template<typename T>  T* Ofts<T>::getCoef(int const& ord, int const& pos) const
+template<typename T>  T* Ofts<T>::get_coef(int const& ord, int const& pos) const
 {
-    if(ord > order || pos >= Manip::nmon(nv, ord))
+    if(ord > m_ofts_order || pos >= Manip::nmon(m_ofts_nvar, ord))
     {
-        cout << "Error in getCoef: out of range. First term is returned" << endl;
-        cout << "Requested order: " << ord << ", Maximum allowed: " <<  order << endl;
-        cout << "Requested pos: " << pos << ", Maximum allowed: " <<  Manip::nmon(nv, ord) << endl;
-        return this->term[0]->getCA();
+        cout << "Error in get_coef: out of range. First m_ofts_term is returned" << endl;
+        cout << "Requested m_ofts_order: " << ord << ", Maximum allowed: " <<  m_ofts_order << endl;
+        cout << "Requested pos: " << pos << ", Maximum allowed: " <<  Manip::nmon(m_ofts_nvar, ord) << endl;
+        return this->m_ofts_term[0]->get_ptr_first_coef();
     }
-    else return this->term[ord]->getCA()+pos;
+    else return this->m_ofts_term[ord]->get_ptr_first_coef()+pos;
 }
 
 /**
  *  \brief  Gets the adress of the term at order \c ord
  */
-template<typename T> Oftsh<T>* Ofts<T>::getTerm(int const& ord) const
+template<typename T> Oftsh<T>* Ofts<T>::get_term(int const& ord) const
 {
-    if(ord > order)
+    if(ord > m_ofts_order)
     {
-        cout << "Error in getTerm: out of range. First term is returned" << endl;
-        cout << "Requested order: " << ord << ", Maximum allowed: " <<  order << endl;
-        return this->term[0];
+        cout << "Error in get_term: out of range. First m_ofts_term is returned" << endl;
+        cout << "Requested m_ofts_order: " << ord << ", Maximum allowed: " <<  m_ofts_order << endl;
+        return this->m_ofts_term[0];
     }
-    else return this->term[ord];
+    else return this->m_ofts_term[ord];
 }
 
 /**
  *  \brief  Gets the adress of the Ofts object
  */
-template <typename T> Ofts<T>* Ofts<T>::getAddress() const
+template <typename T> Ofts<T>* Ofts<T>::get_ptr() const
 {
     return (Ofts<T>*) this;
 }
 
 
 
-//---------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 //Zeroing
-//---------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 /**
  *  \brief  Sets all coefficients to zero.
  */
 template<typename T> void Ofts<T>::zero()
 {
-    for(int nrc=0; nrc<= order; nrc++) term[nrc]->zero();
+    for(int nrc=0; nrc<= m_ofts_order; nrc++) m_ofts_term[nrc]->zero();
 }
 
 
@@ -460,7 +457,7 @@ template<typename T> void Ofts<T>::zero()
  */
 template<typename T> Ofts<T>& Ofts<T>::conjugate()
 {
-    for(int nrc=0; nrc<= order; nrc++) term[nrc]->conjugate();
+    for(int nrc=0; nrc<= m_ofts_order; nrc++) m_ofts_term[nrc]->conjugate();
     return *this;
 }
 
@@ -469,7 +466,7 @@ template<typename T> Ofts<T>& Ofts<T>::conjugate()
  */
 template<typename T> Ofts<T>& Ofts<T>::conjugate(int const& nrc)
 {
-    term[nrc]->conjugate();
+    m_ofts_term[nrc]->conjugate();
     return *this;
 }
 
@@ -481,14 +478,14 @@ template<typename T> Ofts<T>& Ofts<T>::conjugate(int const& nrc)
  */
 template<typename T> Ofts<T>& Ofts<T>::ofts_smult_t(Ofts<T> const& a, T const& m)
 {
-    if(order != a.order || nv != a.nv)
+    if(m_ofts_order != a.m_ofts_order || m_ofts_nvar != a.m_ofts_nvar)
     {
         cout << "Error using smult: the order and/or number of variables does not match. Initial Ofts<T> is returned" << endl;
         return *this;
     }
     else
     {
-        for(int k=0; k <= order; k++) term[k]->oftsh_smult_t(*a.term[k], m);  //ps[k] += m*a[k]
+        for(int k=0; k <= m_ofts_order; k++) m_ofts_term[k]->oftsh_smult_t(*a.m_ofts_term[k], m);  //ps[k] += m*a[k]
         return *this;
     }
 }
@@ -501,14 +498,14 @@ template<typename T> Ofts<T>& Ofts<T>::ofts_smult_t(Ofts<T> const& a, T const& m
  */
 template<typename T> Ofts<T>& Ofts<T>::ofts_smult_t(Ofts<T> const& a, T const& m, int const& n)
 {
-    if(order != a.order || nv != a.nv)
+    if(m_ofts_order != a.m_ofts_order || m_ofts_nvar != a.m_ofts_nvar)
     {
         cout << "Error using smult: the order and/or number of variables does not match. Initial Ofts<T> is returned" << endl;
         return *this;
     }
     else
     {
-        term[n]->oftsh_smult_t(*a.term[n], m);  //ps[n] += m*a[n]
+        m_ofts_term[n]->oftsh_smult_t(*a.m_ofts_term[n], m);  //ps[n] += m*a[n]
         return *this;
     }
 }
@@ -522,14 +519,14 @@ template<typename T> Ofts<T>& Ofts<T>::ofts_smult_t(Ofts<T> const& a, T const& m
  */
 template<typename T> Ofts<T>& Ofts<T>::ofts_mult_t(Ofts<T> const& a, T const& m, int const& n)
 {
-    if(order != a.order || nv != a.nv)
+    if(m_ofts_order != a.m_ofts_order || m_ofts_nvar != a.m_ofts_nvar)
     {
         cout << "Error using smult: the order and/or number of variables does not match. Initial Ofts<T> is returned" << endl;
         return *this;
     }
     else
     {
-        term[n]->oftsh_mult_t(*a.term[n], m);  //ps[n] += m*a[n]
+        m_ofts_term[n]->oftsh_mult_t(*a.m_ofts_term[n], m);  //ps[n] += m*a[n]
         return *this;
     }
 }
@@ -543,14 +540,14 @@ template<typename T> Ofts<T>& Ofts<T>::ofts_mult_t(Ofts<T> const& a, T const& m,
  */
 template<typename T> template<typename U> Ofts< Ofs<U> >& Ofts<T>::ofts_smult_u(Ofts< Ofs<U> > const& a, U const& c)
 {
-    if(order != a.order || nv != a.nv)
+    if(m_ofts_order != a.m_ofts_order || m_ofts_nvar != a.m_ofts_nvar)
     {
         cout << "Error using smult: the order and/or number of variables does not match. Initial Ofts<T> is returned" << endl;
         return *this;
     }
     else
     {
-        for(int k=0; k <= order; k++) term[k]->oftsh_smult_u(*a.term[k], c);  //ps[k] += m*a[k]
+        for(int k=0; k <= m_ofts_order; k++) m_ofts_term[k]->oftsh_smult_u(*a.m_ofts_term[k], c);  //ps[k] += m*a[k]
         return *this;
     }
 }
@@ -562,14 +559,14 @@ template<typename T> template<typename U> Ofts< Ofs<U> >& Ofts<T>::ofts_smult_u(
  */
 template<typename T> template<typename U> Ofts< Ofs<U> >& Ofts<T>::ofts_smult_u(Ofts< Ofs<U> > const& a, U const& c, int const& k)
 {
-    if(k > order || nv != a.nv)
+    if(k > m_ofts_order || m_ofts_nvar != a.m_ofts_nvar)
     {
         cout << "Error using smult: the order and/or number of variables does not match. Initial Ofts<T> is returned" << endl;
         return *this;
     }
     else
     {
-        term[k]->oftsh_smult_u(*a.term[k], c);  //ps[k] += m*a[k]
+        m_ofts_term[k]->oftsh_smult_u(*a.m_ofts_term[k], c);  //ps[k] += m*a[k]
         return *this;
     }
 }
@@ -583,7 +580,7 @@ template<typename T> template<typename U> Ofts< Ofs<U> >& Ofts<T>::ofts_smult_u(
  */
 template<typename T> template<typename U> Ofts< Ofs<U> >& Ofts<T>::ofts_smult_tu(Ofts< Ofs<U> > const& a, T const& m, U const& c)
 {
-    if(order != a.order || nv != a.nv)
+    if(m_ofts_order != a.m_ofts_order || m_ofts_nvar != a.m_ofts_nvar)
     {
         cout << "Error using smult: the order and/or number of variables does not match. Initial Ofts<T> is returned" << endl;
         return *this;
@@ -592,9 +589,9 @@ template<typename T> template<typename U> Ofts< Ofs<U> >& Ofts<T>::ofts_smult_tu
     {
 
         int k;
-        for(k=0; k <= order; k++)
+        for(k=0; k <= m_ofts_order; k++)
         {
-            term[k]->oftsh_smult_tu(*a.term[k], m, c);  //ps[k] += m*a[k]
+            m_ofts_term[k]->oftsh_smult_tu(*a.m_ofts_term[k], m, c);  //ps[k] += m*a[k]
         }
 
         return *this;
@@ -602,20 +599,20 @@ template<typename T> template<typename U> Ofts< Ofs<U> >& Ofts<T>::ofts_smult_tu
 }
 
 /**
- *  \brief  An operation. Adds the product: \c this \f$  += c m a \f$ with m a coefficient and c a subcoefficient, at order k.
+ *  \brief  An operation. Adds the product: \c this \f$  += c m a \f$ with m a coefficient and c a subcoefficient, at m_ofts_order k.
  *  \param  a: a reference to an Oftsh object
  *  \param  c: a reference to a subcoefficient
  */
 template<typename T> template<typename U> Ofts< Ofs<U> >& Ofts<T>::ofts_smult_tu(Ofts< Ofs<U> > const& a, T const& m, U const& c, int const& k)
 {
-    if(k > order  || nv != a.nv)
+    if(k > m_ofts_order  || m_ofts_nvar != a.m_ofts_nvar)
     {
         cout << "Error using smult: the order and/or number of variables does not match. Initial Ofts<T> is returned" << endl;
         return *this;
     }
     else
     {
-        term[k]->oftsh_smult_tu(*a.term[k], m, c);  //ps[k] += m*a[k]
+        m_ofts_term[k]->oftsh_smult_tu(*a.m_ofts_term[k], m, c);  //ps[k] += m*a[k]
         return *this;
     }
 }
@@ -631,16 +628,16 @@ template<typename T> template<typename U> Ofts< Ofs<U> >& Ofts<T>::ofts_smult_tu
  */
 template<typename T> Ofts<T>& Ofts<T>::ofts_mult_t(Ofts<T> const& a, T const& m)
 {
-    if(order != a.order || nv != a.nv)
+    if(m_ofts_order != a.m_ofts_order || m_ofts_nvar != a.m_ofts_nvar)
     {
         cout << "Error using mult: the order and/or number of variables does not match. Initial Ofts<T> is returned" << endl;
         return *this;
     }
     else
     {
-        for(int k=0; k <= order; k++)
+        for(int k=0; k <= m_ofts_order; k++)
         {
-            term[k]->mult(*a.term[k], m);  //ps[k] = m*a[k], contains the zeroing
+            m_ofts_term[k]->mult(*a.m_ofts_term[k], m);  //ps[k] = m*a[k], contains the zeroing
         }
 
         return *this;
@@ -654,14 +651,14 @@ template<typename T> Ofts<T>& Ofts<T>::ofts_mult_t(Ofts<T> const& a, T const& m)
  */
 template<typename T> template<typename U> Ofts< Ofs<U> >& Ofts<T>::ofts_mult_u(Ofts< Ofs<U> > const& a, U const& c, int const& k)
 {
-    if(k > order || nv != a.nv)
+    if(k > m_ofts_order || m_ofts_nvar != a.m_ofts_nvar)
     {
         cout << "Error using smult: the order and/or number of variables does not match. Initial Ofts<T> is returned" << endl;
         return *this;
     }
     else
     {
-        term[k]->oftsh_mult_u(*a.term[k], c);  //ps[k] += m*a[k]
+        m_ofts_term[k]->oftsh_mult_u(*a.m_ofts_term[k], c);  //ps[k] += m*a[k]
         return *this;
     }
 }
@@ -673,7 +670,7 @@ template<typename T> template<typename U> Ofts< Ofs<U> >& Ofts<T>::ofts_mult_u(O
  */
 template<typename T> template<typename U> Ofts< Ofs<U> >& Ofts<T>::ofts_mult_u(Ofts< Ofs<U> > const& a, U const& c)
 {
-    if(order != a.order || nv != a.nv)
+    if(m_ofts_order != a.m_ofts_order || m_ofts_nvar != a.m_ofts_nvar)
     {
         cout << "Error using smult: the order and/or number of variables does not match. Initial Ofts<T> is returned" << endl;
         return *this;
@@ -682,9 +679,9 @@ template<typename T> template<typename U> Ofts< Ofs<U> >& Ofts<T>::ofts_mult_u(O
     {
 
         int k;
-        for(k=0; k <= order; k++)
+        for(k=0; k <= m_ofts_order; k++)
         {
-            term[k]->oftsh_mult_u(*a.term[k], c);  //ps[k] += m*a[k]
+            m_ofts_term[k]->oftsh_mult_u(*a.m_ofts_term[k], c);  //ps[k] += m*a[k]
         }
 
         return *this;
@@ -698,7 +695,7 @@ template<typename T> template<typename U> Ofts< Ofs<U> >& Ofts<T>::ofts_mult_u(O
  */
 template<typename T> template<typename U> Ofts< Ofs<U> >& Ofts<T>::ofts_mult_tu(Ofts< Ofs<U> > const& a, T const& m, U const& c)
 {
-    if(order != a.order || nv != a.nv)
+    if(m_ofts_order != a.m_ofts_order || m_ofts_nvar != a.m_ofts_nvar)
     {
         cout << "Error using smult: the order and/or number of variables does not match. Initial Ofts<T> is returned" << endl;
         return *this;
@@ -707,9 +704,9 @@ template<typename T> template<typename U> Ofts< Ofs<U> >& Ofts<T>::ofts_mult_tu(
     {
 
         int k;
-        for(k=0; k <= order; k++)
+        for(k=0; k <= m_ofts_order; k++)
         {
-            term[k]->mult(*a.term[k], m, c);  //ps[k] += m*a[k]
+            m_ofts_term[k]->mult(*a.m_ofts_term[k], m, c);  //ps[k] += m*a[k]
         }
 
         return *this;
@@ -729,17 +726,17 @@ template<typename T> template<typename U> Ofts< Ofs<U> >& Ofts<T>::ofts_mult_tu(
  */
 template<typename T> Ofts<T>& Ofts<T>::ofts_sfsum_t(Ofts<T> const& a, T const& ma, Ofts<T> const& b, T const& mb)
 {
-    if(order != a.order || nv != a.nv || order != b.order || nv != b.nv)
+    if(m_ofts_order != a.m_ofts_order || m_ofts_nvar != a.m_ofts_nvar || m_ofts_order != b.m_ofts_order || m_ofts_nvar != b.m_ofts_nvar)
     {
         cout << "Error using sfsum: the order and/or number of variables does not match. Initial Ofts<T> is returned" << endl;
         return *this;
     }
     else
     {
-        for(int k=0; k <= order; k++)
+        for(int k=0; k <= m_ofts_order; k++)
         {
-            term[k]->oftsh_smult_t(*a.term[k], ma);   //ps[k]  += ma*a[k]
-            term[k]->oftsh_smult_t(*b.term[k], mb);   //ps[k]  += mb*b[k]
+            m_ofts_term[k]->oftsh_smult_t(*a.m_ofts_term[k], ma);   //ps[k]  += ma*a[k]
+            m_ofts_term[k]->oftsh_smult_t(*b.m_ofts_term[k], mb);   //ps[k]  += mb*b[k]
         }
         return *this;
     }
@@ -755,15 +752,15 @@ template<typename T> Ofts<T>& Ofts<T>::ofts_sfsum_t(Ofts<T> const& a, T const& m
  */
 template<typename T> Ofts<T>& Ofts<T>::ofts_sfsum_t(Ofts<T> const& a, T const& ma, Ofts<T> const& b, T const& mb, int n)
 {
-    if(order != a.order || nv != a.nv || order != b.order || nv != b.nv)
+    if(m_ofts_order != a.m_ofts_order || m_ofts_nvar != a.m_ofts_nvar || m_ofts_order != b.m_ofts_order || m_ofts_nvar != b.m_ofts_nvar)
     {
         cout << "Error using sfsum: the order and/or number of variables does not match. Initial Ofts<T> is returned" << endl;
         return *this;
     }
     else
     {
-        term[n]->oftsh_smult_t(*a.term[n], ma);   //ps[k]  += ma*a[k]
-        term[n]->oftsh_smult_t(*b.term[n], mb);   //ps[k]  += mb*b[k]
+        m_ofts_term[n]->oftsh_smult_t(*a.m_ofts_term[n], ma);   //ps[k]  += ma*a[k]
+        m_ofts_term[n]->oftsh_smult_t(*b.m_ofts_term[n], mb);   //ps[k]  += mb*b[k]
         return *this;
     }
 
@@ -781,16 +778,16 @@ template<typename T> Ofts<T>& Ofts<T>::ofts_sfsum_t(Ofts<T> const& a, T const& m
  */
 template<typename T> Ofts<T>& Ofts<T>::ofts_sfsum_tt(Ofts<T> const& a, T const& ma, Ofts<T> const& b, T const& mb, Ofts<T> const& c, T const& mc, int n)
 {
-    if(order != a.order || nv != a.nv || order != b.order || nv != b.nv|| order != c.order || nv != c.nv)
+    if(m_ofts_order != a.m_ofts_order || m_ofts_nvar != a.m_ofts_nvar || m_ofts_order != b.m_ofts_order || m_ofts_nvar != b.m_ofts_nvar|| m_ofts_order != c.m_ofts_order || m_ofts_nvar != c.m_ofts_nvar)
     {
         cout << "Error using sfsum: the order and/or number of variables does not match. Initial Ofts<T> is returned" << endl;
         return *this;
     }
     else
     {
-        term[n]->oftsh_smult_t(*a.term[n], ma);   //ps[k]  += ma*a[k]
-        term[n]->oftsh_smult_t(*b.term[n], mb);   //ps[k]  += mb*b[k]
-        term[n]->oftsh_smult_t(*c.term[n], mc);   //ps[k]  += mb*b[k]
+        m_ofts_term[n]->oftsh_smult_t(*a.m_ofts_term[n], ma);   //ps[k]  += ma*a[k]
+        m_ofts_term[n]->oftsh_smult_t(*b.m_ofts_term[n], mb);   //ps[k]  += mb*b[k]
+        m_ofts_term[n]->oftsh_smult_t(*c.m_ofts_term[n], mc);   //ps[k]  += mb*b[k]
         return *this;
     }
 
@@ -809,7 +806,7 @@ template<typename T> Ofts<T>& Ofts<T>::ofts_sfsum_tt(Ofts<T> const& a, T const& 
  */
 template<typename T> Ofts<T>& Ofts<T>::ofts_fsum_t(Ofts<T> const& a, T const& ma, Ofts<T> const& b, T const& mb)
 {
-    if(order != a.order || nv != a.nv || order != b.order || nv != b.nv)
+    if(m_ofts_order != a.m_ofts_order || m_ofts_nvar != a.m_ofts_nvar || m_ofts_order != b.m_ofts_order || m_ofts_nvar != b.m_ofts_nvar)
     {
         cout << "Error using fsum: the order and/or number of variables does not match. Initial Ofts<T> is returned" << endl;
         return *this;
@@ -817,10 +814,10 @@ template<typename T> Ofts<T>& Ofts<T>::ofts_fsum_t(Ofts<T> const& a, T const& ma
     else
     {
         int k;
-        for(k=0; k <= order; k++)
+        for(k=0; k <= m_ofts_order; k++)
         {
-            term[k]->oftsh_mult_t(*a.term[k], ma);   //ps[k]   = ma*a[k], contains the zeroing
-            term[k]->oftsh_smult_t(*b.term[k], mb);   //ps[k]  += mb*b[k]
+            m_ofts_term[k]->oftsh_mult_t(*a.m_ofts_term[k], ma);   //ps[k]   = ma*a[k], contains the zeroing
+            m_ofts_term[k]->oftsh_smult_t(*b.m_ofts_term[k], mb);   //ps[k]  += mb*b[k]
         }
         return *this;
     }
@@ -837,15 +834,15 @@ template<typename T> Ofts<T>& Ofts<T>::ofts_fsum_t(Ofts<T> const& a, T const& ma
  */
 template<typename T> Ofts<T>& Ofts<T>::ofts_fsum_t(Ofts<T> const& a, T const& ma, Ofts<T> const& b, T const& mb, int n)
 {
-    if(order != a.order || nv != a.nv || order != b.order || nv != b.nv)
+    if(m_ofts_order != a.m_ofts_order || m_ofts_nvar != a.m_ofts_nvar || m_ofts_order != b.m_ofts_order || m_ofts_nvar != b.m_ofts_nvar)
     {
         cout << "Error using fsum: the order and/or number of variables does not match. Initial Ofts<T> is returned" << endl;
         return *this;
     }
     else
     {
-        term[n]->oftsh_mult_t(*a.term[n], ma);    //ps[k]   = ma*a[k], contains the zeroing
-        term[n]->oftsh_smult_t(*b.term[n], mb);   //ps[k]  += mb*b[k]
+        m_ofts_term[n]->oftsh_mult_t(*a.m_ofts_term[n], ma);    //ps[k]   = ma*a[k], contains the zeroing
+        m_ofts_term[n]->oftsh_smult_t(*b.m_ofts_term[n], mb);   //ps[k]  += mb*b[k]
         return *this;
     }
 
@@ -860,17 +857,17 @@ template<typename T> Ofts<T>& Ofts<T>::ofts_fsum_t(Ofts<T> const& a, T const& ma
  */
 template<typename T> template<typename U> Ofts<T>& Ofts<T>::ofts_fsum_u(Ofts<T> const& a, U const& ca, Ofts<T> const& b, U const& cb)
 {
-    if(order != a.order || nv != a.nv || order != b.order || nv != b.nv)
+    if(m_ofts_order != a.m_ofts_order || m_ofts_nvar != a.m_ofts_nvar || m_ofts_order != b.m_ofts_order || m_ofts_nvar != b.m_ofts_nvar)
     {
         cout << "Error using fsum: the order and/or number of variables does not match. Initial Ofts<T> is returned" << endl;
         return *this;
     }
     else
     {
-        for(int k=0; k <= order; k++)
+        for(int k=0; k <= m_ofts_order; k++)
         {
-            term[k]->oftsh_mult_u(*a.term[k], ca);        //ps[k]   = ca*a[k], contains the zeroing
-            term[k]->oftsh_smult_u(*b.term[k], cb);       //ps[k]  += mb*b[k]
+            m_ofts_term[k]->oftsh_mult_u(*a.m_ofts_term[k], ca);        //ps[k]   = ca*a[k], contains the zeroing
+            m_ofts_term[k]->oftsh_smult_u(*b.m_ofts_term[k], cb);       //ps[k]  += mb*b[k]
         }
         return *this;
     }
@@ -887,15 +884,15 @@ template<typename T> template<typename U> Ofts<T>& Ofts<T>::ofts_fsum_u(Ofts<T> 
  */
 template<typename T> template<typename U> Ofts<T>& Ofts<T>::ofts_fsum_u(Ofts<T> const& a, U const& ca, Ofts<T> const& b, U const& cb, int const& m)
 {
-    if(order != a.order || nv != a.nv || order != b.order || nv != b.nv)
+    if(m_ofts_order != a.m_ofts_order || m_ofts_nvar != a.m_ofts_nvar || m_ofts_order != b.m_ofts_order || m_ofts_nvar != b.m_ofts_nvar)
     {
         cout << "Error using fsum: the order and/or number of variables does not match. Initial Ofts<T> is returned" << endl;
         return *this;
     }
     else
     {
-        term[m]->oftsh_mult_u(*a.term[m], ca);        //ps[k]   = ca*a[k], contains the zeroing
-        term[m]->oftsh_smult_u(*b.term[m], cb);       //ps[k]  += mb*b[k]
+        m_ofts_term[m]->oftsh_mult_u(*a.m_ofts_term[m], ca);        //ps[k]   = ca*a[k], contains the zeroing
+        m_ofts_term[m]->oftsh_smult_u(*b.m_ofts_term[m], cb);       //ps[k]  += mb*b[k]
         return *this;
     }
 
@@ -908,17 +905,17 @@ template<typename T> template<typename U> Ofts<T>& Ofts<T>::ofts_fsum_u(Ofts<T> 
 /**
  *  \brief  An operation. Adds the product: \c this \f$  += a*b \f$.
  *
- *  Handle the case for which n >= max(a.order, b.order)
+ *  Handle the case for which n >= max(a.m_ofts_order, b.m_ofts_order)
  */
 template<typename T> Ofts<T>& Ofts<T>::ofts_sprod(Ofts<T> const& a, Ofts<T> const& b)
 {
     int k, i, i0, i1;
     //Product
-    for(k=0; k<=order; k++)
+    for(k=0; k<=m_ofts_order; k++)
     {
-        i0 = min(b.order, k);
-        i1 = min(a.order, k);
-        for(i= k-i0; i<=i1; i++) term[k]->oftsh_sprod(*a.term[i], *b.term[k-i]);
+        i0 = min(b.m_ofts_order, k);
+        i1 = min(a.m_ofts_order, k);
+        for(i= k-i0; i<=i1; i++) m_ofts_term[k]->oftsh_sprod(*a.m_ofts_term[i], *b.m_ofts_term[k-i]);
     }
     return *this;
 }
@@ -926,15 +923,15 @@ template<typename T> Ofts<T>& Ofts<T>::ofts_sprod(Ofts<T> const& a, Ofts<T> cons
 /**
  *  \brief  An operation. Adds the product: \c this \f$  += a*b \f$ at order n.
  *
- *  Handle the case for which n >= max(a.order, b.order)
+ *  Handle the case for which n >= max(a.m_ofts_order, b.m_ofts_order)
  */
 template<typename T> Ofts<T>& Ofts<T>::ofts_sprod(Ofts<T> const& a, Ofts<T> const& b, int const& n)
 {
     int i, i0, i1;
-    i0 = min(b.order, n);
-    i1 = min(a.order, n);
+    i0 = min(b.m_ofts_order, n);
+    i1 = min(a.m_ofts_order, n);
     //Product
-    for(i= n-i0; i<=i1; i++) term[n]->oftsh_sprod(*a.term[i], *b.term[n-i]);
+    for(i= n-i0; i<=i1; i++) m_ofts_term[n]->oftsh_sprod(*a.m_ofts_term[i], *b.m_ofts_term[n-i]);
     return *this;
 }
 
@@ -949,26 +946,19 @@ template<typename T> Ofts<T>& Ofts<T>::ofts_sprod(Ofts<T> const& a, Ofts<T> cons
  */
 template<typename T> Ofts<T>& Ofts<T>::ofts_smprod_t(Ofts<T> const& a, Ofts<T> const& b, T const& m, T& temp)
 {
-//    //temp = 0 sizeOf(this)
-//    Ofts<T> temp(this->nv, this->order, this->cnv, this->corder);
-//    //temp = a*b
-//    temp.ofts_sprod(a,b);
-//    //this = m*temp
-//    this->ofts_smult_t(temp, m);
-//    return *this;
-
-//-----------------------------------------------------------------------
-//Other possibility: use a temporary variable in Ofs, and not Ofts
+    //------------------------------------------------------------------------------------
+    // This routine does not use a temporary variable in m_ofts_order to avoid
+    // additional Ofts object
+    //------------------------------------------------------------------------------------
     int k, i, i0, i1;
     //Product
-    for(k=0; k<=order; k++)
+    for(k=0; k<=m_ofts_order; k++)
     {
-        i0 = min(b.order, k);
-        i1 = min(a.order, k);
-        for(i= k-i0; i<=i1; i++) term[k]->oftsh_smprod_t(*a.term[i], *b.term[k-i], m, temp);
+        i0 = min(b.m_ofts_order, k);
+        i1 = min(a.m_ofts_order, k);
+        for(i= k-i0; i<=i1; i++) m_ofts_term[k]->oftsh_smprod_t(*a.m_ofts_term[i], *b.m_ofts_term[k-i], m, temp);
     }
     return *this;
-//-----------------------------------------------------------------------
 }
 
 /**
@@ -979,25 +969,15 @@ template<typename T> Ofts<T>& Ofts<T>::ofts_smprod_t(Ofts<T> const& a, Ofts<T> c
  */
 template<typename T> Ofts<T>& Ofts<T>::ofts_smprod_t(Ofts<T> const& a, Ofts<T> const& b, T const& m, int const& n, T& temp)
 {
-//    //temp = 0 sizeOf(this)
-//    Ofts<T> temp(this->nv, this->order, this->cnv, this->corder);
-//    //temp = a*b at order n
-//    temp.ofts_sprod(a,b,n);
-//    //this = m*temp at order n
-//    this->ofts_smult_t(temp,m, n);
-
-
-    //-----------------------------------------------------------------------
-    //Other possibility: use a temporary variable in Ofs, and not Ofts
+    //------------------------------------------------------------------------------------
+    // This routine does not use a temporary variable in m_ofts_order to avoid
+    // additional Ofts object
+    //------------------------------------------------------------------------------------
     int i, i0, i1;
 
-        i0 = min(b.order, n);
-        i1 = min(a.order, n);
-        for(i= n-i0; i<=i1; i++) term[n]->oftsh_smprod_t(*a.term[i], *b.term[n-i], m, temp);
-
-    return *this;
-    //-----------------------------------------------------------------------
-
+    i0 = min(b.m_ofts_order, n);
+    i1 = min(a.m_ofts_order, n);
+    for(i= n-i0; i<=i1; i++) m_ofts_term[n]->oftsh_smprod_t(*a.m_ofts_term[i], *b.m_ofts_term[n-i], m, temp);
 
     return *this;
 }
@@ -1016,7 +996,7 @@ template<typename T> Ofts<T>& Ofts<T>::ofts_smprod_t(Ofts<T> const& a, Ofts<T> c
 template<typename T> template<typename U> Ofts<T>& Ofts<T>::ofts_smprod_u(Ofts<T> const& a, Ofts<T> const& b, U const& c)
 {
     //temp = 0 sizeOf(this)
-    Ofts<T> temp(this->nv, this->order, this->cnv, this->corder);
+    Ofts<T> temp(this->m_ofts_nvar, this->m_ofts_order, this->m_ofs_nvar, this->corder);
     //temp = a*b
     temp.ofts_sprod(a,b);
     //this = c*temp
@@ -1039,7 +1019,7 @@ template<typename T> template<typename U> Ofts<T>& Ofts<T>::ofts_smprod_u(Ofts<T
 template<typename T> template<typename U> Ofts<T>& Ofts<T>::ofts_smprod_u(Ofts<T> const& a, Ofts<T> const& b, U const& c, int const& n)
 {
     //temp = 0 sizeOf(this)
-    Ofts<T> temp(this->nv, this->order, this->cnv, this->corder);
+    Ofts<T> temp(this->m_ofts_nvar, this->m_ofts_order, this->m_ofs_nvar, this->corder);
     //temp = a*b at order n
     temp.ofts_sprod(a,b,n);
     //this = c*temp at order n
@@ -1107,9 +1087,9 @@ template<typename T> template<typename U> Ofts<T>& Ofts<T>::ofts_pows(Ofts<T> co
     else
     {
         //Sets every coefficients to zero for order n
-        this->term[n]->zero();
-        for(int j=0; j<= n-1; j++) this->term[n]->smprod(*a.term[n-j], *this->term[j], alpha*(n-j)-j);// smprodh(ps->term[k], s->term[k-j], ps->term[j], alpha*(k-j)-j);
-        this->term[n]->mult(1.0/(n*x0)); //multh(ps->term[k], 1.0/(x0*k));
+        this->m_ofts_term[n]->zero();
+        for(int j=0; j<= n-1; j++) this->m_ofts_term[n]->smprod(*a.m_ofts_term[n-j], *this->m_ofts_term[j], alpha*(n-j)-j);// smprodh(ps->m_ofts_term[k], s->m_ofts_term[k-j], ps->m_ofts_term[j], alpha*(k-j)-j);
+        this->m_ofts_term[n]->mult(1.0/(n*x0)); //multh(ps->m_ofts_term[k], 1.0/(x0*k));
     }
 
     return *this;
@@ -1136,13 +1116,13 @@ template<> template<typename U> Ofts< Ofsc >& Ofts< Ofsc >::ofts_pows(Ofts< Ofsc
         //temp2 = 1/x0
         temp2.ofs_pows(*coef0s(a), -1.0+0.0*I);
         //Sets every coefficients to zero for order n
-        this->term[n]->zero();
+        this->m_ofts_term[n]->zero();
         //Recurrence scheme @order n
-        int i0 = min(a.order, n);
+        int i0 = min(a.m_ofts_order, n);
         for(int j= n-i0; j< n; j++)
         {
             temp.ofs_mult(temp2, (alpha*(n-j)-j)/n);
-            this->term[n]->oftsh_smprod_t(*a.term[n-j], *this->term[j], temp, temp3);
+            this->m_ofts_term[n]->oftsh_smprod_t(*a.m_ofts_term[n-j], *this->m_ofts_term[j], temp, temp3);
         }
     }
 
@@ -1153,24 +1133,24 @@ template<> template<typename U> Ofts< Ofsc >& Ofts< Ofsc >::ofts_pows(Ofts< Ofsc
 // Order 0 routines
 //------------------
 /**
- * \brief Returns the address of the first coefficient of order 0 of the taylor serie s
+ * \brief Returns the address of the first coefficient of order 0 of the taylor series s
  */
 template<typename T> T* Ofts<T>::coef0s(Ofts<T> const& a)
 {
-    return a.term[0][0].getCA();
+    return a.m_ofts_term[0][0].get_ptr_first_coef();
 }
 
 /**
- * \brief Sets the coefficient of order 0 of the taylor serie s equal to x0
+ * \brief Sets the coefficient of order 0 of the taylor series s equal to x0
  */
 template<typename T> void Ofts<T>::acoef0s(T const& x0)
 {
-    this->term[0][0].setCoef(x0,0);
+    this->m_ofts_term[0][0].set_coef(x0,0);
 }
 
-//--------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 //Operations with TFS coefficients - pure operations
-//--------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 //----------------
 // Frequency to Time domain
 //---------------
@@ -1180,13 +1160,13 @@ template<typename T> void Ofts<T>::acoef0s(T const& x0)
 template<typename T> Ofts<T>& Ofts<T>::tfs_from_ofs(Ofts<T> const& a)
 {
     Ofs< cdouble > tfs(corder);
-    for(int nrc=0; nrc<= order; nrc++)
+    for(int nrc=0; nrc<= m_ofts_order; nrc++)
     {
         //Current homogeneous polynomial
-        for (int i=0; i< Manip::nmon(nv, nrc); i++)
+        for (int i=0; i< Manip::nmon(m_ofts_nvar, nrc); i++)
         {
-            tfs.tfs_from_ofs(a.term[nrc]->getCoef(i));
-            this->term[nrc]->setCoef(tfs, i);
+            tfs.tfs_from_ofs(a.m_ofts_term[nrc]->get_coef(i));
+            this->m_ofts_term[nrc]->set_coef(tfs, i);
         }
     }
     return *this;
@@ -1198,12 +1178,12 @@ template<typename T> Ofts<T>& Ofts<T>::tfs_from_ofs(Ofts<T> const& a)
 template<typename T> Ofts<T>& Ofts<T>::tfs_from_ofs_inline()
 {
     Ofs< cdouble > tfs(corder);
-    for(int nrc=0; nrc<= order; nrc++)
+    for(int nrc=0; nrc<= m_ofts_order; nrc++)
     {
         //Current homogeneous polynomial
-        for (int i=0; i< Manip::nmon(nv, nrc); i++)
+        for (int i=0; i< Manip::nmon(m_ofts_nvar, nrc); i++)
         {
-            (this->term[nrc]->getCA()+i)->tfs_from_ofs_inline(tfs);
+            (this->m_ofts_term[nrc]->get_ptr_first_coef()+i)->tfs_from_ofs_inline(tfs);
         }
     }
     return *this;
@@ -1216,9 +1196,9 @@ template<typename T> Ofts<T>& Ofts<T>::tfs_from_ofs_inline(int nrc)
 {
     Ofs< cdouble > tfs(corder);
     //Current homogeneous polynomial
-    for (int i=0; i< Manip::nmon(nv, nrc); i++)
+    for (int i=0; i< Manip::nmon(m_ofts_nvar, nrc); i++)
     {
-        (this->term[nrc]->getCA()+i)->tfs_from_ofs_inline(tfs);
+        (this->m_ofts_term[nrc]->get_ptr_first_coef()+i)->tfs_from_ofs_inline(tfs);
     }
     return *this;
 }
@@ -1230,13 +1210,13 @@ template<typename T> Ofts<T>& Ofts<T>::tfs_from_ofs_inline(int nrc)
 template<typename T> Ofts<T>& Ofts<T>::tfs_to_ofs(Ofts<T> const& a)
 {
     Ofs< cdouble > ofs(corder);
-    for(int nrc=0; nrc<= order; nrc++)
+    for(int nrc=0; nrc<= m_ofts_order; nrc++)
     {
         //Current homogeneous polynomial
-        for (int i=0; i< Manip::nmon(nv, nrc); i++)
+        for (int i=0; i< Manip::nmon(m_ofts_nvar, nrc); i++)
         {
-            ofs.tfs_to_ofs(a.term[nrc]->getCoef(i));
-            this->term[nrc]->setCoef(ofs, i);
+            ofs.tfs_to_ofs(a.m_ofts_term[nrc]->get_coef(i));
+            this->m_ofts_term[nrc]->set_coef(ofs, i);
         }
     }
     return *this;
@@ -1248,12 +1228,12 @@ template<typename T> Ofts<T>& Ofts<T>::tfs_to_ofs(Ofts<T> const& a)
  **/
 template<typename T> Ofts<T>& Ofts<T>::tfs_to_ofs_inline()
 {
-    for(int nrc=0; nrc<= order; nrc++)
+    for(int nrc=0; nrc<= m_ofts_order; nrc++)
     {
         //Current homogeneous polynomial
-        for (int i=0; i< Manip::nmon(nv, nrc); i++)
+        for (int i=0; i< Manip::nmon(m_ofts_nvar, nrc); i++)
         {
-            (this->term[nrc]->getCA()+i)->tfs_to_ofs_inline();
+            (this->m_ofts_term[nrc]->get_ptr_first_coef()+i)->tfs_to_ofs_inline();
         }
     }
     return *this;
@@ -1266,9 +1246,9 @@ template<typename T> Ofts<T>& Ofts<T>::tfs_to_ofs_inline()
 template<typename T> Ofts<T>& Ofts<T>::tfs_to_ofs_inline(int nrc)
 {
     //Current homogeneous polynomial
-    for (int i=0; i< Manip::nmon(nv, nrc); i++)
+    for (int i=0; i< Manip::nmon(m_ofts_nvar, nrc); i++)
     {
-        (this->term[nrc]->getCA()+i)->tfs_to_ofs_inline();
+        (this->m_ofts_term[nrc]->get_ptr_first_coef()+i)->tfs_to_ofs_inline();
     }
     return *this;
 }
@@ -1304,14 +1284,14 @@ template<> template<typename U> Ofts< Ofsc >& Ofts< Ofsc >::tfts_pows(Ofts< Ofsc
     temp.tfs_pows(*coef0s(a), -1.0+0.0*I);
 
     //Recurrence scheme
-    for(int k=1; k <= order; k++)
+    for(int k=1; k <= m_ofts_order; k++)
     {
-        //Sets every coefficients to zero for order k
-        this->term[k]->zero();
+        //Sets every coefficients to zero for m_ofts_order k
+        this->m_ofts_term[k]->zero();
         //Loop on all previously computed homogeneous terms
         for(int j=0; j<= k-1; j++)
         {
-            this->term[k]->tftsh_smprod_tu(*a.term[k-j], *this->term[j], temp, (alpha*(k-j)-j)/k);
+            this->m_ofts_term[k]->tftsh_smprod_tu(*a.m_ofts_term[k-j], *this->m_ofts_term[j], temp, (alpha*(k-j)-j)/k);
         }
     }
     return *this;
@@ -1346,11 +1326,11 @@ template<> template<typename U> Ofts< Ofsc >& Ofts< Ofsc >::tfts_pows(Ofts< Ofsc
         //temp2 = 1/x0
         temp.tfs_pows(*coef0s(a), -1.0+0.0*I);
         //Sets every coefficients to zero for order n
-        this->term[n]->zero();
+        this->m_ofts_term[n]->zero();
         //Loop on previously computed coefficient
         for(int j=0; j<= n-1; j++)
         {
-            this->term[n]->tftsh_smprod_tu(*a.term[n-j], *this->term[j], temp, (alpha*(n-j)-j)/n);
+            this->m_ofts_term[n]->tftsh_smprod_tu(*a.m_ofts_term[n-j], *this->m_ofts_term[j], temp, (alpha*(n-j)-j)/n);
         }
 
     }
@@ -1388,7 +1368,7 @@ template<> template<typename U> Ofts< Ofsc >& Ofts< Ofsc >::tfts_spows_zero(Ofts
         temp.tfs_pows(*coef0s(a), -1.0+0.0*I);
         //Only order 0
         int j = 0;
-        this->term[n]->tftsh_smprod_tu(*a.term[n-j], *this->term[j], temp, (alpha*(n-j)-j)/n);
+        this->m_ofts_term[n]->tftsh_smprod_tu(*a.m_ofts_term[n-j], *this->m_ofts_term[j], temp, (alpha*(n-j)-j)/n);
     }
 
     return *this;
@@ -1407,14 +1387,14 @@ template<> template<typename U> Ofts< Ofsc >& Ofts< Ofsc >::tfts_spows_zero(Ofts
  */
 template<typename T> Ofts<T>& Ofts<T>::tfts_smult_t(Ofts<T> const& a, T const& m, int const& n)
 {
-    if(order != a.order || nv != a.nv)
+    if(m_ofts_order != a.m_ofts_order || m_ofts_nvar != a.m_ofts_nvar)
     {
         cout << "Error using smult: the order and/or number of variables does not match. Initial Ofts<T> is returned" << endl;
         return *this;
     }
     else
     {
-        term[n]->tftsh_smult_t(*a.term[n], m);  //ps[n] += m*a[n]
+        m_ofts_term[n]->tftsh_smult_t(*a.m_ofts_term[n], m);  //ps[n] += m*a[n]
         return *this;
     }
 }
@@ -1426,14 +1406,14 @@ template<typename T> Ofts<T>& Ofts<T>::tfts_smult_t(Ofts<T> const& a, T const& m
  */
 template<typename T> template<typename U> Ofts< Ofs<U> >& Ofts<T>::tfts_smult_u(Ofts< Ofs<U> > const& a, U const& c, int const& n)
 {
-    if(n > order || nv != a.nv)
+    if(n > m_ofts_order || m_ofts_nvar != a.m_ofts_nvar)
     {
         cout << "Error using smult: the order and/or number of variables does not match. Initial Ofts<T> is returned" << endl;
         return *this;
     }
     else
     {
-        term[n]->tftsh_smult_u(*a.term[n], c);  //ps[k] += m*a[k]
+        m_ofts_term[n]->tftsh_smult_u(*a.m_ofts_term[n], c);  //ps[k] += m*a[k]
         return *this;
     }
 }
@@ -1444,30 +1424,30 @@ template<typename T> template<typename U> Ofts< Ofs<U> >& Ofts<T>::tfts_smult_u(
 /**
  *  \brief  An operation. Adds the product: \c this \f$  += a*b \f$ at order n.
  *
- *  Handle the case for which n >= max(a.order, b.order)
+ *  Handle the case for which n >= max(a.m_ofts_order, b.m_ofts_order)
  */
 template<typename T> Ofts<T>& Ofts<T>::tfts_sprod(Ofts<T> const& a, Ofts<T> const& b, int const& n)
 {
     int i, i0, i1;
-    i0 = min(b.order, n);
-    i1 = min(a.order, n);
+    i0 = min(b.m_ofts_order, n);
+    i1 = min(a.m_ofts_order, n);
     //Product
-    for(i= n-i0; i<=i1; i++) term[n]->tftsh_sprod(*a.term[i], *b.term[n-i]);
+    for(i= n-i0; i<=i1; i++) m_ofts_term[n]->tftsh_sprod(*a.m_ofts_term[i], *b.m_ofts_term[n-i]);
     return *this;
 }
 
 /**
  *  \brief  An operation. Adds the order zero of the product: \c this \f$  += a*b \f$ at order n.
  *
- *  Handle the case for which n >= max(a.order, b.order)
+ *  Handle the case for which n >= max(a.m_ofts_order, b.m_ofts_order)
  */
 template<typename T> Ofts<T>& Ofts<T>::tfts_sprod_zero(Ofts<T> const& a, Ofts<T> const& b, int const& n)
 {
-    int i0 = min(b.order, n);
-    int i1 = min(a.order, n);
+    int i0 = min(b.m_ofts_order, n);
+    int i1 = min(a.m_ofts_order, n);
     //Product
-    term[n]->tftsh_sprod(*a.term[n-i0], *b.term[i0]);
-    term[n]->tftsh_sprod(*a.term[i1], *b.term[n-i1]);
+    m_ofts_term[n]->tftsh_sprod(*a.m_ofts_term[n-i0], *b.m_ofts_term[i0]);
+    m_ofts_term[n]->tftsh_sprod(*a.m_ofts_term[i1], *b.m_ofts_term[n-i1]);
     return *this;
 }
 
@@ -1482,9 +1462,9 @@ template<typename T> template<typename U> Ofts<T>& Ofts<T>::tfts_smprod_u(Ofts<T
     //-----------------------------------------------------------------------
     //Other possibility: use a temporary variable in Ofs, and not Ofts
     int i, i0, i1;
-    i0 = min(b.order, n);
-    i1 = min(a.order, n);
-    for(i= n-i0; i<=i1; i++) term[n]->tftsh_smprod_u(*a.term[i], *b.term[n-i], c);
+    i0 = min(b.m_ofts_order, n);
+    i1 = min(a.m_ofts_order, n);
+    for(i= n-i0; i<=i1; i++) m_ofts_term[n]->tftsh_smprod_u(*a.m_ofts_term[i], *b.m_ofts_term[n-i], c);
 
     return *this;
     //-----------------------------------------------------------------------
@@ -1501,10 +1481,10 @@ template<typename T> template<typename U> Ofts<T>& Ofts<T>::tfts_smprod_u_zero(O
 {
     //-----------------------------------------------------------------------
     //Other possibility: use a temporary variable in Ofs, and not Ofts
-    int i0 = min(b.order, n);
-    int i1 = min(a.order, n);
-    term[n]->tftsh_smprod_u(*a.term[n-i0], *b.term[i0], c);
-    term[n]->tftsh_smprod_u(*a.term[i1], *b.term[n-i1], c);
+    int i0 = min(b.m_ofts_order, n);
+    int i1 = min(a.m_ofts_order, n);
+    m_ofts_term[n]->tftsh_smprod_u(*a.m_ofts_term[n-i0], *b.m_ofts_term[i0], c);
+    m_ofts_term[n]->tftsh_smprod_u(*a.m_ofts_term[i1], *b.m_ofts_term[n-i1], c);
     return *this;
     //-----------------------------------------------------------------------
 }
@@ -1521,15 +1501,15 @@ template<typename T> template<typename U> Ofts<T>& Ofts<T>::tfts_smprod_u_zero(O
  */
 template<typename T> Ofts<T>& Ofts<T>::tfts_sfsum_t(Ofts<T> const& a, T const& ma, Ofts<T> const& b, T const& mb, int n)
 {
-    if(order != a.order || nv != a.nv || order != b.order || nv != b.nv)
+    if(m_ofts_order != a.m_ofts_order || m_ofts_nvar != a.m_ofts_nvar || m_ofts_order != b.m_ofts_order || m_ofts_nvar != b.m_ofts_nvar)
     {
         cout << "Error using sfsum: the order and/or number of variables does not match. Initial Ofts<T> is returned" << endl;
         return *this;
     }
     else
     {
-        term[n]->tftsh_smult_t(*a.term[n], ma);   //ps[k]  += ma*a[k]
-        term[n]->tftsh_smult_t(*b.term[n], mb);   //ps[k]  += mb*b[k]
+        m_ofts_term[n]->tftsh_smult_t(*a.m_ofts_term[n], ma);   //ps[k]  += ma*a[k]
+        m_ofts_term[n]->tftsh_smult_t(*b.m_ofts_term[n], mb);   //ps[k]  += mb*b[k]
         return *this;
     }
 
@@ -1547,16 +1527,16 @@ template<typename T> Ofts<T>& Ofts<T>::tfts_sfsum_t(Ofts<T> const& a, T const& m
  */
 template<typename T> Ofts<T>& Ofts<T>::tfts_sfsum_tt(Ofts<T> const& a, T const& ma, Ofts<T> const& b, T const& mb, Ofts<T> const& c, T const& mc, int n)
 {
-    if(order != a.order || nv != a.nv || order != b.order || nv != b.nv|| order != c.order || nv != c.nv)
+    if(m_ofts_order != a.m_ofts_order || m_ofts_nvar != a.m_ofts_nvar || m_ofts_order != b.m_ofts_order || m_ofts_nvar != b.m_ofts_nvar|| m_ofts_order != c.m_ofts_order || m_ofts_nvar != c.m_ofts_nvar)
     {
         cout << "Error using sfsum: the order and/or number of variables does not match. Initial Ofts<T> is returned" << endl;
         return *this;
     }
     else
     {
-        term[n]->tftsh_smult_t(*a.term[n], ma);   //ps[k]  += ma*a[k]
-        term[n]->tftsh_smult_t(*b.term[n], mb);   //ps[k]  += mb*b[k]
-        term[n]->tftsh_smult_t(*c.term[n], mc);   //ps[k]  += mb*b[k]
+        m_ofts_term[n]->tftsh_smult_t(*a.m_ofts_term[n], ma);   //ps[k]  += ma*a[k]
+        m_ofts_term[n]->tftsh_smult_t(*b.m_ofts_term[n], mb);   //ps[k]  += mb*b[k]
+        m_ofts_term[n]->tftsh_smult_t(*c.m_ofts_term[n], mc);   //ps[k]  += mb*b[k]
         return *this;
     }
 
@@ -1572,15 +1552,15 @@ template<typename T> Ofts<T>& Ofts<T>::tfts_sfsum_tt(Ofts<T> const& a, T const& 
  */
 template<typename T> template<typename U> Ofts<T>& Ofts<T>::tfts_fsum_u(Ofts<T> const& a, U const& ca, Ofts<T> const& b, U const& cb, int const& m)
 {
-    if(order != a.order || nv != a.nv || order != b.order || nv != b.nv)
+    if(m_ofts_order != a.m_ofts_order || m_ofts_nvar != a.m_ofts_nvar || m_ofts_order != b.m_ofts_order || m_ofts_nvar != b.m_ofts_nvar)
     {
         cout << "Error using fsum: the order and/or number of variables does not match. Initial Ofts<T> is returned" << endl;
         return *this;
     }
     else
     {
-        term[m]->tftsh_mult_u(*a.term[m], ca);        //ps[k]   = ca*a[k], contains the zeroing
-        term[m]->tftsh_smult_u(*b.term[m], cb);       //ps[k]  += mb*b[k]
+        m_ofts_term[m]->tftsh_mult_u(*a.m_ofts_term[m], ca);        //ps[k]   = ca*a[k], contains the zeroing
+        m_ofts_term[m]->tftsh_smult_u(*b.m_ofts_term[m], cb);       //ps[k]  += mb*b[k]
         return *this;
     }
 
@@ -1590,7 +1570,7 @@ template<typename T> template<typename U> Ofts<T>& Ofts<T>::tfts_fsum_u(Ofts<T> 
 // der
 //----------------
 /**
- *   \brief Partial derivative at order m: works for order = a.order. TFS format.
+ *   \brief Partial derivative at order m: works for m_ofts_order = a.m_ofts_order. TFS format.
  *          WARNING: order m is derived and set in order m-1 of this!
  *          If m==0, nothing is done.
  **/
@@ -1603,7 +1583,7 @@ template<typename T> Ofts<T>& Ofts<T>::tfts_der(Ofts< T > const& a, int ni, int 
         cout << "Nothing is done. " << endl;
 
     }
-    else term[m-1]->tfts_derh(*a.term[m], ni); //WARNING: order m is derived and set in order m-1 of this!
+    else m_ofts_term[m-1]->tfts_derh(*a.m_ofts_term[m], ni); //WARNING: order m is derived and set in order m-1 of this!
 
     return *this;
 }
@@ -1620,19 +1600,18 @@ template<typename T> Ofts<T>& Ofts<T>::tfts_sder(Ofts< T > const& a, int ni, int
         cout << "Nothing is done. " << endl;
 
     }
-    else term[m-1]->tfts_sderh(*a.term[m], ni); //WARNING: order m is derived and set in order m-1 of this!
+    else m_ofts_term[m-1]->tfts_sderh(*a.m_ofts_term[m], ni); //WARNING: order m is derived and set in order m-1 of this!
 
     return *this;
 }
 
 
-//--------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 //Operations with specific conditions on the Fourier-Taylor series
-//--------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 /**
- *  \fn    template<typename U> Ofts< Ofsd >& Ofts< Ofsd >::ofts_pows(Ofts< Ofsd > const& a,   U const& alpha, int const& n)
- *
- *  \brief Power function: p = a^alpha at order n, for Ofts<Ofsd> objects with Fourier coefficients in Frequency domain.
+ *  \brief Power function: p = a^alpha at order n, for Oftsd objects with Fourier
+ *         coefficients in Frequency domain.
  *         Moreover, the order zero of the FT series must be unitary.
  **/
 template<> template<typename U> Ofts< Ofsd >& Ofts< Ofsd >::ofts_pows(Ofts< Ofsd > const& a,   U const& alpha, int const& n)
@@ -1645,17 +1624,18 @@ template<> template<typename U> Ofts< Ofsd >& Ofts< Ofsd >::ofts_pows(Ofts< Ofsd
     }
     else
     {
-        //Sets every coefficients to zero for order k
-        this->term[n]->zero();
-        int i0 = min(a.order, n);
-        for(int i= n-i0; i< n; i++) this->term[n]->oftsh_smprod_u(*a.term[n-i], *this->term[i], (double) (alpha*(n-i)-i)/n);
+        //Sets every coefficients to zero for m_ofts_order k
+        this->m_ofts_term[n]->zero();
+        int i0 = min(a.m_ofts_order, n);
+        for(int i= n-i0; i< n; i++) this->m_ofts_term[n]->oftsh_smprod_u(*a.m_ofts_term[n-i], *this->m_ofts_term[i], (double) (alpha*(n-i)-i)/n);
         return *this;
     }
 }
 
 
 /**
- *  \brief Power function: p = a^alpha at order n, for Ofts<Ofsd> objects with Fourier coefficients in Frequency domain.
+ *  \brief Power function: p = a^alpha at order n, for Oftsd objects with Fourier
+ *         coefficients in Frequency domain.
  *         Moreover, the order zero of the FT series a[0] must satisfy: a[0] >> a[i], for all i > 0
  *         In this routine, the coefficient a0inv = 1/(a[0]) and a0palpha = a[0]^alpha
  **/
@@ -1667,14 +1647,14 @@ template<> template<typename U> Ofts< Ofsd >& Ofts< Ofsd >::pows(Ofts< Ofsd > co
     //Initialization of order zero
     this->acoef0s(a0palpha);  //a[0]^alpha = a0palpha provided
     //Recurrence scheme
-    for(int k=1; k <= order; k++)
+    for(int k=1; k <= m_ofts_order; k++)
     {
-        //Sets every coefficients to zero for order k
-        this->term[k]->zero();
+        //Sets every coefficients to zero for m_ofts_order k
+        this->m_ofts_term[k]->zero();
         for(int j=0; j<= k-1; j++)
         {
-            this->term[k]->oftsh_smprod_u(*a.term[k-j], *this->term[j], (double) (alpha*(k-j)-j)/k);
-            this->term[k]->oftsh_mult_t(*this->term[k], a0inv);
+            this->m_ofts_term[k]->oftsh_smprod_u(*a.m_ofts_term[k-j], *this->m_ofts_term[j], (double) (alpha*(k-j)-j)/k);
+            this->m_ofts_term[k]->oftsh_mult_t(*this->m_ofts_term[k], a0inv);
         }
 
     }
@@ -1682,30 +1662,30 @@ template<> template<typename U> Ofts< Ofsd >& Ofts< Ofsd >::pows(Ofts< Ofsd > co
 }
 
 
-//--------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 //Stream
-//--------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 /**
  *   \brief Stream operator << for Ofts objects.
  **/
 template<typename T> std::ostream& operator << (std::ostream& stream, Ofts<T> const& ofts)
 {
     int i,j, nrc;
-    int k[ofts.nv];
+    int k[ofts.m_ofts_nvar];
 
-    for(nrc=0; nrc<= ofts.order; nrc++)
+    for(nrc=0; nrc<= ofts.m_ofts_order; nrc++)
     {
         //Update k
         k[0] = nrc;
-        for(i=1; i<ofts.nv; i++) k[i] = 0;
+        for(i=1; i<ofts.m_ofts_nvar; i++) k[i] = 0;
         //Current homogeneous polynomial
-        for (i=0; i< Manip::nmon(ofts.nv, nrc); i++)
+        for (i=0; i< Manip::nmon(ofts.m_ofts_nvar, nrc); i++)
         {
-            for(j=0; j<ofts.nv; j++) stream <<   setiosflags(ios::right) <<  k[j] << " ";
+            for(j=0; j<ofts.m_ofts_nvar; j++) stream <<   setiosflags(ios::right) <<  k[j] << " ";
             stream << endl;
-            stream << std::showpos << setiosflags(ios::scientific)  << setprecision(16)  <<  ofts.term[nrc]->getCoef(i) << std::noshowpos << endl;
+            stream << std::showpos << setiosflags(ios::scientific)  << setprecision(16)  <<  ofts.m_ofts_term[nrc]->get_coef(i) << std::noshowpos << endl;
 
-            if(i< Manip::nmon(ofts.nv, nrc)-1)  Manip::prxkt(k, ofts.nv);
+            if(i< Manip::nmon(ofts.m_ofts_nvar, nrc)-1)  Manip::prxkt(k, ofts.m_ofts_nvar);
         }
     }
     return stream;
@@ -1717,40 +1697,40 @@ template<typename T> std::ostream& operator << (std::ostream& stream, Ofts<T> co
 template<typename T> void Ofts<T>::fprint_0(ofstream& stream)
 {
     int i,j, nrc;
-    int k[nv];
-    for(nrc=0; nrc<= order; nrc++)
+    int k[m_ofts_nvar];
+    for(nrc=0; nrc<= m_ofts_order; nrc++)
     {
         //Update k
         k[0] = nrc;
-        for(i=1; i<nv; i++) k[i] = 0;
+        for(i=1; i<m_ofts_nvar; i++) k[i] = 0;
         //Current homogeneous polynomial
-        for (i=0; i< Manip::nmon(nv, nrc); i++)
+        for (i=0; i< Manip::nmon(m_ofts_nvar, nrc); i++)
         {
-            //for(j=0; j<nv; j++) stream <<  setw(2) << setiosflags(ios::right) <<  k[j] << " ";
-            for(j=0; j<nv; j++) stream <<   setiosflags(ios::right) <<  k[j] << " ";
+            //for(j=0; j<m_ofts_nvar; j++) stream <<  setw(2) << setiosflags(ios::right) <<  k[j] << " ";
+            for(j=0; j<m_ofts_nvar; j++) stream <<   setiosflags(ios::right) <<  k[j] << " ";
             stream << endl;
             stream << std::showpos << setiosflags(ios::scientific)  << setprecision(15);
-            term[nrc]->getCoef(i).fprint_0(stream);
+            m_ofts_term[nrc]->get_coef(i).fprint_0(stream);
             stream << std::noshowpos << endl;
-            if(i< Manip::nmon(nv, nrc)-1)  Manip::prxkt(k, nv);
+            if(i< Manip::nmon(m_ofts_nvar, nrc)-1)  Manip::prxkt(k, m_ofts_nvar);
         }
     }
 }
 
 
 
-//--------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 //Evaluate
-//--------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 /**
  *  \brief Generic routine for the evaluation of an Ofts object at the state X: z = this(X).
  **/
 template<typename T> template<typename U> void Ofts<T>::evaluate(U X[], T& z)
 {
     z.zero();
-    for(int k = order; k >= 0 ; k--)
+    for(int k = m_ofts_order; k >= 0 ; k--)
     {
-        term[k]->sevaluate(X, z);
+        m_ofts_term[k]->sevaluate(X, z);
     }
 }
 
@@ -1760,9 +1740,9 @@ template<typename T> template<typename U> void Ofts<T>::evaluate(U X[], T& z)
 template<typename T> template<typename U> void Ofts<T>::evaluate_conjugate(U X[], T& z)
 {
     z.zero();
-    for(int k = order; k >= 0 ; k--)
+    for(int k = m_ofts_order; k >= 0 ; k--)
     {
-        term[k]->sevaluate_conjugate(X, z);
+        m_ofts_term[k]->sevaluate_conjugate(X, z);
     }
 }
 
@@ -1774,7 +1754,7 @@ template<typename T> template<typename U> void Ofts<T>::evaluate(U X[], T& z, in
     z.zero();
     for(int k = m; k >= 0 ; k--)
     {
-        term[k]->sevaluate(X, z, ofs_order);
+        m_ofts_term[k]->sevaluate(X, z, ofs_order);
     }
 }
 
@@ -1799,12 +1779,12 @@ template<typename T> template<typename U> cdouble Ofts<T>::fevaluate(U X[], doub
     }
 
     //Initialize the exponents array
-    int kv[nv];
+    int kv[m_ofts_nvar];
 
     //Loop on all desired orders
     for(int k = m; k >= 0 ; k--)
     {
-        term[k]->fevaluate(X, z, kv, cR, sR, ofs_order);
+        m_ofts_term[k]->fevaluate(X, z, kv, cR, sR, ofs_order);
     }
 
     return z;
@@ -1823,12 +1803,12 @@ template<typename T> template<typename U> cdouble Ofts<T>::fevaluate(U X[], doub
     cdouble z = 0.0+0.0*I;
 
     //Initialize the exponents array
-    int kv[nv];
+    int kv[m_ofts_nvar];
 
     //Loop on all desired orders
     for(int k = m; k >= 0 ; k--)
     {
-        term[k]->fevaluate(X, z, kv, cR, sR, ofs_order);
+        m_ofts_term[k]->fevaluate(X, z, kv, cR, sR, ofs_order);
     }
 
     return z;
@@ -1840,21 +1820,21 @@ template<typename T> template<typename U> cdouble Ofts<T>::fevaluate(U X[], doub
 template<typename T> template<typename U> void Ofts<T>::contribution(U X[], T& z, int const& m)
 {
     z.zero();
-    term[m]->sevaluate(X, z);
+    m_ofts_term[m]->sevaluate(X, z);
 }
 
 
-//---------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 //Derivation
-//---------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 /**
  *  \brief Partial derivative wrt to the variable z[ni], with ni = 1,...n: \c this \f$ = \frac{\partial a}{\partial z_{n_i}} \f$.
  **/
 template<typename T> Ofts<T>& Ofts<T>::der(Ofts<T> const& a, int ni)
 {
-    for(int k = 0; k < order ; k++) //Careful here: the sum goes up to order-1!
+    for(int k = 0; k < m_ofts_order ; k++) //Careful here: the sum goes up to m_ofts_order-1!
     {
-        term[k]->derh(*a.term[k+1], ni);
+        m_ofts_term[k]->derh(*a.m_ofts_term[k+1], ni);
     }
     return *this;
 }
@@ -1864,9 +1844,9 @@ template<typename T> Ofts<T>& Ofts<T>::der(Ofts<T> const& a, int ni)
  **/
 template<typename T> Ofts<T>& Ofts<T>::sder(Ofts< T > const& a, int ni)
 {
-    for(int k = 0; k < order ; k++) //Careful here: the sum goes up to order-1!
+    for(int k = 0; k < m_ofts_order ; k++) //Careful here: the sum goes up to m_ofts_order-1!
     {
-        term[k]->sderh(*a.term[k+1], ni);
+        m_ofts_term[k]->sderh(*a.m_ofts_term[k+1], ni);
     }
     return *this;
 }
@@ -1886,7 +1866,7 @@ template<typename T> Ofts<T>& Ofts<T>::der(Ofts< T > const& a, int ni, int m)
         cout << "Nothing is done. " << endl;
 
     }
-    else term[m-1]->derh(*a.term[m], ni); //WARNING: order m is derived and set in order m-1 of this!
+    else m_ofts_term[m-1]->derh(*a.m_ofts_term[m], ni); //WARNING: order m is derived and set in order m-1 of this!
 
     return *this;
 }
@@ -1906,7 +1886,7 @@ template<typename T> Ofts<T>& Ofts<T>::sder(Ofts< T > const& a, int ni, int m)
         cout << "Nothing is done. " << endl;
 
     }
-    else term[m-1]->sderh(*a.term[m], ni); //WARNING: order m is derived and set in order m-1 of this!
+    else m_ofts_term[m-1]->sderh(*a.m_ofts_term[m], ni); //WARNING: order m is derived and set in order m-1 of this!
 
     return *this;
 }
@@ -1917,14 +1897,14 @@ template<typename T> Ofts<T>& Ofts<T>::sder(Ofts< T > const& a, int ni, int m)
  **/
 template<typename T> Ofts<T>& Ofts<T>::dot(Ofts<T> const& a, double const&  n)
 {
-    if(order != a.order || nv != a.nv)
+    if(m_ofts_order != a.m_ofts_order || m_ofts_nvar != a.m_ofts_nvar)
     {
         cout << "Error using dot: the order and/or number of variables does not match. Initial Ofts<T> is returned" << endl;
     }
     else
     {
         //Loop
-        for(int k = 0; k <= order ; k++) term[k]->dot(*a.term[k], n);
+        for(int k = 0; k <= m_ofts_order ; k++) m_ofts_term[k]->dot(*a.m_ofts_term[k], n);
     }
     return *this;
 }
@@ -1935,41 +1915,41 @@ template<typename T> Ofts<T>& Ofts<T>::dot(Ofts<T> const& a, double const&  n)
  **/
 template<typename T> Ofts<T>& Ofts<T>::dot(Ofts<T> const& a, double const&  n, int const& k)
 {
-    if(order != a.order || nv != a.nv)
+    if(m_ofts_order != a.m_ofts_order || m_ofts_nvar != a.m_ofts_nvar)
     {
         cout << "Error using dot: the order and/or number of variables does not match. Initial Ofts<T> is returned" << endl;
     }
     else
     {
-        term[k]->dot(*a.term[k], n);
+        m_ofts_term[k]->dot(*a.m_ofts_term[k], n);
     }
     return *this;
 }
 
-//---------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 //Integral
-//---------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 /**
  *  \brief Primitive wrt to the variable z[ni], with ni = 1,...n: \c this \f$ = \int a dz_{n_i} \f$.
  **/
 template<typename T> Ofts<T>& Ofts<T>::sprim(Ofts< T > const& a, int ni)
 {
-    for(int k = 0; k < order ; k++) //Careful here: the sum goes up to order-1!
+    for(int k = 0; k < m_ofts_order ; k++) //Careful here: the sum goes up to m_ofts_order-1!
     {
-        term[k+1]->sprimh(*a.term[k], ni);
+        m_ofts_term[k+1]->sprimh(*a.m_ofts_term[k], ni);
     }
     return *this;
 }
 
-//---------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 //Norms
-//---------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 /**
  *  \brief L1 norm of the term of order m: returns \f$ L_1 \left( [this]_m \right) \f$
  **/
 template<typename T> double Ofts<T>::l1norm(int const& m)
 {
-    return term[m]->l1norm();
+    return m_ofts_term[m]->l1norm();
 }
 
 /**
@@ -1977,7 +1957,7 @@ template<typename T> double Ofts<T>::l1norm(int const& m)
  **/
 template<typename T> double Ofts<T>::linfnorm(int const& m)
 {
-    return term[m]->linfnorm();
+    return m_ofts_term[m]->linfnorm();
 }
 
 /**
@@ -1985,15 +1965,13 @@ template<typename T> double Ofts<T>::linfnorm(int const& m)
  */
 template<typename T> int Ofts<T>::nsd(int const& m, int odmax, double sdmax)
 {
-    return term[m]->nsd(odmax, sdmax);
+    return m_ofts_term[m]->nsd(odmax, sdmax);
 }
 
 
-//---------------------------------------------------------------------------------------------------------------------------------------
-//
-//          Reading & writing
-//
-//---------------------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
+//          Reading & writing (I/O)
+//----------------------------------------------------------------------------------------
 //----------------------------------------------
 // Text format, write
 //----------------------------------------------
@@ -2012,7 +1990,7 @@ inline void  writeOFTS_txt(Ofts<Ofsc > &W, string filename)
 /**
  * \brief Writes a given vector W of type \c Ofts<Ofsc >  in a txt files of the form "filename+i.txt", with i = 0, length(W)-1.
  **/
-inline void  writeVOFTS_txt(vector<Ofts<Ofsc > > &W, string filename)
+inline void  write_vofts_txt(vector<Ofts<Ofsc > > &W, string filename)
 {
     ofstream myfile;
     string ss1;
@@ -2032,24 +2010,24 @@ inline void  writeVOFTS_txt(vector<Ofts<Ofsc > > &W, string filename)
 /**
  * \brief Reads a given \c Ofsc  object within a \c Ofts<Ofsc >, in txt format.
  **/
-inline void readOFS_txt(Ofsc &xFFT, ifstream &readStream, int fftN)
+inline void read_ofs_txt(Ofsc &xFFT, ifstream &readStream, int fftN)
 {
     //Init
     double ct, cr, ci;
     //Reading
     for(int i = -fftN; i<=fftN; i++)
     {
-        readStream >> ct;  //current order
+        readStream >> ct;  //current m_ofts_order
         readStream >> cr;  //real part
         readStream >> ci;  //imag part
-        xFFT.setCoef(cr+I*ci, i);
+        xFFT.set_coef(cr+I*ci, i);
     }
 }
 
 /**
  * \brief Reads a given \c Ofts<Ofsc >  object, in txt format.
  **/
-inline int readOFTS_txt(Ofts<Ofsc > &x, string filename, int fftN)
+inline int read_ofts_txt(Ofts<Ofsc > &x, string filename, int fftN)
 {
     //Init
     ifstream readStream;
@@ -2060,20 +2038,20 @@ inline int readOFTS_txt(Ofts<Ofsc > &x, string filename, int fftN)
     //Check that the opening went well
     if (!readStream.is_open())
     {
-        cout << "readOFTS_txt. Cannot open file " << filename << endl;
+        cout << "read_ofts_txt. Cannot open file " << filename << endl;
         cout << "Check the text data exist." << endl;
         return GSL_FAILURE;
     }
     else
     {
-        for(int k = 0 ; k <= x.getOrder() ; k++)
+        for(int k = 0 ; k <= x.get_order() ; k++)
         {
-            for(int p = 0; p < Manip::nmon(x.getNV(), k); p++)
+            for(int p = 0; p < Manip::nmon(x.get_nvar(), k); p++)
             {
                 //Current kv
                 getline(readStream, ct);
                 //Reading the coefficient
-                readOFS_txt(*x.getCoef(k,p), readStream, fftN);
+                read_ofs_txt(*x.get_coef(k,p), readStream, fftN);
                 getline(readStream, ct);
                 getline(readStream, ct);
             }
@@ -2086,14 +2064,14 @@ inline int readOFTS_txt(Ofts<Ofsc > &x, string filename, int fftN)
 /**
  * \brief Reads a given vector W of type \c Ofts<Ofsc >  in a txt files of the form "filename+i.txt", with i = 0, length(W)-1.
  **/
-inline void readVOFTS_txt(vector<Ofts<Ofsc > >  &W, string filename, int fftN)
+inline void read_vofts_txt(vector<Ofts<Ofsc > >  &W, string filename, int fftN)
 {
     string ss1;
     //Loop on all coefficients
     for(unsigned int i = 0; i < W.size(); i++)
     {
         ss1 = static_cast<ostringstream*>( &(ostringstream() << i) )->str();
-        readOFTS_txt(W[i], (filename+"["+ss1+"].txt"), fftN);
+        read_ofts_txt(W[i], (filename+"["+ss1+"].txt"), fftN);
     }
 }
 
@@ -2104,21 +2082,21 @@ inline void readVOFTS_txt(vector<Ofts<Ofsc > >  &W, string filename, int fftN)
 /**
  * \brief Writes a given \c Ofsc  object within a \c Ofts<Ofsc >, in bin format.
  **/
-inline void  writeOFS_bin(Ofsc  &xFFT, fstream &myfile)
+inline void  write_ofs_bin(Ofsc  &xFFT, fstream &myfile)
 {
     //Init
-    int fftN = xFFT.getOrder();
+    int fftN = xFFT.get_order();
     double res;
 
     //Writing
     for(int i = -fftN; i<=fftN; i++)
     {
         //Real part
-        res = creal(xFFT.ofs_getCoef(i));
+        res = creal(xFFT.ofs_get_coef(i));
         myfile.write((char*) &res, sizeof(double));
 
         //Imag part
-        res = cimag(xFFT.ofs_getCoef(i));
+        res = cimag(xFFT.ofs_get_coef(i));
         myfile.write((char*) &res, sizeof(double));
     }
 }
@@ -2126,18 +2104,18 @@ inline void  writeOFS_bin(Ofsc  &xFFT, fstream &myfile)
 /**
  * \brief Writes a given \c Ofts<Ofsc >  object, in bin format.
  **/
-inline void  writeOFTS_bin(Ofts<Ofsc > &W, string filename)
+inline void  write_ofts_bin(Ofts<Ofsc > &W, string filename)
 {
     fstream myfile;
     myfile.open (filename.c_str(), ios::binary | ios::out);
     //Loop on order
-    for(int nrc=0; nrc<= W.getOrder(); nrc++)
+    for(int nrc=0; nrc<= W.get_order(); nrc++)
     {
         //Current homogeneous polynomial
-        for (int i=0; i< Manip::nmon(W.getNV(), nrc); i++)
+        for (int i=0; i< Manip::nmon(W.get_nvar(), nrc); i++)
         {
             //Write each Ofs coefficient
-            writeOFS_bin(*W.getCoef(nrc,i), myfile);
+            write_ofs_bin(*W.get_coef(nrc,i), myfile);
         }
     }
     myfile.close();
@@ -2146,14 +2124,14 @@ inline void  writeOFTS_bin(Ofts<Ofsc > &W, string filename)
 /**
  * \brief Writes a given vector W of type \c Ofts<Ofsc >  in a binary files of the form "filename+i.bin", with i = 0, length(W)-1.
  **/
-inline void  writeVOFTS_bin(vector<Ofts<Ofsc > > &W, string filename)
+inline void  write_vofts_bin(vector<Ofts<Ofsc > > &W, string filename)
 {
     string ss1;
     //Loop on all coefficients
     for(unsigned int i = 0; i < W.size(); i++)
     {
         ss1 = static_cast<ostringstream*>( &(ostringstream() << i) )->str();
-        writeOFTS_bin(W[i], (filename+"["+ss1+"].bin"));
+        write_ofts_bin(W[i], (filename+"["+ss1+"].bin"));
     }
 }
 
@@ -2163,9 +2141,9 @@ inline void  writeVOFTS_bin(vector<Ofts<Ofsc > > &W, string filename)
 /**
  * \brief Reads a given \c Ofsc  object within a \c Ofts<Ofsc >, in bin format.
  **/
-inline void readOFS_bin(Ofsc  &xFFT, fstream &myfile)
+inline void read_ofs_bin(Ofsc  &xFFT, fstream &myfile)
 {
-    int fftN = xFFT.getOrder();
+    int fftN = xFFT.get_order();
     double cr, ci;
     //Writing
     for(int i = -fftN; i<=fftN; i++)
@@ -2175,14 +2153,14 @@ inline void readOFS_bin(Ofsc  &xFFT, fstream &myfile)
         //Imag part
         myfile.read((char*)&ci, sizeof(double));
         //Put in current position
-        xFFT.setCoef(cr+I*ci, i);
+        xFFT.set_coef(cr+I*ci, i);
     }
 }
 
 /**
  * \brief Reads a given \c Ofts<Ofsc >  object, in bin format.
  **/
-inline int readOFTS_bin(Ofts<Ofsc > &W, string filename)
+inline int read_ofts_bin(Ofts<Ofsc > &W, string filename)
 {
     //Init
     fstream myfile;
@@ -2193,20 +2171,20 @@ inline int readOFTS_bin(Ofts<Ofsc > &W, string filename)
     //Check that the opening went well
     if (!myfile.is_open())
     {
-        cout << "readOFTS_bin. Cannot open file " << filename << endl;
-        cout << "readOFTS_bin. Check the binary data exist." << endl;
+        cout << "read_ofts_bin. Cannot open file " << filename << endl;
+        cout << "read_ofts_bin. Check the binary data exist." << endl;
         return GSL_FAILURE;
     }
     else
     {
         //Loop on order
-        for(int nrc=0; nrc<= W.getOrder(); nrc++)
+        for(int nrc=0; nrc<= W.get_order(); nrc++)
         {
             //Current homogeneous polynomial
-            for (int i=0; i< Manip::nmon(W.getNV(), nrc); i++)
+            for (int i=0; i< Manip::nmon(W.get_nvar(), nrc); i++)
             {
                 //Read each Ofs coefficient
-                readOFS_bin(*W.getCoef(nrc,i), myfile);
+                read_ofs_bin(*W.get_coef(nrc,i), myfile);
             }
         }
         myfile.close();
@@ -2217,7 +2195,7 @@ inline int readOFTS_bin(Ofts<Ofsc > &W, string filename)
 /**
  * \brief Reads a given vector W of type \c Ofts<Ofsc >  in binary files of the form "filename+i.bin", with i = 0, length(W)-1.
  **/
-inline void readVOFTS_bin(vector<Ofts<Ofsc > >  &W, string filename, int fftN)
+inline void read_vofts_bin(vector<Ofts<Ofsc > >  &W, string filename, int fftN)
 {
     string ss1;
     int status, global_status;
@@ -2229,21 +2207,21 @@ inline void readVOFTS_bin(vector<Ofts<Ofsc > >  &W, string filename, int fftN)
         ss1 = static_cast<ostringstream*>( &(ostringstream() << i) )->str();
 
         //Read binary format
-        status = readOFTS_bin(W[i], (filename+"["+ss1+"].bin"));
+        status = read_ofts_bin(W[i], (filename+"["+ss1+"].bin"));
 
         //Try txt format if failure
         if(status != GSL_SUCCESS)
         {
-            cout << "readVOFTS_bin. Last reading went wrong. Trying to find data in txt format..." << endl;
-            status = readOFTS_txt(W[i], (filename+"["+ss1+"].txt"), fftN);
+            cout << "read_vofts_bin. Last reading went wrong. Trying to find data in txt format..." << endl;
+            status = read_ofts_txt(W[i], (filename+"["+ss1+"].txt"), fftN);
             if(status != GSL_SUCCESS)
             {
-                cout << "readVOFTS_bin. Txt format also went wrong. Check data manually." << endl;
+                cout << "read_vofts_bin. Txt format also went wrong. Check data manually." << endl;
                 global_status--;
             }
             else
             {
-                cout << "readVOFTS_bin. Success with txt format." << endl;
+                cout << "read_vofts_bin. Success with txt format." << endl;
                 global_status++;
             }
         }
@@ -2253,10 +2231,10 @@ inline void readVOFTS_bin(vector<Ofts<Ofsc > >  &W, string filename, int fftN)
     if(global_status == (int) W.size())
     {
         int ch;
-        cout << "readVOFTS_bin. Success with txt format for all components." << endl;
+        cout << "read_vofts_bin. Success with txt format for all components." << endl;
         cout << "Please enter 1 if you want to save the vector in binary files:" << endl;
         scanf("%d",&ch);
-        if(ch == 1) writeVOFTS_bin(W, filename);
+        if(ch == 1) write_vofts_bin(W, filename);
     }
 
 }
@@ -2275,9 +2253,9 @@ inline int fromOFTStoOFTS_bin(Oftsc &W, Oftsc &W1, int dim)
     //====================================================================================
     //Init & check
     //====================================================================================
-    int nv  = W.getNV();  ///number of variables
-    //Check that the desired dimension dim is consistent with nv
-    if(dim > nv-1)
+    int m_ofts_nvar  = W.get_nvar();  ///number of variables
+    //Check that the desired dimension dim is consistent with m_ofts_nvar
+    if(dim > m_ofts_nvar-1)
     {
         cout << "fromOFTStoOFTS_bin. dim is greater than the number of dimensions." << endl;
         return -1;
@@ -2287,28 +2265,28 @@ inline int fromOFTStoOFTS_bin(Oftsc &W, Oftsc &W1, int dim)
     //Open the stream & check
     //====================================================================================
         //Parameters
-        int *kv = (int*) calloc(nv, sizeof(int)); //exponent
+        int *kv = (int*) calloc(m_ofts_nvar, sizeof(int)); //exponent
 
         //================================================================================
         //Loop on order
         //================================================================================
-        for(int nrc=0; nrc<= W.getOrder(); nrc++)
+        for(int nrc=0; nrc<= W.get_order(); nrc++)
         {
             //kv = (k 0 0 0 ...)
             kv[0] = nrc;
-            for(int i=1; i<nv; i++) kv[i] = 0;
+            for(int i=1; i<m_ofts_nvar; i++) kv[i] = 0;
 
 
             //============================================================================
             //Loop on the monomials at order nrc
             //============================================================================
-            for (int i=0; i< Manip::nmon(nv, nrc); i++)
+            for (int i=0; i< Manip::nmon(m_ofts_nvar, nrc); i++)
             {
                 //If the exponents are non null only on dim, we save the value in W1
-                W1.getCoef(nrc, 0)->ccopy(*W.getCoef(nrc,i));
+                W1.get_coef(nrc, 0)->ccopy(*W.get_coef(nrc,i));
 
                 //Update the exponents
-                if(i< Manip::nmon(nv, nrc)-1)  Manip::prxkt(kv, nv);
+                if(i< Manip::nmon(m_ofts_nvar, nrc)-1)  Manip::prxkt(kv, m_ofts_nvar);
             }
 
     }
@@ -2335,7 +2313,7 @@ inline int fromOFTStoOFTS_bin(Oftsc &W, Oftsc &W1, int dim)
  *        This routine makes use of fromOFTStoOFTS_bin to read and store into the less dimensions objects.
  *        Then, the results are stored in binary files.
  **/
-inline void fromVOFTStoVOFTS_bin(vector<Oftsc> &W, Oftsc &W1, Oftsc &DW1, string fileout)
+inline void from_vofts_to_vofts_bin(vector<Oftsc> &W, Oftsc &W1, Oftsc &DW1, string fileout)
 {
     //====================================================================================
     //Init
@@ -2357,14 +2335,14 @@ inline void fromVOFTStoVOFTS_bin(vector<Oftsc> &W, Oftsc &W1, Oftsc &DW1, string
             ss1 = static_cast<ostringstream*>( &(ostringstream() << ind) )->str();
 
             //Store the result
-            writeOFTS_bin(W1, (fileout+"["+ss1+"].bin"));
+            write_ofts_bin(W1, (fileout+"["+ss1+"].bin"));
             //writeOFTS_txt(W1, (fileout+"["+ss1+"].txt"));
 
             //Jacobian
-            for(int m = 1; m <= W1.getOrder(); m++) DW1.der(W1, 1, m);
+            for(int m = 1; m <= W1.get_order(); m++) DW1.der(W1, 1, m);
 
             //Store the Jacobian
-            writeOFTS_bin(DW1, (fileout+"d["+ss1+"].bin"));
+            write_ofts_bin(DW1, (fileout+"d["+ss1+"].bin"));
             //writeOFTS_txt(DW1, (fileout+"d["+ss1+"].txt"));
 
             //Advance ind
@@ -2373,19 +2351,19 @@ inline void fromVOFTStoVOFTS_bin(vector<Oftsc> &W, Oftsc &W1, Oftsc &DW1, string
     }
 }
 
-//----------------------------------------------
+//----------------------------------------------------------------------------------------
 // Text 2 binary
-//----------------------------------------------
+//----------------------------------------------------------------------------------------
 /**
  * \brief Reads a given vector W of type \c Ofts<Ofsc >  in a txt files of the form "filename+i.txt", with i = 0, length(W)-1.
  *        Writes it again in binary form, in binary files of the form "filename+i.bin", with i = 0, length(W)-1.
  **/
-inline void writeVOFTS_txt2bin(vector<Ofts<Ofsc > > &W, string filename, int fftN)
+inline void txt2bin_vofts(vector<Ofts<Ofsc > > &W, string filename, int fftN)
 {
     //Read from txt files
-    readVOFTS_txt(W, filename, fftN);
+    read_vofts_txt(W, filename, fftN);
     //Write in binary format
-    writeVOFTS_bin(W, filename);
+    write_vofts_bin(W, filename);
 }
 
 
@@ -2397,22 +2375,22 @@ template <typename U>  void fts2fs(Ofs<U> *fs, Ofts< Ofs<U> > const& fts_z, doub
 
     int k, l;
     double tempc;
-    int nf = fts_z.getCOrder();
-    Ofs<U> tempfs(nf);
+    int n_order_fourier = fts_z.get_coef_order();
+    Ofs<U> tempfs(n_order_fourier);
     //Cleaning of fs
     fs->zero();
     //Orders >= 0
-    for(k = -nf; k <= nf; k++)
+    for(k = -n_order_fourier; k <= n_order_fourier; k++)
     {
         tempc = 0;
-        for(l = 0 ; l <= fts_z.getOrder(); l++)
+        for(l = 0 ; l <= fts_z.get_order(); l++)
         {
-            //Trigonometric coefficient of order l
-            tempfs = fts_z.getTerm(l)->getCoef(0);
+            //Trigonometric coefficient of m_ofts_order l
+            tempfs = fts_z.get_term(l)->get_coef(0);
             //tempc += ulj*epsilon^l
-            tempc += tempfs.ofs_getCoef(k)*pow(epsilon, (double) l);
+            tempc += tempfs.ofs_get_coef(k)*pow(epsilon, (double) l);
         }
-        fs->setCoef(tempc, k);
+        fs->set_coef(tempc, k);
     }
 }
 
@@ -2421,7 +2399,7 @@ template <typename U>  void fts2fs(Ofs<U> *fs, Ofts< Ofs<U> > const& fts_z, doub
  **/
 template <typename U>  cdouble fts2scalar(Ofts< Ofs<U> > const& fts_z, double epsilon, double t)
 {
-    Ofs<U> fs(fts_z.getCOrder());
+    Ofs<U> fs(fts_z.get_coef_order());
     fts2fs(&fs, fts_z, epsilon);
     return fs.evaluate(t);
 }

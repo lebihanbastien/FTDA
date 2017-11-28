@@ -88,7 +88,7 @@ void gnuplot_plot_atmpfile_3d(gnuplot_ctrl * handle,
                               int lc);
 
 //---------------------------------------------------------------------------
-//                       Initialisation and closing
+//                       Initialization and closing
 //---------------------------------------------------------------------------
 /**
   @brief    Opens up a gnuplot session, ready to receive commands.
@@ -662,7 +662,7 @@ void gnuplot_fplot_txyz(
  **/
 char const * gnuplot_tmpfile(gnuplot_ctrl * handle)
 {
-    static char const * tmp_filename_template = "gnuplot_tmpdatafile_XXXXXX";
+    static char const * tmp_filename_template = "tmp/gnuplot_tmpdatafile_XXXXXX";
     char *              tmp_filename = NULL;
     int                 tmp_filelen = strlen(tmp_filename_template);
 

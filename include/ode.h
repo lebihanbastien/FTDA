@@ -17,6 +17,9 @@
 #include <gsl/gsl_errno.h>
 #include <gsl/gsl_roots.h>
 
+//Custom
+#include "Config.h"
+
 using namespace std;
 
 /**
@@ -87,6 +90,32 @@ void init_ode_structure(OdeStruct *ode_s,
                         void *params);
 
 /**
+ *  \brief Initializes an ode structure of the type OdeStruct, including:
+ *           - a step type T,
+ *           - a root solver type T_root,
+ *           - a root solver s_root,
+ *           - a number of dimension dim,
+ *           - a vector field func,
+ *           - its corresponding jacobian,
+ *           - some additional parameters in params.
+ *
+ *        During this initialisation, the following elements are initialized:
+ *           - a stepper s,
+ *           - a controler c,
+ *           - a system sys,
+ *           - a driver d containing all the previous objects.
+ *
+ *        The default precision of the propagator are taken in Config::configManager().
+ **/
+void init_ode_structure(OdeStruct *ode_s,
+                        const gsl_odeiv2_step_type *T,
+                        const gsl_root_fsolver_type *T_root,
+                        size_t dim,
+                        int (* func) (double t, const double y[], double dydt[], void *params),
+                        void *odeParams);
+
+
+/**
  *  \brief Reset an ode structure. Namely, the stepper s, the controller c, and the driver d.
  **/
 void reset_ode_structure(OdeStruct *ode_s);
@@ -119,5 +148,10 @@ void update_ode_structure(OdeStruct *ode_s,
                          gsl_odeiv2_driver * d,
                          gsl_root_fsolver *s_root,
                          double eps_root);
+
+/**
+ * \brief Change direction of integration
+ **/
+void flip_ode_structure(OdeStruct *ode_s);
 
 #endif // CUSTOM_ODE_H_INCLUDED

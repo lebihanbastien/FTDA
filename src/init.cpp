@@ -47,24 +47,24 @@ FBPL SEML;  //global structure that describes the Sun-Earth-Moon system around L
 void init_env(int t_model, int t_li, int t_man_type, int t_pms)
 {
     //Init the Sun-Earth-Moon problem
-    init_FBP(&SEM, Csts::SUN, Csts::EARTH, Csts::MOON);
+    init_fbp(&SEM, Csts::SUN, Csts::EARTH, Csts::MOON);
     //Init the Sun-Earth-Moon problem focused on one libration point
     switch(t_li)
     {
         case Csts::EML1:
-            init_FBPL(&SEML, &SEM, 1, 1, t_model, Csts::EM, t_pms, t_man_type, t_man_type, false, true);
+            init_fbp_lib(&SEML, &SEM, 1, 1, t_model, Csts::EM, t_pms, t_man_type, t_man_type, false, true);
         break;
 
         case Csts::EML2:
-            init_FBPL(&SEML, &SEM, 2, 1, t_model, Csts::EM, t_pms, t_man_type, t_man_type, false, true);
+            init_fbp_lib(&SEML, &SEM, 2, 1, t_model, Csts::EM, t_pms, t_man_type, t_man_type, false, true);
         break;
 
         case Csts::SEL1:
-             init_FBPL(&SEML, &SEM, 1, 1, t_model, Csts::SEM, t_pms, t_man_type, t_man_type, false, true);
+             init_fbp_lib(&SEML, &SEM, 1, 1, t_model, Csts::SEM, t_pms, t_man_type, t_man_type, false, true);
         break;
 
         case Csts::SEL2:
-            init_FBPL(&SEML, &SEM,  1, 2, t_model, Csts::SEM, t_pms, t_man_type, t_man_type, false, true);
+            init_fbp_lib(&SEML, &SEM,  1, 2, t_model, Csts::SEM, t_pms, t_man_type, t_man_type, false, true);
         break;
 
         default:
@@ -85,7 +85,7 @@ vector<Oftsc>  Fh;     //reduced vector field
 vector<Oftsc>  DWFh;   //DWFh =JCM * Fh
 
 /**
- *   \brief Initialization of the parameterization center of the manifold around
+ *   \brief Initialization of the parameterization of an invariant manifold around
  *          a given libration point, encoded in the fbpl structure.
  *
  *    The global variables initialized by this routine are:
@@ -97,7 +97,7 @@ vector<Oftsc>  DWFh;   //DWFh =JCM * Fh
  *    - vector<Oftsc>  DWFh, equal to JCM * Fh
  *
  **/
-void initCM(FBPL &fbpl)
+void init_inv_man(FBPL &fbpl)
 {
     //Memory allocation
     CM     = vector<Oftsc>(Csts::NV);
@@ -108,11 +108,11 @@ void initCM(FBPL &fbpl)
     JCM    = matrix<Oftsc>(Csts::NV,REDUCED_NV);
 
     //Update
-    updateCM(fbpl);
+    update_inv_man(fbpl);
 }
 
 /**
- *   \brief Update of the parameterization center of the manifold around
+ *   \brief Update of the parameterization of an invariant manifold around
  *          a given libration point, encoded in the fbpl structure.
  *
  *    The parameterization is retrieved from text file given in the folder F_PMS,
@@ -130,14 +130,14 @@ void initCM(FBPL &fbpl)
  *    - vector<Oftsc>  DWFh, equal to JCM * Fh
  *
  **/
-void updateCM(FBPL &qbcp)
+void update_inv_man(FBPL &qbcp)
 {
     //Read from bin files
-    readVOFTS_bin(CM,    qbcp.cs.F_PMS+"W/W",         OFS_ORDER);
-    readVOFTS_bin(CMh,   qbcp.cs.F_PMS+"W/Wh",        OFS_ORDER);
-    readVOFTS_bin(Fh,    qbcp.cs.F_PMS+"rvf/fh",      OFS_ORDER);
-    readVOFTS_bin(DWFh,  qbcp.cs.F_PMS+"DWf/C_DWf",   OFS_ORDER);
-    readVOFTS_bin(CMdot, qbcp.cs.F_PMS+"Wdot/C_Wdot", OFS_ORDER);
+    read_vofts_bin(CM,    qbcp.cs.F_PMS+"W/W",         OFS_ORDER);
+    read_vofts_bin(CMh,   qbcp.cs.F_PMS+"W/Wh",        OFS_ORDER);
+    read_vofts_bin(Fh,    qbcp.cs.F_PMS+"rvf/fh",      OFS_ORDER);
+    read_vofts_bin(DWFh,  qbcp.cs.F_PMS+"DWf/C_DWf",   OFS_ORDER);
+    read_vofts_bin(CMdot, qbcp.cs.F_PMS+"Wdot/C_Wdot", OFS_ORDER);
     //Building the Jacobian via partial derivation of CM
     for(int i = 0 ; i < Csts::NV ; i++) for(int j = 0 ; j < REDUCED_NV; j++) JCM.der(CM[i], j+1, i, j);   //in NC
 }
@@ -166,7 +166,7 @@ vector<Ofsc>  Vcoc;    //COC vector
  *      - matrix<Ofsc>  Qcoc;    //COC matrix = inv(Pcoc)
  *      - vector<Ofsc>  Vcoc;    //COC vector
  **/
-void initCOC(FBPL &qbcp)
+void init_coc(FBPL &qbcp)
 {
     //Memory allocation
     Pcoc  = matrix<Ofsc>(Csts::NV,Csts::NV);
@@ -176,7 +176,7 @@ void initCOC(FBPL &qbcp)
     Vcoc  = vector<Ofsc>(Csts::NV);
 
     //Read from files
-    initCOC(Pcoc, Mcoc, Qcoc, MIcoc, Vcoc, qbcp);
+    init_coc(Pcoc, Mcoc, Qcoc, MIcoc, Vcoc, qbcp);
 }
 
 
@@ -184,7 +184,7 @@ void initCOC(FBPL &qbcp)
  *  \brief The several variables of the COC are retrieved from txt files, stored in the
  *         folder F_COC defined in fbpl.
  **/
-void initCOC(matrix<Ofsc> &t_Pcoc, matrix<Ofsc> &t_Mcoc, matrix<Ofsc> &t_Qcoc,
+void init_coc(matrix<Ofsc> &t_Pcoc, matrix<Ofsc> &t_Mcoc, matrix<Ofsc> &t_Qcoc,
              matrix<Ofsc> &t_MIcoc, vector<Ofsc> &t_Vcoc, FBPL& fbpl)
 {
     //------------------------------------------------------------------------------------
@@ -198,17 +198,17 @@ void initCOC(matrix<Ofsc> &t_Pcoc, matrix<Ofsc> &t_Mcoc, matrix<Ofsc> &t_Qcoc,
     if(fbpl.model == Csts::QBCP || fbpl.model == Csts::BCP)
     {
         //Recovering the data: matrix t_Pcoc
-        for(int i = 0; i < Csts::NV ; i++) for(int j = 0; j < Csts::NV ; j++) readCOC(*t_Pcoc.getCA(i,j), F_COC+"P",  i+1, j+1);
+        for(int i = 0; i < Csts::NV ; i++) for(int j = 0; j < Csts::NV ; j++) read_coc(*t_Pcoc.get_ptr_first_coef(i,j), F_COC+"P",  i+1, j+1);
         //Recovering the data: matrix t_Qcoc
-        for(int i = 0; i < Csts::NV ; i++) for(int j = 0; j < Csts::NV ; j++) readCOC(*t_Qcoc.getCA(i,j), F_COC+"Q",  i+1, j+1);
+        for(int i = 0; i < Csts::NV ; i++) for(int j = 0; j < Csts::NV ; j++) read_coc(*t_Qcoc.get_ptr_first_coef(i,j), F_COC+"Q",  i+1, j+1);
 
         //Recovering the data: vector t_Vcoc
         //t_Vcoc = [G1_11 G1_12 0 G1_21 G1_22 0]^T
         //Note:t_Vcoc[2] and t_Vcoc[5] are kept null
-        readCOC(t_Vcoc[0], F_COC+"G1_",  1, 1);
-        readCOC(t_Vcoc[1], F_COC+"G1_",  1, 2);
-        readCOC(t_Vcoc[3], F_COC+"G1_",  2, 1);
-        readCOC(t_Vcoc[4], F_COC+"G1_",  2, 2);
+        read_coc(t_Vcoc[0], F_COC+"G1_",  1, 1);
+        read_coc(t_Vcoc[1], F_COC+"G1_",  1, 2);
+        read_coc(t_Vcoc[3], F_COC+"G1_",  2, 1);
+        read_coc(t_Vcoc[4], F_COC+"G1_",  2, 2);
     }
     else //EM RTPB
     {
@@ -231,24 +231,24 @@ void initCOC(matrix<Ofsc> &t_Pcoc, matrix<Ofsc> &t_Mcoc, matrix<Ofsc> &t_Qcoc,
         //--------------------------------------------------------------------------------
         //Init t_Pcoc
         //--------------------------------------------------------------------------------
-        t_Pcoc.setCoef(+2*la1/s1,                          0, 1);
-        t_Pcoc.setCoef(+(la1*la1  - 2*c2 - 1)/s1,          1, 1);
-        t_Pcoc.setCoef(+(la1*la1  + 2*c2 + 1)/s1,          3, 1);
-        t_Pcoc.setCoef(+(la1*la1*la1 + (1 - 2*c2)*la1)/s1, 4, 1);
+        t_Pcoc.set_coef(+2*la1/s1,                          0, 1);
+        t_Pcoc.set_coef(+(la1*la1  - 2*c2 - 1)/s1,          1, 1);
+        t_Pcoc.set_coef(+(la1*la1  + 2*c2 + 1)/s1,          3, 1);
+        t_Pcoc.set_coef(+(la1*la1*la1 + (1 - 2*c2)*la1)/s1, 4, 1);
 
-        t_Pcoc.setCoef(-(om1*om1 + 2*c2 + 1)/s2,           1, 0);
-        t_Pcoc.setCoef(-(om1*om1 - 2*c2 - 1)/s2,           3, 0);
+        t_Pcoc.set_coef(-(om1*om1 + 2*c2 + 1)/s2,           1, 0);
+        t_Pcoc.set_coef(-(om1*om1 - 2*c2 - 1)/s2,           3, 0);
 
-        t_Pcoc.setCoef(-2*la1/s1,                          0, 4);
-        t_Pcoc.setCoef(+(la1*la1  - 2*c2 - 1)/s1,          1, 4);
-        t_Pcoc.setCoef(+(la1*la1  + 2*c2 + 1)/s1,          3, 4);
-        t_Pcoc.setCoef(-(la1*la1*la1 + (1 - 2*c2)*la1)/s1, 4, 4);
+        t_Pcoc.set_coef(-2*la1/s1,                          0, 4);
+        t_Pcoc.set_coef(+(la1*la1  - 2*c2 - 1)/s1,          1, 4);
+        t_Pcoc.set_coef(+(la1*la1  + 2*c2 + 1)/s1,          3, 4);
+        t_Pcoc.set_coef(-(la1*la1*la1 + (1 - 2*c2)*la1)/s1, 4, 4);
 
-        t_Pcoc.setCoef(+2*om1/s2,                          0, 3);
-        t_Pcoc.setCoef(-(om1*om1*om1 - (1 - 2*c2)*om1)/s2, 4, 3);
+        t_Pcoc.set_coef(+2*om1/s2,                          0, 3);
+        t_Pcoc.set_coef(-(om1*om1*om1 - (1 - 2*c2)*om1)/s2, 4, 3);
 
-        t_Pcoc.setCoef(+1.0/sqrt(om2),                     2, 2);
-        t_Pcoc.setCoef(+sqrt(om2),                         5, 5);
+        t_Pcoc.set_coef(+1.0/sqrt(om2),                     2, 2);
+        t_Pcoc.set_coef(+sqrt(om2),                         5, 5);
 
         //--------------------------------------------------------------------------------
         //t_Qcoc = inv(t_Pcoc) (GSL object)
@@ -259,7 +259,7 @@ void initCOC(matrix<Ofsc> &t_Pcoc, matrix<Ofsc> &t_Mcoc, matrix<Ofsc> &t_Qcoc,
         gsl_permutation * p6 = gsl_permutation_alloc (Csts::NV);
 
         //Init Pc
-        for(int i =0; i < Csts::NV; i++) for(int j =0; j < Csts::NV; j++) gsl_matrix_set(Pc, i, j, creal(t_Pcoc.getCA(i,j)->ofs_getCoef(0)));
+        for(int i =0; i < Csts::NV; i++) for(int j =0; j < Csts::NV; j++) gsl_matrix_set(Pc, i, j, creal(t_Pcoc.get_ptr_first_coef(i,j)->ofs_get_coef(0)));
         //Use of GSL library
         gsl_linalg_LU_decomp (Pc, p6, &s);
         gsl_linalg_LU_invert (Pc, p6, Qc);
@@ -267,7 +267,7 @@ void initCOC(matrix<Ofsc> &t_Pcoc, matrix<Ofsc> &t_Mcoc, matrix<Ofsc> &t_Qcoc,
         //--------------------------------------------------------------------------------
         // Init t_Qcoc
         //--------------------------------------------------------------------------------
-        for(int i =0; i < Csts::NV; i++) for(int j =0; j < Csts::NV; j++) t_Qcoc.setCoef(gsl_matrix_get(Qc, i, j), i, j);
+        for(int i =0; i < Csts::NV; i++) for(int j =0; j < Csts::NV; j++) t_Qcoc.set_coef(gsl_matrix_get(Qc, i, j), i, j);
     }
 
     //------------------------------------------------------------------------------------
@@ -290,20 +290,20 @@ void initCOC(matrix<Ofsc> &t_Pcoc, matrix<Ofsc> &t_Mcoc, matrix<Ofsc> &t_Qcoc,
     {
         ii = keyMap[i];
         BUX.ofs_fsum(t_Pcoc(ii,0),   1.0/sqrt(2)+0.0*I, t_Pcoc(ii,3), I*1.0/sqrt(2));
-        t_Mcoc.setCoef(BUX, ii, 0);
+        t_Mcoc.set_coef(BUX, ii, 0);
         BUX.ofs_fsum(t_Pcoc(ii,0), I*1.0/sqrt(2), t_Pcoc(ii,3),   1.0/sqrt(2)+0.0*I);
-        t_Mcoc.setCoef(BUX, ii, 3);
-        t_Mcoc.setCoef(t_Pcoc(ii,1), ii, 1);
-        t_Mcoc.setCoef(t_Pcoc(ii,4), ii, 4);
+        t_Mcoc.set_coef(BUX, ii, 3);
+        t_Mcoc.set_coef(t_Pcoc(ii,1), ii, 1);
+        t_Mcoc.set_coef(t_Pcoc(ii,4), ii, 4);
     }
 
     for(int i = 4; i <= 5; i++)
     {
         ii = keyMap[i];
         BUX.ofs_fsum(t_Pcoc(ii,2),   1.0/sqrt(2)+0.0*I, t_Pcoc(ii,5), I*1.0/sqrt(2));
-        t_Mcoc.setCoef(BUX, ii, 2);
+        t_Mcoc.set_coef(BUX, ii, 2);
         BUX.ofs_fsum(t_Pcoc(ii,2), I*1.0/sqrt(2), t_Pcoc(ii,5),   1.0/sqrt(2)+0.0*I);
-        t_Mcoc.setCoef(BUX, ii, 5);
+        t_Mcoc.set_coef(BUX, ii, 5);
     }
 
     //Init t_MIcoc by columns
@@ -311,20 +311,20 @@ void initCOC(matrix<Ofsc> &t_Pcoc, matrix<Ofsc> &t_Mcoc, matrix<Ofsc> &t_Qcoc,
     {
         ii = keyMap[i];
         BUX.ofs_fsum(t_Qcoc(0,ii),    1.0/sqrt(2)+0.0*I, t_Qcoc(3,ii), -1.0/sqrt(2)*I);
-        t_MIcoc.setCoef(BUX, 0, ii);
+        t_MIcoc.set_coef(BUX, 0, ii);
         BUX.ofs_fsum(t_Qcoc(0,ii), -1.0/sqrt(2)*I, t_Qcoc(3,ii),    1.0/sqrt(2)+0.0*I);
-        t_MIcoc.setCoef(BUX, 3, ii);
-        t_MIcoc.setCoef(t_Qcoc(1,ii), 1, ii);
-        t_MIcoc.setCoef(t_Qcoc(4,ii), 4, ii);
+        t_MIcoc.set_coef(BUX, 3, ii);
+        t_MIcoc.set_coef(t_Qcoc(1,ii), 1, ii);
+        t_MIcoc.set_coef(t_Qcoc(4,ii), 4, ii);
     }
 
     for(int i = 4; i <= 5; i++)
     {
         ii = keyMap[i];
         BUX.ofs_fsum(t_Qcoc(2,ii),    1.0/sqrt(2)+0.0*I, t_Qcoc(5,ii), -1.0/sqrt(2)*I);
-        t_MIcoc.setCoef(BUX, 2, ii);
+        t_MIcoc.set_coef(BUX, 2, ii);
         BUX.ofs_fsum(t_Qcoc(2,ii), -1.0/sqrt(2)*I, t_Qcoc(5,ii),    1.0/sqrt(2)+0.0*I);
-        t_MIcoc.setCoef(BUX, 5, ii);
+        t_MIcoc.set_coef(BUX, 5, ii);
     }
 
 }
@@ -338,10 +338,10 @@ void initCOC(matrix<Ofsc> &t_Pcoc, matrix<Ofsc> &t_Mcoc, matrix<Ofsc> &t_Qcoc,
  *  \param k the line indix of the desired component prefix(k,p).
  *  \param p the column indix of the desired component prefix(k,p).
  *
- *  As an example, the call readCOC(xFFT, "alpha", 2, 1) will update xFFT
+ *  As an example, the call read_coc(xFFT, "alpha", 2, 1) will update xFFT
  *  with the file "alpha21.txt".
  **/
-void readCOC(Ofsc& xFFT, string prefix, int k, int p)
+void read_coc(Ofsc& xFFT, string prefix, int k, int p)
 {
     //Init
     ifstream readStream;
@@ -349,16 +349,16 @@ void readCOC(Ofsc& xFFT, string prefix, int k, int p)
     ss1 = static_cast<ostringstream*>( &(ostringstream() << k) )->str();
     ss2 = static_cast<ostringstream*>( &(ostringstream() << p) )->str();
     //Reading an OFS from a text file
-    readOFS_txt(xFFT, (prefix+ss1+ss2));
+    read_ofs_txt(xFFT, (prefix+ss1+ss2));
 }
 
 
 /**
  *   \brief Number to string inner routine, using static_cast.
- *          Example: numTostring(10) returns "10".
+ *          Example: num_to_string(10) returns "10".
  **/
-string numTostring(double num)
+string num_to_string(double t_num)
 {
-    string res =  static_cast<ostringstream*>( &(ostringstream() << num) )->str();
+    string res =  static_cast<ostringstream*>( &(ostringstream() << t_num) )->str();
     return res;
 }

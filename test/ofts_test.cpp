@@ -1,9 +1,7 @@
 /**
  * \file ofts_test.cpp
  * \brief Test file for the Ofts (Fourier-Taylor series) class.
- * \author BLB.
- * \date May 2015
- * \version 1.0
+ * \author BLB
  */
 
 #include "timec.h"
@@ -19,10 +17,14 @@ using namespace std;
 void ofts_test()
 {
     char ch;
+    //------------------------------------------------------------------------------------
+    // Splash
+    //------------------------------------------------------------------------------------
     cout << "---------------------------------------------------" << endl;
     cout << "                                                   " << endl;
-    cout << "         Test routine for the Oftsh class          " << endl;
-    cout << "    specialized in the form Oftsh<Ofs <U> >        " << endl;
+    cout << "         Test routine for the Ofts class           " << endl;
+    cout << "        specialized in the form Ofts<Ofs>          " << endl;
+    cout << "             (Fourier-Taylor series)               " << endl;
     cout << "                                                   " << endl;
     cout << "---------------------------------------------------" << endl;
     cout << "The following public functions are tested:         " << endl;
@@ -40,30 +42,30 @@ void ofts_test()
 
     cout <<  setw(5) << setprecision(1) << setiosflags(ios::scientific);
     cout << "---------------------------------------------------" << endl;
-    cout << " 1. Tests are made with polynomial of order " << OFTS_ORDER << "." << endl;
+    cout << " 1. Tests are made with series of order " << OFTS_ORDER << "." << endl;
     cout << " 2. Tests are made with number of variables: " << REDUCED_NV << "." << endl;
-    cout << " 3. Each coefficient is a serie of order " << OFS_ORDER << "." << endl;
-    cout << " 4. The series are evaluated at arbitrary coordinate." << endl;
+    cout << " 3. Each coefficient is a series of order " << OFS_ORDER << "." << endl;
+    cout << " 4. The series are evaluated at arbitrary coordinates." << endl;
     cout << " 5. Random coefficients are set as input into every Ofs coefficient. " << endl;
     cout << "However, an arbitrary decreasing of the coefficients is set: " << endl;
     cout << " around " << (double)rand()/(10.0*(pow(0,7.0)+1)*RAND_MAX) << " @ order 0." << endl;
     cout << " around " << (double)rand()/(10.0*(pow(OFS_ORDER,7.0)+1)*RAND_MAX) << " @ order "<< OFS_ORDER << "." << endl;
     cout << " 7. WARNING: in order for the Ofts*Ofts products to make sense, " << endl;
-    cout << " the original series are filled with random coefficients up to order " << OFTS_ORDER/2 << endl;
+    cout << " the original series are filled with random coefficients up to order " << OFTS_ORDER/2 << "(half the max order)" << endl;
     cout << " so that the results of the product contains all relevant terms. " << endl;
     cout << " Note that a more realistic process would be to ensure a decrease of the coefficients " << endl;
     cout << " with respect to the order of the homogeneous FT polynomials. " << endl;
     cout << "---------------------------------------------------" << endl;
     cout << " WARNING: orders > 10 coupled with a number of variable > 4 " << endl;
-    cout << " can lead to a very time-consuming test session. " << endl;
+    cout << " can lead to a time-consuming test session. " << endl;
     cout <<  setw(5) << setprecision(15) << std::showpos  <<  setiosflags(ios::scientific);
     cout << "Press Enter to proceed with the tests." << endl;
     scanf("%c",&ch);
 
 
-    //------------------------
+    //------------------------------------------------------------------------------------
     // Tests.
-    //------------------------
+    //------------------------------------------------------------------------------------
     ofts_test_sprod();
     cout << "Press Enter to proceed with the tests." << endl;
     scanf("%c",&ch);
@@ -131,10 +133,10 @@ void ofts_test_conjugate()
     cout << "--------------------------------------" << endl;
     //Initialization of OFTS objects, used to initialize the OFTSH objects
     //--------------
-    Ofts< Ofsd > xd(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
-    Ofts< Ofsc > xdc(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
-    Ofts< Ofsd > xd2(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
-    Ofts< Ofsc > xdc2(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
+    Oftsd xd(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
+    Oftsc xdc(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
+    Oftsd xd2(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
+    Oftsc xdc2(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
 
     double Xvar[REDUCED_NV];
     cdouble Xvard[REDUCED_NV];
@@ -152,10 +154,10 @@ void ofts_test_conjugate()
     for(int i = 0; i < REDUCED_NV; i++) Xvard[i] = 1.0*rand()/RAND_MAX + I*rand()/RAND_MAX ;
 
     //Set random coefs in xd and xdc
-    xd.setRandomCoefs();
-    xdc.setRandomCoefs();
-    xd2.setRandomCoefs();
-    xdc2.setRandomCoefs();
+    xd.set_random_coefs();
+    xdc.set_random_coefs();
+    xd2.set_random_coefs();
+    xdc2.set_random_coefs();
 
 
     cout << "-----------------------" << endl;
@@ -213,8 +215,8 @@ void ofts_test_conjugate()
 
     //Take operation
     //--------------
-    for(int k = 0; k<= xd.getOrder(); k++) xd.conjugate(k);
-    for(int k = 0; k<= xd.getOrder(); k++) xdc.conjugate(k);
+    for(int k = 0; k<= xd.get_order(); k++) xd.conjugate(k);
+    for(int k = 0; k<= xd.get_order(); k++) xdc.conjugate(k);
 
     //Set results
     //--------------
@@ -254,12 +256,12 @@ void ofts_test_smult_t()
     cout << "-------------------------------------------------------------------------" << endl;
     //Initialization of OFTS objects, used to initialize the OFTSH objects
     //--------------
-    Ofts< Ofsd > xd(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
-    Ofts< Ofsc > xdc(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
-    Ofts< Ofsd > xd2(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
-    Ofts< Ofsc > xdc2(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
-    Ofts< Ofsd > xd3(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
-    Ofts< Ofsc > xdc3(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
+    Oftsd xd(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
+    Oftsc xdc(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
+    Oftsd xd2(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
+    Oftsc xdc2(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
+    Oftsd xd3(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
+    Oftsc xdc3(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
     //Coefficient array
     double Xvar[REDUCED_NV];
     cdouble Xvard[REDUCED_NV];
@@ -277,12 +279,12 @@ void ofts_test_smult_t()
     for(int i = 0; i < REDUCED_NV; i++) Xvar[i]  = 1.0*rand()/RAND_MAX;
     for(int i = 0; i < REDUCED_NV; i++) Xvard[i] = 1.0*rand()/RAND_MAX + I*rand()/RAND_MAX ;
     //Set random coefs
-    xd.setRandomCoefs();
-    xdc.setRandomCoefs();
-    xd2.setRandomCoefs();
-    xdc2.setRandomCoefs();
-    xd3.setRandomCoefs();
-    xdc3.setRandomCoefs();
+    xd.set_random_coefs();
+    xdc.set_random_coefs();
+    xd2.set_random_coefs();
+    xdc2.set_random_coefs();
+    xd3.set_random_coefs();
+    xdc3.set_random_coefs();
 
     cout << "-----------------------" << endl;
     cout << " 1. At all terms       " << endl;
@@ -354,19 +356,19 @@ void ofts_test_smult_t()
 
     //xdc in TFS format
     //--------------
-    Ofts< Ofsc > xdc4(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
+    Oftsc xdc4(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
     xdc4.tfs_from_ofs(xdc);         //xdc in TFS format
 
     //Take operation, in OFS format
     //--------------
-    for(int k = 0; k<= xd.getOrder(); k++) xd.ofts_smult_t(xd2, ofs3, k);
-    for(int k = 0; k<= xd.getOrder(); k++) xdc.ofts_smult_t(xdc2, ofsd3, k);
+    for(int k = 0; k<= xd.get_order(); k++) xd.ofts_smult_t(xd2, ofs3, k);
+    for(int k = 0; k<= xd.get_order(); k++) xdc.ofts_smult_t(xdc2, ofsd3, k);
 
     //Take operation, in TFS format
     //--------------
     xdc3.tfs_from_ofs(xdc2);        //xdc2 in TFS format
     ofsd2.tfs_from_ofs(ofsd3);      //ofsd3 in TFS format
-    for(int k = 0; k<= xd.getOrder(); k++) xdc4.tfts_smult_t(xdc3, ofsd2, k);
+    for(int k = 0; k<= xd.get_order(); k++) xdc4.tfts_smult_t(xdc3, ofsd2, k);
     xdc.tfs_to_ofs(xdc4);           //Back to OFS format
 
     //Set results
@@ -407,10 +409,10 @@ void ofts_test_smult_u()
     cout << "-------------------------------------------------------------------------" << endl;
     //Initialization of OFTS objects, used to initialize the OFTSH objects
     //--------------
-    Ofts< Ofsd > xd(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
-    Ofts< Ofsc > xdc(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
-    Ofts< Ofsd > xd2(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
-    Ofts< Ofsc > xdc2(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
+    Oftsd xd(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
+    Oftsc xdc(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
+    Oftsd xd2(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
+    Oftsc xdc2(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
     //Coefficient array
     double Xvar[REDUCED_NV];
     cdouble Xvard[REDUCED_NV];
@@ -429,10 +431,10 @@ void ofts_test_smult_u()
     for(int i = 0; i < REDUCED_NV; i++) Xvar[i]  = 1.0*rand()/RAND_MAX;
     for(int i = 0; i < REDUCED_NV; i++) Xvard[i] = 1.0*rand()/RAND_MAX + I*rand()/RAND_MAX ;
     //Set random coefs
-    xd.setRandomCoefs();
-    xdc.setRandomCoefs();
-    xd2.setRandomCoefs();
-    xdc2.setRandomCoefs();
+    xd.set_random_coefs();
+    xdc.set_random_coefs();
+    xd2.set_random_coefs();
+    xdc2.set_random_coefs();
 
     cout << "-----------------------" << endl;
     cout << " 1. At all terms       " << endl;
@@ -497,8 +499,8 @@ void ofts_test_smult_u()
 
     //Take operation
     //--------------
-    for(int k = 0; k<= xd.getOrder(); k++) xd.ofts_smult_u(xd2, c, k);
-    for(int k = 0; k<= xd.getOrder(); k++) xdc.ofts_smult_u(xdc2, cd, k);
+    for(int k = 0; k<= xd.get_order(); k++) xd.ofts_smult_u(xd2, c, k);
+    for(int k = 0; k<= xd.get_order(); k++) xdc.ofts_smult_u(xdc2, cd, k);
 
     //Set results
     //--------------
@@ -538,12 +540,12 @@ void ofts_test_smult_tu()
     cout << "-------------------------------------------------------------------------" << endl;
     //Initialization of OFTS objects, used to initialize the OFTSH objects
     //--------------
-    Ofts< Ofsd > xd(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
-    Ofts< Ofsc > xdc(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
-    Ofts< Ofsd > xd2(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
-    Ofts< Ofsc > xdc2(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
-    Ofts< Ofsd > xd3(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
-    Ofts< Ofsc > xdc3(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
+    Oftsd xd(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
+    Oftsc xdc(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
+    Oftsd xd2(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
+    Oftsc xdc2(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
+    Oftsd xd3(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
+    Oftsc xdc3(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
     //Coefficient array
     double Xvar[REDUCED_NV];
     cdouble Xvard[REDUCED_NV];
@@ -564,12 +566,12 @@ void ofts_test_smult_tu()
     for(int i = 0; i < REDUCED_NV; i++) Xvar[i]  = 1.0*rand()/RAND_MAX;
     for(int i = 0; i < REDUCED_NV; i++) Xvard[i] = 1.0*rand()/RAND_MAX + I*rand()/RAND_MAX ;
     //Set random coefs
-    xd.setRandomCoefs();
-    xdc.setRandomCoefs();
-    xd2.setRandomCoefs();
-    xdc2.setRandomCoefs();
-    xd3.setRandomCoefs();
-    xdc3.setRandomCoefs();
+    xd.set_random_coefs();
+    xdc.set_random_coefs();
+    xd2.set_random_coefs();
+    xdc2.set_random_coefs();
+    xd3.set_random_coefs();
+    xdc3.set_random_coefs();
 
     cout << "-----------------------" << endl;
     cout << " 1. At all terms       " << endl;
@@ -640,8 +642,8 @@ void ofts_test_smult_tu()
 
     //Take operation
     //--------------
-    for(int k = 0; k<= xd.getOrder(); k++)  xd.ofts_smult_tu(xd2, ofs3, c, k);
-    for(int k = 0; k<= xd.getOrder(); k++)  xdc.ofts_smult_tu(xdc2, ofsd3, cd, k);
+    for(int k = 0; k<= xd.get_order(); k++)  xd.ofts_smult_tu(xd2, ofs3, c, k);
+    for(int k = 0; k<= xd.get_order(); k++)  xdc.ofts_smult_tu(xdc2, ofsd3, cd, k);
 
     //Set results
     //--------------
@@ -681,16 +683,16 @@ void ofts_test_sfsum_t()
     cout << "-------------------------------------------------------------------------" << endl;
     //Initialization of OFTS objects, used to initialize the OFTSH objects
     //--------------
-    Ofts< Ofsd > xd(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
-    Ofts< Ofsc > xdc(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
-    Ofts< Ofsd > xd2(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
-    Ofts< Ofsc > xdc2(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
-    Ofts< Ofsd > xd3(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
-    Ofts< Ofsc > xdc3(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
-    Ofts< Ofsd > xd4(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
-    Ofts< Ofsc > xdc4(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
-    Ofts< Ofsd > xd5(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
-    Ofts< Ofsc > xdc5(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
+    Oftsd xd(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
+    Oftsc xdc(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
+    Oftsd xd2(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
+    Oftsc xdc2(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
+    Oftsd xd3(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
+    Oftsc xdc3(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
+    Oftsd xd4(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
+    Oftsc xdc4(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
+    Oftsd xd5(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
+    Oftsc xdc5(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
 
     //Coefficient array
     double Xvar[REDUCED_NV];
@@ -713,16 +715,16 @@ void ofts_test_sfsum_t()
     for(int i = 0; i < REDUCED_NV; i++) Xvar[i]  = 1.0*rand()/RAND_MAX;
     for(int i = 0; i < REDUCED_NV; i++) Xvard[i] = 1.0*rand()/RAND_MAX + I*rand()/RAND_MAX ;
     //Set random coefs
-    xd.setRandomCoefs();
-    xdc.setRandomCoefs();
-    xd2.setRandomCoefs();
-    xdc2.setRandomCoefs();
-    xd3.setRandomCoefs();
-    xdc3.setRandomCoefs();
-    xd4.setRandomCoefs();
-    xdc4.setRandomCoefs();
-    xd5.setRandomCoefs();
-    xdc5.setRandomCoefs();
+    xd.set_random_coefs();
+    xdc.set_random_coefs();
+    xd2.set_random_coefs();
+    xdc2.set_random_coefs();
+    xd3.set_random_coefs();
+    xdc3.set_random_coefs();
+    xd4.set_random_coefs();
+    xdc4.set_random_coefs();
+    xd5.set_random_coefs();
+    xdc5.set_random_coefs();
 
     cout << "-----------------------" << endl;
     cout << " 1. At all terms       " << endl;
@@ -807,8 +809,8 @@ void ofts_test_sfsum_t()
 
     //Take operation
     //--------------
-    for(int k = 0; k<= xd.getOrder(); k++) xd.ofts_sfsum_t(xd2, ofs4, xd3, ofs5, k);
-    for(int k = 0; k<= xd.getOrder(); k++) xdc.ofts_sfsum_t(xdc2, ofsd4, xdc3, ofsd5, k);
+    for(int k = 0; k<= xd.get_order(); k++) xd.ofts_sfsum_t(xd2, ofs4, xd3, ofs5, k);
+    for(int k = 0; k<= xd.get_order(); k++) xdc.ofts_sfsum_t(xdc2, ofsd4, xdc3, ofsd5, k);
 
 
     //Set results
@@ -849,12 +851,12 @@ void ofts_test_sprod()
     cout << "-------------------------------------------------------------------------" << endl;
     //Initialization of OFTS objects, used to initialize the OFTSH objects
     //--------------
-    Ofts< Ofsd > xd(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
-    Ofts< Ofsc > xdc(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
-    Ofts< Ofsd > xd2(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
-    Ofts< Ofsc > xdc2(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
-    Ofts< Ofsd > xd3(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
-    Ofts< Ofsc > xdc3(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
+    Oftsd xd(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
+    Oftsc xdc(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
+    Oftsd xd2(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
+    Oftsc xdc2(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
+    Oftsd xd3(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
+    Oftsc xdc3(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
     //Coefficient array
     double Xvar[REDUCED_NV];
     cdouble Xvard[REDUCED_NV];
@@ -877,12 +879,12 @@ void ofts_test_sprod()
     cout << " 1. At all terms       " << endl;
     cout << "-----------------------" << endl;
     //Set random coefs
-    xd.setRandomCoefs();
-    xdc.setRandomCoefs();
-    xd2.setRandomCoefs();
-    xdc2.setRandomCoefs();
-    xd3.setRandomCoefs();
-    xdc3.setRandomCoefs();
+    xd.set_random_coefs();
+    xdc.set_random_coefs();
+    xd2.set_random_coefs();
+    xdc2.set_random_coefs();
+    xd3.set_random_coefs();
+    xdc3.set_random_coefs();
 
     //Set results
     //--------------
@@ -941,12 +943,12 @@ void ofts_test_sprod()
     xdc.zero();
 
     //Set random coefs
-    xd.setRandomCoefs();
-    xdc.setRandomCoefs();
-    xd2.setRandomCoefs();
-    xdc2.setRandomCoefs();
-    xd3.setRandomCoefs();
-    xdc3.setRandomCoefs();
+    xd.set_random_coefs();
+    xdc.set_random_coefs();
+    xd2.set_random_coefs();
+    xdc2.set_random_coefs();
+    xd3.set_random_coefs();
+    xdc3.set_random_coefs();
 
     //Set results
     //--------------
@@ -971,12 +973,12 @@ void ofts_test_sprod()
     //Take product, in OFS format
     //--------------
     tic();
-    for(int k = 0; k<= xd.getOrder(); k++) xd.ofts_sprod(xd2, xd3, k);
+    for(int k = 0; k<= xd.get_order(); k++) xd.ofts_sprod(xd2, xd3, k);
     cout << "Product in : " << toc() << "s." << endl;
 
     //Take operation, in TFS format
     //--------------
-    for(int k = 0; k<= xd.getOrder(); k++) xdc.tfts_sprod(xdc2, xdc3, k);
+    for(int k = 0; k<= xd.get_order(); k++) xdc.tfts_sprod(xdc2, xdc3, k);
     xdc.tfs_to_ofs_inline(); //back in OFS format
 
     //Set results
@@ -1017,12 +1019,12 @@ void ofts_test_smprod_t()
     cout << "-------------------------------------------------------------------------" << endl;
     //Initialization of OFTS objects, used to initialize the OFTSH objects
     //--------------
-    Ofts< Ofsd > xd(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
-    Ofts< Ofsc > xdc(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
-    Ofts< Ofsd > xd2(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
-    Ofts< Ofsc > xdc2(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
-    Ofts< Ofsd > xd3(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
-    Ofts< Ofsc > xdc3(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
+    Oftsd xd(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
+    Oftsc xdc(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
+    Oftsd xd2(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
+    Oftsc xdc2(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
+    Oftsd xd3(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
+    Oftsc xdc3(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
 
     double Xvar[REDUCED_NV];
     cdouble Xvard[REDUCED_NV];
@@ -1051,12 +1053,12 @@ void ofts_test_smprod_t()
     cout << " 1. At all terms       " << endl;
     cout << "-----------------------" << endl;
     //Set random coefs in xd and xdc
-    xd.setRandomCoefs();
-    xdc.setRandomCoefs();
-    xd2.setRandomCoefs();
-    xdc2.setRandomCoefs();
-    xd3.setRandomCoefs();
-    xdc3.setRandomCoefs();
+    xd.set_random_coefs();
+    xdc.set_random_coefs();
+    xd2.set_random_coefs();
+    xdc2.set_random_coefs();
+    xd3.set_random_coefs();
+    xdc3.set_random_coefs();
 
     //Set results
     //--------------
@@ -1116,12 +1118,12 @@ void ofts_test_smprod_t()
     xdc.zero();
 
     //Set random coefs in xd and xdc
-    xd.setRandomCoefs();
-    xdc.setRandomCoefs();
-    xd2.setRandomCoefs();
-    xdc2.setRandomCoefs();
-    xd3.setRandomCoefs();
-    xdc3.setRandomCoefs();
+    xd.set_random_coefs();
+    xdc.set_random_coefs();
+    xd2.set_random_coefs();
+    xdc2.set_random_coefs();
+    xd3.set_random_coefs();
+    xdc3.set_random_coefs();
 
     //Set results
     //--------------
@@ -1141,10 +1143,10 @@ void ofts_test_smprod_t()
     //Take operation
     //--------------
     tic();
-    for(int k = 0; k<= xd.getOrder(); k++) xd.ofts_smprod_t(xd2, xd3, ofs4, k, temp);
+    for(int k = 0; k<= xd.get_order(); k++) xd.ofts_smprod_t(xd2, xd3, ofs4, k, temp);
     cout << "Product in : " << toc() << "s." << endl;
     tic();
-    for(int k = 0; k<= xd.getOrder(); k++) xdc.ofts_smprod_t(xdc2, xdc3, ofsd4, k, tempc);
+    for(int k = 0; k<= xd.get_order(); k++) xdc.ofts_smprod_t(xdc2, xdc3, ofsd4, k, tempc);
     cout << "Product in : " << toc() << "s." << endl;
 
 
@@ -1186,12 +1188,12 @@ void ofts_test_smprod_u()
     cout << "-------------------------------------------------------------------------" << endl;
     //Initialization of OFTS objects, used to initialize the OFTSH objects
     //--------------
-    Ofts< Ofsd > xd(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
-    Ofts< Ofsc > xdc(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
-    Ofts< Ofsd > xd2(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
-    Ofts< Ofsc > xdc2(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
-    Ofts< Ofsd > xd3(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
-    Ofts< Ofsc > xdc3(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
+    Oftsd xd(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
+    Oftsc xdc(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
+    Oftsd xd2(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
+    Oftsc xdc2(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
+    Oftsd xd3(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
+    Oftsc xdc3(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
 
     double Xvar[REDUCED_NV];
     cdouble Xvard[REDUCED_NV];
@@ -1220,12 +1222,12 @@ void ofts_test_smprod_u()
     cout << "-----------------------" << endl;
 
     //Set random coefs in xd and xdc
-    xd.setRandomCoefs();
-    xdc.setRandomCoefs();
-    xd2.setRandomCoefs();
-    xdc2.setRandomCoefs();
-    xd3.setRandomCoefs();
-    xdc3.setRandomCoefs();
+    xd.set_random_coefs();
+    xdc.set_random_coefs();
+    xd2.set_random_coefs();
+    xdc2.set_random_coefs();
+    xd3.set_random_coefs();
+    xdc3.set_random_coefs();
 
     //Set results
     //--------------
@@ -1281,12 +1283,12 @@ void ofts_test_smprod_u()
     xdc.zero();
 
     //Set random coefs in xd and xdc
-    xd.setRandomCoefs();
-    xdc.setRandomCoefs();
-    xd2.setRandomCoefs();
-    xdc2.setRandomCoefs();
-    xd3.setRandomCoefs();
-    xdc3.setRandomCoefs();
+    xd.set_random_coefs();
+    xdc.set_random_coefs();
+    xd2.set_random_coefs();
+    xdc2.set_random_coefs();
+    xd3.set_random_coefs();
+    xdc3.set_random_coefs();
 
     //Set results
     //--------------
@@ -1303,10 +1305,10 @@ void ofts_test_smprod_u()
     //Take operation
     //--------------
     tic();
-    for(int k = 0; k<= xd.getOrder(); k++) xd.ofts_smprod_u(xd2, xd3, c, k);
+    for(int k = 0; k<= xd.get_order(); k++) xd.ofts_smprod_u(xd2, xd3, c, k);
     cout << "Product in : " << toc() << "s." << endl;
     tic();
-    for(int k = 0; k<= xd.getOrder(); k++) xdc.ofts_smprod_u(xdc2, xdc3, cd, k);
+    for(int k = 0; k<= xd.get_order(); k++) xdc.ofts_smprod_u(xdc2, xdc3, cd, k);
     cout << "Product in : " << toc() << "s." << endl;
 
 
@@ -1352,10 +1354,10 @@ void ofts_test_pows()
     //------------------------------------------------------------------------------
     //Initialization of OFTS objects, used to initialize the OFTSH objects
     //------------------------------------------------------------------------------
-    Ofts< Ofsc > xdc(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
-    Ofts< Ofsc > xdc2(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
-    Ofts< Ofsc > xdc3(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
-    Ofts< Ofsc > xdc4(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
+    Oftsc xdc(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
+    Oftsc xdc2(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
+    Oftsc xdc3(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
+    Oftsc xdc4(REDUCED_NV, OFTS_ORDER, 1, OFS_ORDER);
 
     cdouble Xvard[REDUCED_NV];
     Ofsc ofsd(OFS_ORDER);
@@ -1374,8 +1376,8 @@ void ofts_test_pows()
     cout << "-----------------------" << endl;
 
     //Read coefs from file
-    readOFTS_txt(xdc2, "test/W[0].txt", OFS_ORDER);
-    //xdc2.setRandomCoefs();
+    read_ofts_txt(xdc2, "test/W[0].txt", OFS_ORDER);
+    //xdc2.set_random_coefs();
 
     //------------------------------------------------------------------------------
     //Take operation
@@ -1437,7 +1439,7 @@ void ofts_test_pows()
     //1. Mixed power
     //--------------
     tic();
-    for(int k = 0; k<= xdc.getOrder(); k++) xdc.ofts_pows(xdc2, alpha, k);
+    for(int k = 0; k<= xdc.get_order(); k++) xdc.ofts_pows(xdc2, alpha, k);
     cout << "Mixed Pows in : " << toc() << "s." << endl;
 
     //--------------
@@ -1445,7 +1447,7 @@ void ofts_test_pows()
     //--------------
     tic();
     xdc3.tfs_from_ofs(xdc2);
-    for(int k = 0; k<= xdc4.getOrder(); k++) xdc4.tfts_pows(xdc3, alpha, k);
+    for(int k = 0; k<= xdc4.get_order(); k++) xdc4.tfts_pows(xdc3, alpha, k);
     xdc.tfs_to_ofs(xdc4);
     cout << "Pure Pows in : " << toc() << "s." << endl;
 

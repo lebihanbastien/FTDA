@@ -2,7 +2,7 @@
  * \file define_env.cpp
  * \brief Routines for the definition of the working environment via several C structure
  *        that represent Three or Four-Body models of the Sun-Earth-Moon system.
- *        The main routine is init_FBPL, which initializes a FBPL structure, i.e. a
+ *        The main routine is init_fbp_lib, which initializes a FBPL structure, i.e. a
  *        structure that contains all the necessary constants and coefficients
  *        (equations of motion, Hamiltonian) for a given Four-Body problem
  *        around a given libration point. The coefficients are retrieved from txt files
@@ -51,13 +51,13 @@
  *
  *          Moreover, the USYS and CSYS structures are duplicated for easy access:
  *          - fbpl.us, equal one of the previous USYS structures:
- *                  * us_em if coordsys == Csts::EM,
- *                  * us_Sem if coordsys == Csts::SEM.
+ *                  * us_em if coord_sys == Csts::EM,
+ *                  * us_Sem if coord_sys == Csts::SEM.
  *          - fbpl.cs_em, equal to cs_em_l1,2 if li_EM == 1,2.
  *          - fbpl.cs_sem, equal to cs_sem_l1,2 if li_SEM == 1,2.
  *          - fbpl.cs, equal to
- *                  * cs_em_l1,2 if li_EM == 1,2 & coordsys == Csts::EM,
- *                  * cs_sem_l1,2 if li_SEM == 1,2 & coordsys == Csts::SEM.
+ *                  * cs_em_l1,2 if li_EM == 1,2 & coord_sys == Csts::EM,
+ *                  * cs_sem_l1,2 if li_SEM == 1,2 & coord_sys == Csts::SEM.
  *
  *        In the end, we mainly use fbpl.li (libration point), fbpl.us (constants in the
  *        suitable normalized units), and fbpl.cs (constants and coefficients about the
@@ -77,40 +77,40 @@
  * \param li_EM number of the libration point for the EM system.
  * \param li_SEM number of the libration point for the SEM system.
  * \param model: either Csts::QBCP, Csts::BCP, Csts::CRTBP, etc.
- * \param coordsys: default coordinate system for this structure:
- *           - if coordsys == Csts::EM,  the fbpl is focused on the li_EM  point of the
+ * \param coord_sys: default coordinate system for this structure:
+ *           - if coord_sys == Csts::EM,  the fbpl is focused on the li_EM  point of the
  *             EM system.
- *           - if coordsys == Csts::SEM, the fbpl is focused on the li_SEM point of the
+ *           - if coord_sys == Csts::SEM, the fbpl is focused on the li_SEM point of the
  *             SEM system.
  *        The focus can be change dynamically during computation, via the routines
  *        change_coord and change_li_coord.
- * \param pms: type of parameterization of the manifolds (Csts::GRAPH, etc). Note that
- *        the pms influences the number of coefficients taken into account in the
+ * \param param_style: type of parameterization of the manifolds (Csts::GRAPH, etc). Note that
+ *        the param_style influences the number of coefficients taken into account in the
  *        Fourier series. Indeed, for graph method, the reduced vector field is non
  *        autonomous, and full Fourier series are used. For normal form, the reduced
  *        vector field is quasi autonomous and we can safely reduce the order of the
  *        series to 5 (11 coefficients taken into account).
- * \param manType_EM: type of manifold about li_EM (Csts::MAN_CENTER, etc).
- * \param manType_SEM: type of manifold about li_SEM.
- * \param isNew an integer: equal to 1 if no solution has been previously
+ * \param man_type_EM: type of manifold about li_EM (Csts::MAN_CENTER, etc).
+ * \param man_type_SEM: type of manifold about li_SEM.
+ * \param is_new an integer: equal to 1 if no solution has been previously
  *        computed with the routine qbtbp(), 0 otherwise.
- * \param isNorm: are the equations of motion normalized?  Probably deprecated,
+ * \param is_norm: are the equations of motion normalized?  Probably deprecated,
  *        should be always true. Kept for consistency with older code.
  *
  *
  * Note that the FBP structure fbp is used only for the initialization of the coordinate
  * systems. More precisely, it contains some parameters specific to each libration point
  * (gamma, c1, etc), via its CR3BP structures
- * (see init_FBP, the routine that initializes the QBCP structures).
+ * (see init_fbp, the routine that initializes the QBCP structures).
  *
  * Note also that there is no speficic need to use two libration points at the
  * same time (one of the EM and one of the SEM systems). This choice was made with the
  * study of li_EM-li_SEM connections in mind, which are now computed in another package.
  *
  **/
-void init_FBPL(FBPL *fbpl, FBP *fbp, int li_EM, int li_SEM,
-               int model, int coordsys, int pms, int manType_EM, int manType_SEM,
-               int isNew, int isNorm)
+void init_fbp_lib(FBPL *fbpl, FBP *fbp, int li_EM, int li_SEM,
+               int model, int coord_sys, int param_style, int man_type_EM, int man_type_SEM,
+               int is_new, int is_norm)
 {
     //====================================================================================
     //      Common to all models
@@ -119,7 +119,7 @@ void init_FBPL(FBPL *fbpl, FBP *fbp, int li_EM, int li_SEM,
     //====================================================================================
 
     //------------------------------------------------------------------------------------
-    // - Hard-coded value of the order of the Fourier series. Equals zero for RTBP
+    // - Hard-coded value of the order of the Fourier series. Equals zero for CRTBP
     // - Note that for the non-autonomous models, the order of the Fourier series is still
     // equals to OFS_ORDER.
     // This may need to be changed when some dynamic order will be used, to be able
@@ -131,21 +131,20 @@ void init_FBPL(FBPL *fbpl, FBP *fbp, int li_EM, int li_SEM,
     {
     case Csts::QBCP:
     case Csts::BCP:
-    case Csts::ERTBP:
-        fbpl->nf = OFS_ORDER;
+        fbpl->n_order_fourier = OFS_ORDER;
         break;
     case Csts::CRTBP:
-        fbpl->nf = 0;
+        fbpl->n_order_fourier = 0;
         break;
     default:
-        cout << "init_FBPL. Warning: unknown model." << endl;
+        cout << "init_fbp_lib. Warning: unknown model." << endl;
     }
 
     //------------------------------------------------------------------------------------
     //Normalization or not. True is always preferable - may be deprecated
     //Kept for compatibility with old code.
     //------------------------------------------------------------------------------------
-    fbpl->isNorm = isNorm;
+    fbpl->is_norm = is_norm;
 
     //------------------------------------------------------------------------------------
     // Libration point
@@ -163,57 +162,67 @@ void init_FBPL(FBPL *fbpl, FBP *fbp, int li_EM, int li_SEM,
     //------------------------------------------------------------------------------------
     // Parameterization style - used in the CSYS init functions.
     //------------------------------------------------------------------------------------
-    fbpl->pms   = pms;
+    fbpl->param_style   = param_style;
 
     //------------------------------------------------------------------------------------
     // Effective order of the Fourier series in RVF (reduced vector field)
     //------------------------------------------------------------------------------------
-    switch(pms)
+    switch(param_style)
     {
         case Csts::GRAPH:
         case Csts::MIXED:
-            fbpl->eff_nf = fbpl->nf;
+            fbpl->eff_nf = fbpl->n_order_fourier;
         break;
         //For normal form, the reduced vector field is quasi autonomous
         //and we can safely reduce the value to 5
         case Csts::NORMFORM:
-            fbpl->eff_nf = min(fbpl->nf, 5);
+            fbpl->eff_nf = min(fbpl->n_order_fourier, 5);
         break;
         default:
-        cout << "init_FBPL. Warning: unknown pms." << endl;
+        cout << "init_fbp_lib. Warning: unknown param_style." << endl;
     }
 
     //====================================================================================
     // Unit systems
     //====================================================================================
-    init_USYS(&fbpl->us_em,  Csts::EM,  model);
-    init_USYS(&fbpl->us_sem, Csts::SEM, model);
+    init_usys(&fbpl->us_em,  Csts::EM,  model);
+    init_usys(&fbpl->us_sem, Csts::SEM, model);
 
     //====================================================================================
     // Coordinate systems
     //====================================================================================
-    fbpl->numberOfCoefs = 15; // Max number of coefficients in the equations of motion
+    // Max number of coefficients in the equations of motion
+    fbpl->numberOfCoefs = 15;
+
+    // Inform the user if the QBCP is considered 'new'
+    // (no data exist for the coefficients of the equation of motion)
+    if(is_new) //the QBCP is new, no coefficients exist
+    {
+        cout << "init_fbp_lib. The considered Sun-Earth-Moon FBP is new:" << endl;
+        cout << "coefficients of the vector field are not retrieved from existing files." << endl;
+    }
+
 
     //------------------------------------------------------------------------------------
     // Coordinate systems for the Earth-Moon libration points
     //------------------------------------------------------------------------------------
-    init_CSYS(&fbpl->cs_em_l1, fbpl, fbp, 1, Csts::EM, manType_EM, isNew); //L1
-    init_CSYS(&fbpl->cs_em_l2, fbpl, fbp, 2, Csts::EM, manType_EM, isNew); //L2
-    init_CSYS(&fbpl->cs_em_l3, fbpl, fbp, 3, Csts::EM, manType_EM, isNew); //L3
+    init_csys(&fbpl->cs_em_l1, fbpl, fbp, 1, Csts::EM, man_type_EM, is_new); //L1
+    init_csys(&fbpl->cs_em_l2, fbpl, fbp, 2, Csts::EM, man_type_EM, is_new); //L2
+    init_csys(&fbpl->cs_em_l3, fbpl, fbp, 3, Csts::EM, man_type_EM, is_new); //L3
 
     //------------------------------------------------------------------------------------
     // Coordinate systems for the Sun-Earth libration points
     //------------------------------------------------------------------------------------
-    init_CSYS(&fbpl->cs_sem_l1, fbpl, fbp, 1, Csts::SEM, manType_SEM, isNew); //L1
-    init_CSYS(&fbpl->cs_sem_l2, fbpl, fbp, 2, Csts::SEM, manType_SEM, isNew); //L2
-    init_CSYS(&fbpl->cs_sem_l3, fbpl, fbp, 3, Csts::SEM, manType_SEM, isNew); //L3
+    init_csys(&fbpl->cs_sem_l1, fbpl, fbp, 1, Csts::SEM, man_type_SEM, is_new); //L1
+    init_csys(&fbpl->cs_sem_l2, fbpl, fbp, 2, Csts::SEM, man_type_SEM, is_new); //L2
+    init_csys(&fbpl->cs_sem_l3, fbpl, fbp, 3, Csts::SEM, man_type_SEM, is_new); //L3
 
 
     //====================================================================================
     // DEFAULT SETTINGS
     // - The int li_EM determines the default Earth-Moon libration point.
     // - The int li_SEM determines the default Sun-(Earth+Moon) libration point.
-    // - The int coordsys determines the default focus; either on the Earth-Moon or
+    // - The int coord_sys determines the default focus; either on the Earth-Moon or
     //   Sun-Earth+Moon framework
     //====================================================================================
     //Coord. syst. for the EM point
@@ -250,8 +259,8 @@ void init_FBPL(FBPL *fbpl, FBP *fbp, int li_EM, int li_SEM,
     //------------------------------------------------------------------------------------
     //Default Li, Unit & Coord. system
     //------------------------------------------------------------------------------------
-    fbpl->coordsys = coordsys;
-    switch(coordsys)
+    fbpl->coord_sys = coord_sys;
+    switch(coord_sys)
     {
     case Csts::EM:
         fbpl->us = fbpl->us_em;
@@ -264,7 +273,7 @@ void init_FBPL(FBPL *fbpl, FBP *fbp, int li_EM, int li_SEM,
         fbpl->li = fbpl->li_SEM;
         break;
     default:
-        cout << "init_FBPL. Warning: unknown coordsys." << endl;
+        cout << "init_fbp_lib. Warning: unknown coord_sys." << endl;
     }
 
     //------------------------------------------------------------------------------------
@@ -283,7 +292,7 @@ void init_FBPL(FBPL *fbpl, FBP *fbp, int li_EM, int li_SEM,
  * \param label the type of unit system (Csts:EM, Csts:SEM, etc).
  * \param model the type of model (Csts::QBCP, etc).
  **/
-void init_USYS(USYS *usys, int label, int model)
+void init_usys(USYS *usys, int label, int model)
 {
     //------------------------------------------------------------------------------------
     // These values are used as reference values for all other constants.
@@ -353,7 +362,7 @@ void init_USYS(USYS *usys, int label, int model)
 
         default :  //Earth-Moon
         {
-            cout << "init_USYS. Unrecognised unit system. Earth-Moon units are used by default. " << endl;
+            cout << "init_usys. Unrecognised unit system. Earth-Moon units are used by default. " << endl;
             //Physical params in EM units
             //--------------------------
             usys->n  = n_EM;
@@ -376,7 +385,6 @@ void init_USYS(USYS *usys, int label, int model)
 
     }
     case Csts::CRTBP:
-    case Csts::ERTBP:
     {
         //SEM mass ratio
         usys->mu_SEM = (me_EM + mm_EM)/(ms_EM + me_EM + mm_EM);
@@ -416,7 +424,7 @@ void init_USYS(USYS *usys, int label, int model)
             break;
 
         default:  //Earth-Moon
-            cout << "init_USYS. Unrecognised unit system. Earth-Moon units are used by default. " << endl;
+            cout << "init_usys. Unrecognised unit system. Earth-Moon units are used by default. " << endl;
             //Physical params in EM units
             //--------------------------
             usys->n  = n_EM;
@@ -444,53 +452,53 @@ void init_USYS(USYS *usys, int label, int model)
  * \param fbp pointer on the FBP structure that contains parameters specific to
  *        each libration points (namely, the value of gamma)
  * \param li number of the libration point to focus on (L1, L2).
- * \param coordsys indix of the coordinate system to use (Csts::EM, Csts::SEM).
- * \param manType: type of manifold about li (Csts::MAN_CENTER, Csts::MAN_CENTER_S...).
- * \param isNew boolean. if true, the qbtbp has not been computed via the qbtbp() routine,
+ * \param coord_sys indix of the coordinate system to use (Csts::EM, Csts::SEM).
+ * \param man_type: type of manifold about li (Csts::MAN_CENTER, Csts::MAN_CENTER_S...).
+ * \param is_new boolean. if true, the qbtbp has not been computed via the qbtbp() routine,
  *        so the vector field coefficients is not initialized.
  *
  *   Note that the FBP structure is used only for the initialization of the coordinate
  *   systems. More precisely, it contains some parameters specific to each libration point
  *  (gamma), via its CR3BP structures.
  **/
-void init_CSYS(CSYS *csys, FBPL *fbpl, FBP *fbp, int li,
-               int coordsys, int manType, int isNew)
+void init_csys(CSYS *csys, FBPL *fbpl, FBP *fbp, int li,
+               int coord_sys, int man_type, int is_new)
 {
     //------------------------------------------------------------------------------------
     // Retrieve variables from fbpl
     //------------------------------------------------------------------------------------
-    int nf         = fbpl->nf;
+    int n_order_fourier         = fbpl->n_order_fourier;
     int model      = fbpl->model;
     int coefNumber = fbpl->numberOfCoefs;
-    int pms        = fbpl->pms;
+    int param_style        = fbpl->param_style;
 
     //------------------------------------------------------------------------------------
     //Complete folders, all of the forms "data/..."
     //------------------------------------------------------------------------------------
-    csys->F_GS     = init_F_FOLDER("data/PMFFT", model, coordsys, li);     //Graph style (PM)
-    csys->F_NF     = init_F_FOLDER("data/NF",    model, coordsys, li);     //Normal form style(PM)
-    csys->F_MS     = init_F_FOLDER("data/MS",    model, coordsys, li);     //Mixed style (PM)
+    csys->F_GS     = init_F_FOLDER("data/CM", model, coord_sys, li);     //Graph style (PM)
+    csys->F_NF     = init_F_FOLDER("data/NF",    model, coord_sys, li);     //Normal form style(PM)
+    csys->F_MS     = init_F_FOLDER("data/MS",    model, coord_sys, li);     //Mixed style (PM)
 
-    csys->F_CS     = init_F_FOLDER("data/CS",    model, coordsys, li);     //Center-stable (PM)
-    csys->F_CU     = init_F_FOLDER("data/CU",    model, coordsys, li);     //Center-unstable (PM)
-    csys->F_CUS    = init_F_FOLDER("data/CUS",   model, coordsys, li);     //Center-hyperbolic (PM)
+    csys->F_CS     = init_F_FOLDER("data/CS",    model, coord_sys, li);     //Center-stable (PM)
+    csys->F_CU     = init_F_FOLDER("data/CU",    model, coord_sys, li);     //Center-unstable (PM)
+    csys->F_CUS    = init_F_FOLDER("data/CUS",   model, coord_sys, li);     //Center-hyperbolic (PM)
 
-    csys->F_COEF   = init_F_FOLDER("data/VF",    model, coordsys, li);     //For integration in a given coord. system
-    csys->F_COC    = init_F_FOLDER("data/COC",   model, coordsys, li);     //For the change of coordinates of the PM
-    csys->F_PLOT   = init_F_FOLDER("plot",       model, coordsys, li);     //For plot output (gnuplot)
-    csys->F_PRINT  = init_F_FOLDER("fprint",     model, coordsys, li);     //For print output (data used postprocessed in R)
+    csys->F_COEF   = init_F_FOLDER("data/VF",    model, coord_sys, li);     //For integration in a given coord. system
+    csys->F_COC    = init_F_FOLDER("data/COC",   model, coord_sys, li);     //For the change of coordinates of the PM
+    csys->F_PLOT   = init_F_FOLDER("plot",       model, coord_sys, li);     //For plot output (gnuplot)
+    csys->F_PRINT  = init_F_FOLDER("fprint",     model, coord_sys, li);     //For print output (data used postprocessed in R)
 
     //------------------------------------------------------------------------------------
     //Parameterization folders
     //------------------------------------------------------------------------------------
-    csys->manType = manType;
-    switch(manType)
+    csys->man_type = man_type;
+    switch(man_type)
     {
     //If the Center Manifold is selected,
     //we can choose between the styles
     case Csts::MAN_CENTER:
 
-        switch(pms)
+        switch(param_style)
         {
         case Csts::GRAPH:
             csys->F_PMS = csys->F_GS;
@@ -521,7 +529,7 @@ void init_CSYS(CSYS *csys, FBPL *fbpl, FBP *fbp, int li,
     //------------------------------------------------------------------------------------
     // Unit system associated with csys
     //------------------------------------------------------------------------------------
-    switch(coordsys)
+    switch(coord_sys)
     {
     case Csts::EM:
         csys->us = fbpl->us_em;
@@ -530,7 +538,7 @@ void init_CSYS(CSYS *csys, FBPL *fbpl, FBP *fbp, int li,
         csys->us = fbpl->us_sem;
         break;
     default:
-        cout << "init_CSYS. Warning: unknown model." << endl;
+        cout << "init_csys. Warning: unknown model." << endl;
     }
 
     //------------------------------------------------------------------------------------
@@ -540,7 +548,7 @@ void init_CSYS(CSYS *csys, FBPL *fbpl, FBP *fbp, int li,
     // Gives the assosicate CR3BP and mu
     //------------------------------
     CR3BP cr3bp_root;
-    switch(coordsys)
+    switch(coord_sys)
     {
     case Csts::EM:
         cr3bp_root  = fbp->cr3bp1;
@@ -553,7 +561,7 @@ void init_CSYS(CSYS *csys, FBPL *fbpl, FBP *fbp, int li,
         csys->mu    = fbpl->us_sem.mu_SEM;
         break;
     default:
-        cout << "init_CSYS. Warning: unknown model." << endl;
+        cout << "init_csys. Warning: unknown model." << endl;
         cr3bp_root  = fbp->cr3bp1; //cr3bp_root is set here to avoid compilation warning, but the default case should NOT be used!
         csys->cr3bp = fbp->cr3bp1;
         csys->mu    = fbpl->us_em.mu_EM;
@@ -591,28 +599,23 @@ void init_CSYS(CSYS *csys, FBPL *fbpl, FBP *fbp, int li,
     //------------------------------------------------------------------------------------
     //c2 coefficient
     //------------------------------------------------------------------------------------
-    csys->c2 = cn(csys->li, csys->gamma, csys->mu, 2);
+    csys->c2 = cn_coeff(csys->li, csys->gamma, csys->mu, 2);
 
     //------------------------------------------------------------------------------------
     // Creating the arrays of coefficients
     //------------------------------------------------------------------------------------
-    csys->coeffs = (double*) calloc(coefNumber*(fbpl->nf+1), sizeof(double)); //Default set of vector field coefficients
-    csys->Ps  = (double*) calloc(3*(nf+1), sizeof(double));  //Sun   position in EM coordinates
-    csys->Pe  = (double*) calloc(3*(nf+1), sizeof(double));  //Earth position in EM coordinates
-    csys->Pm  = (double*) calloc(3*(nf+1), sizeof(double));  //Moon  position in EM coordinates
-    csys->ps  = (double*) calloc(3*(nf+1), sizeof(double));  //Sun   position in NC coordinates
-    csys->pe  = (double*) calloc(3*(nf+1), sizeof(double));  //Earth position in NC coordinates
-    csys->pm  = (double*) calloc(3*(nf+1), sizeof(double));  //Moon  position in NC coordinates
+    csys->coeffs = (double*) calloc(coefNumber*(fbpl->n_order_fourier+1), sizeof(double)); //Default set of vector field coefficients
+    csys->Ps  = (double*) calloc(3*(n_order_fourier+1), sizeof(double));  //Sun   position in EM coordinates
+    csys->Pe  = (double*) calloc(3*(n_order_fourier+1), sizeof(double));  //Earth position in EM coordinates
+    csys->Pm  = (double*) calloc(3*(n_order_fourier+1), sizeof(double));  //Moon  position in EM coordinates
+    csys->ps  = (double*) calloc(3*(n_order_fourier+1), sizeof(double));  //Sun   position in NC coordinates
+    csys->pe  = (double*) calloc(3*(n_order_fourier+1), sizeof(double));  //Earth position in NC coordinates
+    csys->pm  = (double*) calloc(3*(n_order_fourier+1), sizeof(double));  //Moon  position in NC coordinates
 
     //------------------------------------------------------------------------------------
     // Retrieving the arrays of coefficients
     //------------------------------------------------------------------------------------
-    if(isNew) //the QBCP is new, no coefficients exist
-    {
-        cout << "init_CSYS. The considered QBCP is new:" << endl;
-        cout << "Integration coefficient are not retrieved from existing files." << endl;
-    }
-    else    //the coefficients can be retrieved
+    if(~is_new)    //the coefficients can be retrieved
     {
         //The flag compType is here to tell if we want the coefficients
         //computed from the FFT or from direct computation
@@ -623,29 +626,28 @@ void init_CSYS(CSYS *csys, FBPL *fbpl, FBP *fbp, int li,
         {
         case Csts::QBCP:
         case Csts::BCP:
-        case Csts::ERTBP:
         {
             compType = 1; //from FFTs
             //----------------------------------------------------------------------------
             // Default set of vector field coefficients
             //----------------------------------------------------------------------------
-            read_fourier_coef(csys->F_COEF+"alpha", csys->coeffs, nf, 0, compType, coefNumber);
+            read_fourier_coef(csys->F_COEF+"alpha", csys->coeffs, n_order_fourier, 0, compType, coefNumber);
             //----------------------------------------------------------------------------
             // primaries position
             //----------------------------------------------------------------------------
-            read_fourier_coef(csys->F_COEF+"Ps", csys->Ps, nf, 0, compType, 3);
-            read_fourier_coef(csys->F_COEF+"Pe", csys->Pe, nf, 0, compType, 3);
-            read_fourier_coef(csys->F_COEF+"Pm", csys->Pm, nf, 0, compType, 3);
-            read_fourier_coef(csys->F_COEF+"ps", csys->ps, nf, 0, compType, 3);
-            read_fourier_coef(csys->F_COEF+"pe", csys->pe, nf, 0, compType, 3);
-            read_fourier_coef(csys->F_COEF+"pm", csys->pm, nf, 0, compType, 3);
+            read_fourier_coef(csys->F_COEF+"Ps", csys->Ps, n_order_fourier, 0, compType, 3);
+            read_fourier_coef(csys->F_COEF+"Pe", csys->Pe, n_order_fourier, 0, compType, 3);
+            read_fourier_coef(csys->F_COEF+"Pm", csys->Pm, n_order_fourier, 0, compType, 3);
+            read_fourier_coef(csys->F_COEF+"ps", csys->ps, n_order_fourier, 0, compType, 3);
+            read_fourier_coef(csys->F_COEF+"pe", csys->pe, n_order_fourier, 0, compType, 3);
+            read_fourier_coef(csys->F_COEF+"pm", csys->pm, n_order_fourier, 0, compType, 3);
             break;
 
         }
 
         case Csts::CRTBP: //CRTBP case: no need to read from file
         {
-            //cout << "init_CSYS. The use of the RTBP has been detected." << endl;
+            //cout << "init_csys. The use of the CRTBP has been detected." << endl;
             //----------------------------------------------------------------------------
             // Default set of vector field coefficients
             //----------------------------------------------------------------------------
@@ -656,7 +658,7 @@ void init_CSYS(CSYS *csys, FBPL *fbpl, FBP *fbp, int li,
             csys->coeffs[4] = 0.0;
             csys->coeffs[5] = 1.0;
 
-            switch(coordsys)
+            switch(coord_sys)
             {
                 case Csts::EM:
                     //Sun position
@@ -690,7 +692,7 @@ void init_CSYS(CSYS *csys, FBPL *fbpl, FBP *fbp, int li,
             //----------------------------------------------------------------------------
             // Earth, Moon, and Sun.
             //----------------------------------------------------------------------------
-            switch(coordsys)
+            switch(coord_sys)
             {
                 case Csts::EM:
                     csys->Pe[0] = csys->mu;
@@ -723,15 +725,15 @@ void init_CSYS(CSYS *csys, FBPL *fbpl, FBP *fbp, int li,
 
 
             //From SYS (Earth-Moon or Sun-Earth) to NC coordinates for the primaries
-            SYStoNC_prim(csys->Pe, csys->pe, csys->c1, csys->gamma);
-            SYStoNC_prim(csys->Pm, csys->pm, csys->c1, csys->gamma);
-            SYStoNC_prim(csys->Ps, csys->ps, csys->c1, csys->gamma);
+            sys_to_nc_prim(csys->Pe, csys->pe, csys->c1, csys->gamma);
+            sys_to_nc_prim(csys->Pm, csys->pm, csys->c1, csys->gamma);
+            sys_to_nc_prim(csys->Ps, csys->ps, csys->c1, csys->gamma);
 
             break;
         }
 
         default:
-            cout << "init_FBP. Warning: unknown model." << endl;
+            cout << "init_fbp. Warning: unknown model." << endl;
         }
 
     }
@@ -741,18 +743,18 @@ void init_CSYS(CSYS *csys, FBPL *fbpl, FBP *fbp, int li,
     // Storing the solutions of the QBTBP
     // This part could be made more generic, but works for now.
     //------------------------------------------------------------------------------------
-    csys->zt = Ofsc(nf);
-    csys->Zt = Ofsc(nf);
-    csys->ztdot = Ofsc(nf);
-    csys->Ztdot = Ofsc(nf);
+    csys->zt = Ofsc(n_order_fourier);
+    csys->Zt = Ofsc(n_order_fourier);
+    csys->ztdot = Ofsc(n_order_fourier);
+    csys->Ztdot = Ofsc(n_order_fourier);
     switch(model)
     {
     case Csts::CRTBP:
     case Csts::BCP:
     {
         //Perfect circles
-        csys->zt.setCoef(1.0+0.0*I, 0);
-        csys->Zt.setCoef(1.0+0.0*I, 0);
+        csys->zt.set_coef(1.0+0.0*I, 0);
+        csys->Zt.set_coef(1.0+0.0*I, 0);
         break;
     }
 
@@ -761,8 +763,8 @@ void init_CSYS(CSYS *csys, FBPL *fbpl, FBP *fbp, int li,
     {
         //Taken from files
         string filename = "data/qbtbp/";
-        readOFS_txt(csys->zt, filename+"bjc");
-        readOFS_txt(csys->Zt, filename+"cjc");
+        read_ofs_txt(csys->zt, filename+"bjc");
+        read_ofs_txt(csys->Zt, filename+"cjc");
         //Derivatives
         csys->ztdot.dot(csys->zt, csys->us.n);
         csys->Ztdot.dot(csys->Zt, csys->us.n);
@@ -788,34 +790,34 @@ void init_CSYS(CSYS *csys, FBPL *fbpl, FBP *fbp, int li,
  * the result will NOT be (first, second) in fbp->cr3bp2, but (first, second+third).
  *
  **/
-void init_FBP(FBP* fbp, int first, int second, int third)
+void init_fbp(FBP* fbp, int first, int second, int third)
 {
     //E.g. Earth-Moon init
-    init_CR3BP(&fbp->cr3bp1, second, third);
+    init_cr3bp(&fbp->cr3bp1, second, third);
     //E.g. Sun-Earth+Moon init
     //WARNING: in the case of the Sun-Earth-Moon system,
     //we need to set EARTH_AND_MOON, instead of Csts::EARTH alone.
     if(second ==  Csts::EARTH && third == Csts::MOON)
     {
-        init_CR3BP(&fbp->cr3bp2, first, Csts::EARTH_AND_MOON);
+        init_cr3bp(&fbp->cr3bp2, first, Csts::EARTH_AND_MOON);
     }
     else
     {
-        init_CR3BP(&fbp->cr3bp2, first, second);
+        init_cr3bp(&fbp->cr3bp2, first, second);
     }
 }
 
 /**
  * \brief Initializes a certain Circular Restricted 3-Body Problem as a CR3BP structure.
  * \param cr3bp pointer on the CR3BP structure
- * \param n1 name of the first primary
- * \param n2 name of the second primary
+ * \param name_1 name of the first primary
+ * \param name_2 name of the second primary
  **/
-void init_CR3BP(CR3BP *cr3bp, int n1, int n2)
+void init_cr3bp(CR3BP *cr3bp, int name_1, int name_2)
 {
     //Body initialization
-    init_Body(&(*cr3bp).m1, n1);
-    init_Body(&(*cr3bp).m2, n2);
+    init_body(&(*cr3bp).m1, name_1);
+    init_body(&(*cr3bp).m2, name_2);
 
     // Set constants
     cr3bp->mu = (*cr3bp).m2.M/( (*cr3bp).m1.M + (*cr3bp).m2.M );  // µ = m2/(m1 + m2)
@@ -826,11 +828,11 @@ void init_CR3BP(CR3BP *cr3bp, int n1, int n2)
     cr3bp->rh = pow((*cr3bp).mu/3,1/3.0);                         // Hill's radius adim formula
 
     //Li initialization
-    init_LibPoint(&cr3bp->l1, *cr3bp, 1);
-    init_LibPoint(&cr3bp->l2, *cr3bp, 2);
-    init_LibPoint(&cr3bp->l3, *cr3bp, 3);
-    init_LibPoint(&cr3bp->l4, *cr3bp, 4);
-    init_LibPoint(&cr3bp->l5, *cr3bp, 5);
+    init_lib_point(&cr3bp->l1, *cr3bp, 1);
+    init_lib_point(&cr3bp->l2, *cr3bp, 2);
+    init_lib_point(&cr3bp->l3, *cr3bp, 3);
+    init_lib_point(&cr3bp->l4, *cr3bp, 4);
+    init_lib_point(&cr3bp->l5, *cr3bp, 5);
 
     //Name
     strcpy(cr3bp->name, cr3bp->m1.name);
@@ -844,7 +846,7 @@ void init_CR3BP(CR3BP *cr3bp, int n1, int n2)
  * \param cr3bp a CR3BP structure that contains useful coefficients.
  * \param number the indix of the libration point to init.
  **/
-void init_LibPoint(LibPoint *libp, CR3BP cr3bp, int number)
+void init_lib_point(LibPoint *libp, CR3BP cr3bp, int number)
 {
     //Value of gamma
     double gamma_i;
@@ -857,7 +859,7 @@ void init_LibPoint(LibPoint *libp, CR3BP cr3bp, int number)
     case 1:
         //Gamma
         gamma_i = cr3bp.rh - 1.0/3.0*pow(cr3bp.rh,2.0)- 1/9*pow(cr3bp.rh,3); //initial guess
-        gamma_i = rtnewt(quinticeq, gamma_i, Config::configManager().G_PREC_LIB(), cr3bp.mu, number);   //newton-raphson method
+        gamma_i = rtnewt(quintic_eq, gamma_i, Config::configManager().G_PREC_LIB(), cr3bp.mu, number);   //newton-raphson method
         libp->gamma_i = gamma_i;
 
         //Position
@@ -869,7 +871,7 @@ void init_LibPoint(LibPoint *libp, CR3BP cr3bp, int number)
     case 2:
         //Gamma
         gamma_i = cr3bp.rh + 1.0/3.0*pow(cr3bp.rh,2.0)- 1/9*pow(cr3bp.rh,3);
-        gamma_i = rtnewt(quinticeq, gamma_i, Config::configManager().G_PREC_LIB(), cr3bp.mu, number);
+        gamma_i = rtnewt(quintic_eq, gamma_i, Config::configManager().G_PREC_LIB(), cr3bp.mu, number);
         libp->gamma_i = gamma_i;
 
         //Position
@@ -881,7 +883,7 @@ void init_LibPoint(LibPoint *libp, CR3BP cr3bp, int number)
     case 3:
         //Gamma
         gamma_i = 7/12.0*cr3bp.mu + pow(237,2.0)/pow(12,4.0)*pow(cr3bp.mu,3.0);
-        gamma_i = rtnewt(quinticeq, gamma_i, Config::configManager().G_PREC_LIB(), cr3bp.mu, number);
+        gamma_i = rtnewt(quintic_eq, gamma_i, Config::configManager().G_PREC_LIB(), cr3bp.mu, number);
         libp->gamma_i = 1-gamma_i;  //BEWARE: for L3, gamma3 = L3-M1 distance != L3-M2
 
 
@@ -922,7 +924,7 @@ void init_LibPoint(LibPoint *libp, CR3BP cr3bp, int number)
 * \param body a pointer on the Body structure to init.
 * \param name the name of the body in integer format (consistent with SPICE numerotation)
 **/
-void init_Body(Body *body, int name)
+void init_body(Body *body, int name)
 {
 
     double days = 86400; //days to seconds
@@ -1122,18 +1124,18 @@ void init_Body(Body *body, int name)
  *         continuation process from one model (epsilon = 0.0) to the other
  *        (epsilon = 1.0).
  **/
-void init_FBP_I(QBCP_I *model, FBPL *model1, FBPL *model2,
-                int n1, int n2, int n3, int isNorm, int li_EM, int li_SEM,
-                int isNew, int mod1, int mod2, int coordsys, int pmStyle)
+void init_fbp_cont(QBCP_I *model, FBPL *model1, FBPL *model2,
+                int name_1, int name_2, int name_3, int is_norm, int li_EM, int li_SEM,
+                int is_new, int mod1, int mod2, int coord_sys, int param_style)
 {
     //Initialize the models
     FBP qbp1, qbp2;
-    init_FBP(&qbp1, n1, n2, n3);
-    init_FBP(&qbp2, n1, n2, n3);
+    init_fbp(&qbp1, name_1, name_2, name_3);
+    init_fbp(&qbp2, name_1, name_2, name_3);
 
     //Initialize the models around the given li point
-    init_FBPL(model1, &qbp1, li_EM, li_SEM, mod1, coordsys, pmStyle, Csts::MAN_CENTER, Csts::MAN_CENTER, isNew, isNorm);
-    init_FBPL(model2, &qbp2, li_EM, li_SEM, mod2, coordsys, pmStyle, Csts::MAN_CENTER, Csts::MAN_CENTER, isNew, isNorm);
+    init_fbp_lib(model1, &qbp1, li_EM, li_SEM, mod1, coord_sys, param_style, Csts::MAN_CENTER, Csts::MAN_CENTER, is_new, is_norm);
+    init_fbp_lib(model2, &qbp2, li_EM, li_SEM, mod2, coord_sys, param_style, Csts::MAN_CENTER, Csts::MAN_CENTER, is_new, is_norm);
 
     //Store in model
     model->model1  = *model1;
@@ -1146,12 +1148,12 @@ void init_FBP_I(QBCP_I *model, FBPL *model1, FBPL *model2,
 //            Change of coordinate systems
 //----------------------------------------------------------------------------------------
 /**
- *  \brief Change the default coordinate system of the FBPL structure to coordsys.
+ *  \brief Change the default coordinate system of the FBPL structure to coord_sys.
  **/
-void change_coord(FBPL &fbpl, int coordsys)
+void change_coord(FBPL &fbpl, int coord_sys)
 {
-    fbpl.coordsys = coordsys;
-    switch(coordsys)
+    fbpl.coord_sys = coord_sys;
+    switch(coord_sys)
     {
     case Csts::EM:
         fbpl.us = fbpl.us_em;
@@ -1164,22 +1166,22 @@ void change_coord(FBPL &fbpl, int coordsys)
         fbpl.li = fbpl.li_SEM;
         break;
     default:
-        cout << "change_coord. Warning: unknown coordsys." << endl;
+        cout << "change_coord. Warning: unknown coord_sys." << endl;
     }
 }
 
 /**
- *  \brief Change the default coordinate system to coordsys and
+ *  \brief Change the default coordinate system to coord_sys and
  *         the libration point to li in the FBPL structure.
  **/
-void change_li_coord(FBPL &fbpl, int coordsys, int li)
+void change_li_coord(FBPL &fbpl, int coord_sys, int li)
 {
     //Default settings
-    fbpl.coordsys = coordsys;  //new default cs
+    fbpl.coord_sys = coord_sys;  //new default cs
     fbpl.li = li;      //new default libration point
 
-    //Change the coord. system approprietly: "coordsys" around "li"
-    switch(coordsys)
+    //Change the coord. system approprietly: "coord_sys" around "li"
+    switch(coord_sys)
     {
     case Csts::EM:
         switch(li)
@@ -1214,7 +1216,7 @@ void change_li_coord(FBPL &fbpl, int coordsys, int li)
         fbpl.cs = fbpl.cs_sem;
         break;
     default:
-        cout << "change_li_coord. Warning: unknown coordsys." << endl;
+        cout << "change_li_coord. Warning: unknown coord_sys." << endl;
     }
 }
 
@@ -1258,7 +1260,7 @@ string init_F_MODEL(int model)
     case Csts::BCP:
         return "BCP";
     case Csts::CRTBP:
-        return "RTBP";
+        return "CRTBP";
     case Csts::ERTBP:
         return "ERTBP";
     default:
@@ -1269,11 +1271,11 @@ string init_F_MODEL(int model)
 
 /**
  *  \brief Return the string corresponding to the coordinate system
- *         provided (e.g. "EM" if coordsys == Csts::EM).
+ *         provided (e.g. "EM" if coord_sys == Csts::EM).
  **/
-string init_F_COORDSYS(int coordsys)
+string init_F_COORDSYS(int coord_sys)
 {
-    switch(coordsys)
+    switch(coord_sys)
     {
     case Csts::EM:
         return  "EM";
@@ -1291,33 +1293,33 @@ string init_F_COORDSYS(int coordsys)
  *  \brief Return the folder name corresponding to the prefix/model/framework/libration
  *         point number combination provided (e.g. "prefix/QBCP/EM/L1").
  **/
-string init_F_FOLDER(string prefix, int model, int coordsys, int li)
+string init_F_FOLDER(string prefix, int model, int coord_sys, int li)
 {
-    return prefix+"/"+init_F_MODEL(model)+"/"+init_F_COORDSYS(coordsys)+"/"+init_F_LI(li)+"/";
+    return prefix+"/"+init_F_MODEL(model)+"/"+init_F_COORDSYS(coord_sys)+"/"+init_F_LI(li)+"/";
 }
 
 /**
  * \brief Retrieve a set of coefficients, given as Fourier series from a txt file.
  * \param filename the name of the txt file.
  * \param params a pointer toward the array to update.
- * \param nf the order of the Fourier series.
+ * \param n_order_fourier the order of the Fourier series.
  * \param shift the indix from which to start the storage of the coefficients in params.
  * \param flag: if flag == 1, the coefficients computed via Fast Fourier Transform (FFT)
  *        are used. Otherwise, the expansions obtained through Fourier series algebraic
  *        manipulations are used.
  **/
-void read_fourier_coef(string filename, double *params, int nf, int shift, int flag, int number)
+void read_fourier_coef(string filename, double *params, int n_order_fourier, int shift, int flag, int number)
 {
     //Reading tools
     ifstream readStream;
     double cDouble1;
     int alphaNumber = 1;
     string ss = static_cast<ostringstream*>( &(ostringstream() << alphaNumber) )->str();
-    for(int header = shift; header <= (nf+1)*(number-1)+shift; header+=(nf+1))
+    for(int header = shift; header <= (n_order_fourier+1)*(number-1)+shift; header+=(n_order_fourier+1))
     {
         if(flag) readStream.open((filename+ss+"c_fft.txt").c_str());
         else readStream.open((filename+ss+"c.txt").c_str());
-        for(int i=0; i<= nf; i++)
+        for(int i=0; i<= n_order_fourier; i++)
         {
             readStream >> cDouble1;  //current order
             readStream >> params[i+header];
@@ -1349,12 +1351,12 @@ double crtbp_energy(double y[], double mu)
  * \brief Compute the coefficient cn for a given libration point (L1, L2, and L3 for now)
  * \param fbpl a reference to the FBPL initialized around the selected libration point.
  * \param n the indix of the coefficient to compute.
- *  See double cn(int li, double gamma, double mu, int n).
+ *  See double cn_coeff(int li, double gamma, double mu, int n).
  **/
-double cn(FBPL& fbpl, int n)
+double cn_coeff(FBPL& fbpl, int n)
 {
     double mu;
-    switch(fbpl.coordsys)
+    switch(fbpl.coord_sys)
     {
         case Csts::EM:
             mu   = fbpl.us.mu_EM;
@@ -1366,11 +1368,11 @@ double cn(FBPL& fbpl, int n)
             mu   = fbpl.us.mu_SE;
         break;
         default: //EM by default
-            cout << "WARNING in cn(): unknown framework. EM by default." << endl;
+            cout << "WARNING in cn_coeff(): unknown framework. EM by default." << endl;
             mu   = fbpl.us.mu_EM;
     }
 
-    return cn(fbpl.cs.li, fbpl.cs.gamma, mu, n);
+    return cn_coeff(fbpl.cs.li, fbpl.cs.gamma, mu, n);
 }
 
 /**
@@ -1389,7 +1391,7 @@ double cn(FBPL& fbpl, int n)
  *
  * \f$  c_n = \frac{1}{\gamma_j^3} \left( 1 - \mu  + \frac{\mu \gamma_j^{n+1}}{(1 + \gamma_j)^{n+1}} \right) \f$.
  **/
-double cn(int li, double gamma, double mu, int n)
+double cn_coeff(int li, double gamma, double mu, int n)
 {
     double res = 0.0;
     switch(li)
@@ -1404,7 +1406,7 @@ double cn(int li, double gamma, double mu, int n)
         res =  pow(gamma,-3.0)*(1.0 - mu + mu*pow(gamma/1.0+gamma, n+1)); //convention by Richardson 1980
         break;
     default:
-        cout << "cn. Warning: supplied Li number is out of scope. 0.0 is returned." << endl;
+        cout << "cn_coeff. Warning: supplied Li number is out of scope. 0.0 is returned." << endl;
     }
     return res;
 }
@@ -1441,7 +1443,7 @@ double rtnewt(void (*funcd)(double, int, double, double *, double *), double x1,
  *        f corresponds to the quintic equation satisfied by the Li-m2 distance for
  *        the L1/L2 cases and by 1-(Li-m1 distance) for the L3 case.
  **/
-void quinticeq(double mu, int number, double y, double *f, double *df)
+void quintic_eq(double mu, int number, double y, double *f, double *df)
 {
     switch(number)
     {
@@ -1470,7 +1472,7 @@ void quinticeq(double mu, int number, double y, double *f, double *df)
  *         From SYSTEM (EM or SEM) to NORMALIZED-CENTERED (NC) coordinates.
  *         It is just used here for the primaries.
  */
-void SYStoNC_prim(double Zc[3], double zc[3], double c1, double gamma)
+void sys_to_nc_prim(double Zc[3], double zc[3], double c1, double gamma)
 {
     zc[0] = c1 - Zc[0]/gamma;
     zc[1] =    - Zc[1]/gamma;

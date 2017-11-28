@@ -48,7 +48,7 @@ void tfs_from_ofs(matrix<Ofsc> &P,
     tfs_from_ofs_inline(Xs);
     tfs_from_ofs_inline(Vdot);
 
-    Ofsc temp(ILe.getOrder());
+    Ofsc temp(ILe.get_order());
     ILe.tfs_from_ofs_inline(temp);
     ILm.tfs_from_ofs_inline(temp);
     ILs.tfs_from_ofs_inline(temp);
@@ -83,7 +83,7 @@ void tfs_from_ofs(matrix<Ofsc> &P,
  *  i.e. inverse of the euclidian distance from the origin, given as Fourier series.
  *
  **/
-void tfts_initCOC(matrix<Ofsc> &P,
+void tfts_init_coc(matrix<Ofsc> &P,
                   matrix<Ofsc> &Q,
                   matrix<Ofsc> &PC,
                   matrix<Ofsc> &PCdot,
@@ -104,44 +104,44 @@ void tfts_initCOC(matrix<Ofsc> &P,
     string F_COC = fbpl.cs.F_COC;
 
     //----------------------------
-    //Switch RTBP/QBCP/BCP
+    //Switch CRTBP/QBCP/BCP
     //----------------------------
     if(fbpl.model == Csts::QBCP || fbpl.model == Csts::BCP)
     {
         //Recovering the data: matrix P
-        for(int i = 0; i < Csts::NV ; i++) for(int j = 0; j < Csts::NV ; j++) readCOC(*P.getCA(i,j), F_COC+"P",  i+1, j+1);
+        for(int i = 0; i < Csts::NV ; i++) for(int j = 0; j < Csts::NV ; j++) read_coc(*P.get_ptr_first_coef(i,j), F_COC+"P",  i+1, j+1);
         //Recovering the data: matrix Q
-        for(int i = 0; i < Csts::NV ; i++) for(int j = 0; j < Csts::NV ; j++) readCOC(*Q.getCA(i,j), F_COC+"Q",  i+1, j+1);
+        for(int i = 0; i < Csts::NV ; i++) for(int j = 0; j < Csts::NV ; j++) read_coc(*Q.get_ptr_first_coef(i,j), F_COC+"Q",  i+1, j+1);
 
         //Recovering the data: vector V
         //V = [G1_11 G1_12 0 G1_21 G1_22 0]^T
         //Note:V[2] and V[5] are kept null
-        readCOC(V[0], F_COC+"G1_",  1, 1);
-        readCOC(V[1], F_COC+"G1_",  1, 2);
-        readCOC(V[3], F_COC+"G1_",  2, 1);
-        readCOC(V[4], F_COC+"G1_",  2, 2);
+        read_coc(V[0], F_COC+"G1_",  1, 1);
+        read_coc(V[1], F_COC+"G1_",  1, 2);
+        read_coc(V[3], F_COC+"G1_",  2, 1);
+        read_coc(V[4], F_COC+"G1_",  2, 2);
 
 
         //Recovering the data: vector Xm
-        readCOC(Xm[0], F_COC+"Xm",  4, 1);
-        readCOC(Xm[1], F_COC+"Xm",  5, 1);
+        read_coc(Xm[0], F_COC+"Xm",  4, 1);
+        read_coc(Xm[1], F_COC+"Xm",  5, 1);
         //Note: Xm[2] is kept null
 
         //Recovering the data: vector Xe
-        readCOC(Xe[0], F_COC+"Xe",  4, 1);
-        readCOC(Xe[1], F_COC+"Xe",  5, 1);
+        read_coc(Xe[0], F_COC+"Xe",  4, 1);
+        read_coc(Xe[1], F_COC+"Xe",  5, 1);
         //Note: Xe[2] is kept null
 
         //Recovering the data: vector Xs
-        readCOC(Xs[0], F_COC+"Xs",  4, 1);
-        readCOC(Xs[1], F_COC+"Xs",  5, 1);
+        read_coc(Xs[0], F_COC+"Xs",  4, 1);
+        read_coc(Xs[1], F_COC+"Xs",  5, 1);
         //Note: Xs[2] is kept null
 
 
         //Recovering the data: Ofts ILe, ILm, ILs
-        readCOC(ILe, F_COC+"Xe",  6, 1);
-        readCOC(ILm, F_COC+"Xm",  6, 1);
-        readCOC(ILs, F_COC+"Xs",  6, 1);
+        read_coc(ILe, F_COC+"Xe",  6, 1);
+        read_coc(ILm, F_COC+"Xm",  6, 1);
+        read_coc(ILs, F_COC+"Xs",  6, 1);
 
     }
     else //RTPB
@@ -167,24 +167,24 @@ void tfts_initCOC(matrix<Ofsc> &P,
         //--------------------
         //Init P
         //--------------------
-        P.setCoef(+2*la1/s1,                          0, 1);
-        P.setCoef(+(la1*la1  - 2*c2 - 1)/s1,          1, 1);
-        P.setCoef(+(la1*la1  + 2*c2 + 1)/s1,          3, 1);
-        P.setCoef(+(la1*la1*la1 + (1 - 2*c2)*la1)/s1, 4, 1);
+        P.set_coef(+2*la1/s1,                          0, 1);
+        P.set_coef(+(la1*la1  - 2*c2 - 1)/s1,          1, 1);
+        P.set_coef(+(la1*la1  + 2*c2 + 1)/s1,          3, 1);
+        P.set_coef(+(la1*la1*la1 + (1 - 2*c2)*la1)/s1, 4, 1);
 
-        P.setCoef(-(om1*om1 + 2*c2 + 1)/s2,           1, 0);
-        P.setCoef(-(om1*om1 - 2*c2 - 1)/s2,           3, 0);
+        P.set_coef(-(om1*om1 + 2*c2 + 1)/s2,           1, 0);
+        P.set_coef(-(om1*om1 - 2*c2 - 1)/s2,           3, 0);
 
-        P.setCoef(-2*la1/s1,                          0, 4);
-        P.setCoef(+(la1*la1  - 2*c2 - 1)/s1,          1, 4);
-        P.setCoef(+(la1*la1  + 2*c2 + 1)/s1,          3, 4);
-        P.setCoef(-(la1*la1*la1 + (1 - 2*c2)*la1)/s1, 4, 4);
+        P.set_coef(-2*la1/s1,                          0, 4);
+        P.set_coef(+(la1*la1  - 2*c2 - 1)/s1,          1, 4);
+        P.set_coef(+(la1*la1  + 2*c2 + 1)/s1,          3, 4);
+        P.set_coef(-(la1*la1*la1 + (1 - 2*c2)*la1)/s1, 4, 4);
 
-        P.setCoef(+2*om1/s2,                          0, 3);
-        P.setCoef(-(om1*om1*om1 - (1 - 2*c2)*om1)/s2, 4, 3);
+        P.set_coef(+2*om1/s2,                          0, 3);
+        P.set_coef(-(om1*om1*om1 - (1 - 2*c2)*om1)/s2, 4, 3);
 
-        P.setCoef(+1.0/sqrt(om2),                     2, 2);
-        P.setCoef(+sqrt(om2),                         5, 5);
+        P.set_coef(+1.0/sqrt(om2),                     2, 2);
+        P.set_coef(+sqrt(om2),                         5, 5);
 
         //--------------------
         //Check symplectic nature of P
@@ -195,10 +195,10 @@ void tfts_initCOC(matrix<Ofsc> &P,
         {
             for(int j = 0; j <6; j++)
             {
-                gsl_matrix_set(Ps, i, j, creal(P.getCoef(i,j).ofs_getCoef(0)));
+                gsl_matrix_set(Ps, i, j, creal(P.get_coef(i,j).ofs_get_coef(0)));
             }
         }
-        realSymplecticMatrixTest(Ps, Csts::INVERSE_GSL);
+        symplecticity_test_real(Ps, Csts::INVERSE_GSL);
         gsl_matrix_free(Ps);
         //*/
 
@@ -211,7 +211,7 @@ void tfts_initCOC(matrix<Ofsc> &P,
         gsl_permutation * p6 = gsl_permutation_alloc (Csts::NV);
 
         //Init Pc
-        for(int i =0; i < Csts::NV; i++) for(int j =0; j < Csts::NV; j++) gsl_matrix_set(Pc, i, j, creal(P.getCA(i,j)->ofs_getCoef(0)));
+        for(int i =0; i < Csts::NV; i++) for(int j =0; j < Csts::NV; j++) gsl_matrix_set(Pc, i, j, creal(P.get_ptr_first_coef(i,j)->ofs_get_coef(0)));
         //Use of GSL library
         gsl_linalg_LU_decomp (Pc, p6, &s);
         gsl_linalg_LU_invert (Pc, p6, Qc);
@@ -220,67 +220,67 @@ void tfts_initCOC(matrix<Ofsc> &P,
         //--------------------
         // Init Q
         //--------------------
-        for(int i =0; i < Csts::NV; i++) for(int j =0; j < Csts::NV; j++) Q.setCoef(gsl_matrix_get(Qc, i, j), i, j);
+        for(int i =0; i < Csts::NV; i++) for(int j =0; j < Csts::NV; j++) Q.set_coef(gsl_matrix_get(Qc, i, j), i, j);
 
 
         double gamma = fbpl.cs.gamma;
-        switch(fbpl.coordsys)
+        switch(fbpl.coord_sys)
         {
         case Csts::EM:
             //Sun does not exist
-            Xs[0].setCoef(  0.0+0.0*I, 0);
-            Xs[1].setCoef(  0.0+0.0*I, 0);
-            ILs.setCoef(    0.0+0.0*I, 0);
+            Xs[0].set_coef(  0.0+0.0*I, 0);
+            Xs[1].set_coef(  0.0+0.0*I, 0);
+            ILs.set_coef(    0.0+0.0*I, 0);
 
             //Earth and Moon
             if(fbpl.li_EM == 1)
             {
-                Xe[0].setCoef((-1.0+gamma)/gamma+0.0*I, 0);
-                Xe[1].setCoef( 0.0+0.0*I, 0);
-                ILe.setCoef( 1.0/sqrt( pow((-1.0+gamma)/gamma, 2.0))+0.0*I, 0);
+                Xe[0].set_coef((-1.0+gamma)/gamma+0.0*I, 0);
+                Xe[1].set_coef( 0.0+0.0*I, 0);
+                ILe.set_coef( 1.0/sqrt( pow((-1.0+gamma)/gamma, 2.0))+0.0*I, 0);
 
-                Xm[0].setCoef( +1.0+0.0*I, 0);
-                Xm[1].setCoef(  0.0+0.0*I, 0);
-                ILm.setCoef(  1.0+0.0*I, 0);
+                Xm[0].set_coef( +1.0+0.0*I, 0);
+                Xm[1].set_coef(  0.0+0.0*I, 0);
+                ILm.set_coef(  1.0+0.0*I, 0);
             }
             else
             {
-                Xe[0].setCoef((-1.0-gamma)/gamma+0.0*I, 0);
-                Xe[1].setCoef( 0.0+0.0*I, 0);
-                ILe.setCoef( gamma/(1.0+gamma)+0.0*I, 0);
+                Xe[0].set_coef((-1.0-gamma)/gamma+0.0*I, 0);
+                Xe[1].set_coef( 0.0+0.0*I, 0);
+                ILe.set_coef( gamma/(1.0+gamma)+0.0*I, 0);
 
-                Xm[0].setCoef( -1.0+0.0*I, 0);
-                Xm[1].setCoef(  0.0+0.0*I, 0);
-                ILm.setCoef(    1.0+0.0*I, 0);
+                Xm[0].set_coef( -1.0+0.0*I, 0);
+                Xm[1].set_coef(  0.0+0.0*I, 0);
+                ILm.set_coef(    1.0+0.0*I, 0);
             }
             break;
 
         case Csts::SEM:
             //Moon does not exist
-            Xm[0].setCoef(  0.0+0.0*I, 0);
-            Xm[1].setCoef(  0.0+0.0*I, 0);
-            ILm.setCoef(    0.0+0.0*I, 0);
+            Xm[0].set_coef(  0.0+0.0*I, 0);
+            Xm[1].set_coef(  0.0+0.0*I, 0);
+            ILm.set_coef(    0.0+0.0*I, 0);
 
             //Sun and Moon
             if(fbpl.li_SEM == 1)
             {
-                Xs[0].setCoef((-1.0+gamma)/gamma+0.0*I, 0);
-                Xs[1].setCoef( 0.0+0.0*I, 0);
-                ILs.setCoef( 1.0/sqrt( pow((-1.0+gamma)/gamma, 2.0))+0.0*I, 0);
+                Xs[0].set_coef((-1.0+gamma)/gamma+0.0*I, 0);
+                Xs[1].set_coef( 0.0+0.0*I, 0);
+                ILs.set_coef( 1.0/sqrt( pow((-1.0+gamma)/gamma, 2.0))+0.0*I, 0);
 
-                Xe[0].setCoef( +1.0+0.0*I, 0);
-                Xe[1].setCoef(  0.0+0.0*I, 0);
-                ILe.setCoef(  1.0+0.0*I, 0);
+                Xe[0].set_coef( +1.0+0.0*I, 0);
+                Xe[1].set_coef(  0.0+0.0*I, 0);
+                ILe.set_coef(  1.0+0.0*I, 0);
             }
             else
             {
-                Xs[0].setCoef((-1.0-gamma)/gamma+0.0*I, 0);
-                Xs[1].setCoef( 0.0+0.0*I, 0);
-                ILs.setCoef( gamma/(1.0+gamma)+0.0*I, 0);
+                Xs[0].set_coef((-1.0-gamma)/gamma+0.0*I, 0);
+                Xs[1].set_coef( 0.0+0.0*I, 0);
+                ILs.set_coef( gamma/(1.0+gamma)+0.0*I, 0);
 
-                Xe[0].setCoef( -1.0+0.0*I, 0);
-                Xe[1].setCoef(  0.0+0.0*I, 0);
-                ILe.setCoef(    1.0+0.0*I, 0);
+                Xe[0].set_coef( -1.0+0.0*I, 0);
+                Xe[1].set_coef(  0.0+0.0*I, 0);
+                ILe.set_coef(    1.0+0.0*I, 0);
             }
             break;
         }
@@ -306,20 +306,20 @@ void tfts_initCOC(matrix<Ofsc> &P,
     {
         ii = keyMap[i];
         BUX.ofs_fsum(P(ii,0),   1.0/sqrt(2)+0.0*I, P(ii,3), I*1.0/sqrt(2));
-        PC.setCoef(BUX, ii, 0);
+        PC.set_coef(BUX, ii, 0);
         BUX.ofs_fsum(P(ii,0), I*1.0/sqrt(2), P(ii,3),   1.0/sqrt(2)+0.0*I);
-        PC.setCoef(BUX, ii, 3);
-        PC.setCoef(P(ii,1), ii, 1);
-        PC.setCoef(P(ii,4), ii, 4);
+        PC.set_coef(BUX, ii, 3);
+        PC.set_coef(P(ii,1), ii, 1);
+        PC.set_coef(P(ii,4), ii, 4);
     }
 
     for(int i = 4; i <= 5; i++)
     {
         ii = keyMap[i];
         BUX.ofs_fsum(P(ii,2),   1.0/sqrt(2)+0.0*I, P(ii,5), I*1.0/sqrt(2));
-        PC.setCoef(BUX, ii, 2);
+        PC.set_coef(BUX, ii, 2);
         BUX.ofs_fsum(P(ii,2), I*1.0/sqrt(2), P(ii,5),   1.0/sqrt(2)+0.0*I);
-        PC.setCoef(BUX, ii, 5);
+        PC.set_coef(BUX, ii, 5);
     }
 
     //Init CQ by columns
@@ -327,20 +327,20 @@ void tfts_initCOC(matrix<Ofsc> &P,
     {
         ii = keyMap[i];
         BUX.ofs_fsum(Q(0,ii),    1.0/sqrt(2)+0.0*I, Q(3,ii), -1.0/sqrt(2)*I);
-        CQ.setCoef(BUX, 0, ii);
+        CQ.set_coef(BUX, 0, ii);
         BUX.ofs_fsum(Q(0,ii), -1.0/sqrt(2)*I, Q(3,ii),    1.0/sqrt(2)+0.0*I);
-        CQ.setCoef(BUX, 3, ii);
-        CQ.setCoef(Q(1,ii), 1, ii);
-        CQ.setCoef(Q(4,ii), 4, ii);
+        CQ.set_coef(BUX, 3, ii);
+        CQ.set_coef(Q(1,ii), 1, ii);
+        CQ.set_coef(Q(4,ii), 4, ii);
     }
 
     for(int i = 4; i <= 5; i++)
     {
         ii = keyMap[i];
         BUX.ofs_fsum(Q(2,ii),    1.0/sqrt(2)+0.0*I, Q(5,ii), -1.0/sqrt(2)*I);
-        CQ.setCoef(BUX, 2, ii);
+        CQ.set_coef(BUX, 2, ii);
         BUX.ofs_fsum(Q(2,ii), -1.0/sqrt(2)*I, Q(5,ii),    1.0/sqrt(2)+0.0*I);
-        CQ.setCoef(BUX, 5, ii);
+        CQ.set_coef(BUX, 5, ii);
     }
 
     //----------------------------
@@ -386,7 +386,7 @@ void tfts_initCOC(matrix<Ofsc> &P,
  *  i.e. inverse of the euclidian distance from the origin, given as Fourier series.
  *
  **/
-void initCOC(matrix<Ofsc> &P,
+void init_coc(matrix<Ofsc> &P,
              matrix<Ofsc> &Q,
              matrix<Ofsc> &PC,
              matrix<Ofsc> &PCdot,
@@ -407,44 +407,44 @@ void initCOC(matrix<Ofsc> &P,
     string F_COC = fbpl.cs.F_COC;
 
     //----------------------------
-    //Switch RTBP/QBCP/BCP
+    //Switch CRTBP/QBCP/BCP
     //----------------------------
     if(fbpl.model == Csts::QBCP || fbpl.model == Csts::BCP)
     {
         //Recovering the data: matrix P
-        for(int i = 0; i < Csts::NV ; i++) for(int j = 0; j < Csts::NV ; j++) readCOC(*P.getCA(i,j), F_COC+"P",  i+1, j+1);
+        for(int i = 0; i < Csts::NV ; i++) for(int j = 0; j < Csts::NV ; j++) read_coc(*P.get_ptr_first_coef(i,j), F_COC+"P",  i+1, j+1);
         //Recovering the data: matrix Q
-        for(int i = 0; i < Csts::NV ; i++) for(int j = 0; j < Csts::NV ; j++) readCOC(*Q.getCA(i,j), F_COC+"Q",  i+1, j+1);
+        for(int i = 0; i < Csts::NV ; i++) for(int j = 0; j < Csts::NV ; j++) read_coc(*Q.get_ptr_first_coef(i,j), F_COC+"Q",  i+1, j+1);
 
         //Recovering the data: vector V
         //V = [G1_11 G1_12 0 G1_21 G1_22 0]^T
         //Note:V[2] and V[5] are kept null
-        readCOC(V[0], F_COC+"G1_",  1, 1);
-        readCOC(V[1], F_COC+"G1_",  1, 2);
-        readCOC(V[3], F_COC+"G1_",  2, 1);
-        readCOC(V[4], F_COC+"G1_",  2, 2);
+        read_coc(V[0], F_COC+"G1_",  1, 1);
+        read_coc(V[1], F_COC+"G1_",  1, 2);
+        read_coc(V[3], F_COC+"G1_",  2, 1);
+        read_coc(V[4], F_COC+"G1_",  2, 2);
 
 
         //Recovering the data: vector Xm
-        readCOC(Xm[0], F_COC+"Xm",  1, 1);
-        readCOC(Xm[1], F_COC+"Xm",  2, 1);
+        read_coc(Xm[0], F_COC+"Xm",  1, 1);
+        read_coc(Xm[1], F_COC+"Xm",  2, 1);
         //Note: Xm[2] is kept null
 
         //Recovering the data: vector Xe
-        readCOC(Xe[0], F_COC+"Xe",  1, 1);
-        readCOC(Xe[1], F_COC+"Xe",  2, 1);
+        read_coc(Xe[0], F_COC+"Xe",  1, 1);
+        read_coc(Xe[1], F_COC+"Xe",  2, 1);
         //Note: Xe[2] is kept null
 
         //Recovering the data: vector Xs
-        readCOC(Xs[0], F_COC+"Xs",  1, 1);
-        readCOC(Xs[1], F_COC+"Xs",  2, 1);
+        read_coc(Xs[0], F_COC+"Xs",  1, 1);
+        read_coc(Xs[1], F_COC+"Xs",  2, 1);
         //Note: Xs[2] is kept null
 
 
         //Recovering the data: Ofts ILe, ILm, ILs
-        readCOC(ILe, F_COC+"Xe",  3, 1);
-        readCOC(ILm, F_COC+"Xm",  3, 1);
-        readCOC(ILs, F_COC+"Xs",  3, 1);
+        read_coc(ILe, F_COC+"Xe",  3, 1);
+        read_coc(ILm, F_COC+"Xm",  3, 1);
+        read_coc(ILs, F_COC+"Xs",  3, 1);
 
     }
     else //RTPB
@@ -470,24 +470,24 @@ void initCOC(matrix<Ofsc> &P,
         //--------------------
         //Init P
         //--------------------
-        P.setCoef(+2*la1/s1,                          0, 1);
-        P.setCoef(+(la1*la1  - 2*c2 - 1)/s1,          1, 1);
-        P.setCoef(+(la1*la1  + 2*c2 + 1)/s1,          3, 1);
-        P.setCoef(+(la1*la1*la1 + (1 - 2*c2)*la1)/s1, 4, 1);
+        P.set_coef(+2*la1/s1,                          0, 1);
+        P.set_coef(+(la1*la1  - 2*c2 - 1)/s1,          1, 1);
+        P.set_coef(+(la1*la1  + 2*c2 + 1)/s1,          3, 1);
+        P.set_coef(+(la1*la1*la1 + (1 - 2*c2)*la1)/s1, 4, 1);
 
-        P.setCoef(-(om1*om1 + 2*c2 + 1)/s2,           1, 0);
-        P.setCoef(-(om1*om1 - 2*c2 - 1)/s2,           3, 0);
+        P.set_coef(-(om1*om1 + 2*c2 + 1)/s2,           1, 0);
+        P.set_coef(-(om1*om1 - 2*c2 - 1)/s2,           3, 0);
 
-        P.setCoef(-2*la1/s1,                          0, 4);
-        P.setCoef(+(la1*la1  - 2*c2 - 1)/s1,          1, 4);
-        P.setCoef(+(la1*la1  + 2*c2 + 1)/s1,          3, 4);
-        P.setCoef(-(la1*la1*la1 + (1 - 2*c2)*la1)/s1, 4, 4);
+        P.set_coef(-2*la1/s1,                          0, 4);
+        P.set_coef(+(la1*la1  - 2*c2 - 1)/s1,          1, 4);
+        P.set_coef(+(la1*la1  + 2*c2 + 1)/s1,          3, 4);
+        P.set_coef(-(la1*la1*la1 + (1 - 2*c2)*la1)/s1, 4, 4);
 
-        P.setCoef(+2*om1/s2,                          0, 3);
-        P.setCoef(-(om1*om1*om1 - (1 - 2*c2)*om1)/s2, 4, 3);
+        P.set_coef(+2*om1/s2,                          0, 3);
+        P.set_coef(-(om1*om1*om1 - (1 - 2*c2)*om1)/s2, 4, 3);
 
-        P.setCoef(+1.0/sqrt(om2),                     2, 2);
-        P.setCoef(+sqrt(om2),                         5, 5);
+        P.set_coef(+1.0/sqrt(om2),                     2, 2);
+        P.set_coef(+sqrt(om2),                         5, 5);
 
         //--------------------
         //Check symplectic nature of P
@@ -498,10 +498,10 @@ void initCOC(matrix<Ofsc> &P,
         {
             for(int j = 0; j <6; j++)
             {
-                gsl_matrix_set(Ps, i, j, creal(P.getCoef(i,j).ofs_getCoef(0)));
+                gsl_matrix_set(Ps, i, j, creal(P.get_coef(i,j).ofs_get_coef(0)));
             }
         }
-        realSymplecticMatrixTest(Ps, Csts::INVERSE_GSL);
+        symplecticity_test_real(Ps, Csts::INVERSE_GSL);
         gsl_matrix_free(Ps);
         //*/
 
@@ -514,7 +514,7 @@ void initCOC(matrix<Ofsc> &P,
         gsl_permutation * p6 = gsl_permutation_alloc (Csts::NV);
 
         //Init Pc
-        for(int i =0; i < Csts::NV; i++) for(int j =0; j < Csts::NV; j++) gsl_matrix_set(Pc, i, j, creal(P.getCA(i,j)->ofs_getCoef(0)));
+        for(int i =0; i < Csts::NV; i++) for(int j =0; j < Csts::NV; j++) gsl_matrix_set(Pc, i, j, creal(P.get_ptr_first_coef(i,j)->ofs_get_coef(0)));
         //Use of GSL library
         gsl_linalg_LU_decomp (Pc, p6, &s);
         gsl_linalg_LU_invert (Pc, p6, Qc);
@@ -523,67 +523,67 @@ void initCOC(matrix<Ofsc> &P,
         //--------------------
         // Init Q
         //--------------------
-        for(int i =0; i < Csts::NV; i++) for(int j =0; j < Csts::NV; j++) Q.setCoef(gsl_matrix_get(Qc, i, j), i, j);
+        for(int i =0; i < Csts::NV; i++) for(int j =0; j < Csts::NV; j++) Q.set_coef(gsl_matrix_get(Qc, i, j), i, j);
 
 
         double gamma = fbpl.cs.gamma;
-        switch(fbpl.coordsys)
+        switch(fbpl.coord_sys)
         {
         case Csts::EM:
             //Sun does not exist
-            Xs[0].setCoef(  0.0+0.0*I, 0);
-            Xs[1].setCoef(  0.0+0.0*I, 0);
-            ILs.setCoef(    0.0+0.0*I, 0);
+            Xs[0].set_coef(  0.0+0.0*I, 0);
+            Xs[1].set_coef(  0.0+0.0*I, 0);
+            ILs.set_coef(    0.0+0.0*I, 0);
 
             //Earth and Moon
             if(fbpl.li_EM == 1)
             {
-                Xe[0].setCoef((-1.0+gamma)/gamma+0.0*I, 0);
-                Xe[1].setCoef( 0.0+0.0*I, 0);
-                ILe.setCoef( 1.0/sqrt( pow((-1.0+gamma)/gamma, 2.0))+0.0*I, 0);
+                Xe[0].set_coef((-1.0+gamma)/gamma+0.0*I, 0);
+                Xe[1].set_coef( 0.0+0.0*I, 0);
+                ILe.set_coef( 1.0/sqrt( pow((-1.0+gamma)/gamma, 2.0))+0.0*I, 0);
 
-                Xm[0].setCoef( +1.0+0.0*I, 0);
-                Xm[1].setCoef(  0.0+0.0*I, 0);
-                ILm.setCoef(  1.0+0.0*I, 0);
+                Xm[0].set_coef( +1.0+0.0*I, 0);
+                Xm[1].set_coef(  0.0+0.0*I, 0);
+                ILm.set_coef(  1.0+0.0*I, 0);
             }
             else
             {
-                Xe[0].setCoef((-1.0-gamma)/gamma+0.0*I, 0);
-                Xe[1].setCoef( 0.0+0.0*I, 0);
-                ILe.setCoef( gamma/(1.0+gamma)+0.0*I, 0);
+                Xe[0].set_coef((-1.0-gamma)/gamma+0.0*I, 0);
+                Xe[1].set_coef( 0.0+0.0*I, 0);
+                ILe.set_coef( gamma/(1.0+gamma)+0.0*I, 0);
 
-                Xm[0].setCoef( -1.0+0.0*I, 0);
-                Xm[1].setCoef(  0.0+0.0*I, 0);
-                ILm.setCoef(    1.0+0.0*I, 0);
+                Xm[0].set_coef( -1.0+0.0*I, 0);
+                Xm[1].set_coef(  0.0+0.0*I, 0);
+                ILm.set_coef(    1.0+0.0*I, 0);
             }
             break;
 
         case Csts::SEM:
             //Moon does not exist
-            Xm[0].setCoef(  0.0+0.0*I, 0);
-            Xm[1].setCoef(  0.0+0.0*I, 0);
-            ILm.setCoef(    0.0+0.0*I, 0);
+            Xm[0].set_coef(  0.0+0.0*I, 0);
+            Xm[1].set_coef(  0.0+0.0*I, 0);
+            ILm.set_coef(    0.0+0.0*I, 0);
 
             //Sun and Moon
             if(fbpl.li_SEM == 1)
             {
-                Xs[0].setCoef((-1.0+gamma)/gamma+0.0*I, 0);
-                Xs[1].setCoef( 0.0+0.0*I, 0);
-                ILs.setCoef( 1.0/sqrt( pow((-1.0+gamma)/gamma, 2.0))+0.0*I, 0);
+                Xs[0].set_coef((-1.0+gamma)/gamma+0.0*I, 0);
+                Xs[1].set_coef( 0.0+0.0*I, 0);
+                ILs.set_coef( 1.0/sqrt( pow((-1.0+gamma)/gamma, 2.0))+0.0*I, 0);
 
-                Xe[0].setCoef( +1.0+0.0*I, 0);
-                Xe[1].setCoef(  0.0+0.0*I, 0);
-                ILe.setCoef(  1.0+0.0*I, 0);
+                Xe[0].set_coef( +1.0+0.0*I, 0);
+                Xe[1].set_coef(  0.0+0.0*I, 0);
+                ILe.set_coef(  1.0+0.0*I, 0);
             }
             else
             {
-                Xs[0].setCoef((-1.0-gamma)/gamma+0.0*I, 0);
-                Xs[1].setCoef( 0.0+0.0*I, 0);
-                ILs.setCoef( gamma/(1.0+gamma)+0.0*I, 0);
+                Xs[0].set_coef((-1.0-gamma)/gamma+0.0*I, 0);
+                Xs[1].set_coef( 0.0+0.0*I, 0);
+                ILs.set_coef( gamma/(1.0+gamma)+0.0*I, 0);
 
-                Xe[0].setCoef( -1.0+0.0*I, 0);
-                Xe[1].setCoef(  0.0+0.0*I, 0);
-                ILe.setCoef(    1.0+0.0*I, 0);
+                Xe[0].set_coef( -1.0+0.0*I, 0);
+                Xe[1].set_coef(  0.0+0.0*I, 0);
+                ILe.set_coef(    1.0+0.0*I, 0);
             }
             break;
         }
@@ -609,20 +609,20 @@ void initCOC(matrix<Ofsc> &P,
     {
         ii = keyMap[i];
         BUX.ofs_fsum(P(ii,0),   1.0/sqrt(2)+0.0*I, P(ii,3), I*1.0/sqrt(2));
-        PC.setCoef(BUX, ii, 0);
+        PC.set_coef(BUX, ii, 0);
         BUX.ofs_fsum(P(ii,0), I*1.0/sqrt(2), P(ii,3),   1.0/sqrt(2)+0.0*I);
-        PC.setCoef(BUX, ii, 3);
-        PC.setCoef(P(ii,1), ii, 1);
-        PC.setCoef(P(ii,4), ii, 4);
+        PC.set_coef(BUX, ii, 3);
+        PC.set_coef(P(ii,1), ii, 1);
+        PC.set_coef(P(ii,4), ii, 4);
     }
 
     for(int i = 4; i <= 5; i++)
     {
         ii = keyMap[i];
         BUX.ofs_fsum(P(ii,2),   1.0/sqrt(2)+0.0*I, P(ii,5), I*1.0/sqrt(2));
-        PC.setCoef(BUX, ii, 2);
+        PC.set_coef(BUX, ii, 2);
         BUX.ofs_fsum(P(ii,2), I*1.0/sqrt(2), P(ii,5),   1.0/sqrt(2)+0.0*I);
-        PC.setCoef(BUX, ii, 5);
+        PC.set_coef(BUX, ii, 5);
     }
 
     //Init CQ by columns
@@ -630,20 +630,20 @@ void initCOC(matrix<Ofsc> &P,
     {
         ii = keyMap[i];
         BUX.ofs_fsum(Q(0,ii),    1.0/sqrt(2)+0.0*I, Q(3,ii), -1.0/sqrt(2)*I);
-        CQ.setCoef(BUX, 0, ii);
+        CQ.set_coef(BUX, 0, ii);
         BUX.ofs_fsum(Q(0,ii), -1.0/sqrt(2)*I, Q(3,ii),    1.0/sqrt(2)+0.0*I);
-        CQ.setCoef(BUX, 3, ii);
-        CQ.setCoef(Q(1,ii), 1, ii);
-        CQ.setCoef(Q(4,ii), 4, ii);
+        CQ.set_coef(BUX, 3, ii);
+        CQ.set_coef(Q(1,ii), 1, ii);
+        CQ.set_coef(Q(4,ii), 4, ii);
     }
 
     for(int i = 4; i <= 5; i++)
     {
         ii = keyMap[i];
         BUX.ofs_fsum(Q(2,ii),    1.0/sqrt(2)+0.0*I, Q(5,ii), -1.0/sqrt(2)*I);
-        CQ.setCoef(BUX, 2, ii);
+        CQ.set_coef(BUX, 2, ii);
         BUX.ofs_fsum(Q(2,ii), -1.0/sqrt(2)*I, Q(5,ii),    1.0/sqrt(2)+0.0*I);
-        CQ.setCoef(BUX, 5, ii);
+        CQ.set_coef(BUX, 5, ii);
     }
 
     //----------------------------
@@ -672,7 +672,7 @@ void applyCOC(matrix<Ofsc> &PC,
     //zOut = PC*zIn
     smvprod_u(PC, zIn, zOut);
     //zOut+=V(theta)
-    addCoef(V, zOut);
+    add_coef(V, zOut);
 }
 
 
@@ -691,7 +691,7 @@ void applyCOC(matrix<Ofsc> &PC,
     //zOut = PC*zIn
     smvprod_u(PC, zIn, zOut, m);
     //zOut+=V(theta)
-    if(m == 0 && flag == 1) addCoef(V, zOut);
+    if(m == 0 && flag == 1) add_coef(V, zOut);
 }
 
 /**
@@ -710,7 +710,7 @@ void tfts_applyCOC(matrix<Ofsc> &PC,
     //zOut = PC*zIn
     tfts_smvprod_u(PC, zIn, zOut, m);
     //zOut+=V(theta)
-    if(m == 0 && flag == 1) tfts_addCoef(V, zOut);
+    if(m == 0 && flag == 1) tfts_add_coef(V, zOut);
 }
 
 
@@ -755,7 +755,7 @@ void applyDotCOC(matrix<Ofsc> &PC,
     //zdot += PC*zhdot
     smvprod_u(PC, zhdot, zdot);
     //zdot +=Vdot(theta)
-    addCoef(Vdot, zdot);
+    add_coef(Vdot, zdot);
 }
 
 
@@ -776,7 +776,7 @@ void applyDotCOC(matrix<Ofsc> &PC,
     //zdot += PC*zhdot
     smvprod_u(PC, zhdot, zdot, m);
     //zdot +=Vdot(theta)
-    if(m == 0) addCoef(Vdot, zdot);
+    if(m == 0) add_coef(Vdot, zdot);
 }
 
 
@@ -849,7 +849,7 @@ void applyInvDotCOC(matrix<Ofsc> &CQ,
  *         The change of variables is of the form: zhdot = CQ (zdot - PCdot zh - Vdot)
  *         This is the TFS version of this routine (time domain).
  **/
-void tfts_applyInvDotCOC(matrix<Ofsc> &CQ,
+void tfts_apply_inv_coc_der(matrix<Ofsc> &CQ,
                          matrix<Ofsc> &PCdot,
                          vector<Ofsc> &Vdot,
                          vector<Oftsc> &zh,
@@ -920,41 +920,41 @@ void initCOC_OFS(matrix<Ofsc> &P,
 {
     //Retrieve folder
     string F_COC = fbpl.cs.F_COC;
-    //Switch RTBP/QBCP
+    //Switch CRTBP/QBCP
     if(fbpl.model == Csts::QBCP || fbpl.model == Csts::BCP)
     {
         //Recovering the data: matrix P
-        for(int i = 0; i < Csts::NV ; i++) for(int j = 0; j < Csts::NV ; j++) readCOC(*P.getCA(i,j), F_COC+"P", i+1, j+1);
+        for(int i = 0; i < Csts::NV ; i++) for(int j = 0; j < Csts::NV ; j++) read_coc(*P.get_ptr_first_coef(i,j), F_COC+"P", i+1, j+1);
         //Recovering the data: matrix Q
-        for(int i = 0; i < Csts::NV ; i++) for(int j = 0; j < Csts::NV ; j++) readCOC(*Q.getCA(i,j), F_COC+"Q", i+1, j+1);
+        for(int i = 0; i < Csts::NV ; i++) for(int j = 0; j < Csts::NV ; j++) read_coc(*Q.get_ptr_first_coef(i,j), F_COC+"Q", i+1, j+1);
 
         //Recovering the data: vector V
         //V = [G1_11 G1_12 0 G1_21 G1_22 0]^T
         //Note:V[2] and V[5] are kept null
-        readCOC(V[0], F_COC+"G1_",  1, 1);
-        readCOC(V[1], F_COC+"G1_",  1, 2);
-        readCOC(V[3], F_COC+"G1_",  2, 1);
-        readCOC(V[4], F_COC+"G1_",  2, 2);
+        read_coc(V[0], F_COC+"G1_",  1, 1);
+        read_coc(V[1], F_COC+"G1_",  1, 2);
+        read_coc(V[3], F_COC+"G1_",  2, 1);
+        read_coc(V[4], F_COC+"G1_",  2, 2);
 
         //Recovering the data: vector Xm
-        readCOC(Xm[0], F_COC+"Xm",  1, 1);
-        readCOC(Xm[1], F_COC+"Xm",  2, 1);
+        read_coc(Xm[0], F_COC+"Xm",  1, 1);
+        read_coc(Xm[1], F_COC+"Xm",  2, 1);
         //Note: Xm[2] is kept null
 
         //Recovering the data: vector Xe
-        readCOC(Xe[0], F_COC+"Xe",  1, 1);
-        readCOC(Xe[1], F_COC+"Xe",  2, 1);
+        read_coc(Xe[0], F_COC+"Xe",  1, 1);
+        read_coc(Xe[1], F_COC+"Xe",  2, 1);
         //Note: Xe[2] is kept null
 
         //Recovering the data: vector Xs
-        readCOC(Xs[0], F_COC+"Xs",  1, 1);
-        readCOC(Xs[1], F_COC+"Xs",  2, 1);
+        read_coc(Xs[0], F_COC+"Xs",  1, 1);
+        read_coc(Xs[1], F_COC+"Xs",  2, 1);
         //Note: Xs[2] is kept null
 
         //Recovering the data: Ofts ILe, ILm, ILs
-        readCOC(ILe, F_COC+"Xe",  3, 1);
-        readCOC(ILm, F_COC+"Xm",  3, 1);
-        readCOC(ILs, F_COC+"Xs",  3, 1);
+        read_coc(ILe, F_COC+"Xe",  3, 1);
+        read_coc(ILm, F_COC+"Xm",  3, 1);
+        read_coc(ILs, F_COC+"Xs",  3, 1);
 
     }
     else //EM RTPB
@@ -977,24 +977,24 @@ void initCOC_OFS(matrix<Ofsc> &P,
         //--------------------
         //Init P
         //--------------------
-        P.setCoef(+2*la1/s1,                          0, 1);
-        P.setCoef(+(la1*la1 - 2*c2 - 1)/s1,           1, 1);
-        P.setCoef(+(la1*la1  + 2*c2 + 1)/s1,          3, 1);
-        P.setCoef(+(la1*la1*la1 + (1 - 2*c2)*la1)/s1, 4, 1);
+        P.set_coef(+2*la1/s1,                          0, 1);
+        P.set_coef(+(la1*la1 - 2*c2 - 1)/s1,           1, 1);
+        P.set_coef(+(la1*la1  + 2*c2 + 1)/s1,          3, 1);
+        P.set_coef(+(la1*la1*la1 + (1 - 2*c2)*la1)/s1, 4, 1);
 
-        P.setCoef(-(om1*om1 + 2*c2 + 1)/s2,           1, 0);
-        P.setCoef(-(om1*om1  - 2*c2 - 1)/s2,          3, 0);
+        P.set_coef(-(om1*om1 + 2*c2 + 1)/s2,           1, 0);
+        P.set_coef(-(om1*om1  - 2*c2 - 1)/s2,          3, 0);
 
-        P.setCoef(-2*la1/s1,                          0, 4);
-        P.setCoef(+(la1*la1 - 2*c2 - 1)/s1,           1, 4);
-        P.setCoef(+(la1*la1  + 2*c2 + 1)/s1,          3, 4);
-        P.setCoef(-(la1*la1*la1 + (1 - 2*c2)*la1)/s1, 4, 4);
+        P.set_coef(-2*la1/s1,                          0, 4);
+        P.set_coef(+(la1*la1 - 2*c2 - 1)/s1,           1, 4);
+        P.set_coef(+(la1*la1  + 2*c2 + 1)/s1,          3, 4);
+        P.set_coef(-(la1*la1*la1 + (1 - 2*c2)*la1)/s1, 4, 4);
 
-        P.setCoef(+2*om1/s2,                          0, 3);
-        P.setCoef(-(om1*om1*om1 - (1 - 2*c2)*om1)/s2, 4, 3);
+        P.set_coef(+2*om1/s2,                          0, 3);
+        P.set_coef(-(om1*om1*om1 - (1 - 2*c2)*om1)/s2, 4, 3);
 
-        P.setCoef(+1.0/sqrt(om2),                     2, 2);
-        P.setCoef(sqrt(om2),                          5, 5);
+        P.set_coef(+1.0/sqrt(om2),                     2, 2);
+        P.set_coef(sqrt(om2),                          5, 5);
 
         //--------------------
         //Q = inv(P) (gsl lib)
@@ -1005,7 +1005,7 @@ void initCOC_OFS(matrix<Ofsc> &P,
         gsl_permutation * p6 = gsl_permutation_alloc (Csts::NV);
 
         //Init Pc
-        for(int i =0; i < Csts::NV; i++) for(int j =0; j < Csts::NV; j++) gsl_matrix_set(Pc, i, j, creal(P.getCA(i,j)->ofs_getCoef(0)));
+        for(int i =0; i < Csts::NV; i++) for(int j =0; j < Csts::NV; j++) gsl_matrix_set(Pc, i, j, creal(P.get_ptr_first_coef(i,j)->ofs_get_coef(0)));
         //Use of GSL library
         gsl_linalg_LU_decomp (Pc, p6, &s);
         gsl_linalg_LU_invert (Pc, p6, Qc);
@@ -1014,7 +1014,7 @@ void initCOC_OFS(matrix<Ofsc> &P,
         //--------------------
         // Init Q
         //--------------------
-        for(int i =0; i < Csts::NV; i++) for(int j =0; j < Csts::NV; j++) Q.setCoef(gsl_matrix_get(Qc, i, j), i, j);
+        for(int i =0; i < Csts::NV; i++) for(int j =0; j < Csts::NV; j++) Q.set_coef(gsl_matrix_get(Qc, i, j), i, j);
 
 
         //--------------------
@@ -1023,30 +1023,30 @@ void initCOC_OFS(matrix<Ofsc> &P,
         double gamma = fbpl.cs.gamma;
 
         //Sun does not exist
-        Xs[0].setCoef(0.0+0.0*I, 0);
-        Xs[1].setCoef(0.0+0.0*I, 0);
-        ILs.setCoef(0.0+0.0*I, 0);
+        Xs[0].set_coef(0.0+0.0*I, 0);
+        Xs[1].set_coef(0.0+0.0*I, 0);
+        ILs.set_coef(0.0+0.0*I, 0);
 
         //Earth and Moon
         if(fbpl.li_EM == 1)
         {
-            Xe[0].setCoef((-1.0+gamma)/gamma+0.0*I, 0);
-            Xe[1].setCoef(0.0+0.0*I, 0);
-            ILe.setCoef(1.0/sqrt( pow((-1.0+gamma)/gamma, 2.0))+0.0*I, 0);
+            Xe[0].set_coef((-1.0+gamma)/gamma+0.0*I, 0);
+            Xe[1].set_coef(0.0+0.0*I, 0);
+            ILe.set_coef(1.0/sqrt( pow((-1.0+gamma)/gamma, 2.0))+0.0*I, 0);
 
-            Xm[0].setCoef( +1.0+0.0*I, 0);
-            Xm[1].setCoef(  0.0+0.0*I, 0);
-            ILm.setCoef(    1.0+0.0*I, 0);
+            Xm[0].set_coef( +1.0+0.0*I, 0);
+            Xm[1].set_coef(  0.0+0.0*I, 0);
+            ILm.set_coef(    1.0+0.0*I, 0);
         }
         else
         {
-            Xe[0].setCoef((-1.0-gamma)/gamma+0.0*I, 0);
-            Xe[1].setCoef( 0.0+0.0*I, 0);
-            ILe.setCoef( 1.0/sqrt( pow((-1.0-gamma)/gamma, 2.0))+0.0*I, 0);
+            Xe[0].set_coef((-1.0-gamma)/gamma+0.0*I, 0);
+            Xe[1].set_coef( 0.0+0.0*I, 0);
+            ILe.set_coef( 1.0/sqrt( pow((-1.0-gamma)/gamma, 2.0))+0.0*I, 0);
 
-            Xm[0].setCoef( -1.0+0.0*I, 0);
-            Xm[1].setCoef(  0.0+0.0*I, 0);
-            ILm.setCoef( 1.0+0.0*I, 0);
+            Xm[0].set_coef( -1.0+0.0*I, 0);
+            Xm[1].set_coef(  0.0+0.0*I, 0);
+            ILm.set_coef( 1.0+0.0*I, 0);
         }
     }
 }
@@ -1133,7 +1133,7 @@ void applyModifiedCOC_OFS(matrix<Ofsc> &P, vector<Ofsc> &V, vector<Ofsc> &zIn, v
             zOut[i].ofs_sprod(zIn[1], BUX);
             zOut[i].ofs_sprod(zIn[3], CUX);
             zOut[i].ofs_sprod(zIn[4], DUX);
-            //zOut[i].addCoef(EUX, 0, 0);
+            //zOut[i].add_coef(EUX, 0, 0);
 
         }
     }
@@ -1339,7 +1339,7 @@ void testCOC()
     vector<Ofsc> Vdot(Csts::NV);
 
     //Init routine
-    initCOC(P, Q, PC, PCdot, CQ, Xe, Xm, Xs, V, Vdot, ILe, ILm, ILs, SEML);
+    init_coc(P, Q, PC, PCdot, CQ, Xe, Xm, Xs, V, Vdot, ILe, ILm, ILs, SEML);
 
     //------------------------------------------
     // Test of the OFS routines
@@ -1357,7 +1357,7 @@ void testCOC()
     vector<Ofsc> DeltaXo(Csts::NV); //coordinates in diagonalized framework
 
     //All coordinates to xMax
-    for(int i = 0; i < Csts::NV; i++) Xoc[i].setCoef(xMax+0.0*I, 0);
+    for(int i = 0; i < Csts::NV; i++) Xoc[i].set_coef(xMax+0.0*I, 0);
 
     cout << " All coordinates in diagonalized framework are set to " << xMax << endl;
     cout << " We apply the COC and the COC^{-1} " << endl;
@@ -1376,9 +1376,9 @@ void testCOC()
     {
 
         DeltaXo[i].ofs_fsum(Xoc[i], 1.0+0.0*I, Xod[i], -1.0+0.0*I);
-        DeltaXo[i].getCoefMaxNorm(maxAbs);
+        DeltaXo[i].get_coef_max_norm(maxAbs);
 
-        cout << "   " << i << "         "  << cabs(DeltaXo[i].ofs_getCoef(0)) << "     "
+        cout << "   " << i << "         "  << cabs(DeltaXo[i].ofs_get_coef(0)) << "     "
              <<  maxAbs[0] << "(" <<  resetiosflags( ios::floatfield )
              << maxAbs[1] << setiosflags(ios::scientific) << ")" << endl;
     }
@@ -1404,7 +1404,7 @@ void testCOC()
     vector<Oftsc> ztp(Csts::NV);     //spare vector<OFTS>
 
     //All components set to random coefficients
-    for(int i = 0; i < Csts::NV; i++) Wc[i].setRandomCoefs();
+    for(int i = 0; i < Csts::NV; i++) Wc[i].set_random_coefs();
 
     //Applying the COC
     applyCOC(PC,  V,  Wc, W);          //order zero is added
@@ -1416,9 +1416,9 @@ void testCOC()
     for(int i = 0; i<Csts::NV; i++)
     {
         DeltaW[i].ofts_fsum_u(Wc[i], 1.0+0.0*I, Wd[i], -1.0+0.0*I);
-        DeltaW[i].getCoef(0, 0)->getCoefMaxNorm(maxAbs);
+        DeltaW[i].get_coef(0, 0)->get_coef_max_norm(maxAbs);
 
-        cout << "   " << i << "         "  << cabs(DeltaW[i].getCoef(0, 0)->ofs_getCoef(0))
+        cout << "   " << i << "         "  << cabs(DeltaW[i].get_coef(0, 0)->ofs_get_coef(0))
              << "     " <<  maxAbs[0] << "(" << resetiosflags( ios::floatfield )
              << maxAbs[1] << setiosflags(ios::scientific) << ")" << endl;
     }
@@ -1458,7 +1458,7 @@ void testDotCOC()
     vector<Ofsc> Vdot(Csts::NV);
 
     //Init routine
-    initCOC(P, Q, PC, PCdot, CQ, Xe, Xm, Xs, V, Vdot, ILe, ILm, ILs, SEML);
+    init_coc(P, Q, PC, PCdot, CQ, Xe, Xm, Xs, V, Vdot, ILe, ILm, ILs, SEML);
 
     //------------------------------------------
     // Test of the OFTS routines
@@ -1484,8 +1484,8 @@ void testDotCOC()
     vector<Oftsc> ztp2(Csts::NV);    //spare vector<OFTS>
 
     //All components set random coefficients
-    for(int i = 0; i < Csts::NV; i++) z[i].setRandomCoefs();
-    for(int i = 0; i < Csts::NV; i++) zdot[i].setRandomCoefs();
+    for(int i = 0; i < Csts::NV; i++) z[i].set_random_coefs();
+    for(int i = 0; i < Csts::NV; i++) zdot[i].set_random_coefs();
 
     //zh = inCOC(z)
     applyInvCOC(CQ,  V,  z,  zh, ztp1);
@@ -1503,9 +1503,9 @@ void testDotCOC()
     for(int i = 0; i<Csts::NV; i++)
     {
         DeltaW[i].ofts_fsum_u(zdot[i], 1.0+0.0*I, zdot2[i], -1.0+0.0*I);
-        DeltaW[i].getCoef(0, 0)->getCoefMaxNorm(maxAbs);
+        DeltaW[i].get_coef(0, 0)->get_coef_max_norm(maxAbs);
 
-        cout << "   " << i << "         "  << cabs(DeltaW[i].getCoef(0, 0)->ofs_getCoef(0))
+        cout << "   " << i << "         "  << cabs(DeltaW[i].get_coef(0, 0)->ofs_get_coef(0))
              << "     " <<  maxAbs[0] << "(" << resetiosflags( ios::floatfield )
              << maxAbs[1] << setiosflags(ios::scientific) << ")" << endl;
     }
@@ -1565,7 +1565,7 @@ void testIntCOC()
     vector<Ofsc> Vdot(Csts::NV);
 
     //Init routine
-    initCOC(P, Q, PC, PCdot, CQ, Xe, Xm, Xs, V, Vdot, ILe, ILm, ILs, SEML);
+    init_coc(P, Q, PC, PCdot, CQ, Xe, Xm, Xs, V, Vdot, ILe, ILm, ILs, SEML);
 
     //-------------------------------------------------
     //Integration tools
@@ -1681,7 +1681,7 @@ void testIntCOC()
     t = tinit;
     //Integration
     gsl_odeiv2_driver_apply (d, &t, theta1/SEML.us.n, az0); //T = 2pi/n
-    //On screen serie
+    //On screen series
     cout << "---------------------------------" << endl;
     cout << "NC final conditions: " << endl;
     for(int p = 0; p < 6; p++) cout << az0[p] << endl;
@@ -1718,7 +1718,7 @@ void testIntCOC()
     //zh1_NC = invCOC(z1)
     applyInvCOC(CQ, V, z1, zh1_NC, ztp2, SEML.us.n*(theta1/SEML.us.n));
 
-    //On screen serie
+    //On screen series
     cout << "---------------------------------" << endl;
     cout << "TFC final conditions back in NC: " << endl;
     for(int p = 0; p < 6; p++) cout << creal(z1_TFC[p]) << "+" << cimag(z1_TFC[p]) << endl;
@@ -1861,7 +1861,7 @@ double pij(int ii, int jj)
     vector<Ofsc> Vdot(Csts::NV);
 
     //Init routine
-    initCOC(P, Q, PC, PCdot, CQ, Xe, Xm, Xs, V, Vdot, ILe, ILm, ILs, SEML);
+    init_coc(P, Q, PC, PCdot, CQ, Xe, Xm, Xs, V, Vdot, ILe, ILm, ILs, SEML);
 
     //------------------------------------------
     // Bracketing the root
@@ -1870,12 +1870,12 @@ double pij(int ii, int jj)
     int i = 0;
     double ti;
     cdouble p36, pp36;
-    p36 = P.getCA(ii,jj)->evaluate(0.0);
+    p36 = P.get_ptr_first_coef(ii,jj)->evaluate(0.0);
     do
     {
         pp36 = p36;
         ti = (double) i*2*M_PI/(N*SEML.us.n);
-        p36 = P.getCA(ii,jj)->evaluate(SEML.us.n * ti);
+        p36 = P.get_ptr_first_coef(ii,jj)->evaluate(SEML.us.n * ti);
         if(creal(p36)*creal(pp36) < 0)
         {
             cout << "A root of P(3,6) has been found around ti ~" << ti << endl;
@@ -1902,7 +1902,7 @@ double pij(int ii, int jj)
     //Function for root finding, linked fo fp36 & parameter P
     gsl_function F;
     F.function = &fpij;
-    F.params = P.getCA(ii,jj);
+    F.params = P.get_ptr_first_coef(ii,jj);
 
     T = gsl_root_fsolver_brent;
     s = gsl_root_fsolver_alloc (T);
@@ -1974,7 +1974,7 @@ void pij_plot(gnuplot_ctrl  *h1)
     vector<Ofsc> Vdot(Csts::NV);
 
     //Init routine
-    initCOC(P, Q, PC, PCdot, CQ, Xe, Xm, Xs, V, Vdot, ILe, ILm, ILs, SEML);
+    init_coc(P, Q, PC, PCdot, CQ, Xe, Xm, Xs, V, Vdot, ILe, ILm, ILs, SEML);
 
     //------------------------------------------
     // Computing Pij(nt)
@@ -1989,7 +1989,7 @@ void pij_plot(gnuplot_ctrl  *h1)
         {
             for(int jj = 0; jj <6 ; jj++)
             {
-                pijc = P.getCA(ii,jj)->evaluate(ti);
+                pijc = P.get_ptr_first_coef(ii,jj)->evaluate(ti);
                 pij[ii*6+jj][i] = creal(pijc);
             }
         }
@@ -2080,7 +2080,7 @@ void pij_plot(int ii, int jj, gnuplot_ctrl  *h1)
     vector<Ofsc> Vdot(Csts::NV);
 
     //Init routine
-    initCOC(P, Q, PC, PCdot, CQ, Xe, Xm, Xs, V, Vdot, ILe, ILm, ILs, SEML);
+    init_coc(P, Q, PC, PCdot, CQ, Xe, Xm, Xs, V, Vdot, ILe, ILm, ILs, SEML);
 
     //------------------------------------------
     // Computing Pij(nt)
@@ -2092,7 +2092,7 @@ void pij_plot(int ii, int jj, gnuplot_ctrl  *h1)
     for(int i = 0; i < N ; i++)
     {
         ti = (double) 2*M_PI*i/N;
-        pijc = P.getCA(ii,jj)->evaluate(ti);
+        pijc = P.get_ptr_first_coef(ii,jj)->evaluate(ti);
         pij[i] = creal(pijc);
         tv[i] = ti;
     }
@@ -2148,7 +2148,7 @@ void coeff_plot(gnuplot_ctrl  *h1, FBPL* qbp)
     for(int i = 0; i < N ; i++)
     {
         ti = (double) 2*M_PI*i/(n*N);
-        evaluateCoef(alpha, ti, n, qbp->nf, qbp->cs.coeffs, noc);
+        eval_array_coef(alpha, ti, n, qbp->n_order_fourier, qbp->cs.coeffs, noc);
         for(int k = 0; k < noc; k++) alphav[k][i] = alpha[k];
         tv[i] = ti;
     }
@@ -2215,8 +2215,6 @@ void potential_plot(gnuplot_ctrl  *h1, FBPL* qbp)
     double me = qbp->us.me;
     double mm = qbp->us.mm;
     double n  = qbp->us.n;
-
-
     double alpha[8], Ps[3], Pe[3], Pm[3];
 
     //-------------------------------------------------------------------------------
@@ -2243,14 +2241,14 @@ void potential_plot(gnuplot_ctrl  *h1, FBPL* qbp)
         //-------------------------------------------------------------------------------
         //Evaluate the alphas @t
         //-------------------------------------------------------------------------------
-        evaluateCoef(alpha, ti, n, qbp->nf, qbp->cs.coeffs, 8);
+        eval_array_coef(alpha, ti, n, qbp->n_order_fourier, qbp->cs.coeffs, 8);
 
         //-------------------------------------------------------------------------------
         //Evaluate the primaries positions @ t
         //-------------------------------------------------------------------------------
-        evaluateCoef(Ps, ti, n, qbp->nf, qbp->cs.Ps, 3);
-        evaluateCoef(Pe, ti, n, qbp->nf, qbp->cs.Pe, 3);
-        evaluateCoef(Pm, ti, n, qbp->nf, qbp->cs.Pm, 3);
+        eval_array_coef(Ps, ti, n, qbp->n_order_fourier, qbp->cs.Ps, 3);
+        eval_array_coef(Pe, ti, n, qbp->n_order_fourier, qbp->cs.Pe, 3);
+        eval_array_coef(Pm, ti, n, qbp->n_order_fourier, qbp->cs.Pm, 3);
 
         //-------------------------------------------------------------------------------
         // Distances to 2nd power

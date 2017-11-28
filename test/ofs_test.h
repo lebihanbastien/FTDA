@@ -3,7 +3,7 @@
 
 /**
  * \file ofs_test.h
- * \brief Header test file for the Ofs (Fourier serie) class.
+ * \brief Header test file for the Ofs (Fourier series) class.
  * \author BLB.
  * \date May 2015
  * \version 1.0

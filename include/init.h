@@ -56,7 +56,7 @@ extern vector<Oftsc>  Fh;     //reduced vector field
 extern vector<Oftsc>  DWFh;   //DWFh =JCM * Fh
 
 /**
- *   \brief Initialization of the parameterization center of the manifold around
+ *   \brief Initialization of the parameterization of an invariant manifold around
  *          a given libration point, encoded in the fbpl structure.
  *
  *    The global variables initialized by this routine are:
@@ -68,10 +68,10 @@ extern vector<Oftsc>  DWFh;   //DWFh =JCM * Fh
  *    - vector<Oftsc>  DWFh, equal to JCM * Fh
  *
  **/
-void initCM(FBPL &fbpl);
+void init_inv_man(FBPL &fbpl);
 
 /**
- *   \brief Update of the parameterization center of the manifold around
+ *   \brief Update of the parameterization center of an invariant manifold around
  *          a given libration point, encoded in the fbpl structure.
  *
  *    The parameterization is retrieved from text file given in the folder F_PMS,
@@ -89,7 +89,7 @@ void initCM(FBPL &fbpl);
  *    - vector<Oftsc>  DWFh, equal to JCM * Fh
  *
  **/
-void updateCM(FBPL &qbcp);
+void update_inv_man(FBPL &qbcp);
 
 
 //========================================================================================
@@ -115,13 +115,13 @@ extern vector<Ofsc>  Vcoc;    //COC vector
  *      - matrix<Ofsc>  Qcoc;    //COC matrix = inv(Pcoc)
  *      - vector<Ofsc>  Vcoc;    //COC vector
  **/
-void initCOC(FBPL &qbcp);
+void init_coc(FBPL &qbcp);
 
 /**
  *  \brief The several variables of the COC are retrieved from txt files, stored in the
  *         folder F_COC defined in fbpl.
  **/
-void initCOC(matrix<Ofsc> &t_Pcoc, matrix<Ofsc> &t_Mcoc, matrix<Ofsc> &t_Qcoc,
+void init_coc(matrix<Ofsc> &t_Pcoc, matrix<Ofsc> &t_Mcoc, matrix<Ofsc> &t_Qcoc,
              matrix<Ofsc> &t_MIcoc, vector<Ofsc> &t_Vcoc, FBPL& fbpl);
 
 /**
@@ -132,16 +132,16 @@ void initCOC(matrix<Ofsc> &t_Pcoc, matrix<Ofsc> &t_Mcoc, matrix<Ofsc> &t_Qcoc,
  *  \param k the line indix of the desired component prefix(k,p).
  *  \param p the column indix of the desired component prefix(k,p).
  *
- *  As an example, the call readCOC(xFFT, "alpha", 2, 1) will update xFFT
+ *  As an example, the call read_coc(xFFT, "alpha", 2, 1) will update xFFT
  *  with the file "alpha21.txt".
  **/
-void readCOC(Ofsc& xFFT, string prefix, int k, int p);
+void read_coc(Ofsc& xFFT, string prefix, int k, int p);
 
 /**
  *   \brief Number to string inner routine, using static_cast.
- *          Example: numTostring(10) returns "10".
+ *          Example: num_to_string(10) returns "10".
  **/
-string numTostring(double num);
+string num_to_string(double num);
 
 
 #endif // CONFIG_H_INCLUDED

@@ -8,10 +8,9 @@ extern "C"{
 /**
  * \file qbcp.cpp
  * \brief Implementation of various vector fields in the Sun-Earth-Moon QBCP,
- *        as well as additional routines for inner changes of coordinates (Earth-Moon <-> Inertial <-> Sun-(Earth+Moon).
+ *        as well as additional routines for inner changes of coordinates
+ *       (Earth-Moon <-> Inertial <-> Sun-(Earth+Moon).
  * \author BLB.
- * \date May 2015
- * \version 1.0
  */
 
 
@@ -44,17 +43,17 @@ int qbfbp_vfn_novar(double t, const double y[], double f[], void *params_void)
     //Evaluate the alphas @ t
     //------------------------------------------------------------------------------------
     double alpha[noc];
-    evaluateCoef(alpha, t, n, qbp->nf, qbp->cs.coeffs, noc);
+    eval_array_coef(alpha, t, n, qbp->n_order_fourier, qbp->cs.coeffs, noc);
 
     //------------------------------------------------------------------------------------
     //Evaluate the primaries positions @ t
     //------------------------------------------------------------------------------------
     double ps[3];
-    evaluateCoef(ps, t, n, qbp->nf, qbp->cs.ps, 3);
+    eval_array_coef(ps, t, n, qbp->n_order_fourier, qbp->cs.ps, 3);
     double pe[3];
-    evaluateCoef(pe, t, n, qbp->nf, qbp->cs.pe, 3);
+    eval_array_coef(pe, t, n, qbp->n_order_fourier, qbp->cs.pe, 3);
     double pm[3];
-    evaluateCoef(pm, t, n, qbp->nf, qbp->cs.pm, 3);
+    eval_array_coef(pm, t, n, qbp->n_order_fourier, qbp->cs.pm, 3);
 
     //------------------------------------------------------------------------------------
     // Distances to 2nd power
@@ -101,17 +100,17 @@ int qbfbp_vfn_varnonlin(double t, const double y[], double f[], void *params_voi
     //2, 5, 8 odd
     //------------------------------------------------------------------------------------
     double alpha[noc];
-    evaluateCoef(alpha, t, n, qbp->nf, qbp->cs.coeffs, noc);
+    eval_array_coef(alpha, t, n, qbp->n_order_fourier, qbp->cs.coeffs, noc);
 
     //------------------------------------------------------------------------------------
     //Evaluate the primaries positions @ t
     //------------------------------------------------------------------------------------
     double ps[3];
-    evaluateCoef(ps, t, n, qbp->nf, qbp->cs.ps, 3);
+    eval_array_coef(ps, t, n, qbp->n_order_fourier, qbp->cs.ps, 3);
     double pe[3];
-    evaluateCoef(pe, t, n, qbp->nf, qbp->cs.pe, 3);
+    eval_array_coef(pe, t, n, qbp->n_order_fourier, qbp->cs.pe, 3);
     double pm[3];
-    evaluateCoef(pm, t, n, qbp->nf, qbp->cs.pm, 3);
+    eval_array_coef(pm, t, n, qbp->n_order_fourier, qbp->cs.pm, 3);
 
     //------------------------------------------------------------------------------------
     // Distances to 2nd power
@@ -178,17 +177,17 @@ int qbfbp_vf(double t, const double y[], double f[], void *params_void)
     //2, 5, 8 odd
     //------------------------------------------------------------------------------------
     double alpha[8];
-    evaluateCoef(alpha, t, n, qbp->nf, qbp->cs.coeffs, 8);
+    eval_array_coef(alpha, t, n, qbp->n_order_fourier, qbp->cs.coeffs, 8);
 
     //------------------------------------------------------------------------------------
     //Evaluate the primaries positions @ t
     //------------------------------------------------------------------------------------
     double Ps[3];
-    evaluateCoef(Ps, t, n, qbp->nf, qbp->cs.Ps, 3);
+    eval_array_coef(Ps, t, n, qbp->n_order_fourier, qbp->cs.Ps, 3);
     double Pe[3];
-    evaluateCoef(Pe, t, n, qbp->nf, qbp->cs.Pe, 3);
+    eval_array_coef(Pe, t, n, qbp->n_order_fourier, qbp->cs.Pe, 3);
     double Pm[3];
-    evaluateCoef(Pm, t, n, qbp->nf, qbp->cs.Pm, 3);
+    eval_array_coef(Pm, t, n, qbp->n_order_fourier, qbp->cs.Pm, 3);
 
     //------------------------------------------------------------------------------------
     // Distances to 2nd power
@@ -255,17 +254,17 @@ int qbfbp_vfn_varlin_trans(double t, const double y[], double f[], void *params_
     //Evaluate the alphas @ t
     //------------------------------------------------------------------------------------
     double alpha[noc];
-    evaluateCoef(alpha, t, n, qbp->nf, qbp->cs.coeffs, noc);
+    eval_array_coef(alpha, t, n, qbp->n_order_fourier, qbp->cs.coeffs, noc);
 
     //------------------------------------------------------------------------------------
     //Evaluate the primaries positions @ t
     //------------------------------------------------------------------------------------
     double ps[3];
-    evaluateCoef(ps, t, n, qbp->nf, qbp->cs.ps, 3);
+    eval_array_coef(ps, t, n, qbp->n_order_fourier, qbp->cs.ps, 3);
     double pe[3];
-    evaluateCoef(pe, t, n, qbp->nf, qbp->cs.pe, 3);
+    eval_array_coef(pe, t, n, qbp->n_order_fourier, qbp->cs.pe, 3);
     double pm[3];
-    evaluateCoef(pm, t, n, qbp->nf, qbp->cs.pm, 3);
+    eval_array_coef(pm, t, n, qbp->n_order_fourier, qbp->cs.pm, 3);
 
     //------------------------------------------------------------------------------------
     // Distances to 2nd power
@@ -277,11 +276,7 @@ int qbfbp_vfn_varlin_trans(double t, const double y[], double f[], void *params_
     //------------------------------------------------------------------------------------
     //Phase space derivatives: x', y', z', px', py', pz'
     //------------------------------------------------------------------------------------
-    if(qbp->model == Csts::ERTBP)
-    {
-        for(int i = 0; i < 6; i++) f[i] = 0.0;
-    }
-    else vfn_state(y, f, alpha, ps, pe, pm, qps2, qpe2, qpm2, ms, me, mm, gamma);
+    vfn_state(y, f, alpha, ps, pe, pm, qps2, qpe2, qpm2, ms, me, mm, gamma);
 
     //------------------------------------------------------------------------------------
     // STM derivatives, linearized case
@@ -331,17 +326,17 @@ int qbfbp_Dfn_varnonlin(double t, const double y[], double **Df, void *params_vo
     //2, 5, 8 odd
     //------------------------------------------------------------------------------------
     double alpha[noc];
-    evaluateCoef(alpha, t, n, qbp->nf, qbp->cs.coeffs, noc);
+    eval_array_coef(alpha, t, n, qbp->n_order_fourier, qbp->cs.coeffs, noc);
 
     //------------------------------------------------------------------------------------
     //Evaluate the primaries positions @ t
     //------------------------------------------------------------------------------------
     double ps[3];
-    evaluateCoef(ps, t, n, qbp->nf, qbp->cs.ps, 3);
+    eval_array_coef(ps, t, n, qbp->n_order_fourier, qbp->cs.ps, 3);
     double pe[3];
-    evaluateCoef(pe, t, n, qbp->nf, qbp->cs.pe, 3);
+    eval_array_coef(pe, t, n, qbp->n_order_fourier, qbp->cs.pe, 3);
     double pm[3];
-    evaluateCoef(pm, t, n, qbp->nf, qbp->cs.pm, 3);
+    eval_array_coef(pm, t, n, qbp->n_order_fourier, qbp->cs.pm, 3);
 
     //------------------------------------------------------------------------------------
     // Distances to 2nd power
@@ -889,17 +884,17 @@ double qbfbp_H(double t, const double y[], void *params_void)
     //2, 5, 8 odd
     //------------------------------------------------------------------------------------
     double alpha[noc];
-    evaluateCoef(alpha, t, n, qbp->nf, qbp->cs.coeffs, noc);
+    eval_array_coef(alpha, t, n, qbp->n_order_fourier, qbp->cs.coeffs, noc);
 
     //------------------------------------------------------------------------------------
     //Evaluate the primaries positions @ t
     //------------------------------------------------------------------------------------
     double Ps[3];
-    evaluateCoef(Ps, t, n, qbp->nf, qbp->cs.Ps, 3);
+    eval_array_coef(Ps, t, n, qbp->n_order_fourier, qbp->cs.Ps, 3);
     double Pe[3];
-    evaluateCoef(Pe, t, n, qbp->nf, qbp->cs.Pe, 3);
+    eval_array_coef(Pe, t, n, qbp->n_order_fourier, qbp->cs.Pe, 3);
     double Pm[3];
-    evaluateCoef(Pm, t, n, qbp->nf, qbp->cs.Pm, 3);
+    eval_array_coef(Pm, t, n, qbp->n_order_fourier, qbp->cs.Pm, 3);
 
     //------------------------------------------------------------------------------------
     // Distances to 2nd power
@@ -944,17 +939,17 @@ double qbfbp_Hn(double t, const double y[], void *params_void)
     //Evaluate the alphas @ t
     //------------------------------------------------------------------------------------
     double alpha[noc];
-    evaluateCoef(alpha, t, n, qbp->nf, qbp->cs.coeffs, noc);
+    eval_array_coef(alpha, t, n, qbp->n_order_fourier, qbp->cs.coeffs, noc);
 
     //------------------------------------------------------------------------------------
     //Evaluate the primaries positions @ t
     //------------------------------------------------------------------------------------
     double ps[3];
-    evaluateCoef(ps, t, n, qbp->nf, qbp->cs.ps, 3);
+    eval_array_coef(ps, t, n, qbp->n_order_fourier, qbp->cs.ps, 3);
     double pe[3];
-    evaluateCoef(pe, t, n, qbp->nf, qbp->cs.pe, 3);
+    eval_array_coef(pe, t, n, qbp->n_order_fourier, qbp->cs.pe, 3);
     double pm[3];
-    evaluateCoef(pm, t, n, qbp->nf, qbp->cs.pm, 3);
+    eval_array_coef(pm, t, n, qbp->n_order_fourier, qbp->cs.pm, 3);
 
     //------------------------------------------------------------------------------------
     // Distances to 2nd power
@@ -1013,17 +1008,17 @@ int qbfbp_vfn_varlin_trans_P(double t, const double y[], double f[], void *param
     //Evaluate the alphas @ t
     //------------------------------------------------------------------------------------
     double alpha[noc];
-    evaluateCoef(alpha, t, n, qbp->nf, qbp->cs.coeffs, noc);
+    eval_array_coef(alpha, t, n, qbp->n_order_fourier, qbp->cs.coeffs, noc);
 
     //------------------------------------------------------------------------------------
     //Evaluate the primaries positions @ t
     //------------------------------------------------------------------------------------
     double ps[3];
-    evaluateCoef(ps, t, n, qbp->nf, qbp->cs.ps, 3);
+    eval_array_coef(ps, t, n, qbp->n_order_fourier, qbp->cs.ps, 3);
     double pe[3];
-    evaluateCoef(pe, t, n, qbp->nf, qbp->cs.pe, 3);
+    eval_array_coef(pe, t, n, qbp->n_order_fourier, qbp->cs.pe, 3);
     double pm[3];
-    evaluateCoef(pm, t, n, qbp->nf, qbp->cs.pm, 3);
+    eval_array_coef(pm, t, n, qbp->n_order_fourier, qbp->cs.pm, 3);
 
     //------------------------------------------------------------------------------------
     // Distances to 2nd power
@@ -1035,11 +1030,7 @@ int qbfbp_vfn_varlin_trans_P(double t, const double y[], double f[], void *param
     //------------------------------------------------------------------------------------
     //Phase space derivatives: x', y', z', px', py', pz'
     //------------------------------------------------------------------------------------
-    if(qbp->model == Csts::ERTBP)
-    {
-        for(int i = 0; i < 6; i++) f[i] = 0.0;
-    }
-    else vfn_state(y, f, alpha, ps, pe, pm, qps2, qpe2, qpm2, ms, me, mm, gamma);
+    vfn_state(y, f, alpha, ps, pe, pm, qps2, qpe2, qpm2, ms, me, mm, gamma);
 
     //------------------------------------------------------------------------------------
     // STM derivatives, linearized case
@@ -1104,17 +1095,17 @@ int qbfbp_Q(double t, const double y[], gsl_matrix *Q1, gsl_matrix *Q2, gsl_matr
     //Evaluate the alphas @ t
     //------------------------------------------------------------------------------------
     double alpha[noc];
-    evaluateCoef(alpha, t, n, qbp->nf, qbp->cs.coeffs, noc);
+    eval_array_coef(alpha, t, n, qbp->n_order_fourier, qbp->cs.coeffs, noc);
 
     //------------------------------------------------------------------------------------
     //Evaluate the primaries positions @ t
     //------------------------------------------------------------------------------------
     double ps[3];
-    evaluateCoef(ps, t, n, qbp->nf, qbp->cs.ps, 3);
+    eval_array_coef(ps, t, n, qbp->n_order_fourier, qbp->cs.ps, 3);
     double pe[3];
-    evaluateCoef(pe, t, n, qbp->nf, qbp->cs.pe, 3);
+    eval_array_coef(pe, t, n, qbp->n_order_fourier, qbp->cs.pe, 3);
     double pm[3];
-    evaluateCoef(pm, t, n, qbp->nf, qbp->cs.pm, 3);
+    eval_array_coef(pm, t, n, qbp->n_order_fourier, qbp->cs.pm, 3);
 
     //------------------------------------------------------------------------------------
     // Distances to 2nd power
@@ -1186,7 +1177,7 @@ void NCtoEM(double t, const double yNC[], double yEM[], FBPL *qbp)
     //2, 5, 8 odd
     //------------------------------------------------------------------------------------
     double alpha[8];
-    evaluateCoef(alpha, t, n, qbp->nf, qbp->cs_em.coeffs, 8);
+    eval_array_coef(alpha, t, n, qbp->n_order_fourier, qbp->cs_em.coeffs, 8);
 
     //------------------------------------------------------------------------------------
     //CoC
@@ -1225,7 +1216,7 @@ void EMtoNC(double t, const double yEM[], double yNC[], FBPL *qbp)
     //2, 5, 8 odd
     //------------------------------------------------------------------------------------
     double alpha[8];
-    evaluateCoef(alpha, t, n, qbp->nf, qbp->cs_em.coeffs, 8);
+    eval_array_coef(alpha, t, n, qbp->n_order_fourier, qbp->cs_em.coeffs, 8);
 
     //------------------------------------------------------------------------------------
     //CoC
@@ -1265,7 +1256,7 @@ void NCtoSYS(double t, const double yNC[], double yEM[], FBPL *qbp)
     //2, 5, 8 odd
     //------------------------------------------------------------------------------------
     double alpha[8];
-    evaluateCoef(alpha, t, n, qbp->nf, qbp->cs.coeffs, 8);
+    eval_array_coef(alpha, t, n, qbp->n_order_fourier, qbp->cs.coeffs, 8);
 
     //------------------------------------------------------------------------------------
     //CoC
@@ -1303,7 +1294,7 @@ void SYStoNC(double t, const double yEM[], double yNC[], FBPL *qbp)
     //2, 5, 8 odd
     //------------------------------------------------------------------------------------
     double alpha[8];
-    evaluateCoef(alpha, t, n, qbp->nf, qbp->cs_em.coeffs, 8);
+    eval_array_coef(alpha, t, n, qbp->n_order_fourier, qbp->cs_em.coeffs, 8);
 
     //------------------------------------------------------------------------------------
     //CoC
@@ -1343,7 +1334,7 @@ void SEMtoNC(double t, const double ySEM[], double yNC[], FBPL *qbp)
     //2, 5, 8 odd
     //------------------------------------------------------------------------------------
     double alpha[8];
-    evaluateCoef(alpha, t, n, qbp->nf, qbp->cs_sem.coeffs, 8);
+    eval_array_coef(alpha, t, n, qbp->n_order_fourier, qbp->cs_sem.coeffs, 8);
 
     //------------------------------------------------------------------------------------
     //CoC
@@ -1380,7 +1371,7 @@ void NCtoSEM(double t, const double yNC[], double ySEM[], FBPL *qbp)
     //2, 5, 8 odd
     //------------------------------------------------------------------------------------
     double alpha[8];
-    evaluateCoef(alpha, t, n, qbp->nf, qbp->cs_sem.coeffs, 8);
+    eval_array_coef(alpha, t, n, qbp->n_order_fourier, qbp->cs_sem.coeffs, 8);
 
     //------------------------------------------------------------------------------------
     //CoC
@@ -1430,9 +1421,9 @@ void QBTBP_IN()
     Ofsc zt(fftN);
     Ofsc Zt(fftN);
     //zc
-    readOFS_txt(zt, filename+"bjc");
+    read_ofs_txt(zt, filename+"bjc");
     //Zc
-    readOFS_txt(Zt, filename+"cjc");
+    read_ofs_txt(Zt, filename+"cjc");
     //r & R
     double r1, r2, R1, R2, f1, f2;
 
@@ -1549,11 +1540,11 @@ void QBTBP_IN()
         //Time vector
         tvec[i] = t;
         //r
-        r1 = creal(evz(zt, t, n, ni, ai));
-        r2 = cimag(evz(zt, t, n, ni, ai));
+        r1 = creal(eval_z(zt, t, n, ni, ai));
+        r2 = cimag(eval_z(zt, t, n, ni, ai));
         //R
-        R1 = creal(evz(Zt, t, n, ns, as));
-        R2 = cimag(evz(Zt, t, n, ns, as));
+        R1 = creal(eval_z(Zt, t, n, ns, as));
+        R2 = cimag(eval_z(Zt, t, n, ns, as));
         //h
         f1 = R1 - mu*r1;
         f2 = R2 - mu*r2;
@@ -1725,8 +1716,8 @@ int odePlot_EMtoSEM(const double y[],
     //------------------------------------------
     //In txt files
     //------------------------------------------
-    string eXYZstr = (folder+"orbits/"+title+".txt");
-    gnuplot_fplot_txyz(tc, xc, yc, zc, Npoints, eXYZstr.c_str());   //orbit
+    string str_z_nc = (folder+"orbits/"+title+".txt");
+    gnuplot_fplot_txyz(tc, xc, yc, zc, Npoints, str_z_nc.c_str());   //orbit
 
     return GSL_SUCCESS;
 
@@ -1736,16 +1727,16 @@ int odePlot_EMtoSEM(const double y[],
  *  \brief Computes a solution in NC SEM coordinates and plot it in NC EM coordinates in a temporary gnuplot window.
  **/
 int odePlot_SEMtoEM(const double y[],
-                      double t1,
-                      gsl_odeiv2_driver *d,
-                      gnuplot_ctrl  *h1,
-                      int Npoints,
-                      char const *title,
-                      char const *ls,
-                      char const *lt,
-                      char const *lw,
-                      int lc,
-                      string folder)
+                    double t1,
+                    gsl_odeiv2_driver *d,
+                    gnuplot_ctrl  *h1,
+                    int Npoints,
+                    char const *title,
+                    char const *ls,
+                    char const *lt,
+                    char const *lw,
+                    int lc,
+                    string folder)
 {
     gsl_odeiv2_driver_reset(d);
 
@@ -1785,8 +1776,8 @@ int odePlot_SEMtoEM(const double y[],
     //------------------------------------------
     //In txt files
     //------------------------------------------
-    string eXYZstr = (folder+"orbits/"+title+".txt");
-    gnuplot_fplot_txyz(tc, xc, yc, zc, Npoints, eXYZstr.c_str());   //orbit
+    string str_z_nc = (folder+"orbits/"+title+".txt");
+    gnuplot_fplot_txyz(tc, xc, yc, zc, Npoints, str_z_nc.c_str());   //orbit
 
     return GSL_SUCCESS;
 
@@ -1815,8 +1806,8 @@ void dynTest_SEMtoEM()
 
     //CR3BPs
     CR3BP SE, EM;
-    init_CR3BP(&SE, Csts::SUN, Csts::EARTH_AND_MOON);
-    init_CR3BP(&EM, Csts::EARTH, Csts::MOON);
+    init_cr3bp(&SE, Csts::SUN, Csts::EARTH_AND_MOON);
+    init_cr3bp(&EM, Csts::EARTH, Csts::MOON);
 
     //-------------------------------------------------
     //Plotting devices
@@ -1961,8 +1952,8 @@ void dynTest_EMtoSEM()
 
     //CR3BPs
     CR3BP SE, EM;
-    init_CR3BP(&SE, Csts::SUN, Csts::EARTH_AND_MOON);
-    init_CR3BP(&EM, Csts::EARTH, Csts::MOON);
+    init_cr3bp(&SE, Csts::SUN, Csts::EARTH_AND_MOON);
+    init_cr3bp(&EM, Csts::EARTH, Csts::MOON);
 
     //Identity matrix eye(6)
     gsl_matrix *Id = gsl_matrix_calloc(6,6);

@@ -77,7 +77,7 @@ void tfs_from_ofs(matrix<Ofsc> &P,
  *  i.e. inverse of the euclidian distance from the origin, given as Fourier series.
  *
  **/
-void tfts_initCOC(matrix<Ofsc> &P,
+void tfts_init_coc(matrix<Ofsc> &P,
              matrix<Ofsc> &Q,
              matrix<Ofsc> &PC,
              matrix<Ofsc> &PCdot,
@@ -122,7 +122,7 @@ void tfts_initCOC(matrix<Ofsc> &P,
  *
  *
  **/
-void initCOC(matrix<Ofsc> &P,
+void init_coc(matrix<Ofsc> &P,
              matrix<Ofsc> &Q,
              matrix<Ofsc> &PC,
              matrix<Ofsc> &PCdot,
@@ -243,7 +243,7 @@ void applyInvDotCOC(matrix<Ofsc> &CQ,
  *  \brief Apply the inverse derivative of the change of variables at order m in zIN/zOut.
  *         The change of variables is of the form: zhdot = CQ (zdot - PCdot zh - Vdot)
  **/
-void tfts_applyInvDotCOC(matrix<Ofsc> &CQ,
+void tfts_apply_inv_coc_der(matrix<Ofsc> &CQ,
                     matrix<Ofsc> &PCdot,
                     vector<Ofsc> &Vdot,
                     vector<Oftsc> &zh,

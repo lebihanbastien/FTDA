@@ -1,9 +1,7 @@
 /**
  * \file ofs_test.cpp
- * \brief Test file for the Ofs (Fourier serie) class.
- * \author BLB.
- * \date May 2015
- * \version 1.0
+ * \brief Test file for the Ofs (Fourier series) class.
+ * \author BLB
  */
 
 #include "ofs_test.h"
@@ -18,25 +16,29 @@ using namespace std;
 void ofs_test()
 {
     char ch;
+    //------------------------------------------------------------------------------------
+    // Splash
+    //------------------------------------------------------------------------------------
     cout << "---------------------------------------------------" << endl;
     cout << "                                                   " << endl;
     cout << "    Test routine for the Ofs class                 " << endl;
+    cout << "           (Fourier series)                        " << endl;
     cout << "                                                   " << endl;
     cout << "---------------------------------------------------" << endl;
-    cout << "The following public functions are not tested:     " << endl;
+    cout << "The following public functions are NOT tested:     " << endl;
     cout << "---------------------------------------------------" << endl;
     cout << "- The constructors" << endl;
     cout << "- The destructor " << endl;
     cout << "- Ofs<T>& ccopy(Ofs<T> const& ofs_); " << endl;
     cout << "- Ofs<T>& lcopy(Ofs<T> const& ofs_); " << endl;
-    cout << "- void setCoef(T const value, int const pos); " << endl;
-    cout << "- void addCoef(T const value, int const pos); " << endl;
-    cout << "- void setAllCoefs(T const value); " << endl;
-    cout << "- int getOrder() const; " << endl;
-    cout << "- Ofs* getAddress() const; " << endl;
-    cout << "- T getCoef(int pos) const; " << endl;
-    cout << "- void getCoefMaxNorm(double maxAbs[]) const; " << endl;
-    cout << "- double getCoefMaxNorm() const; " << endl;
+    cout << "- void set_coef(T const value, int const pos); " << endl;
+    cout << "- void add_coef(T const value, int const pos); " << endl;
+    cout << "- void set_all_coefs(T const value); " << endl;
+    cout << "- int get_order() const; " << endl;
+    cout << "- Ofs* get_ptr() const; " << endl;
+    cout << "- T get_coef(int pos) const; " << endl;
+    cout << "- void get_coef_max_norm(double maxAbs[]) const; " << endl;
+    cout << "- double get_coef_max_norm() const; " << endl;
     cout << "- void zero(); " << endl;
     cout << "- Ofs<T>& operator  = (Ofs<T> const& ofs_); " << endl;
     cout << "- Ofs<T>& operator  = (T const& coef0); " << endl;
@@ -88,9 +90,9 @@ void ofs_test()
     scanf("%c",&ch);
 
 
-    //------------------------
+    //------------------------------------------------------------------------------------
     // Tests.
-    //------------------------
+    //------------------------------------------------------------------------------------
     ofs_test_pows();;
     cout << "Press Enter to proceed with the tests." << endl;
     scanf("%c",&ch);
@@ -156,7 +158,7 @@ void ofs_test_conjugate()
 {
 
     cout << "---------------------------------------------------" << endl;
-    cout << "    Test of the routine: void conjugate().         " << endl;
+    cout << "    Test of the routine: void conjugate()          " << endl;
     cout << "---------------------------------------------------" << endl;
 
 
@@ -167,8 +169,8 @@ void ofs_test_conjugate()
     cdouble resd1, resd2;
 
     //Set random coefs in xd and xdc
-    xd.setRandomCoefs();
-    xdc.setRandomCoefs();
+    xd.set_random_coefs();
+    xdc.set_random_coefs();
 
     //Set results
     res1  = conj(xd.evaluate(VAR));
@@ -221,10 +223,10 @@ void ofs_test_operators()
     cdouble cd = 2.0 + 1.0*I;
 
     //Set random coefs in xd and xdc
-    xd.setRandomCoefs();
-    xd2.setRandomCoefs();
-    xdc.setRandomCoefs();
-    xdc2.setRandomCoefs();
+    xd.set_random_coefs();
+    xd2.set_random_coefs();
+    xdc.set_random_coefs();
+    xdc2.set_random_coefs();
 
     //------------------------
     // Operator +=
@@ -559,8 +561,8 @@ void ofs_test_operators()
     cout << "Obtained result: " << creal(res2) << cimag(res2) << "i" << endl;
     res2 -= res1;
     cout << "Delta: " << cabs(res2) << endl;
-    cout << "Expected error : " << cabs(sprod_expectedError(xd, xd2, VAR)) << endl;
-    cout << "Corrected delta: " << cabs(res2 + sprod_expectedError(xd, xd2, VAR)) << endl;
+    cout << "Expected error : " << cabs(sprod_expct_error(xd, xd2, VAR)) << endl;
+    cout << "Corrected delta: " << cabs(res2 + sprod_expct_error(xd, xd2, VAR)) << endl;
 
     //Comparison. double case
     cout << "2. cdouble case.         " << endl;
@@ -568,8 +570,8 @@ void ofs_test_operators()
     cout << "Obtained result: " << creal(resd2)  << cimag(resd2)  << "i" << endl;
     resd2 -= resd1;
     cout << "Delta: " << cabs(resd2) << endl;
-    cout << "Expected error : " << cabs(sprod_expectedError(xdc, xdc2,  VAR)) << endl;
-    cout << "Corrected delta: " << cabs(resd2 + sprod_expectedError(xdc, xdc2, VAR)) << endl;
+    cout << "Expected error : " << cabs(sprod_expct_error(xdc, xdc2,  VAR)) << endl;
+    cout << "Corrected delta: " << cabs(resd2 + sprod_expct_error(xdc, xdc2, VAR)) << endl;
 }
 
 /**
@@ -595,13 +597,13 @@ void ofs_test_sprod()
     cdouble resd1, resd2;
 
     //Set random coefs in xd and xdc
-    xd1.setRandomCoefs();
-    xd2.setRandomCoefs();
-    xd3.setRandomCoefs();
+    xd1.set_random_coefs();
+    xd2.set_random_coefs();
+    xd3.set_random_coefs();
 
-    xdc1.setRandomCoefs();
-    xdc2.setRandomCoefs();
-    xdc3.setRandomCoefs();
+    xdc1.set_random_coefs();
+    xdc2.set_random_coefs();
+    xdc3.set_random_coefs();
 
     //Set results
     res1  = xd1.evaluate(VAR) + xd2.evaluate(VAR)*xd3.evaluate(VAR);
@@ -621,8 +623,8 @@ void ofs_test_sprod()
     cout << "Obtained result: " << creal(res2) << cimag(res2) << "i" << endl;
     res2 -= res1;
     cout << "Delta: " << cabs(res2) << endl;
-    cout << "Expected error : " << cabs(sprod_expectedError(xd2, xd3, VAR)) << endl;
-    cout << "Corrected delta: " << cabs(res2 + sprod_expectedError(xd2, xd3, VAR)) << endl;
+    cout << "Expected error : " << cabs(sprod_expct_error(xd2, xd3, VAR)) << endl;
+    cout << "Corrected delta: " << cabs(res2 + sprod_expct_error(xd2, xd3, VAR)) << endl;
 
 
     //Comparison. double case
@@ -631,8 +633,8 @@ void ofs_test_sprod()
     cout << "Obtained result: " << creal(resd2)  << cimag(resd2)  << "i" << endl;
     resd2 -= resd1;
     cout << "Delta: " << cabs(resd2) << endl;
-    cout << "Expected error : " << cabs(sprod_expectedError(xdc2, xdc3, VAR)) << endl;
-    cout << "Corrected delta: " << cabs(resd2 + sprod_expectedError(xdc2, xdc3, VAR)) << endl;
+    cout << "Expected error : " << cabs(sprod_expct_error(xdc2, xdc3, VAR)) << endl;
+    cout << "Corrected delta: " << cabs(resd2 + sprod_expct_error(xdc2, xdc3, VAR)) << endl;
 }
 
 /**
@@ -658,13 +660,13 @@ void ofs_test_prod()
     cdouble resd1, resd2;
 
     //Set random coefs in xd and xdc
-    xd1.setRandomCoefs();
-    xd2.setRandomCoefs();
-    xd3.setRandomCoefs();
+    xd1.set_random_coefs();
+    xd2.set_random_coefs();
+    xd3.set_random_coefs();
 
-    xdc1.setRandomCoefs();
-    xdc2.setRandomCoefs();
-    xdc3.setRandomCoefs();
+    xdc1.set_random_coefs();
+    xdc2.set_random_coefs();
+    xdc3.set_random_coefs();
 
     //Set results
     res1  = xd2.evaluate(VAR)*xd3.evaluate(VAR);
@@ -684,8 +686,8 @@ void ofs_test_prod()
     cout << "Obtained result: " << creal(res2) << cimag(res2) << "i" << endl;
     res2 -= res1;
     cout << "Delta: " << cabs(res2) << endl;
-    cout << "Expected error : " << cabs(sprod_expectedError(xd2, xd3, VAR)) << endl;
-    cout << "Corrected delta: " << cabs(res2 + sprod_expectedError(xd2, xd3, VAR)) << endl;
+    cout << "Expected error : " << cabs(sprod_expct_error(xd2, xd3, VAR)) << endl;
+    cout << "Corrected delta: " << cabs(res2 + sprod_expct_error(xd2, xd3, VAR)) << endl;
 
 
     //Comparison. double case
@@ -694,8 +696,8 @@ void ofs_test_prod()
     cout << "Obtained result: " << creal(resd2)  << cimag(resd2)  << "i" << endl;
     resd2 -= resd1;
     cout << "Delta: " << cabs(resd2) << endl;
-    cout << "Expected error : " << cabs(sprod_expectedError(xdc2, xdc3, VAR)) << endl;
-    cout << "Corrected delta: " << cabs(resd2 + sprod_expectedError(xdc2, xdc3, VAR)) << endl;
+    cout << "Expected error : " << cabs(sprod_expct_error(xdc2, xdc3, VAR)) << endl;
+    cout << "Corrected delta: " << cabs(resd2 + sprod_expct_error(xdc2, xdc3, VAR)) << endl;
 }
 
 /**
@@ -725,13 +727,13 @@ void ofs_test_smprod()
     cdouble cd = 2.0 + 1.0*I;
 
     //Set random coefs in xd and xdc
-    xd1.setRandomCoefs();
-    xd2.setRandomCoefs();
-    xd3.setRandomCoefs();
+    xd1.set_random_coefs();
+    xd2.set_random_coefs();
+    xd3.set_random_coefs();
 
-    xdc1.setRandomCoefs();
-    xdc2.setRandomCoefs();
-    xdc3.setRandomCoefs();
+    xdc1.set_random_coefs();
+    xdc2.set_random_coefs();
+    xdc3.set_random_coefs();
 
     //Set results
     res1  = xd1.evaluate(VAR) + c*xd2.evaluate(VAR)*xd3.evaluate(VAR);
@@ -751,8 +753,8 @@ void ofs_test_smprod()
     cout << "Obtained result: " << creal(res2) << cimag(res2) << "i" << endl;
     res2 -= res1;
     cout << "Delta: " << cabs(res2) << endl;
-    cout << "Expected error : " << cabs(smprod_expectedError(xd2, xd3, c, VAR)) << endl;
-    cout << "Corrected delta: " << cabs(res2 + smprod_expectedError(xd2, xd3, c, VAR)) << endl;
+    cout << "Expected error : " << cabs(smprod_expct_error(xd2, xd3, c, VAR)) << endl;
+    cout << "Corrected delta: " << cabs(res2 + smprod_expct_error(xd2, xd3, c, VAR)) << endl;
 
 
     //Comparison. double case
@@ -761,8 +763,8 @@ void ofs_test_smprod()
     cout << "Obtained result: " << creal(resd2)  << cimag(resd2)  << "i" << endl;
     resd2 -= resd1;
     cout << "Delta: " << cabs(resd2) << endl;
-    cout << "Expected error : " << cabs(smprod_expectedError(xdc2, xdc3, cd, VAR)) << endl;
-    cout << "Corrected delta: " << cabs(resd2 + smprod_expectedError(xdc2, xdc3, cd, VAR)) << endl;
+    cout << "Expected error : " << cabs(smprod_expct_error(xdc2, xdc3, cd, VAR)) << endl;
+    cout << "Corrected delta: " << cabs(resd2 + smprod_expct_error(xdc2, xdc3, cd, VAR)) << endl;
 }
 
 /**
@@ -793,15 +795,15 @@ void ofs_test_smprod_t()
     cdouble resd1, resd2;
 
     //Set random coefs in xd and xdc
-    xd1.setRandomCoefs();
-    xd2.setRandomCoefs();
-    xd3.setRandomCoefs();
-    xd4.setRandomCoefs();
+    xd1.set_random_coefs();
+    xd2.set_random_coefs();
+    xd3.set_random_coefs();
+    xd4.set_random_coefs();
 
-    xdc1.setRandomCoefs();
-    xdc2.setRandomCoefs();
-    xdc3.setRandomCoefs();
-    xdc4.setRandomCoefs();
+    xdc1.set_random_coefs();
+    xdc2.set_random_coefs();
+    xdc3.set_random_coefs();
+    xdc4.set_random_coefs();
 
     //Set results
     res1  = xd1.evaluate(VAR) + xd4.evaluate(VAR)*xd2.evaluate(VAR)*xd3.evaluate(VAR);
@@ -857,13 +859,13 @@ void ofs_test_mprod()
     cdouble cd = 2.0 + 1.0*I;
 
     //Set random coefs in xd and xdc
-    xd1.setRandomCoefs();
-    xd2.setRandomCoefs();
-    xd3.setRandomCoefs();
+    xd1.set_random_coefs();
+    xd2.set_random_coefs();
+    xd3.set_random_coefs();
 
-    xdc1.setRandomCoefs();
-    xdc2.setRandomCoefs();
-    xdc3.setRandomCoefs();
+    xdc1.set_random_coefs();
+    xdc2.set_random_coefs();
+    xdc3.set_random_coefs();
 
     //Set results
     res1  = c*xd2.evaluate(VAR)*xd3.evaluate(VAR);
@@ -883,8 +885,8 @@ void ofs_test_mprod()
     cout << "Obtained result: " << creal(res2) << cimag(res2) << "i" << endl;
     res2 -= res1;
     cout << "Delta: " << cabs(res2) << endl;
-    cout << "Expected error : " << cabs(smprod_expectedError(xd2, xd3, c, VAR)) << endl;
-    cout << "Corrected delta: " << cabs(res2 + smprod_expectedError(xd2, xd3, c, VAR)) << endl;
+    cout << "Expected error : " << cabs(smprod_expct_error(xd2, xd3, c, VAR)) << endl;
+    cout << "Corrected delta: " << cabs(res2 + smprod_expct_error(xd2, xd3, c, VAR)) << endl;
 
 
     //Comparison. double case
@@ -893,8 +895,8 @@ void ofs_test_mprod()
     cout << "Obtained result: " << creal(resd2)  << cimag(resd2)  << "i" << endl;
     resd2 -= resd1;
     cout << "Delta: " << cabs(resd2) << endl;
-    cout << "Expected error : " << cabs(smprod_expectedError(xdc2, xdc3, cd, VAR)) << endl;
-    cout << "Corrected delta: " << cabs(resd2 + smprod_expectedError(xdc2, xdc3, cd, VAR)) << endl;
+    cout << "Expected error : " << cabs(smprod_expct_error(xdc2, xdc3, cd, VAR)) << endl;
+    cout << "Corrected delta: " << cabs(resd2 + smprod_expct_error(xdc2, xdc3, cd, VAR)) << endl;
 }
 
 /**
@@ -920,10 +922,10 @@ void ofs_test_smult()
     cdouble cd = 2.0 + 1.0*I;
 
     //Set random coefs in xd and xdc
-    xd.setRandomCoefs();
-    xd2.setRandomCoefs();
-    xdc.setRandomCoefs();
-    xdc2.setRandomCoefs();
+    xd.set_random_coefs();
+    xd2.set_random_coefs();
+    xdc.set_random_coefs();
+    xdc2.set_random_coefs();
 
     //Set results
     res1  =  xd.evaluate(VAR) + c*xd2.evaluate(VAR);
@@ -975,10 +977,10 @@ void ofs_test_mult()
     cdouble cd = 2.0 + 1.0*I;
 
     //Set random coefs in xd and xdc
-    xd.setRandomCoefs();
-    xd2.setRandomCoefs();
-    xdc.setRandomCoefs();
-    xdc2.setRandomCoefs();
+    xd.set_random_coefs();
+    xd2.set_random_coefs();
+    xdc.set_random_coefs();
+    xdc2.set_random_coefs();
 
     //Set results
     res1  =  c*xd2.evaluate(VAR);
@@ -1037,12 +1039,12 @@ void ofs_test_fsum()
     cdouble cd2 = 1.0 + 3.0*I;
 
     //Set random coefs in xd and xdc
-    xd.setRandomCoefs();
-    xd2.setRandomCoefs();
-    xd3.setRandomCoefs();
-    xdc.setRandomCoefs();
-    xdc2.setRandomCoefs();
-    xdc3.setRandomCoefs();
+    xd.set_random_coefs();
+    xd2.set_random_coefs();
+    xd3.set_random_coefs();
+    xdc.set_random_coefs();
+    xdc2.set_random_coefs();
+    xdc3.set_random_coefs();
 
     //Set results
     res1  =  c*xd2.evaluate(VAR) + c2*xd3.evaluate(VAR);
@@ -1095,8 +1097,8 @@ void ofs_test_dot()
     double n  = 0.925195985520347;
 
     //Set random coefs in xd and xdc
-    xdc.setRandomCoefs();
-    xdc2.setRandomCoefs();
+    xdc.set_random_coefs();
+    xdc2.set_random_coefs();
 
     //------------------------
     // Ofs<T>& dot(Ofs<T> const& a, double const& n)
@@ -1170,16 +1172,16 @@ void ofs_test_epspow()
     double alpha = 2.0;
 
     //Set random coefs in xd and xdc
-    xdc.setRandomCoefs();
-    xdc2.setRandomCoefs();
+    xdc.set_random_coefs();
+    xdc2.set_random_coefs();
     //Increase the condition |d| << 1
     xdc2.ofs_mult(xdc, 1e-2+0.0*I);
     //Put coef zero to 1.0
-    xdc2.setCoef(1.0,0);
+    xdc2.set_coef(1.0,0);
 
-    double factor = cabs(xdc2.ofs_getCoef(1));
+    double factor = cabs(xdc2.ofs_get_coef(1));
     cout <<  setw(5) << setprecision(1) << setiosflags(ios::scientific);
-    cout << "Here, there is a factor ~" << factor << " between the order zero (equal to 1.0) " << endl;
+    cout << "Here, there is a factor ~" << factor << " between the order zero an one " << endl;
     cout << "and the order one." << endl;
     cout <<  setw(5) << setprecision(15) << std::showpos  <<  setiosflags(ios::scientific);
 
@@ -1221,7 +1223,7 @@ void ofs_test_epspow()
 void ofs_test_pows()
 {
     cout << "----------------------------------------------------------------------" << endl;
-    cout << "    Test of the routine:                                              " << endl;
+    cout << "    Test of the power routine:                                        " << endl;
     cout << " Ofs<T>& ofs_pows(Ofs<T> const& a, T const& alpha, Ofs<T> const& temp)" << endl;
     cout << "----------------------------------------------------------------------" << endl;
     //Initialization
@@ -1232,8 +1234,8 @@ void ofs_test_pows()
     double n  = 0.925195985520347;
 
     //Set random coefs in xd and xdc
-    //xdc2.setRandomCoefs();
-    readOFS_txt(xdc2, "test/test2_fft");
+    //xdc2.set_random_coefs();
+    read_ofs_txt(xdc2, "test/test2_fft");
 
     double alpha = 2.0;
     cout << "1. Results for alpha = +2.0" << endl;

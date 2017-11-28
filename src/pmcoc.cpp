@@ -248,26 +248,26 @@ void CCMtoTFC(cdouble s0[],
         cdouble temp;
         // zIn[0]
         //---------------
-        temp = Wh[0].getCoef(1,0)->ofs_getCoef(0);
-        zIn[0].setCoef(temp*s0[0],0);
+        temp = Wh[0].get_coef(1,0)->ofs_get_coef(0);
+        zIn[0].set_coef(temp*s0[0],0);
         // zIn[1]
         //---------------
         Wh[1].evaluate(s0, zIn[1], order, ofs_order);
         // zIn[2]
         //---------------
-        temp = Wh[2].getCoef(1,1)->ofs_getCoef(0);
-        zIn[2].setCoef(temp*s0[1],0);
+        temp = Wh[2].get_coef(1,1)->ofs_get_coef(0);
+        zIn[2].set_coef(temp*s0[1],0);
         // zIn[3]
         //---------------
-        temp = Wh[3].getCoef(1,2)->ofs_getCoef(0);
-        zIn[3].setCoef(temp*s0[2],0);
+        temp = Wh[3].get_coef(1,2)->ofs_get_coef(0);
+        zIn[3].set_coef(temp*s0[2],0);
         // zIn[4]
         //---------------
         Wh[4].evaluate(s0, zIn[4], order, ofs_order);
         // zIn[5]
         //---------------
-        temp = Wh[5].getCoef(1,3)->ofs_getCoef(0);
-        zIn[5].setCoef(temp*s0[3],0);
+        temp = Wh[5].get_coef(1,3)->ofs_get_coef(0);
+        zIn[5].set_coef(temp*s0[3],0);
     }
     else
     {
@@ -751,7 +751,7 @@ void CCM8toRVF8(const double s8[],
 }
 
 /**
- *  \brief Test of the RCMtoNC routines. Requires initCM().
+ *  \brief Test of the RCMtoNC routines. Requires init_inv_man().
  **/
 void testRCMtoNC()
 {
@@ -770,14 +770,14 @@ void testRCMtoNC()
     matrix<Ofsc> Q(6,6);
     matrix<Ofsc> CQ(6,6);
     vector<Ofsc> V(6);
-    initCOC(P, PC, Q, CQ, V, SEML);
+    init_coc(P, PC, Q, CQ, V, SEML);
 
-    //Orders from initCM()
-    int order     = CM[0].getOrder();
-    int ofs_order = CM[0].getCOrder();
+    //Orders from init_inv_man()
+    int order     = CM[0].get_order();
+    int ofs_order = CM[0].get_coef_order();
 
     //Temp OFS variable
-    Ofsc ofs(CM[0].getCOrder());
+    Ofsc ofs(CM[0].get_coef_order());
 
     //Results stored in:
     double z1[6], z1_QBCP[6];
@@ -828,7 +828,7 @@ void NCprojCCM(const double z[], const double t, const double n, const int ofs_o
         zh[k] = 0.0+0.0*I;
         for(int p = 0; p <6; p++)
         {
-            zh[k] += zd[p]* CQ.getCoef(k, p).evaluate(n*t, ofs_order);
+            zh[k] += zd[p]* CQ.get_coef(k, p).evaluate(n*t, ofs_order);
         }
     }
 
@@ -878,8 +878,8 @@ void pmProjTest(double si[4])
     RCMtoNCbyTFC(si, 1.0, SEML.us_em.n, OFTS_ORDER, OFS_ORDER, CMh, Mcoc, Vcoc, z, 1);
 
     //NC proj in CCM
-    double omega1 = cimag(Fh[0].getCoef(1,0)->ofs_getCoef(0));
-    double omega3 = cimag(Fh[1].getCoef(1,1)->ofs_getCoef(0));
+    double omega1 = cimag(Fh[0].get_coef(1,0)->ofs_get_coef(0));
+    double omega3 = cimag(Fh[1].get_coef(1,1)->ofs_get_coef(0));
     NCprojCCM(z, 1.0, SEML.us_em.n, OFS_ORDER, MIcoc, Vcoc, omega1, omega3, sc, 4);
 
     //CCM to RCM

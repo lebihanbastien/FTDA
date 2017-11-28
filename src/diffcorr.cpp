@@ -1035,10 +1035,10 @@ int differential_correction_T(double ystart[], double t1, double eps_diff, gsl_o
 //----------------------------------------------------------------------------------------
 /**
  *  \brief Integrate the state y[] up to t = t1 on a Npoints grid, in either NC or SYS coordinates, and plot the corresponding result in SYS coordinates (e.g. EM or SEM coord.).
- *         Then the results are plotted on a temporary gnuplot window via the handle *h1. Print in txt files is included vis \c isStored integer.
+ *         Then the results are plotted on a temporary gnuplot window via the handle *h1. Print in txt files is included vis \c is_stored integer.
  **/
 int odePlot2(const double y[], int N, double t1, gsl_odeiv2_driver *d,
-             gnuplot_ctrl  *h1, int Npoints, int color, int isNorm, int isStored,
+             gnuplot_ctrl  *h1, int Npoints, int color, int is_norm, int is_stored,
              string legend, string filename)
 {
     //------------------------------------------
@@ -1059,7 +1059,7 @@ int odePlot2(const double y[], int N, double t1, gsl_odeiv2_driver *d,
     double ti = 0;
 
     //First point
-    if(isNorm)
+    if(is_norm)
     {
         NCtoSYS(0.0, ys, ye, qbp);
         xEM[0] = ye[0];
@@ -1081,7 +1081,7 @@ int odePlot2(const double y[], int N, double t1, gsl_odeiv2_driver *d,
         ti = i * t1 / Npoints;
         gsl_odeiv2_driver_apply (d, &t, ti, ys);
         //Update the SYS state
-        if(isNorm)
+        if(is_norm)
         {
             NCtoSYS(ti, ys, ye, qbp);
             xEM[i] = ye[0];
@@ -1107,7 +1107,7 @@ int odePlot2(const double y[], int N, double t1, gsl_odeiv2_driver *d,
     //------------------------------------------
     //In txt files
     //------------------------------------------
-    if(isStored)
+    if(is_stored)
     gnuplot_fplot_xy(xEM, yEM, Npoints, filename.c_str());   //orbit
 
     return GSL_SUCCESS;
@@ -1120,7 +1120,7 @@ int odePlot2(const double y[], int N, double t1, gsl_odeiv2_driver *d,
  *         Then the results are plotted on a temporary gnuplot window via the handle *h1.
  **/
 int odePlotvec(double **ymdn, double *tmdn, int N, int mgs, gsl_odeiv2_driver *d,
-               gnuplot_ctrl  *h1, int Npoints, int color, int isNorm, string legend)
+               gnuplot_ctrl  *h1, int Npoints, int color, int is_norm, string legend)
 {
     //------------------------------------------------------------------------------------
     // Init
@@ -1147,7 +1147,7 @@ int odePlotvec(double **ymdn, double *tmdn, int N, int mgs, gsl_odeiv2_driver *d
         ts  = tmdn[k];
 
         //Update the SYS state
-        if(isNorm)
+        if(is_norm)
         {
             NCtoSYS(ts, ys, ye, qbp);
             xEM[0] = ye[0];
@@ -1168,7 +1168,7 @@ int odePlotvec(double **ymdn, double *tmdn, int N, int mgs, gsl_odeiv2_driver *d
             gsl_odeiv2_driver_apply (d, &ts, ti, ys);
 
             //Update the SYS state
-            if(isNorm)
+            if(is_norm)
             {
                 NCtoSYS(ts, ys, ye, qbp);
                 xEM[i] = ye[0];
@@ -1468,8 +1468,8 @@ int odePrintGen(const double y[],
     //------------------------------------------
     //In txt files
     //------------------------------------------
-    string eXYZstr = (folder+"orbits/"+title+".txt");
-    gnuplot_fplot_txyz(tc, xc, yc, zc, Npoints, eXYZstr.c_str());   //orbit
+    string str_z_nc = (folder+"orbits/"+title+".txt");
+    gnuplot_fplot_txyz(tc, xc, yc, zc, Npoints, str_z_nc.c_str());   //orbit
 
     return GSL_SUCCESS;
 }

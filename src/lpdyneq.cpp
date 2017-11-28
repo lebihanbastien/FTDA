@@ -22,9 +22,9 @@
  *          + the differential corrector.
  *         - After lpdyneq, the resulting initial conditions are integrated and plotted on a full orbit.
  *         - Finally, a test of the periodicity of the orbit is performed, via the computation of the error |y(0) - y(T)|.
- *         - If isStored is true, the results (x(t), y(t)) in synodical coordinates are stored in txt files of the form: "./plot/QBCP/DYNEQ/DYNEQ_QBCP_EM_L1.txt".
+ *         - If is_stored is true, the results (x(t), y(t)) in synodical coordinates are stored in txt files of the form: "./plot/QBCP/DYNEQ/DYNEQ_QBCP_EM_L1.txt".
  **/
-void compute_dyn_eq_lib_point(FBPL &fbpl, int isStored)
+void compute_dyn_eq_lib_point(FBPL &fbpl, int is_stored)
 {
     //====================================================================================
     // 1. Initialization
@@ -42,7 +42,7 @@ void compute_dyn_eq_lib_point(FBPL &fbpl, int isStored)
     //------------------------------------------------------------------------------------
     //System
     gsl_odeiv2_system sys;
-    sys.function      = fbpl.isNorm? qbfbp_vfn_varnonlin:qbfbp_vf;
+    sys.function      = fbpl.is_norm? qbfbp_vfn_varnonlin:qbfbp_vf;
     sys.jacobian      = NULL;
     sys.dimension     = 42;
     sys.params        = &fbpl;
@@ -56,9 +56,9 @@ void compute_dyn_eq_lib_point(FBPL &fbpl, int isStored)
 
     //Building the filename
     string f_model  = init_F_MODEL(fbpl.model);
-    string f_csys   = init_F_COORDSYS(fbpl.coordsys);
+    string f_csys   = init_F_COORDSYS(fbpl.coord_sys);
     string f_li     = init_F_LI(fbpl.li);
-    string f_norm   = fbpl.isNorm?"_NC":"";
+    string f_norm   = fbpl.is_norm?"_NC":"";
     string filename = "plot/"+f_model+"/DYNEQ/DYNEQ_"+f_model+"_"+f_csys+"_"+f_li+f_norm+".txt";
 
     //====================================================================================
@@ -89,12 +89,12 @@ void compute_dyn_eq_lib_point(FBPL &fbpl, int isStored)
     int Npoints = 500;
 
     //Building the solution and printing in file
-    odePlot2(y0, 42, fbpl.us.T, d, h1, Npoints, 6, fbpl.isNorm, isStored, "From single shooting", filename.c_str());
+    odePlot2(y0, 42, fbpl.us.T, d, h1, Npoints, 6, fbpl.is_norm, is_stored, "From single shooting", filename.c_str());
 
     //====================================================================================
     // 5. Periodicity condition for single shooting
     //====================================================================================
-    periodicity_condition(y0, 42, 6, fbpl.us.T, d, fbpl.isNorm);
+    periodicity_condition(y0, 42, 6, fbpl.us.T, d, fbpl.is_norm);
 
     //====================================================================================
     // 6. Multiple shooting
@@ -142,7 +142,7 @@ void lpdyneq(gsl_odeiv2_driver *d, double y0[])
 
     //Retrieving the parameters
     FBPL* qbp      = (FBPL *) d->sys->params;
-    int isNorm =  qbp->isNorm;
+    int is_norm =  qbp->is_norm;
     int li           =  qbp->cs.li;
     double tend      =  qbp->us.T;
 
@@ -155,13 +155,13 @@ void lpdyneq(gsl_odeiv2_driver *d, double y0[])
     //------------------------------------------------------------------------------------
     //Approximated position from CR3BP
     //------------------------------------------------------------------------------------
-    if(isNorm)
+    if(is_norm)
     {
         //Approximated position from CR3BP: null vector
         for(int i =0; i<6; i++) y0[i] = 0.0;
 
         //€€TODO: BCP case is a work in progress. works only for EML1
-        if(qbp->model == Csts::BCP && qbp->coordsys == Csts::EM && qbp->li_EM == 1)
+        if(qbp->model == Csts::BCP && qbp->coord_sys == Csts::EM && qbp->li_EM == 1)
         {
             //Forced IC
             y0[0] = +4.584016186756542e-03;
@@ -190,7 +190,7 @@ void lpdyneq(gsl_odeiv2_driver *d, double y0[])
             break;
         }
 
-        switch(SEML.coordsys)
+        switch(SEML.coord_sys)
         {
         case Csts::EM:
         {
@@ -223,22 +223,19 @@ void lpdyneq(gsl_odeiv2_driver *d, double y0[])
     // 2. Differential correction scheme
     //====================================================================================
     //Initial IC
-    cout << "lpdyneq. initial IC:" << endl;
+    cout << "lpdyneq. Initial state:" << endl;
     for(int i =0; i < 6; i++) cout << y0[i] << endl;
 
     double prec = 2e-14;
-    if(qbp->model != Csts::ERTBP)
-    {
-        cout << "lpdyneq. Starting differential correction..." << endl;
-        differential_correction(y0, 0.5*tend, prec, d, 42, 0);
-        cout << "lpdyneq. End of differential correction." << endl;
-    }
+    cout << "lpdyneq. Starting differential correction..." << endl;
+    differential_correction(y0, 0.5*tend, prec, d, 42, 0);
+    cout << "lpdyneq. End of differential correction." << endl;
 
     //====================================================================================
     // 3. Print result
     //====================================================================================
     //Final IC
-    cout << "lpdyneq. final IC:" << endl;
+    cout << "lpdyneq. Final state:" << endl;
     for(int i =0; i<6; i++) cout << y0[i] << endl;
 }
 
@@ -281,7 +278,7 @@ void lpdyneq_cont_2(gsl_odeiv2_driver *d, gsl_odeiv2_control * loose_control, gs
     QBCP_I* qbpi     =  (QBCP_I *) d->sys->params;
     FBPL* qbp1     =  &qbpi->model1;              //First model, full model when qpbi->epsilon = 0.0, at the beginning of the process.
     FBPL* qbp2     =  &qbpi->model2;              //First model, full model when qpbi->epsilon = 1.0, at the end of the process.
-    int isNorm =  qbp1->isNorm;
+    int is_norm =  qbp1->is_norm;
     int li           =  qbp1->cs.li;
     //Full period of the Sun
     double tend = 2*M_PI/qbp2->us.n;
@@ -290,15 +287,15 @@ void lpdyneq_cont_2(gsl_odeiv2_driver *d, gsl_odeiv2_control * loose_control, gs
     // Evaluate the alphas
     //------------------------------------------------------------------------------------
     double alphaf[8];
-    evaluateCoef(alphaf, 0.0, qbp1->us.n,  qbp1->nf, qbp1->cs.coeffs, 8);
+    eval_array_coef(alphaf, 0.0, qbp1->us.n,  qbp1->n_order_fourier, qbp1->cs.coeffs, 8);
 
     //============================================================
     // 2. Initialization
     //============================================================
     //CR3BPs
     CR3BP EM, SE;
-    init_CR3BP(&EM, Csts::EARTH, Csts::MOON);
-    init_CR3BP(&SE, Csts::SUN, Csts::EARTH_AND_MOON);
+    init_cr3bp(&EM, Csts::EARTH, Csts::MOON);
+    init_cr3bp(&SE, Csts::SUN, Csts::EARTH_AND_MOON);
 
     //------------------------------------------------------------------------------------
     //Period that we seek: To = fT*Ts
@@ -314,7 +311,7 @@ void lpdyneq_cont_2(gsl_odeiv2_driver *d, gsl_odeiv2_control * loose_control, gs
     for(int i =0; i<6; i++) yv[i] = 0.0;
 
     //Switch on the coordinate system
-    switch(qbp1->coordsys)
+    switch(qbp1->coord_sys)
     {
     case Csts::EM:
         switch(li)
@@ -356,7 +353,7 @@ void lpdyneq_cont_2(gsl_odeiv2_driver *d, gsl_odeiv2_control * loose_control, gs
     //------------------------------------------------------------------------------------
     //Transform into y0 if NC coordinates are used
     //------------------------------------------------------------------------------------
-    if(isNorm)
+    if(is_norm)
     {
         //To NC
         SYStoNC(0.0, yf, y0, qbp1);
@@ -439,8 +436,8 @@ void lpdyneq_cont_2(gsl_odeiv2_driver *d, gsl_odeiv2_control * loose_control, gs
     y0n[4] = y0[4] + ds*nullvector[1];
     NCtoSYS(0.0, y0, ym, qbp1);
     NCtoSYS(0.0, y0n, ymn, qbp1);
-    string cmd = "set arrow from "+ numTostring(ym[0]) +","+numTostring(qbpi->epsilon);
-    cmd +=" to " + numTostring(factor*ymn[0])+","+numTostring(factor*(qbpi->epsilon +ds*nullvector[2]));
+    string cmd = "set arrow from "+ num_to_string(ym[0]) +","+num_to_string(qbpi->epsilon);
+    cmd +=" to " + num_to_string(factor*ymn[0])+","+num_to_string(factor*(qbpi->epsilon +ds*nullvector[2]));
     gnuplot_cmd(h2, cmd.c_str());
     gnuplot_plot_xy(h2, ym, &(qbpi->epsilon), 1, "", "points", "7", "3", 1);
 
@@ -485,7 +482,7 @@ void lpdyneq_cont_2(gsl_odeiv2_driver *d, gsl_odeiv2_control * loose_control, gs
             y0n[4] = y0[4] + ds*nullvector[1];
             NCtoSYS(0.0, y0, ym, qbp1);
             NCtoSYS(0.0, y0n, ymn, qbp1);
-            cmd = "set arrow from "+ numTostring(ym[0]) +","+numTostring(qbpi->epsilon)+" to " + numTostring(factor*ymn[0])+","+numTostring(factor*(qbpi->epsilon +ds*nullvector[2]));
+            cmd = "set arrow from "+ num_to_string(ym[0]) +","+num_to_string(qbpi->epsilon)+" to " + num_to_string(factor*ymn[0])+","+num_to_string(factor*(qbpi->epsilon +ds*nullvector[2]));
             gnuplot_cmd(h2, cmd.c_str());
             gnuplot_plot_xy(h2, ym, &(qbpi->epsilon), 1, "", "points", "7", "3", 1);
             //printf("Press ENTER to go on\n");
@@ -524,7 +521,7 @@ void lpdyneq_cont_2(gsl_odeiv2_driver *d, gsl_odeiv2_control * loose_control, gs
 
     //Last correction much more precise
     qbpi->epsilon = 1.00;
-    if(isNorm) differential_correction(y0, fT*tend, 1e-14, d, 48, 0);
+    if(is_norm) differential_correction(y0, fT*tend, 1e-14, d, 48, 0);
     else differential_correction(y0, fT*tend, 1e-14, d, 48, 0);
 
     //Final IC
@@ -553,7 +550,7 @@ void continuation_dyn_eq_lib_point(FBPL &fbpl, int from_model, int to_model)
     // 1. Initialization
     //============================================================
     //Model must be normalized.
-    if(!fbpl.isNorm)
+    if(!fbpl.is_norm)
     {
         cout << "continuation_dyn_eq_lib_point. Warning: selected model is not normalized. Premature ending." << endl;
         return;
@@ -564,7 +561,7 @@ void continuation_dyn_eq_lib_point(FBPL &fbpl, int from_model, int to_model)
     //------------------------------------------------------------------------------------
     QBCP_I model;
     FBPL model1, model2;
-    init_FBP_I(&model, &model1, &model2, Csts::SUN, Csts::EARTH, Csts::MOON, fbpl.isNorm, SEML.li_EM, SEML.li_SEM, 0, from_model, to_model, SEML.coordsys, SEML.pms);
+    init_fbp_cont(&model, &model1, &model2, Csts::SUN, Csts::EARTH, Csts::MOON, fbpl.is_norm, SEML.li_EM, SEML.li_SEM, 0, from_model, to_model, SEML.coord_sys, SEML.param_style);
 
     //------------------------------------------------------------------------------------
     // Integration tools
@@ -611,7 +608,7 @@ void lpdyneq_cont(gsl_odeiv2_driver *d, gsl_odeiv2_control * loose_control, gsl_
     QBCP_I* qbpi     =  (QBCP_I *) d->sys->params;
     FBPL* qbp1     =  &qbpi->model1;              //First model, full model when qpbi->epsilon = 0.0, at the beginning of the process.
     FBPL* qbp2     =  &qbpi->model2;              //First model, full model when qpbi->epsilon = 1.0, at the end of the process.
-    int isNorm =  qbp1->isNorm;
+    int is_norm =  qbp1->is_norm;
     int li           =  qbp1->cs.li;
 
     //Full period of the Sun
@@ -621,14 +618,14 @@ void lpdyneq_cont(gsl_odeiv2_driver *d, gsl_odeiv2_control * loose_control, gsl_
     // Evaluate the alphas
     //----------------------------------------------------------------------------------------------------------
     double alphaf[8];
-    evaluateCoef(alphaf, 0.0, qbp1->us.n,  qbp1->nf, qbp1->cs.coeffs, 8);
+    eval_array_coef(alphaf, 0.0, qbp1->us.n,  qbp1->n_order_fourier, qbp1->cs.coeffs, 8);
 
     //----------------------------------------------------------------------------------------------------------
     // Initial conditions
     //----------------------------------------------------------------------------------------------------------
     //CR3BPs
     CR3BP EM;
-    init_CR3BP(&EM, Csts::EARTH, Csts::MOON);
+    init_cr3bp(&EM, Csts::EARTH, Csts::MOON);
     //Position & Velocity
     double yv[6];
     double yf[6];
@@ -650,7 +647,7 @@ void lpdyneq_cont(gsl_odeiv2_driver *d, gsl_odeiv2_control * loose_control, gsl_
     EMvtoEMm(0.0, yv, yf, qbp1);
 
     //Transform into y0 if necessary
-    if(isNorm)
+    if(is_norm)
     {
         //To NC
         SYStoNC(0.0, yf, y0, qbp1);
@@ -796,7 +793,7 @@ void lpdyneq_cont(gsl_odeiv2_driver *d, gsl_odeiv2_control * loose_control, gsl_
     cout << "here, after loop." << endl;
 
     //Last correction much more precise
-    if(isNorm) differential_correction(y0, 0.5*tend, 1e-14, d, 48, 0);
+    if(is_norm) differential_correction(y0, 0.5*tend, 1e-14, d, 48, 0);
     else differential_correction(y0, 0.5*tend, 1e-14, d, 48, 0);
 
 
@@ -847,7 +844,7 @@ void res_orbit_cont(gsl_odeiv2_driver *d, gsl_odeiv2_control * loose_control, gs
     QBCP_I* qbpi     =  (QBCP_I *) d->sys->params;
     FBPL* qbp1     =  &qbpi->model1;              //First model, full model when qpbi->epsilon = 0.0, at the beginning of the process.
     FBPL* qbp2     =  &qbpi->model2;              //First model, full model when qpbi->epsilon = 1.0, at the end of the process.
-    int isNorm =  qbp1->isNorm;
+    int is_norm =  qbp1->is_norm;
     int li           =  qbp1->cs.li;
     //Full period of the Sun
     double tend = 2*M_PI/qbp2->us.n;
@@ -856,7 +853,7 @@ void res_orbit_cont(gsl_odeiv2_driver *d, gsl_odeiv2_control * loose_control, gs
     // Evaluate the alphas
     //------------------------------------------------------------------------------------
     double alphaf[8];
-    evaluateCoef(alphaf, 0.0, qbp1->us.n,  qbp1->nf, qbp1->cs.coeffs, 8);
+    eval_array_coef(alphaf, 0.0, qbp1->us.n,  qbp1->n_order_fourier, qbp1->cs.coeffs, 8);
 
 
     //============================================================
@@ -875,7 +872,7 @@ void res_orbit_cont(gsl_odeiv2_driver *d, gsl_odeiv2_control * loose_control, gs
     double fT = 0.5; //by default, but can be changed in the subsequent switch
 
     //Switch on the coordinate system
-    switch(qbp1->coordsys)
+    switch(qbp1->coord_sys)
     {
     case Csts::EM:
         //Switch on the libration point
@@ -908,7 +905,7 @@ void res_orbit_cont(gsl_odeiv2_driver *d, gsl_odeiv2_control * loose_control, gs
     //------------------------------------------------------------------------------------
     //Transform into y0 if NC coordinates are used
     //------------------------------------------------------------------------------------
-    if(isNorm)
+    if(is_norm)
     {
         //To NC
         SYStoNC(0.0, yf, y0, qbp1);
@@ -990,8 +987,8 @@ void res_orbit_cont(gsl_odeiv2_driver *d, gsl_odeiv2_control * loose_control, gs
     y0n[4] = y0[4] + ds*nullvector[1];
     NCtoSYS(0.0, y0, ym, qbp1);
     NCtoSYS(0.0, y0n, ymn, qbp1);
-    string cmd = "set arrow from "+ numTostring(ym[0]) +","+numTostring(qbpi->epsilon);
-    cmd +=" to " + numTostring(factor*ymn[0])+","+numTostring(factor*(qbpi->epsilon +ds*nullvector[2]));
+    string cmd = "set arrow from "+ num_to_string(ym[0]) +","+num_to_string(qbpi->epsilon);
+    cmd +=" to " + num_to_string(factor*ymn[0])+","+num_to_string(factor*(qbpi->epsilon +ds*nullvector[2]));
     gnuplot_cmd(h2, cmd.c_str());
     gnuplot_plot_xy(h2, ym, &(qbpi->epsilon), 1, "", "points", "7", "3", 1);
 
@@ -1037,7 +1034,7 @@ void res_orbit_cont(gsl_odeiv2_driver *d, gsl_odeiv2_control * loose_control, gs
             y0n[4] = y0[4] + ds*nullvector[1];
             NCtoSYS(0.0, y0, ym, qbp1);
             NCtoSYS(0.0, y0n, ymn, qbp1);
-            cmd = "set arrow from "+ numTostring(ym[0]) +","+numTostring(qbpi->epsilon)+" to " + numTostring(factor*ymn[0])+","+numTostring(factor*(qbpi->epsilon +ds*nullvector[2]));
+            cmd = "set arrow from "+ num_to_string(ym[0]) +","+num_to_string(qbpi->epsilon)+" to " + num_to_string(factor*ymn[0])+","+num_to_string(factor*(qbpi->epsilon +ds*nullvector[2]));
             gnuplot_cmd(h2, cmd.c_str());
             gnuplot_plot_xy(h2, ym, &(qbpi->epsilon), 1, "", "points", "7", "3", 1);
             //printf("Press ENTER to go on\n");
@@ -1072,7 +1069,7 @@ void res_orbit_cont(gsl_odeiv2_driver *d, gsl_odeiv2_control * loose_control, gs
 
     //Last correction much more precise
     qbpi->epsilon = 1.00;
-    if(isNorm) differential_correction(y0, fT*tend, 1e-14, d, 48, 0);
+    if(is_norm) differential_correction(y0, fT*tend, 1e-14, d, 48, 0);
     else differential_correction(y0, fT*tend, 1e-14, d, 48, 0);
 
     //Final IC
@@ -1116,7 +1113,7 @@ void continuation_res_orbit(FBPL &fbpl, int from_model, int to_model)
     //------------------------------------------------------------------------------------
     //Model must be normalized.
     //------------------------------------------------------------------------------------
-    if(!fbpl.isNorm)
+    if(!fbpl.is_norm)
     {
         cout << "continuation_res_orbit. Warning: selected model is not normalized. Premature ending." << endl;
         return;
@@ -1127,7 +1124,7 @@ void continuation_res_orbit(FBPL &fbpl, int from_model, int to_model)
     //------------------------------------------------------------------------------------
     QBCP_I model;
     FBPL model1, model2;
-    init_FBP_I(&model, &model1, &model2, Csts::SUN, Csts::EARTH, Csts::MOON, fbpl.isNorm, SEML.li_EM, SEML.li_SEM, 0, from_model, to_model, SEML.coordsys, SEML.pms);
+    init_fbp_cont(&model, &model1, &model2, Csts::SUN, Csts::EARTH, Csts::MOON, fbpl.is_norm, SEML.li_EM, SEML.li_SEM, 0, from_model, to_model, SEML.coord_sys, SEML.param_style);
 
     //------------------------------------------------------------------------------------
     // Integration tools
@@ -1167,7 +1164,7 @@ void continuation_res_orbit(FBPL &fbpl, int from_model, int to_model)
  *  Note that the integer N is the number of variables associated to the driver d, and should be also the number of variables in y. However, the periodicity condition is tested only on
  *  NvarTest variables (a usual example is Nvar = 42 but NvarTest = 6).
  **/
-int periodicity_condition(const double y[], int Nvar, int NvarTest, double t1, gsl_odeiv2_driver *d, int isNorm)
+int periodicity_condition(const double y[], int Nvar, int NvarTest, double t1, gsl_odeiv2_driver *d, int is_norm)
 {
     //------------------------------------------------------------------------------------
     // Init
@@ -1182,7 +1179,7 @@ int periodicity_condition(const double y[], int Nvar, int NvarTest, double t1, g
     for(int i=0; i< Nvar; i++) ys[i] = y[i];
 
     //First point in system coordinates
-    if(isNorm) NCtoSYS(0.0, ys, y0, qbp);
+    if(is_norm) NCtoSYS(0.0, ys, y0, qbp);
     else for(int i=0; i< Nvar; i++) y0[i] = ys[i];
 
     //First point in native coordinates
@@ -1198,7 +1195,7 @@ int periodicity_condition(const double y[], int Nvar, int NvarTest, double t1, g
     //Final state
     //------------------------------------------------------------------------------------
     // In system coordinates
-    if(isNorm) NCtoSYS(t, ys, y1, qbp);
+    if(is_norm) NCtoSYS(t, ys, y1, qbp);
     else for(int i=0; i< Nvar; i++) y1[i] = ys[i];
 
     //In native coordinates

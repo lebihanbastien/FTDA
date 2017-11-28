@@ -7,45 +7,71 @@ extern "C" {
 
 /**
  * \file pmt.cpp
- * \brief Implements the parameterization method for both autonomous and non-autonomous Hamiltonian vector fields of the Sun-Earth-Moon problem.
- *        uses time form of the Fourier-Taylor series to perform algebraic operations.
+ * \brief Implements the parameterization method for both autonomous and non-autonomous
+ *        Hamiltonian vector fields of the Sun-Earth-Moon problem.
+ *        Uses time form of the Fourier-Taylor series to perform algebraic operations.
  * \author BLB.
- * \date May 2015
- * \version 1.0
  *
- *  More precisely, the parameterization method is applied to compute a parameterization of the central manifold of the Earth-Moon libration point L1,2:
+ *  More precisely, the parameterization method is applied to compute a parameterization
+ *  of the central manifold of the Earth-Moon libration point L1,2:
  *
- *   - The parameterization is given as Fourier-Taylor expansions in the case of non-autonomous Hamiltonian vector fields (QBCP, BCP).
- *   - The parameterization is given as pure    Taylor expansions in the case of     autonomous Hamiltonian vector fields (CRTBP).
+ *   - The parameterization is given as Fourier-Taylor expansions in the case
+ *     of non-autonomous Hamiltonian vector fields (QBCP, BCP).
+ *   - The parameterization is given as pure Taylor expansions in the case
+ *     of autonomous Hamiltonian vector fields (CRTBP).
+ *
+ *  An adaptation to the current implementation to other dynamical models would require:
+ *
+ *      (i) A computation of the change of coordinates (COC) that brings
+ *        the Hamiltonian in normal form at order two - Translated-Floquet-Complexified
+ *        (TFC) coordinates (currently done in nfo2.cpp for the QBCP).
+ *
+ *      (ii) An adaptation of the following routines:
+ *
+ *      - update_potential/update_potential_m: routines for the computation of the
+ *        potential associated with the gravitational influence of the Sun, Earth and Moon
+ *      - apply_vector_field: routine for the computation of the vector field.
  */
 
-//---------------------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 //          Main routine
-//---------------------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 /**
- *  \brief Compute the parameterization of the central manifold of the dynamical equivalent of the Earth-Moon libration points L1,2, up to a given order.
- *  \param OutputEachOrder: if true, the results are printed in txt files after each computed order.
- *  \param Output: if true and OutputEachOrder = false, the results are printed at the very end of the computation.
- *  \param pms: parameterization style (graph, normal form or mixed)
- *  \param manType: type of manifold (center, center-stable, center-unstable or center-hyperbolic).
+ *  \brief Compute the parameterization of the central manifold of the dynamical
+ *         equivalents to the Earth-Moon & Sun-Earth libration points up to a given order.
+ *  \param man_type: type of manifold (center, center-stable, center-unstable or center-hyperbolic).
+ *  \param param_style: parameterization style (graph, normal form or mixed)
+ *  \param small_div_threshold: the limit above which small divisors are discarded.
+ *         Only used with the NORMFORM and MIXED styles.
+ *  \param is_stored: if true, the results are stored at the end of the computation.
  *
- *   Inputs:
+ *   Require inputs:
  *      - The FBPL structure SEML, which contains the addresses of the data folders (F_COC, F_PMS...),
  *        the order of the expansions (both Fourier and Fourier-Taylor),
  *        and some useful parameters (gamma, c1)
- *
- *      - In the case of the QBCP and BCP, the COC in data txt files, computed with the routines contained in nfo2.cpp.
- *        In the case of autonomous vector fields, such as the CRTBP, the COC is computed within the routine pm.
+ *      - In the case of the QBCP (and BCP), the change of coordinates (COC) that brings
+ *        the Hamiltonian in normal form at order two - Translated-Floquet-Complexified
+ *        (TFC) coordinates - given in data txt files, computed with the routines
+ *        contained in nfo2.cpp.
+ *      - In the case of autonomous vector fields, such as the CRTBP, the COC is
+ *        computed within the routine pmt.
  *
  *  Outputs (stored in the folder SEML.cs.F_PMS, in binary format):
- *      - W(s,t),  the parameterization of the central manifold in Normalized-Centered coordinates.
+ *      - W(s,t),  the parameterization of the central manifold in Normalized-Centered
+ *       (NC) coordinates.
  *      - Wh(s,t), the parameterization of the central manifold in TFC coordinates.
  *      - FW(s,t), the complete vector field dot(W).
  *      - fh(s,t), the reduced vector field: dot(s) = fh(s,t).
  *      - DWf(s,t), the product DW * fh
- *      - Wdotc(s,t), the partial derivative of W(s,t) with respect to time (not equal to dot(W) = dW/dt)
+ *      - Wdotc(s,t), the partial derivative of W(s,t) with respect to time.
+ *        (not equal to dot(W) = dW/dt)
+ *
+ *  The majority of the operations inside the Fourier-Taylor algebra are performed with
+ *  the Fourier series being in the time domain (TFS format, as introduced in ofs.h).
+ *  Only the homological equations are computed in OFS (frequency domain) format.
+ *
  **/
-void pmt(int OutputEachOrder, int Output, int pms, int manType)
+void pmt(int man_type, int param_style, double small_div_threshold, int is_stored)
 {
     cout << "---------------------------------------------------" << endl;
     cout << "                                                   " << endl;
@@ -54,28 +80,24 @@ void pmt(int OutputEachOrder, int Output, int pms, int manType)
     cout << "                                                   " << endl;
     cout << "---------------------------------------------------" << endl;
 
-    //--------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------
     // 0. PM Folder
-    //--------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------
     string F_PMS    = SEML.cs.F_PMS;
     cout << "pmt. The PM will be saved in F_PMS = "   << F_PMS << endl;
 
-    //--------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------
     // 1. Initialization of all necessary OFTS objects
-    //--------------------------------------------------------------------------
-    //---------------------
-    //threshold for small divisors = 1e-2
-    //---------------------
-    double threshold = 1e-2;
+    //------------------------------------------------------------------------------------
 
     //---------------------
     // Parameterizations
     //---------------------
-    vector<Oftsc> Wh(6);      //Invariant manifold in TFC coordinates
-    vector<Oftsc> W(6);       //W   = TFC(Wh) (in NC coordinates)
-    vector<Oftsc> E(6);       //E   = [DWhc<m fh<m]m-[Fh(Wh<m)]m
-    vector<Oftsc> eta(6);     //eta = Hinv*E
-    vector<Oftsc> xi(6);      //xi  = Hinv*Wh at order >=2
+    vector<Oftsc> Wh(6);    //Invariant manifold in TFC coordinates
+    vector<Oftsc> W(6);     //W   = P(t)*Wh + V(t) (in NC coordinates)
+    vector<Oftsc> E(6);     //E   = [DWhc<m fh<m]m-[Fh(Wh<m)]m
+    vector<Oftsc> eta(6);   //eta = Hinv*E
+    vector<Oftsc> xi(6);    //xi  = Hinv*Wh at order >=2
     //---------------------
     // DWh, DW (diff)
     //---------------------
@@ -93,7 +115,7 @@ void pmt(int OutputEachOrder, int Output, int pms, int manType)
     //---------------------
     // Reduced VF
     //---------------------
-    vector<Oftsc> fh(REDUCED_NV);      //TFC & NC (the same in both coord. systems)
+    vector<Oftsc> fh(REDUCED_NV); //TFC & NC (the same in both coord. systems)
     //---------------------
     // DW x fh
     //---------------------
@@ -104,15 +126,15 @@ void pmt(int OutputEachOrder, int Output, int pms, int manType)
     //---------------------
     vector<Oftsc> Wdot(6);    //NC, contribution of order <=k to k
     //---------------------
-    // Potential
+    // Potential (of the three primaries combined)
     //---------------------
     vector<Oftsc> Un(6);      //NC, contribution to order <=k to k
-    vector<Oftsc> PrimPt(6);  //Intermediate steps for the computation of the Primary potential
-    vector<Oftsc> PrimPt2(6); //Intermediate steps for the computation of the Primary potential
+    vector<Oftsc> PrimPt(6);  //Intermediate steps for the computation of the gravitational potential
+    vector<Oftsc> PrimPt2(6); //Intermediate steps for the computation of the gravitational potential
 
-    //--------------------------------------------------------------------------
-    // 2. Initialization of the COC
-    //--------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------
+    // 2. Initialization of the COC between TFC and NC coordinates
+    //------------------------------------------------------------------------------------
     matrix<Ofsc> P(6,6);      //The matrix P of the c.o.c. (Floquet part)
     matrix<Ofsc> Q(6,6);      //The matrix Q of the c.o.c. (Floquet part). Q = inv(P)
     vector<Ofsc> V(6);        //The vector V of the c.o.c. (Translation part)
@@ -128,13 +150,13 @@ void pmt(int OutputEachOrder, int Output, int pms, int manType)
     Ofsc ILs(OFS_ORDER);      //ILf = 1.0/||Xf||, for f = e, m, s
 
     //Init routine
-    tfts_initCOC(P, Q, PC, PCdot, CQ, Xe, Xm, Xs, V, Vdot, ILe, ILm, ILs, SEML);
-    //TFS format
+    tfts_init_coc(P, Q, PC, PCdot, CQ, Xe, Xm, Xs, V, Vdot, ILe, ILm, ILs, SEML);
+    //TFS format of the COC
     tfs_from_ofs(P, Q, PC, PCdot, CQ, Xe, Xm, Xs, V, Vdot, ILe, ILm, ILs);
 
-    //--------------------------------------------------------------------------
-    // 3. Initialization of the alphas
-    //--------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------
+    // 3. Initialization of the alphas (coefficients of the vector field)
+    //------------------------------------------------------------------------------------
     int noc = SEML.numberOfCoefs;
     vector<Ofsc> alpha(noc);
     //Init routine
@@ -143,11 +165,12 @@ void pmt(int OutputEachOrder, int Output, int pms, int manType)
     tfs_from_ofs_inline(alpha);
 
 
-    //--------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------
     // 4. Initialization of the order zero and one:
-    //--------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------
     //------------------------------------------
-    // Initialisation of the matrices DB, H, L...
+    // Initialization of the matrices DB, H, L...
+    // that encode the order one of the vector field in TFC coordinates.
     // See folded comments below for details
     //------------------------------------------
     /*
@@ -195,87 +218,75 @@ void pmt(int OutputEachOrder, int Output, int pms, int manType)
     //Hinv2 = Hinv in matrix<Ofsc> format
     */
     //------------------------------------------
-    gsl_matrix_complex *DB    = gsl_matrix_complex_calloc(6, 6);
-    gsl_matrix_complex *H     = gsl_matrix_complex_calloc(6, 6);
-    gsl_matrix_complex *Hinv  = gsl_matrix_complex_calloc(6, 6);
-    gsl_matrix_complex *La    = gsl_matrix_complex_calloc(6, 6);
+    gsl_matrix_complex* DB    = gsl_matrix_complex_calloc(6, 6);
+    gsl_matrix_complex* H     = gsl_matrix_complex_calloc(6, 6);
+    gsl_matrix_complex* Hinv  = gsl_matrix_complex_calloc(6, 6);
+    gsl_matrix_complex* La    = gsl_matrix_complex_calloc(6, 6);
     matrix<Ofsc> DF0(6, 6);
     matrix<Ofsc> H2(6, 6);
     matrix<Ofsc> Hinv2(6, 6);
 
     //Init routine
-    tfts_initOrderOne(DB, H, Hinv, La, DF0, H2, Hinv2, manType);
+    tfts_init_order_one(DB, H, Hinv, La, DF0, H2, Hinv2, man_type);
 
     //------------------------------------------
-    // Initialisation of the parameterization
+    // Initialization of the parameterization
     // TFS formatting is included
     //------------------------------------------
-    tfts_initPM(W, Wh, fh, PC, V, H, La, manType);
+    tfts_init_pm(W, Wh, fh, PC, V, H, La, man_type);
 
-    //--------------------------------------------------------------------------
-    // 5. Initialisation of various objects used to solve the pm equations
-    //--------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------
+    // 5. Initialization of various objects used to solve the pm equations
+    //------------------------------------------------------------------------------------
     double Ke = SEML.us.me/pow(SEML.cs.gamma, 3.0);  //Earth potential factor
     double Km = SEML.us.mm/pow(SEML.cs.gamma, 3.0);  //Moon  potential factor
     double Ks = SEML.us.ms/pow(SEML.cs.gamma, 3.0);  //Sun   potential factor
 
-    //------------------------------------------
-    // Indices for mixed style
-    //------------------------------------------
-    int ims;
-    switch(manType)
-    {
-    case Csts::MAN_CENTER:
-        ims = 2;
-        break;
-    case Csts::MAN_CENTER_S:
-    case Csts::MAN_CENTER_U:
-        ims = 2; //6;
-        break;
-    case Csts::MAN_CENTER_US:
-        ims = 14;
-        break;
-    default: //CENTER MANIFOLD
-        ims = 2;
-    }
-    int **VIs;
-    int  *VIn;
-    VIs = (int **) calloc(ims, sizeof(int*));
-    VIn = (int *)  calloc(ims, sizeof(int));
-    initMS(VIs, VIn, manType);
+    //------------------------------------------------------------------------------------
+    // 6.  Indices for mixed style. The maximum number of invariant submanifold is 50 by default.
+    //    (far enough to comprise any desire).
+    //     In practice, there is only ims submanifolds, and for j = 1,..., ims, VIs[j]
+    //     contains the set of VIn[j] directions that must be null for the submanifold j
+    //     to be invariant.
+    //------------------------------------------------------------------------------------
+    int** VIs, *VIn, ims;
+    VIs = (int**) calloc(50, sizeof(int*));
+    VIn = (int*)  calloc(50, sizeof(int));
+    init_mixed_style(VIs, VIn, &ims, man_type);
 
-    //--------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------
     // 6. Computing PM at order 0 and 1
-    //--------------------------------------------------------------------------
-    for(int k = 0; k < 2 ; k++)
+    //------------------------------------------------------------------------------------
+    for(int m = 0; m < 2 ; m++)
     {
         //-----------------
-        //Update potential
+        //Update potential at order m
         //-----------------
-        updateDerPot(W, Xe, Xm, Xs, PrimPt, Ke, Km, Ks, Un, k);
+        update_potential(W, Xe, Xm, Xs, PrimPt, Ke, Km, Ks, Un, m);
 
         //-----------------
-        //vector field
+        //vector field at order m in NC coordinates
         //-----------------
-        applyVF(alpha, W, FWc, Un, k);  //contributions to orders < k to order k
-        applyVF(alpha, W, FW,  Un, k);  //contributions to orders <=k to order k
+        apply_vector_field(alpha, W, FWc, Un, m);  //contributions to orders < m to order m
+        apply_vector_field(alpha, W, FW,  Un, m);  //contributions to orders <=m to order m
 
         //-----------------
+        //vector field at order m in TFC coordinates
         //FWhc = COCinv(FWc)
         //-----------------
-        tfts_applyInvDotCOC(CQ, PCdot, Vdot, Wh, FWc, FWhc, FW2c, FW3c, k);
+        tfts_apply_inv_coc_der(CQ, PCdot, Vdot, Wh, FWc, FWhc, FW2c, FW3c, m);
 
         //-----------------
-        //Jacobian
+        //Jacobian DW/DWhc
         //-----------------
-        if(k > 0) for(int i = 0 ; i < Csts::NV ; i++) for(int j = 0 ; j < REDUCED_NV; j++) DWhc.tfts_der(Wh[i], j+1, i, j, k);   //in TFC
-        if(k > 0) for(int i = 0 ; i < Csts::NV ; i++) for(int j = 0 ; j < REDUCED_NV; j++) DW.tfts_der(W[i], j+1, i, j, k);      //in NC
+        if(m > 0) for(int i = 0 ; i < Csts::NV ; i++) for(int j = 0 ; j < REDUCED_NV; j++) DWhc.tfts_der(Wh[i], j+1, i, j, m);   //in TFC
+        if(m > 0) for(int i = 0 ; i < Csts::NV ; i++) for(int j = 0 ; j < REDUCED_NV; j++) DW.tfts_der(W[i], j+1, i, j, m);      //in NC
 
         //-----------------
-        // DWhc x f at order k
+        // DWhc x f at order m
         //-----------------
-        tfts_smvprod_t(DWhc, fh, DWfhc, k);       //in TFC
-        tfts_smvprod_t(DW,  fh, DWf,  k);         //in NC
+        tfts_smvprod_t(DWhc, fh, DWfhc, m);       //in TFC
+        tfts_smvprod_t(DW,  fh, DWf,  m);         //in NC
     }
 
     //------------------------------------------
@@ -283,33 +294,34 @@ void pmt(int OutputEachOrder, int Output, int pms, int manType)
     //------------------------------------------
     for(int i = 0; i < 6; i++) PrimPt2[i].ccopy(PrimPt[i], 0);
 
-    //--------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------
     // 7. Computing at orders >= 2
-    //--------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------
     tic();
     for(int m = 2; m <= OFTS_ORDER; m++)
     {
-        cout << "pm. start of order " << m << endl;
+        cout << "pmt. start of order " << m << endl;
         //------------------------------------------
         //The potential Un is updated.
         //What is updated: contributions of order < m to order m
         //------------------------------------------
-        updateDerPot(W, Xe, Xm, Xs, PrimPt, Ke, Km, Ks, Un, m);
+        update_potential(W, Xe, Xm, Xs, PrimPt, Ke, Km, Ks, Un, m);
 
         //------------------------------------------
-        // Applying the VF: [F(W<m)]m
+        // vector field at order m in NC coordinates: [F(W<m)]m
         // What is updated: contributions of order < m to order m
         //------------------------------------------
         //W is used in the vector field
-        applyVF(alpha, W, FWc, Un, m);
+        apply_vector_field(alpha, W, FWc, Un, m);
 
         //------------------------------------------
+        //vector field at order m in TFC coordinates
         //FWhc = COCinv(FWc)
         //------------------------------------------
-        tfts_applyInvDotCOC(CQ, PCdot, Vdot, Wh, FWc, FWhc, FW2c, FW3c, m);
+        tfts_apply_inv_coc_der(CQ, PCdot, Vdot, Wh, FWc, FWhc, FW2c, FW3c, m);
 
         //------------------------------------------
-        // [DW<m times f<m]m
+        // [DW<m x f<m]m
         // What is updated: contributions of order < m to order m
         //------------------------------------------
         tfts_smvprod_t(DWhc, fh, DWfhc, m);
@@ -338,7 +350,7 @@ void pmt(int OutputEachOrder, int Output, int pms, int manType)
         //------------------------------------------
         // Solving the cohomological equations
         //------------------------------------------
-        cohomEq(eta, xi, fh, La, m, pms, threshold, VIs, VIn, ims);
+        solv_hom_eq(eta, xi, fh, La, m, param_style, small_div_threshold, VIs, VIn, ims);
 
         //------------------------------------------
         // Wh = H2*xi @ order m
@@ -371,13 +383,13 @@ void pmt(int OutputEachOrder, int Output, int pms, int manType)
         //The potential is updated: Un
         //What is updated: contributions of order >= m to order m
         //------------------------------------------
-        updateDerPot_zero(W, Xe, Xm, Xs, PrimPt, PrimPt2, Ke, Km, Ks, Un, m);
+        update_potential_m(W, Xe, Xm, Xs, PrimPt, PrimPt2, Ke, Km, Ks, Un, m);
 
-        //------------------------------------------------------------------------------------
+        //--------------------------------------------------------------------------------
         //
         // Note: after this point, only necessary for testing, can be discarded for speed
         //
-        //------------------------------------------------------------------------------------
+        //---------------------------------------------------------------------------------
         //------------------------------------------
         // Differential of Wh
         //------------------------------------------
@@ -392,35 +404,34 @@ void pmt(int OutputEachOrder, int Output, int pms, int manType)
         // Applying the VF: [F(W<=m)]m
         // What is updated: contributions of order <= m to order m
         //------------------------------------------
-        applyVF(alpha, W, FW, Un, m);
+        apply_vector_field(alpha, W, FW, Un, m);
 
     }
     double tt = toc();
-    cout << "  pm. End of computation" <<  " in " << tt << " s (" << tt/60 << " mn)." << endl;
+    cout << "  pmt. End of computation" <<  " in " << tt << " s (" << tt/60 << " mn)." << endl;
 
-    //--------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------
     // 8. Back to TFS format at the very end.
-    //--------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------
     tic();
     tfs_to_ofs_inline(W);
     tfs_to_ofs_inline(Wh);
     tfs_to_ofs_inline(fh);
     tfs_to_ofs_inline(DWf);
     tfs_to_ofs_inline(DWhc);
-    cout << "  pm. End of TFS formating" <<  " in " << toc() << " s. " << endl;
+    cout << "  pmt. End of TFS formating" <<  " in " << toc() << " s. " << endl;
 
     //------------------------------------------
     // dot(W)
     //------------------------------------------
     tic();
     for(int m = 0; m <= OFTS_ORDER; m++) for(int i = 0; i < 6; i++) Wdot[i].dot(W[i], SEML.us.n, m);
-    cout << "  pm. End of dot" <<  " in " << toc() << " s. " << endl;
+    cout << "  pmt. End of dot" <<  " in " << toc() << " s. " << endl;
 
-    //--------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------
     // 9. Printing
-    //--------------------------------------------------------------------------
-    //If txt files have to be updated at the very last order
-    if(Output && !OutputEachOrder)
+    //------------------------------------------------------------------------------------
+    if(is_stored)
     {
         tic();
         //--------------------------------------------------------------------------------
@@ -430,46 +441,46 @@ void pmt(int OutputEachOrder, int Output, int pms, int manType)
         //------------------------------------------
         //Vectors
         //------------------------------------------
-        writeVOFTS_bin(W,    F_PMS+"W/W");
-        writeVOFTS_bin(Wh,   F_PMS+"W/Wh");
-        writeVOFTS_bin(fh,   F_PMS+"rvf/fh");
-        writeVOFTS_bin(Wdot, F_PMS+"Wdot/C_Wdot");
-        writeVOFTS_bin(DWf,  F_PMS+"DWf/C_DWf");
-        writeVOFTS_bin(FW,   F_PMS+"FW/C_FW");
+        write_vofts_bin(W,    F_PMS+"W/W");
+        write_vofts_bin(Wh,   F_PMS+"W/Wh");
+        write_vofts_bin(fh,   F_PMS+"rvf/fh");
+        write_vofts_bin(Wdot, F_PMS+"Wdot/C_Wdot");
+        write_vofts_bin(DWf,  F_PMS+"DWf/C_DWf");
+        write_vofts_bin(FW,   F_PMS+"FW/C_FW");
 
         //------------------------------------------
-        //Matrices: Jacobian
+        // Jacobian matrix (TFC coordinates only)
         //------------------------------------------
-        writeMOFTS_bin(DWhc, F_PMS+"DWf/DWhc");
+        write_mofts_bin(DWhc, F_PMS+"DWf/DWhc");
 
         //------------------------------------------
-        //If the manifold is CS or CU and the graph style is used,
-        //certain directions of the parameterization (0 and 3) can be stored in one-dim
-        //series. Moreover, the Jacobian is computed and stored.
+        //If the manifold is CS or CU, the graph style used by default in the center part
+        //and certain directions of the parameterization (0 and 3) can be stored in
+        //one-dimensional series. Moreover, the Jacobian is computed and stored.
         //------------------------------------------
-        if(manType == Csts::MAN_CENTER_S || manType == Csts::MAN_CENTER_U)
+        if(man_type == Csts::MAN_CENTER_S || man_type == Csts::MAN_CENTER_U)
         {
             //Init
             Oftsc W1(1, OFTS_ORDER, Csts::OFS_NV, OFS_ORDER);
             Oftsc DW1(1, OFTS_ORDER, Csts::OFS_NV, OFS_ORDER);
 
             //Transform and store
-            fromVOFTStoVOFTS_bin(Wh, W1, DW1, F_PMS+"W/F");
+            from_vofts_to_vofts_bin(Wh, W1, DW1, F_PMS+"W/F");
         }
 
         //--------------------------------------------------------------------------------
-        // Txt
+        // Txt: not used for now
         //--------------------------------------------------------------------------------
-        //writeMOFTS_txt(DWhc, F_PMS+"DWf/DWhc");
-        //writeVOFTS_txt(Wh,   F_PMS+"W/Wh");
+        //write_vofts_txt(Wh,   F_PMS+"W/Wh");
         //print W & FWc
-        //writeVOFTS_txt(W,     F_PMS+"W/W");
-        //writeVOFTS_txt(E,    F_PMS+"W/E");
+        //write_vofts_txt(W,     F_PMS+"W/W");
+        //write_vofts_txt(E,    F_PMS+"W/E");
         //vector_fprinf(fh, F_PMS+"rvf/fh");
 
         //--------------------------------------------------------------------------------
-        // Info
+        // Info: stored in F_PMS+"INFO.txt"
         //--------------------------------------------------------------------------------
+        cout << "  pmt. Info on the outputs are stored in " << F_PMS+"INFO.txt" << endl;
         ofstream myfile;
         string nfile = F_PMS+"INFO.txt";
         myfile.open (nfile.c_str());
@@ -477,22 +488,22 @@ void pmt(int OutputEachOrder, int Output, int pms, int manType)
         myfile << "OFS_ORDER = " << OFS_ORDER << endl;
         myfile.close();
 
-        cout << "  pm. End of printing" <<  " in " << toc() << " s. " << endl;
+        cout << "  pmt. End of printing" <<  " in " << toc() << " s. " << endl;
     }
 
-    //--------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------
     // 10. Free
-    //--------------------------------------------------------------------------
-    freeMS(VIs, VIn, ims);
+    //------------------------------------------------------------------------------------
+    free_mixed_style(VIs, VIn, ims);
 }
 
-//---------------------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 //         Init routines
-//---------------------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 /**
- *  \brief Initialization of the vector fields (alpha coefficients) used in pm.
+ *  \brief Initialization of the vector fields (alpha coefficients) used in pmt.
  **/
-void tfts_initVF(vector<Ofsc> &alpha)
+void tfts_initVF(vector<Ofsc>& alpha)
 {
     string F_COEF  = SEML.cs.F_COEF;    //VF folder
     int noc = SEML.numberOfCoefs;       //number of coefficients to retrieve
@@ -502,7 +513,6 @@ void tfts_initVF(vector<Ofsc> &alpha)
     {
     case Csts::QBCP:
     case Csts::BCP:
-    case Csts::ERTBP:
     {
         //Read from txt files
         ifstream readStream;
@@ -510,7 +520,7 @@ void tfts_initVF(vector<Ofsc> &alpha)
         for(int i = 0; i < noc; i++)
         {
             ss1 = static_cast<ostringstream*>( &(ostringstream() << i+1) )->str();
-            readOFS_txt(alpha[i], F_COEF+"alpha"+ss1+"_fft");
+            read_ofs_txt(alpha[i], F_COEF+"alpha"+ss1+"_fft");
         }
 
         break;
@@ -518,25 +528,25 @@ void tfts_initVF(vector<Ofsc> &alpha)
 
     case Csts::CRTBP:
     {
-        cout << "pm. The use of the RTBP has been detected when initializing the alphas." << endl;
+        cout << "pmt. The use of the CRTBP has been detected when initializing the alphas." << endl;
         //All coeffs to zero
-        for(int j = 0; j < noc;  j++) alpha[j].setCoef(0.0, 0);
+        for(int j = 0; j < noc;  j++) alpha[j].set_coef(0.0, 0);
         //Non-null coeffs
-        alpha[0].setCoef(1.0, 0);               //alpha1  = 1.0
-        alpha[2].setCoef(1.0, 0);               //alpha3  = 1.0
-        alpha[5].setCoef(1.0, 0);               //alpha6  = 1.0
-        alpha[12].setCoef(-SEML.cs.c1, 0);      //alpha13 = -c1
+        alpha[0].set_coef(1.0, 0);               //alpha1  = 1.0
+        alpha[2].set_coef(1.0, 0);               //alpha3  = 1.0
+        alpha[5].set_coef(1.0, 0);               //alpha6  = 1.0
+        alpha[12].set_coef(-SEML.cs.c1, 0);      //alpha13 = -c1
 
 //Not useful here:
-//        alpha[8].setCoef(SEML.cs.mu, 0);        //alpha9  = Xe
-//        alpha[10].setCoef(SEML.cs.mu, 0);       //alpha11 = Xm
+//        alpha[8].set_coef(SEML.cs.mu, 0);        //alpha9  = Xe
+//        alpha[10].set_coef(SEML.cs.mu, 0);       //alpha11 = Xm
 
         break;
     }
 
     default:
     {
-        cout << "error in pm. Unknown model." << endl;
+        cout << "error in pmt. Unknown model." << endl;
         return;
     }
 
@@ -591,14 +601,14 @@ void tfts_initVF(vector<Ofsc> &alpha)
  *
  *  WARNING: all these objects are initialized in OFS format, and NOT in TFS format, since they are only used in pure OFS computations.
  **/
-void tfts_initOrderOne(gsl_matrix_complex *DB,
-                       gsl_matrix_complex *H,
-                       gsl_matrix_complex *Hinv,
-                       gsl_matrix_complex *La,
-                       matrix<Ofsc>& DF0,
-                       matrix<Ofsc>& H2,
-                       matrix<Ofsc>& Hinv2,
-                       int manType)
+void tfts_init_order_one(gsl_matrix_complex* DB,
+                         gsl_matrix_complex* H,
+                         gsl_matrix_complex* Hinv,
+                         gsl_matrix_complex* La,
+                         matrix<Ofsc>& DF0,
+                         matrix<Ofsc>& H2,
+                         matrix<Ofsc>& Hinv2,
+                         int man_type)
 {
     //------------------------------------------
     // Init
@@ -624,9 +634,9 @@ void tfts_initOrderOne(gsl_matrix_complex *DB,
         glsc_matrix_complex_read(DB, filename);
 
     }
-    else //RTBP
+    else //CRTBP
     {
-        cout << "pm. The use of the RTBP has been detected when initializing DB." << endl;
+        cout << "pmt. The use of the CRTBP has been detected when initializing DB." << endl;
         //--------------------
         //Init double variables
         //--------------------
@@ -656,18 +666,18 @@ void tfts_initOrderOne(gsl_matrix_complex *DB,
     //DF0 = DB in matrix<Ofsc> format
     //------------------------------------------
     Ofsc BUX(OFS_ORDER);
-    BUX.setCoef(gslc_complex(gsl_matrix_complex_get(DB, 0, 0)), 0);
-    DF0.setCoef(BUX, 0, 0);
-    BUX.setCoef(gslc_complex(gsl_matrix_complex_get(DB, 1, 1)), 0);
-    DF0.setCoef(BUX, 1, 1);
-    BUX.setCoef(gslc_complex(gsl_matrix_complex_get(DB, 2, 2)), 0);
-    DF0.setCoef(BUX, 2, 2);
-    BUX.setCoef(gslc_complex(gsl_matrix_complex_get(DB, 3, 3)), 0);
-    DF0.setCoef(BUX, 3, 3);
-    BUX.setCoef(gslc_complex(gsl_matrix_complex_get(DB, 4, 4)), 0);
-    DF0.setCoef(BUX, 4, 4);
-    BUX.setCoef(gslc_complex(gsl_matrix_complex_get(DB, 5, 5)), 0);
-    DF0.setCoef(BUX, 5, 5);
+    BUX.set_coef(gslc_complex(gsl_matrix_complex_get(DB, 0, 0)), 0);
+    DF0.set_coef(BUX, 0, 0);
+    BUX.set_coef(gslc_complex(gsl_matrix_complex_get(DB, 1, 1)), 0);
+    DF0.set_coef(BUX, 1, 1);
+    BUX.set_coef(gslc_complex(gsl_matrix_complex_get(DB, 2, 2)), 0);
+    DF0.set_coef(BUX, 2, 2);
+    BUX.set_coef(gslc_complex(gsl_matrix_complex_get(DB, 3, 3)), 0);
+    DF0.set_coef(BUX, 3, 3);
+    BUX.set_coef(gslc_complex(gsl_matrix_complex_get(DB, 4, 4)), 0);
+    DF0.set_coef(BUX, 4, 4);
+    BUX.set_coef(gslc_complex(gsl_matrix_complex_get(DB, 5, 5)), 0);
+    DF0.set_coef(BUX, 5, 5);
 
 
     //------------------------------------------
@@ -687,7 +697,7 @@ void tfts_initOrderOne(gsl_matrix_complex *DB,
     //    |  0   0    0    0    0  -w2 |
     //    |  0   0    0   -iw3  0   0  |
     //------------------------------------------
-    switch(manType)
+    switch(man_type)
     {
     case Csts::MAN_CENTER:
     case Csts::MAN_CENTER_U:
@@ -704,18 +714,18 @@ void tfts_initOrderOne(gsl_matrix_complex *DB,
         //H2 = H in matrix<Ofsc> format
         //------------------------------------------
         BUX.zero();
-        BUX.setCoef(gslc_complex(gsl_matrix_complex_get(DB, 0, 0)), 0);
-        H2.setCoef(BUX, 0, 0);
-        BUX.setCoef(gslc_complex(gsl_matrix_complex_get(DB, 1, 1)), 0);
-        H2.setCoef(BUX, 1, 4);
-        BUX.setCoef(gslc_complex(gsl_matrix_complex_get(DB, 2, 2)), 0);
-        H2.setCoef(BUX, 2, 1);
-        BUX.setCoef(gslc_complex(gsl_matrix_complex_get(DB, 3, 3)), 0);
-        H2.setCoef(BUX, 3, 2);
-        BUX.setCoef(gslc_complex(gsl_matrix_complex_get(DB, 4, 4)), 0);
-        H2.setCoef(BUX, 4, 5);
-        BUX.setCoef(gslc_complex(gsl_matrix_complex_get(DB, 5, 5)), 0);
-        H2.setCoef(BUX, 5, 3);
+        BUX.set_coef(gslc_complex(gsl_matrix_complex_get(DB, 0, 0)), 0);
+        H2.set_coef(BUX, 0, 0);
+        BUX.set_coef(gslc_complex(gsl_matrix_complex_get(DB, 1, 1)), 0);
+        H2.set_coef(BUX, 1, 4);
+        BUX.set_coef(gslc_complex(gsl_matrix_complex_get(DB, 2, 2)), 0);
+        H2.set_coef(BUX, 2, 1);
+        BUX.set_coef(gslc_complex(gsl_matrix_complex_get(DB, 3, 3)), 0);
+        H2.set_coef(BUX, 3, 2);
+        BUX.set_coef(gslc_complex(gsl_matrix_complex_get(DB, 4, 4)), 0);
+        H2.set_coef(BUX, 4, 5);
+        BUX.set_coef(gslc_complex(gsl_matrix_complex_get(DB, 5, 5)), 0);
+        H2.set_coef(BUX, 5, 3);
 
 
         //------------------------------------------
@@ -737,18 +747,18 @@ void tfts_initOrderOne(gsl_matrix_complex *DB,
         //Hinv2 = Hinv in matrix<Ofsc> format
         //------------------------------------------
         BUX.zero();
-        BUX.setCoef(1.0/gslc_complex(gsl_matrix_complex_get(DB, 0, 0)), 0);
-        Hinv2.setCoef(BUX, 0, 0);
-        BUX.setCoef(1.0/gslc_complex(gsl_matrix_complex_get(DB, 1, 1)), 0);
-        Hinv2.setCoef(BUX, 4, 1);
-        BUX.setCoef(1.0/gslc_complex(gsl_matrix_complex_get(DB, 2, 2)), 0);
-        Hinv2.setCoef(BUX, 1, 2);
-        BUX.setCoef(1.0/gslc_complex(gsl_matrix_complex_get(DB, 3, 3)), 0);
-        Hinv2.setCoef(BUX, 2, 3);
-        BUX.setCoef(1.0/gslc_complex(gsl_matrix_complex_get(DB, 4, 4)), 0);
-        Hinv2.setCoef(BUX, 5, 4);
-        BUX.setCoef(1.0/gslc_complex(gsl_matrix_complex_get(DB, 5, 5)), 0);
-        Hinv2.setCoef(BUX, 3, 5);
+        BUX.set_coef(1.0/gslc_complex(gsl_matrix_complex_get(DB, 0, 0)), 0);
+        Hinv2.set_coef(BUX, 0, 0);
+        BUX.set_coef(1.0/gslc_complex(gsl_matrix_complex_get(DB, 1, 1)), 0);
+        Hinv2.set_coef(BUX, 4, 1);
+        BUX.set_coef(1.0/gslc_complex(gsl_matrix_complex_get(DB, 2, 2)), 0);
+        Hinv2.set_coef(BUX, 1, 2);
+        BUX.set_coef(1.0/gslc_complex(gsl_matrix_complex_get(DB, 3, 3)), 0);
+        Hinv2.set_coef(BUX, 2, 3);
+        BUX.set_coef(1.0/gslc_complex(gsl_matrix_complex_get(DB, 4, 4)), 0);
+        Hinv2.set_coef(BUX, 5, 4);
+        BUX.set_coef(1.0/gslc_complex(gsl_matrix_complex_get(DB, 5, 5)), 0);
+        Hinv2.set_coef(BUX, 3, 5);
 
         break;
     }
@@ -778,18 +788,18 @@ void tfts_initOrderOne(gsl_matrix_complex *DB,
         //H2 = H in matrix<Ofsc> format
         //------------------------------------------
         BUX.zero();
-        BUX.setCoef(gslc_complex(gsl_matrix_complex_get(DB, 0, 0)), 0);
-        H2.setCoef(BUX, 0, 0);
-        BUX.setCoef(gslc_complex(gsl_matrix_complex_get(DB, 1, 1)), 0);
-        H2.setCoef(BUX, 1, 5);
-        BUX.setCoef(gslc_complex(gsl_matrix_complex_get(DB, 2, 2)), 0);
-        H2.setCoef(BUX, 2, 1);
-        BUX.setCoef(gslc_complex(gsl_matrix_complex_get(DB, 3, 3)), 0);
-        H2.setCoef(BUX, 3, 2);
-        BUX.setCoef(gslc_complex(gsl_matrix_complex_get(DB, 4, 4)), 0);
-        H2.setCoef(BUX, 4, 4);
-        BUX.setCoef(gslc_complex(gsl_matrix_complex_get(DB, 5, 5)), 0);
-        H2.setCoef(BUX, 5, 3);
+        BUX.set_coef(gslc_complex(gsl_matrix_complex_get(DB, 0, 0)), 0);
+        H2.set_coef(BUX, 0, 0);
+        BUX.set_coef(gslc_complex(gsl_matrix_complex_get(DB, 1, 1)), 0);
+        H2.set_coef(BUX, 1, 5);
+        BUX.set_coef(gslc_complex(gsl_matrix_complex_get(DB, 2, 2)), 0);
+        H2.set_coef(BUX, 2, 1);
+        BUX.set_coef(gslc_complex(gsl_matrix_complex_get(DB, 3, 3)), 0);
+        H2.set_coef(BUX, 3, 2);
+        BUX.set_coef(gslc_complex(gsl_matrix_complex_get(DB, 4, 4)), 0);
+        H2.set_coef(BUX, 4, 4);
+        BUX.set_coef(gslc_complex(gsl_matrix_complex_get(DB, 5, 5)), 0);
+        H2.set_coef(BUX, 5, 3);
 
         //------------------------------------------
         //       |1/iw1  0    0      0     0     0    |
@@ -810,18 +820,18 @@ void tfts_initOrderOne(gsl_matrix_complex *DB,
         //Hinv2 = Hinv in matrix<Ofsc> format
         //------------------------------------------
         BUX.zero();
-        BUX.setCoef(1.0/gslc_complex(gsl_matrix_complex_get(DB, 0, 0)), 0);
-        Hinv2.setCoef(BUX, 0, 0);
-        BUX.setCoef(1.0/gslc_complex(gsl_matrix_complex_get(DB, 1, 1)), 0);
-        Hinv2.setCoef(BUX, 5, 1);
-        BUX.setCoef(1.0/gslc_complex(gsl_matrix_complex_get(DB, 2, 2)), 0);
-        Hinv2.setCoef(BUX, 1, 2);
-        BUX.setCoef(1.0/gslc_complex(gsl_matrix_complex_get(DB, 3, 3)), 0);
-        Hinv2.setCoef(BUX, 2, 3);
-        BUX.setCoef(1.0/gslc_complex(gsl_matrix_complex_get(DB, 4, 4)), 0);
-        Hinv2.setCoef(BUX, 4, 4);
-        BUX.setCoef(1.0/gslc_complex(gsl_matrix_complex_get(DB, 5, 5)), 0);
-        Hinv2.setCoef(BUX, 3, 5);
+        BUX.set_coef(1.0/gslc_complex(gsl_matrix_complex_get(DB, 0, 0)), 0);
+        Hinv2.set_coef(BUX, 0, 0);
+        BUX.set_coef(1.0/gslc_complex(gsl_matrix_complex_get(DB, 1, 1)), 0);
+        Hinv2.set_coef(BUX, 5, 1);
+        BUX.set_coef(1.0/gslc_complex(gsl_matrix_complex_get(DB, 2, 2)), 0);
+        Hinv2.set_coef(BUX, 1, 2);
+        BUX.set_coef(1.0/gslc_complex(gsl_matrix_complex_get(DB, 3, 3)), 0);
+        Hinv2.set_coef(BUX, 2, 3);
+        BUX.set_coef(1.0/gslc_complex(gsl_matrix_complex_get(DB, 4, 4)), 0);
+        Hinv2.set_coef(BUX, 4, 4);
+        BUX.set_coef(1.0/gslc_complex(gsl_matrix_complex_get(DB, 5, 5)), 0);
+        Hinv2.set_coef(BUX, 3, 5);
 
         break;
     }
@@ -834,7 +844,7 @@ void tfts_initOrderOne(gsl_matrix_complex *DB,
     //Lambda = Hinv*DB*H = | 0  LaN  | with T = 0 in this context
     //
     //------------------------------------------
-    gsl_matrix_complex *AUX = gsl_matrix_complex_calloc(6, 6);
+    gsl_matrix_complex* AUX = gsl_matrix_complex_calloc(6, 6);
     //AUX = DB*H
     gsl_blas_zgemm (CblasNoTrans , CblasNoTrans , one_c , DB , H , zero_c , AUX );
     //B = Hinv*AUX
@@ -845,17 +855,17 @@ void tfts_initOrderOne(gsl_matrix_complex *DB,
 /**
  *  \brief Initialization of the PM objects (W, Wh, and fh). TFS formatting is included.
  **/
-void tfts_initPM(vector<Oftsc>& W,
-                 vector<Oftsc>& Wh,
-                 vector<Oftsc>& fh,
-                 matrix<Ofsc>& PC,
-                 vector<Ofsc>& V,
-                 gsl_matrix_complex *L,
-                 gsl_matrix_complex *La,
-                 int manType)
+void tfts_init_pm(vector<Oftsc>& W,
+                  vector<Oftsc>& Wh,
+                  vector<Oftsc>& fh,
+                  matrix<Ofsc>& PC,
+                  vector<Ofsc>& V,
+                  gsl_matrix_complex* L,
+                  gsl_matrix_complex* La,
+                  int man_type)
 {
     //------------------------------------------
-    // Initialisation of the TFC manifold ("W hat")
+    // Initialization of the TFC manifold ("W hat")
     //------------------------------------------
     cdouble db;
     gsl_complex dbc;
@@ -872,23 +882,23 @@ void tfts_initPM(vector<Oftsc>& W,
     // Wh[0] = L11*s1 = L[0][0]*s[0]
     dbc = gsl_matrix_complex_get(L, 0, 0);
     db = gslc_complex(dbc);
-    Wh[0].setCoef0(db, 1, 0);
+    Wh[0].set_coef0(db, 1, 0);
     // Wh[2] = L32*s2 = L[2][1]*s[1]
     dbc = gsl_matrix_complex_get(L, 2, 1);
     db = gslc_complex(dbc);
-    Wh[2].setCoef0(db, 1, 1);
+    Wh[2].set_coef0(db, 1, 1);
     // Wh[3] = L43*s3 = L[3][2]*s[2]
     dbc = gsl_matrix_complex_get(L, 3, 2);
     db = gslc_complex(dbc);
-    Wh[3].setCoef0(db, 1, 2);
+    Wh[3].set_coef0(db, 1, 2);
     // Wh[5] = L64*s4 = L[5][3]*s[3]
     dbc = gsl_matrix_complex_get(L, 5, 3);
     db = gslc_complex(dbc);
-    Wh[5].setCoef0(db, 1, 3);
+    Wh[5].set_coef0(db, 1, 3);
 
     //Special case: Wh[1] and Wh[4]
     //------------------------------------------
-    switch(manType)
+    switch(man_type)
     {
     case Csts::MAN_CENTER:
         //Nothing is done, since:
@@ -903,7 +913,7 @@ void tfts_initPM(vector<Oftsc>& W,
         // Wh[4] = L55*s5 = L[4][4]*s[4]
         dbc = gsl_matrix_complex_get(L, 4, 4);
         db  = gslc_complex(dbc);
-        Wh[4].setCoef0(db, 1, 4);
+        Wh[4].set_coef0(db, 1, 4);
         break;
 
     case Csts::MAN_CENTER_U:
@@ -912,7 +922,7 @@ void tfts_initPM(vector<Oftsc>& W,
         // Wh[1] = L25*s5 = L[1][4]*s[4]
         dbc = gsl_matrix_complex_get(L, 1, 4);
         db  = gslc_complex(dbc);
-        Wh[1].setCoef0(db, 1, 4);
+        Wh[1].set_coef0(db, 1, 4);
         break;
 
     case Csts::MAN_CENTER_US:
@@ -921,11 +931,11 @@ void tfts_initPM(vector<Oftsc>& W,
         // Wh[1] = L25*s5 = L[1][4]*s[4]
         dbc = gsl_matrix_complex_get(L, 1, 4);
         db  = gslc_complex(dbc);
-        Wh[1].setCoef0(db, 1, 4);
+        Wh[1].set_coef0(db, 1, 4);
         // Wh[4] = L56*s6 = L[4][5]*s[5]
         dbc = gsl_matrix_complex_get(L, 4, 5);
         db  = gslc_complex(dbc);
-        Wh[4].setCoef0(db, 1, 5);
+        Wh[4].set_coef0(db, 1, 5);
         break;
     }
 
@@ -937,7 +947,7 @@ void tfts_initPM(vector<Oftsc>& W,
     tfs_from_ofs_inline(Wh, 1);
 
     //------------------------------------------
-    // Initialisation of the NC manifolds
+    // Initialization of the NC manifolds
     //------------------------------------------
     //Applying the COC (with and without zero order) @order 0 and 1
     for(int i = 0; i < 2; i++)
@@ -946,14 +956,14 @@ void tfts_initPM(vector<Oftsc>& W,
     }
 
     //------------------------------------------
-    // Initialisation of the reduced VF
+    // Initialization of the reduced VF
     //------------------------------------------
     for(int i = 0; i < REDUCED_NV; i++)
     {
         // fh[i] =  LaL[i][i]*s[i]
         dbc = gsl_matrix_complex_get(La, i, i);
         db = gslc_complex(dbc);
-        fh[i].setCoef0(db, 1, i);
+        fh[i].set_coef0(db, 1, i);
     }
 
     //------------------------------------------
@@ -963,23 +973,23 @@ void tfts_initPM(vector<Oftsc>& W,
     tfs_from_ofs_inline(fh, 1);
 }
 
-//---------------------------------------------------------------------------------------------------------------------------------------
-//         Cohomological equations
-//---------------------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
+//         Solving the homological equations
+//----------------------------------------------------------------------------------------
 /**
  *  \brief Resolution of the cohomological equations at order m.
  *
  *         The right-hand side of the cohomological equation are in the expansion xi. The expansions eta and fh are updated.
  **/
-void cohomEq(vector<Oftsc>& eta,
+void solv_hom_eq(vector<Oftsc>& eta,
              vector<Oftsc>& xi,
              vector<Oftsc>& fh,
-             gsl_matrix_complex *La,
+             gsl_matrix_complex* La,
              int m,
-             int pms,
-             double threshold,
-             int **VIs,
-             int  *VIn,
+             int param_style,
+             double small_div_threshold,
+             int** VIs,
+             int*  VIn,
              int ims)
 {
     //------------------------------------------
@@ -1030,29 +1040,29 @@ void cohomEq(vector<Oftsc>& eta,
                 //divisor = jnI - (lap - laL.kv)
                 div = SEML.us.n*I*j - (lap - aux);
 
-                switch(pms)
+                switch(param_style)
                 {
                 case Csts::GRAPH:
                 {
-                    //------------------------------------------
+                    //--------------------------------------------------------------------
                     // In GRAPH case: fh is updated, xi is kept
                     // as simple as possible
-                    //------------------------------------------
-                    bux = eta[p].getCoef(m, k)->ofs_getCoef(j);
-                    fh[p].getCoef(m, k)->setCoef(0.0*I-bux, j);
+                    //--------------------------------------------------------------------
+                    bux = eta[p].get_coef(m, k)->ofs_get_coef(j);
+                    fh[p].get_coef(m, k)->set_coef(0.0*I-bux, j);
                     break;
                 }
 
                 case Csts::NORMFORM:
                 {
-                    //------------------------------------------
+                    //--------------------------------------------------------------------
                     // In NORMFORM case: fh is kept as simple as
                     // possible, unless a small divisor appears
-                    //------------------------------------------
-                    if(cabs(div) < threshold) //if small divisor, we set the rvf
+                    //--------------------------------------------------------------------
+                    if(cabs(div) < small_div_threshold) //if small divisor, we set the rvf
                     {
-                        bux = eta[p].getCoef(m, k)->ofs_getCoef(j);
-                        fh[p].getCoef(m, k)->setCoef(0.0*I-bux, j);
+                        bux = eta[p].get_coef(m, k)->ofs_get_coef(j);
+                        fh[p].get_coef(m, k)->set_coef(0.0*I-bux, j);
 
                         if(true)
                         {
@@ -1066,8 +1076,8 @@ void cohomEq(vector<Oftsc>& eta,
                     }
                     else //normal form
                     {
-                        bux = 0.0*I-eta[p].getCoef(m, k)->ofs_getCoef(j)/div;
-                        xi[p].getCoef(m, k)->setCoef(bux, j);
+                        bux = 0.0*I-eta[p].get_coef(m, k)->ofs_get_coef(j)/div;
+                        xi[p].get_coef(m, k)->set_coef(bux, j);
                     }
 
                     break;
@@ -1075,21 +1085,21 @@ void cohomEq(vector<Oftsc>& eta,
 
                 case Csts::MIXED:
                 {
-                    //------------------------------------------
+                    //--------------------------------------------------------------------
                     // Isolation of some submanifolds defined
                     // in VIs/VIn
                     // The idea is to simplify as much as possible
                     // the RVF fh for some subsets of indices.
-                    //------------------------------------------
+                    //--------------------------------------------------------------------
                     //if i is in VIs[vi] and kv[j] == 0 for all j in VIs[vi]
-                    if(isNF(p, kv, VIs, VIn, ims))
+                    if(is_mixed_style_on(p, kv, VIs, VIn, ims))
                     {
                         //Normal form
-                        bux = 0.0*I-eta[p].getCoef(m, k)->ofs_getCoef(j)/div;
-                        xi[p].getCoef(m, k)->setCoef(bux, j);
+                        bux = 0.0*I-eta[p].get_coef(m, k)->ofs_get_coef(j)/div;
+                        xi[p].get_coef(m, k)->set_coef(bux, j);
 
                         //if small divisor, send a warning. Should not happend if the set of indices is good
-                        if(cabs(div) < threshold)
+                        if(cabs(div) < small_div_threshold)
                         {
                             cout <<  setprecision(1);
                             cout << "Small divisor: p = " << p << ", kv = (";
@@ -1103,8 +1113,8 @@ void cohomEq(vector<Oftsc>& eta,
                     else
                     {
                         //Graph style
-                        bux = eta[p].getCoef(m, k)->ofs_getCoef(j);
-                        fh[p].getCoef(m, k)->setCoef(0.0*I-bux, j);
+                        bux = eta[p].get_coef(m, k)->ofs_get_coef(j);
+                        fh[p].get_coef(m, k)->set_coef(0.0*I-bux, j);
                     }
                     break;
                 }
@@ -1147,8 +1157,8 @@ void cohomEq(vector<Oftsc>& eta,
                 //divisor = jnI - (lap - laL.kv)
                 div = SEML.us.n*I*j - (lap - aux);
 
-                bux = 0.0*I-eta[p].getCoef(m, k)->ofs_getCoef(j)/div;
-                xi[p].getCoef(m, k)->setCoef(bux, j);
+                bux = 0.0*I-eta[p].get_coef(m, k)->ofs_get_coef(j)/div;
+                xi[p].get_coef(m, k)->set_coef(bux, j);
             }
             //Update kv
             if(k < Manip::nmon(REDUCED_NV, m)-1)  Manip::prxkt(kv, REDUCED_NV);
@@ -1156,26 +1166,27 @@ void cohomEq(vector<Oftsc>& eta,
     }
 }
 
-//---------------------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 //         Recurrence
-//---------------------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 /**
- *  \brief Adds the contribution of the terms of order m to the order m of Un. These terms are part of the potential of the primary with position Xe and factor Ke.
+ *  \brief Adds the contribution of the terms of order m to the order m of Un.
+ *         These terms are part of the potential of the primary with position Xe and factor Ke.
  **/
-void updateDerPotprim_zero(vector<Oftsc>& W,        //parameterization in NC coordinates
-                           vector<Ofsc>& Xe,        //position of the primary
-                           Oftsc& E1, Oftsc& E2,    //intermediate steps
-                           Oftsc& Et1, Oftsc& Et2,  //intermediate steps
-                           double Ke,               //primary factor
-                           vector<Oftsc>& Un,       //potential to update
-                           int m)                   //order
+void update_potential_prim_m(vector<Oftsc>& W,        //parameterization in NC coordinates
+                              vector<Ofsc>& Xe,        //position of the primary
+                              Oftsc& E1, Oftsc& E2,    //intermediate steps
+                              Oftsc& Et1, Oftsc& Et2,  //intermediate steps
+                              double Ke,               //primary factor
+                              vector<Oftsc>& Un,       //potential to update
+                              int m)                   //order
 {
     //-------------------------
     // Initial operations
     //-------------------------
     //W = W - Xe @ order 0
-    W[0].addCoef(-Xe[0], 0, 0);
-    W[1].addCoef(-Xe[1], 0, 0);
+    W[0].add_coef(-Xe[0], 0, 0);
+    W[1].add_coef(-Xe[1], 0, 0);
     //In Et1: (X-Xe)^2+Ye^2+Ze^2 at order m
     Et1.tfts_sprod_zero(W[0], W[0], m);
     Et1.tfts_sprod_zero(W[1], W[1], m);
@@ -1199,26 +1210,28 @@ void updateDerPotprim_zero(vector<Oftsc>& W,        //parameterization in NC coo
     // Back to real coordinates
     //-------------------------
     //W = W + Xe @ order 0
-    W[0].addCoef(Xe[0], 0, 0);
-    W[1].addCoef(Xe[1], 0, 0);
+    W[0].add_coef(Xe[0], 0, 0);
+    W[1].add_coef(Xe[1], 0, 0);
 }
 
 /**
- *  \brief Adds the contribution of the terms of order < m to the order m of Un. These terms are part of the the potential of the primary with position Xe and factor Ke.
+ *  \brief Adds the contribution of the terms of order < m to the order m of Un.
+ *         These terms are part of the the potential of the primary with position Xe
+ *         and factor Ke.
  **/
-void updateDerPotprim(vector<Oftsc>& W,     //parameterization in NC coordinates
-                      vector<Ofsc>& Xe,     //position of the primary
-                      Oftsc& E1, Oftsc& E2, //intermediate steps
-                      double Ke,            //primary factor
-                      vector<Oftsc>& Un,    //potential to update
-                      int m)                //order
+void update_potential_prim(vector<Oftsc>& W,     //parameterization in NC coordinates
+                         vector<Ofsc>& Xe,     //position of the primary
+                         Oftsc& E1, Oftsc& E2, //intermediate steps
+                         double Ke,            //primary factor
+                         vector<Oftsc>& Un,    //potential to update
+                         int m)                //order
 {
     //-------------------------
     // Initial operations
     //-------------------------
     //W = W - Xe @ order 0
-    W[0].addCoef(-Xe[0], 0, 0);
-    W[1].addCoef(-Xe[1], 0, 0);
+    W[0].add_coef(-Xe[0], 0, 0);
+    W[1].add_coef(-Xe[1], 0, 0);
     //In E1: (X-Xe)^2+Ye^2+Ze^2 at order m
     E1.tfts_sprod(W[0], W[0], m);
     E1.tfts_sprod(W[1], W[1], m);
@@ -1237,63 +1250,65 @@ void updateDerPotprim(vector<Oftsc>& W,     //parameterization in NC coordinates
     // Back to real coordinates
     //-------------------------
     //W = W + Xe @ order 0
-    W[0].addCoef(Xe[0], 0, 0);
-    W[1].addCoef(Xe[1], 0, 0);
+    W[0].add_coef(Xe[0], 0, 0);
+    W[1].add_coef(Xe[1], 0, 0);
 }
 
 /**
  *  \brief Adds the contribution of the terms of order m to the order m of the potential Un.
  **/
-void updateDerPot_zero(vector<Oftsc>& W,        //parameterization in NC coordinates
-                       vector<Ofsc>& Xe,        //Earth position
-                       vector<Ofsc>& Xm,        //Moon position
-                       vector<Ofsc>& Xs,        //Sun position
-                       vector<Oftsc>& PrimPt,   //Intermediate steps: contr. of order < m to order m
-                       vector<Oftsc>& PrimPt2,  //Intermediate steps: contr. of order = m to order m
-                       double Ke,               //Earth factor
-                       double Km,               //Moon factor
-                       double Ks,               //Sun factor
-                       vector<Oftsc>& Un,       //potential to update
-                       int m)                   //order
+void update_potential_m(vector<Oftsc>& W,        //parameterization in NC coordinates
+                         vector<Ofsc>& Xe,        //Earth position
+                         vector<Ofsc>& Xm,        //Moon position
+                         vector<Ofsc>& Xs,        //Sun position
+                         vector<Oftsc>& PrimPt,   //Intermediate steps: contr. of order < m to order m
+                         vector<Oftsc>& PrimPt2,  //Intermediate steps: contr. of order = m to order m
+                         double Ke,               //Earth factor
+                         double Km,               //Moon factor
+                         double Ks,               //Sun factor
+                         vector<Oftsc>& Un,       //potential to update
+                         int m)                   //order
 {
     //-------------------------
     // Earth, Moon and Sun potential
     //-------------------------
-    if(Ke != 0) updateDerPotprim_zero(W, Xe, PrimPt[0], PrimPt[1], PrimPt2[0], PrimPt2[1], Ke, Un, m);
-    if(Km != 0) updateDerPotprim_zero(W, Xm, PrimPt[2], PrimPt[3], PrimPt2[2], PrimPt2[3], Km, Un, m);
-    if(Ks != 0) updateDerPotprim_zero(W, Xs, PrimPt[4], PrimPt[5], PrimPt2[4], PrimPt2[5], Ks, Un, m);
+    if(Ke != 0) update_potential_prim_m(W, Xe, PrimPt[0], PrimPt[1], PrimPt2[0], PrimPt2[1], Ke, Un, m);
+    if(Km != 0) update_potential_prim_m(W, Xm, PrimPt[2], PrimPt[3], PrimPt2[2], PrimPt2[3], Km, Un, m);
+    if(Ks != 0) update_potential_prim_m(W, Xs, PrimPt[4], PrimPt[5], PrimPt2[4], PrimPt2[5], Ks, Un, m);
 }
 
 /**
- *  \brief Adds the contribution of the terms of order < m to the order m of the potential Un.
+ *  \brief Adds the contribution of the terms of order < m to the order m of the
+ *         potential Un of the three primaries combined.
  **/
-void updateDerPot(vector<Oftsc>& W,        //parameterization in NC coordinates
-                  vector<Ofsc>& Xe,        //Earth position
-                  vector<Ofsc>& Xm,        //Moon position
-                  vector<Ofsc>& Xs,        //Sun position
-                  vector<Oftsc>& PrimPt,   //Intermediate steps: contr. of order < m to order m
-                  double Ke,               //Earth factor
-                  double Km,               //Moon factor
-                  double Ks,               //Sun factor
-                  vector<Oftsc>& Un,       //potential to update
-                  int m)                   //order
+void update_potential(vector<Oftsc>& W,        //parameterization in NC coordinates
+                    vector<Ofsc>& Xe,        //Earth position
+                    vector<Ofsc>& Xm,        //Moon position
+                    vector<Ofsc>& Xs,        //Sun position
+                    vector<Oftsc>& PrimPt,   //Intermediate steps: contr. of order < m to order m
+                    double Ke,               //Earth factor
+                    double Km,               //Moon factor
+                    double Ks,               //Sun factor
+                    vector<Oftsc>& Un,       //potential to update
+                    int m)                   //order
 {
     //-------------------------
     // Earth, Moon and Sun potential
     //-------------------------
-    if(Ke != 0) updateDerPotprim(W, Xe, PrimPt[0], PrimPt[1], Ke, Un, m);
-    if(Km != 0) updateDerPotprim(W, Xm, PrimPt[2], PrimPt[3], Km, Un, m);
-    if(Ks != 0) updateDerPotprim(W, Xs, PrimPt[4], PrimPt[5], Ks, Un, m);
+    if(Ke != 0) update_potential_prim(W, Xe, PrimPt[0], PrimPt[1], Ke, Un, m);
+    if(Km != 0) update_potential_prim(W, Xm, PrimPt[2], PrimPt[3], Km, Un, m);
+    if(Ks != 0) update_potential_prim(W, Xs, PrimPt[4], PrimPt[5], Ks, Un, m);
 }
 
 /**
- *  \brief Update the vector field FWc at order m, knowing the parameterization W and the potential Un.
+ *  \brief Update the vector field FWc at order m, knowing the parameterization W and the
+ *         potential Un of the three primaries combined.
  **/
-void applyVF(vector<Ofsc>& alpha,
-             vector<Oftsc>& W,
-             vector<Oftsc>& FWc,
-             vector<Oftsc>& Un,
-             int m)
+void apply_vector_field(vector<Ofsc>& alpha,
+                        vector<Oftsc>& W,
+                        vector<Oftsc>& FWc,
+                        vector<Oftsc>& Un,
+                        int m)
 {
     //-----------------------------------------
     //Configuration variables
@@ -1311,14 +1326,14 @@ void applyVF(vector<Ofsc>& alpha,
     //FWc[3] = -alpha2*px + alpha3*py + alpha24 + order m of the derivative of the potential
     FWc[3].tfts_sfsum_t(W[3], -alpha[1], W[4], alpha[2], m);
     //At order 0, need to add alpha13
-    if(m == 0) FWc[3].addCoef(alpha[12], 0, 0);
+    if(m == 0) FWc[3].add_coef(alpha[12], 0, 0);
     //Sum of the Earth+Moon+Sun potential up to degree m+1 (order m)
     FWc[3].tfts_smult_t(Un[0], -alpha[5], m);
 
     //FWc[4] = -alpha2*py - alpha3*px + alpha26 + order m of the derivative of the potential
     FWc[4].tfts_sfsum_t(W[4], -alpha[1], W[3], -alpha[2], m);
     //At order 0, need to add alpha14
-    if(m == 0) FWc[4].addCoef(alpha[13], 0, 0);
+    if(m == 0) FWc[4].add_coef(alpha[13], 0, 0);
     //Sum of the Earth+Moon+Sun potential up to degree m+1 (order m)
     FWc[4].tfts_smult_t(Un[1], -alpha[5], m);
 
@@ -1330,24 +1345,30 @@ void applyVF(vector<Ofsc>& alpha,
 
 
 //----------------------------------------------------------------------------------------
-//         Mixed style
+//         Mixed style: indices handling
 //----------------------------------------------------------------------------------------
 /**
- *  \brief Initialize the arrays that contains the segregated families of solutions in the mixed style.
+ *  \brief Initialize the arrays that contains the segregated families of solutions
+ *         in the mixed style:
+ *         For j = 1,..., ims, VIs[j] contains the set of VIn[j] directions that must
+ *         be null for a certain submanifold to be invariant.
  **/
-void initMS(int **VIs,
-            int  *VIn,
-            int manType)
+void init_mixed_style(int** VIs, int*  VIn, int*  ims, int man_type)
 {
-    switch(manType)
+    switch(man_type)
     {
     case Csts::MAN_CENTER:
     {
         //--------------------------
+        // Init ims
+        //--------------------------
+        *ims = 2;
+
+        //--------------------------
         // Planar family
         //--------------------------
         VIn[0] = 2;
-        VIs[0] = (int *) calloc(2, sizeof(int));
+        VIs[0] = (int*) calloc(2, sizeof(int));
         VIs[0][0] = 2;
         VIs[0][1] = 4;
 
@@ -1355,7 +1376,7 @@ void initMS(int **VIs,
         // Vertical family
         //--------------------------
         VIn[1] = 2;
-        VIs[1] = (int *) calloc(2, sizeof(int));
+        VIs[1] = (int*) calloc(2, sizeof(int));
         VIs[1][0] = 1;
         VIs[1][1] = 3;
         break;
@@ -1365,10 +1386,15 @@ void initMS(int **VIs,
     case Csts::MAN_CENTER_U:
     {
         //--------------------------
+        // Init ims
+        //--------------------------
+        *ims = 2; //6
+
+        //--------------------------
         // Hyperbolic normal part
         //--------------------------
         VIn[0] = 4;
-        VIs[0] = (int *) calloc(4, sizeof(int));
+        VIs[0] = (int*) calloc(4, sizeof(int));
         VIs[0][0] = 1;
         VIs[0][1] = 2;
         VIs[0][2] = 3;
@@ -1378,7 +1404,7 @@ void initMS(int **VIs,
         // Center manifold
         //--------------------------
         VIn[1] = 1;
-        VIs[1] = (int *) calloc(1, sizeof(int));
+        VIs[1] = (int*) calloc(1, sizeof(int));
         VIs[1][0] = 5;
 
         //--------------------------
@@ -1429,10 +1455,15 @@ void initMS(int **VIs,
     case Csts::MAN_CENTER_US:
     {
         //--------------------------
+        // Init ims
+        //--------------------------
+        *ims = 14; //6
+
+        //--------------------------
         // Unstable manifold
         //--------------------------
         VIn[0] = 5;
-        VIs[0] = (int *) calloc(5, sizeof(int));
+        VIs[0] = (int*) calloc(5, sizeof(int));
         VIs[0][0] = 1;
         VIs[0][1] = 2;
         VIs[0][2] = 3;
@@ -1443,7 +1474,7 @@ void initMS(int **VIs,
         // Stable manifold
         //--------------------------
         VIn[1] = 5;
-        VIs[1] = (int *) calloc(5, sizeof(int));
+        VIs[1] = (int*) calloc(5, sizeof(int));
         VIs[1][0] = 1;
         VIs[1][1] = 2;
         VIs[1][2] = 3;
@@ -1454,7 +1485,7 @@ void initMS(int **VIs,
         // Hyperbolic normal part (stable + unstable)
         //--------------------------
         VIn[2] = 4;
-        VIs[2] = (int *) calloc(4, sizeof(int));
+        VIs[2] = (int*) calloc(4, sizeof(int));
         VIs[2][0] = 1;
         VIs[2][1] = 2;
         VIs[2][2] = 3;
@@ -1464,7 +1495,7 @@ void initMS(int **VIs,
         // Planar family
         //--------------------------
         VIn[3] = 4;
-        VIs[3] = (int *) calloc(4, sizeof(int));
+        VIs[3] = (int*) calloc(4, sizeof(int));
         VIs[3][0] = 2;
         VIs[3][1] = 4;
         VIs[3][2] = 5;
@@ -1474,7 +1505,7 @@ void initMS(int **VIs,
         // Unstable manifold of the planar family
         //--------------------------
         VIn[4] = 3;
-        VIs[4] = (int *) calloc(3, sizeof(int));
+        VIs[4] = (int*) calloc(3, sizeof(int));
         VIs[4][0] = 2;
         VIs[4][1] = 4;
         VIs[4][2] = 6;
@@ -1483,7 +1514,7 @@ void initMS(int **VIs,
         // Stable manifold of the planar family
         //--------------------------
         VIn[5] = 3;
-        VIs[5] = (int *) calloc(3, sizeof(int));
+        VIs[5] = (int*) calloc(3, sizeof(int));
         VIs[5][0] = 2;
         VIs[5][1] = 4;
         VIs[5][2] = 5;
@@ -1492,7 +1523,7 @@ void initMS(int **VIs,
         // Hyperbolic normal part of the planar family
         //--------------------------
         VIn[6] = 2;
-        VIs[6] = (int *) calloc(2, sizeof(int));
+        VIs[6] = (int*) calloc(2, sizeof(int));
         VIs[6][0] = 2;
         VIs[6][1] = 4;
 
@@ -1500,7 +1531,7 @@ void initMS(int **VIs,
         // Vertical family
         //--------------------------
         VIn[7] = 4;
-        VIs[7] = (int *) calloc(4, sizeof(int));
+        VIs[7] = (int*) calloc(4, sizeof(int));
         VIs[7][0] = 1;
         VIs[7][1] = 3;
         VIs[7][2] = 5;
@@ -1510,7 +1541,7 @@ void initMS(int **VIs,
         // Unstable manifold of the vertical family
         //--------------------------
         VIn[8] = 3;
-        VIs[8] = (int *) calloc(3, sizeof(int));
+        VIs[8] = (int*) calloc(3, sizeof(int));
         VIs[8][0] = 1;
         VIs[8][1] = 3;
         VIs[8][2] = 6;
@@ -1519,7 +1550,7 @@ void initMS(int **VIs,
         // Stable manifold of the vertical family
         //--------------------------
         VIn[9] = 3;
-        VIs[9] = (int *) calloc(3, sizeof(int));
+        VIs[9] = (int*) calloc(3, sizeof(int));
         VIs[9][0] = 1;
         VIs[9][1] = 3;
         VIs[9][2] = 5;
@@ -1528,7 +1559,7 @@ void initMS(int **VIs,
         // Hyperbolic normal part of the vertical family
         //--------------------------
         VIn[10] = 2;
-        VIs[10] = (int *) calloc(2, sizeof(int));
+        VIs[10] = (int*) calloc(2, sizeof(int));
         VIs[10][0] = 1;
         VIs[10][1] = 3;
 
@@ -1536,7 +1567,7 @@ void initMS(int **VIs,
         // Center manifold
         //--------------------------
         VIn[11] = 2;
-        VIs[11] = (int *) calloc(2, sizeof(int));
+        VIs[11] = (int*) calloc(2, sizeof(int));
         VIs[11][0] = 5;
         VIs[11][1] = 6;
 
@@ -1544,14 +1575,14 @@ void initMS(int **VIs,
         // Center-unstable manifold
         //--------------------------
         VIn[12] = 1;
-        VIs[12] = (int *) calloc(1, sizeof(int));
+        VIs[12] = (int*) calloc(1, sizeof(int));
         VIs[12][0] = 6;
 
         //--------------------------
         // Center-stable manifold
         //--------------------------
         VIn[13] = 1;
-        VIs[13] = (int *) calloc(1, sizeof(int));
+        VIs[13] = (int*) calloc(1, sizeof(int));
         VIs[13][0] = 5;
 
         break;
@@ -1560,25 +1591,23 @@ void initMS(int **VIs,
 }
 
 /**
- *  \brief Free the memory allocated by initMS.
+ *  \brief Free the memory of VIs, VIn
  **/
-void freeMS(int **VIs,
-            int  *VIn,
-            int ims)
+void free_mixed_style(int** VIs, int*  VIn, int ims)
 {
     for(int i = 0; i < ims; i++) free(VIs[i]);
     free(VIs);
     free(VIn);
 }
 
-
 /**
  * \brief Inner routine. Checks that the indix \c ind is in the array \c VI, of size \c sVI.
  *
- *  Note that there is a shif of indices: VI contains indices in the form 1, 2, 3, ..., whereas ind is an indix of the form 0, 1, 2, ...
+ *  Note that there is a shif of indices: VI contains indices in the form 1, 2, 3, ...,
+ *  whereas ind is an indix of the form 0, 1, 2, ...
  *
  **/
-bool inVI(int ind, int *VI, int sVI)
+bool is_in_VI(int ind, int* VI, int sVI)
 {
     for(int i = 0; i < sVI; i++)
     {
@@ -1588,12 +1617,14 @@ bool inVI(int ind, int *VI, int sVI)
 }
 
 /**
- * \brief Inner routine. Checks that all indices of the form \c kv[VI[i]-1] are null, where \c VI is an array of integers of size \c sVI.
+ * \brief Inner routine. Checks that all indices of the form \c kv[VI[i]-1] are null,
+ *        where \c VI is an array of integers of size \c sVI.
  *
- *  Note that there is a shif of indices: VI contains indices in the form 1, 2, 3, ..., whereas ind is an indix of the form 0, 1, 2, ...
+ *  Note that there is a shif of indices: VI contains indices in the form 1, 2, 3, ...,
+ *  whereas ind is an indix of the form 0, 1, 2, ...
  *
  **/
-bool nullIndices(int *kv, int *VI, int sVI)
+bool null_ind_VI(int* kv, int* VI, int sVI)
 {
     for(int i = 0; i < sVI; i++)
     {
@@ -1604,16 +1635,16 @@ bool nullIndices(int *kv, int *VI, int sVI)
 
 /**
  * \brief Inner routine. For all arrays VIs[vi] of size VIn[vi], checks the boolean:
- *                                      inVI(p, VIs[vi], VIn[vi]) && nullIndices(kv, VIs[vi], VIn[vi])
- *        This the standard test for mixed style parameterization (see Haro 2014, section 2.2.3).
- *
+ *                                      is_in_VI(p, VIs[vi], VIn[vi]) && null_ind_VI(kv, VIs[vi], VIn[vi])
+ *        This the standard test for mixed style parameterization
+ *       (see Haro 2014, section 2.2.3, or BLB PhD manuscript, Section 5.2.2.3).
  **/
-bool isNF(int p, int *kv, int **VIs, int *VIn, int numberOfSets)
+bool is_mixed_style_on(int p, int* kv, int** VIs, int* VIn, int numberOfSets)
 {
     //Loop on all set of indices
     for(int vi = 0; vi < numberOfSets; vi ++)
     {
-        if(inVI(p, VIs[vi], VIn[vi]) && nullIndices(kv, VIs[vi], VIn[vi])) return true;
+        if(is_in_VI(p, VIs[vi], VIn[vi]) && null_ind_VI(kv, VIs[vi], VIn[vi])) return true;
     }
 
     return false;

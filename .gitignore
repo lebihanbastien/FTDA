@@ -6,11 +6,13 @@
 /latex/
 /plot/
 /data/
+/data2/
 /config_server/
 /data_20/
 /gnuplot/
 /gsl/
 /lib/
+/tmp/
 /OOFTDA.cbp
 /OOFTDA.depend
 /OOFTDA.layout

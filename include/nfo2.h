@@ -5,8 +5,6 @@
  * \file nfo2.h
  * \brief Computes the complete change of coordinates for the Normalized-Centered Hamiltonian of the QBCP.
  * \author BLB.
- * \date May 2015
- * \version 1.0
  */
 
 //Std
@@ -31,54 +29,46 @@
 #include "init.h"
 
 
-
-
 //----------------------------------------------------------------------------------------
 // Main routine
 //----------------------------------------------------------------------------------------
-void nfo2_2(FBPL &fbpl, int isStored);
+/**
+ *  \brief Main routine. Compute the complete change of coordinates.
+ */
+void nfo2(FBPL &fbpl, int is_stored);
 
 /**
  *  \brief Main routine. Compute the complete change of coordinates.
  */
-void nfo2(FBPL &fbpl, int isStored);
+void nfo2_QBP(FBPL &fbpl, int is_stored);
 
-/**
- *  \brief Main routine. Compute the complete change of coordinates.
- */
-void nfo2_QBP(FBPL &fbpl, int isStored);
 
-/**
- *  \brief Main routine. Compute the complete change of coordinates.
- */
-void nfo2_RTBP(FBPL &fbpl, int isStored);
-
-//-------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 //Compute the STM/Monodromy Matrix
-//-------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 /**
  *  \brief Get the STM matrix at time \c t1, using GSL tools.
  */
-void stmMatrix(const double y[], gsl_odeiv2_driver *d, double t1, gsl_matrix* M);
+void stm_matrix_with_gsl(const double y[], gsl_odeiv2_driver *d, double t1, gsl_matrix* M);
 /**
  *  \brief Get the STM matrix at time \c t1 in complex format, using GSL tools.
  */
-void stmComplexMatrix(const double y[], gsl_odeiv2_driver *d, double t1, gsl_matrix_complex* M, double ys[]);
+void stm_complex(const double y[], gsl_odeiv2_driver *d, double t1, gsl_matrix_complex* M, double ys[]);
 /**
  *  \brief Get the STM matrix on a \c M steps grid in complex format, using GSL tools.
  */
-void stmSteppedComplexMatrix(const double y[], gsl_odeiv2_driver *d, double t1, int M, gsl_matrix_complex **DAT);
+void stm_stepped_complex(const double y[], gsl_odeiv2_driver *d, double t1, int M, gsl_matrix_complex **DAT);
 /**
  *  \brief Get the STM matrix on a \c M steps grid in complex format, using GSL tools. Alternative version that uses the symmetries of the native orbit.
  */
-void stmSteppedComplexMatrix_alt(const double y[], gsl_odeiv2_driver *d, double t1, int M, gsl_matrix_complex **DAT);
+void stm_stepped_complex_alt(const double y[], gsl_odeiv2_driver *d, double t1, int M, gsl_matrix_complex **DAT);
 /**
  *  \brief Computing the Monodromy matrix from the stepped STM stored in DAT[1, ..., M].
  *  \param MMc: the matrix to update.
  *  \param DAT: a double pointer to the gsl_matrix_complex* array to update
  *  \param M: the number of steps
  **/
-void monoProd(gsl_matrix_complex* MMc, gsl_matrix_complex** DAT, int M);
+void mono_from_prod(gsl_matrix_complex* MMc, gsl_matrix_complex** DAT, int M);
 /**
  *  \brief Direct diagonalization of the monodromy matrix
  *  \param MM    the monodromy matrix in real format
@@ -86,18 +76,18 @@ void monoProd(gsl_matrix_complex* MMc, gsl_matrix_complex** DAT, int M);
  *  \param evald output: the eigenvalues  in vector format
  *  \param evmd  output: the eigenvalues  in matrix format (along the diagonal)
  **/
-void monoDiag(gsl_matrix* MM, gsl_matrix_complex *evecd, gsl_vector_complex *evald, gsl_matrix_complex *evmd);
+void mono_diag(gsl_matrix* MM, gsl_matrix_complex *evecd, gsl_vector_complex *evald, gsl_matrix_complex *evmd);
 
-//-------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 // Matrix decomposition
-//-------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 /**
  *  \brief Obtain the monodromy matrix decomposition from a monodromy matrix given as a product of matrices.
  */
-void monoDecomp(gsl_odeiv2_driver *d,           //driver for odeRK78
+void mono_eigen(gsl_odeiv2_driver *d,           //driver for odeRK78
                 const double y0[],              //initial conditions
                 const double n,                 //pulsation
-                FBPL *fbpl,                //Four-Body problem
+                FBPL *fbpl,                     //Four-Body problem
                 int M,                          //Number of steps for Monodromy matrix splitting in a product of matrices
                 int STABLE_DIR_TYPE,            //Type of computation of the stable direction
                 gsl_matrix_complex* MMc,        //Final monodromy matrix in complex form                                    |
@@ -110,44 +100,12 @@ void monoDecomp(gsl_odeiv2_driver *d,           //driver for odeRK78
                 gsl_matrix *Br,                 //Real form of B computed from the Jordan Form                              |
                 gsl_matrix *R,                  //B = R*JB*Rinv                                                             |
                 gsl_matrix_complex** DAT,       //Contains the STM at each of the M steps                                   |
-                int isStored);
-
-/**
- *  \brief Perform a permutation within S and Dm.
- */
-void permutationS(gsl_matrix_complex *S,
-                 gsl_matrix_complex *Dm,
-                 gsl_matrix_complex *evecr,
-                 gsl_vector_complex *evalr,
-                 gsl_vector_complex *eigenVu,
-                 gsl_vector_complex *eigenVs,
-                 gsl_complex eigenLu,
-                 gsl_complex eigenLs,
-                 int *keymap);
-
-
-void monoDecomp_RTBP(gsl_odeiv2_driver* d,           //driver for odeRK78
-                     const double y0[],              //initial conditions
-                     const double n,                 //pulsation
-                     FBPL* fbpl,                 //Four-Body problem
-                     int M,                          //Number of steps for Monodromy matrix splitting in a product of matrices
-                     int STABLE_DIR_TYPE,            //Type of computation of the stable direction
-                     gsl_matrix_complex* MMc,        //Final monodromy matrix in complex form                                    |
-                     gsl_matrix* MM,                 //Final monodromy matrix in real form                                       |
-                     gsl_matrix_complex* Dm,         //The eigenvalues  are stored in Dm(i,i), i = 0,...,5                       |   Outputs
-                     gsl_matrix_complex* DB,         //DB = 1/T*log(Dm)                                                          |
-                     gsl_matrix_complex* B,          //B = S*DB*Sinv                                                             |
-                     gsl_matrix_complex* S,          //The eigenvectors are stored on  S(i,*), i = 0,...,5                       |
-                     gsl_matrix* JB,                 //Real Jordan form of B                                                     |
-                     gsl_matrix* Br,                 //Real form of B computed from the Jordan Form                              |
-                     gsl_matrix* R,                  //B = R*JB*Rinv                                                             |
-                     gsl_matrix_complex** DAT,       //Contains the STM at each of the M steps                                   |
-                     int isStored);
+                int is_stored);
 
 /**
  *  \brief Obtain the real Jordan form of the matrix B.
  */
-void monoDecompLog(gsl_matrix_complex *S,  gsl_matrix_complex *Dm, double T,  gsl_matrix_complex *DB, gsl_matrix_complex *B, gsl_matrix *Br, gsl_matrix *JB, gsl_matrix *R);
+void mono_eigen_log(gsl_matrix_complex *S,  gsl_matrix_complex *Dm, double T,  gsl_matrix_complex *DB, gsl_matrix_complex *B, gsl_matrix *Br, gsl_matrix *JB, gsl_matrix *R);
 
 /**
  *  \brief Diagonalization of the central part of VECS(*,*,0), wich at this point, has no unstable component under M = DAT[M]*DAT[M-1]*...*DAT[1].
@@ -171,40 +129,43 @@ void monoDecompLog(gsl_matrix_complex *S,  gsl_matrix_complex *Dm, double T,  gs
  *        with M the monodromy matrix, in order to get u1 and u1b.
  *
  **/
-void diagcp(gsl_matrix_complex **DAT, gsl_matrix_complex *VECS_0, gsl_vector_complex *DECSl, gsl_matrix_complex *DECSv, int M);
+void center_diag(gsl_matrix_complex **DAT, gsl_matrix_complex *VECS_0, gsl_vector_complex *DECSl, gsl_matrix_complex *DECSv, int M);
 
-//-------------------------------------------------------------------------------------------------------
+
+
+
+//----------------------------------------------------------------------------------------
 //Resolution of eigensystem: power methods on single matrices
-//-------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 /**
  *  \brief Power Method on a single matrix.
  */
-void powerMethod(gsl_matrix_complex *Minit, double prec, int sizeM, int version, gsl_vector_complex *eigenV, gsl_complex *eigenL);
+void power_method(gsl_matrix_complex *Minit, double prec, int sizeM, int version, gsl_vector_complex *eigenV, gsl_complex *eigenL);
 
 /**
  *  \brief Inverse Power Method on a single matrix.
  */
-void inversePowerMethod(gsl_matrix_complex *Minit, double prec, int sizeM, int version, gsl_vector_complex *eigenV, gsl_complex *eigenL);
+void inverse_power_method(gsl_matrix_complex *Minit, double prec, int sizeM, int version, gsl_vector_complex *eigenV, gsl_complex *eigenL);
 
 /**
  *  \brief Shifted Inverse Power Method on a single matrix.
  */
-void shiftedPowerMethod(gsl_matrix_complex *Minit, double prec, int sizeM, int version, gsl_complex shift, gsl_vector_complex *eigenV, gsl_complex *eigenL);
+void shifted_power_method(gsl_matrix_complex *Minit, double prec, int sizeM, int version, gsl_complex shift, gsl_vector_complex *eigenV, gsl_complex *eigenL);
 
 /**
  *  \brief Shifted Inverse Power Method on a single matrix with alternative update of the eigenvalue
  */
-void shiftedPowerMethodEigenvalueUpdate(gsl_matrix_complex *Minit, double prec, int sizeM, gsl_complex shift, gsl_vector_complex *eigenV, gsl_complex *eigenL);
+void shifted_power_method_update(gsl_matrix_complex *Minit, double prec, int sizeM, gsl_complex shift, gsl_vector_complex *eigenV, gsl_complex *eigenL);
 
 /**
  *  \brief Power Method on a product of matrices. note that VAPL = log10(VAP)
  */
-void dipowers(gsl_matrix_complex **DAT, int M, int N, gsl_vector_complex *VEP, gsl_complex *VAP, gsl_complex *VAPL,  int IS);
+void power_method_on_prod(gsl_matrix_complex **DAT, int M, int N, gsl_vector_complex *VEP, gsl_complex *VAP, gsl_complex *VAPL,  int IS);
 
 /**
  *  \brief Decomposition of a product of matrices. Bad precision
  *
- *  Inspired by Josep's Fortran code. WARNING: does NOT work for the central part, monoDecomp is used instead.
+ *  Inspired by Josep's Fortran code. WARNING: does NOT work for the central part, mono_eigen is used instead.
  *  Recall that VECS(*,j,k)= DAT(*,*,k)*VECS(*,j,k-1) except for a multiplicative constant for each direction.
  */
 void vepro(gsl_matrix_complex **DAT, int M, gsl_matrix_complex **VECS, gsl_matrix_complex *DECS, gsl_matrix_complex *DECSv, gsl_vector_complex *DECSl);
@@ -212,7 +173,7 @@ void vepro(gsl_matrix_complex **DAT, int M, gsl_matrix_complex **VECS, gsl_matri
 /**
  *  \brief Decomposition of the Monodromy matrix through the use of GSL routines from a monodromy matrix given as a single matrix.
  */
-void gslMonoDecomp(gsl_odeiv2_driver *d, const double y0[], double tend, gsl_matrix_complex* gsl_MMc, gsl_matrix* gsl_MM, gsl_vector_complex *eval, gsl_matrix_complex *evec);
+void gslc_mono_eigen(gsl_odeiv2_driver *d, const double y0[], double tend, gsl_matrix_complex* gsl_MMc, gsl_matrix* gsl_MM, gsl_vector_complex *eval, gsl_matrix_complex *evec);
 
 /**
  * \brief From J. Masdemont Fortran code. Change the intput VECS in such a way that
@@ -240,18 +201,20 @@ void diahip(gsl_matrix_complex **VECS, double **DELTA, gsl_matrix_complex *DECS,
  *  \brief Auxiliary routine. It orthonomalizes the bases VECS(*,*,K), for all K=0,M.
  **/
 void ortho(gsl_matrix_complex **VECS, int IK, int M);
-//-------------------------------------------------------------------------------------------------------
+
+
+//----------------------------------------------------------------------------------------
 // Matrix integration
-//-------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 /**
  *  \brief Obtain the FFT decomposition of various matrices P, Q = inv(P) FT11, FT12, FT21 and FT22.
  */
-void nfo2coc(gsl_odeiv2_driver *d, const double y0[], const double n, FBPL *fbpl, gsl_matrix* Br, gsl_matrix* R, gsl_matrix* JB, int N, int isStored);
+void nfo2_coc(gsl_odeiv2_driver *d, const double y0[], const double n, FBPL *fbpl, gsl_matrix* Br, gsl_matrix* R, gsl_matrix* JB, int N, int is_stored);
 
 /**
  *  \brief Integrate the various matrices referenced on a N point grid to seed FFT process.
  */
-void nfo2Int(gsl_odeiv2_driver *d,
+void nfo2_int(gsl_odeiv2_driver *d,
              const double y0[],
              const double n,
              FBPL *fbpl,
@@ -274,63 +237,63 @@ void nfo2Int(gsl_odeiv2_driver *d,
 /**
  *  \brief FFT of the coefficients of a given matrix P obtained on a N points grid
  */
-void nfo2FFT(Ofsc& xFFT, gsl_matrix** P, gsl_matrix** Pt, double n, int N, int fftN, int fftPlot, string filename, int flag, int isStored);
+void nfo2_fft(Ofsc& xFFT, gsl_matrix** P, gsl_matrix** Pt, double n, int N, int fftN, int fftPlot, string filename, int flag, int is_stored);
 
+
+//----------------------------------------------------------------------------------------
+// Testing
+//----------------------------------------------------------------------------------------
 /**
  *  \brief Test of the validity of the FFT on a fftPlot points grid.
  */
-void nfo2Test(Ofsc& xFFT, gsl_matrix** P, double n, int fftPlot, int i0, int j0);
+void nfo2_test(Ofsc& xFFT, gsl_matrix** P, double n, int fftPlot, int i0, int j0);
 
-
-//-------------------------------------------------------------------------------------------------------
-// Testing
-//-------------------------------------------------------------------------------------------------------
 /**
  *  \brief Periodicity test of P.
  */
-void nfo2PerTest(gsl_odeiv2_driver *d, const double y0[], double n, gsl_matrix* R);
+void nfo2_periodicity_test(gsl_odeiv2_driver *d, const double y0[], double n, gsl_matrix* R);
 
 /**
  *  \brief Symmetry test on P.
  */
-void nfo2SymTest(gsl_odeiv2_driver *d, const double y0[],  double n, gsl_matrix* R, int p, int N);
+void nfo2_symmetry_test(gsl_odeiv2_driver *d, const double y0[],  double n, gsl_matrix* R, int p, int N);
 
 /**
  *  \brief Test of the symplectic character of a given complex matrix.
  */
-void symplecticMatrixTest(const gsl_matrix_complex *M, int INVERSE_TYPE);
+void symplecticity_test_complex(const gsl_matrix_complex *M, int INVERSE_TYPE);
 
 /**
  *  \brief Test of the symplectic character of a given real matrix.
  */
-void realSymplecticMatrixTest(const gsl_matrix *M, int INVERSE_TYPE);
+void symplecticity_test_real(const gsl_matrix *M, int INVERSE_TYPE);
 
 /**
  *  \brief Test of the Monodromy eigensystem.
  */
-void eigenSystemTest(gsl_matrix_complex *Dm, gsl_matrix_complex *S, gsl_matrix_complex **DAT, int M);
+void eigensystem_test(gsl_matrix_complex *Dm, gsl_matrix_complex *S, gsl_matrix_complex **DAT, int M);
 
 /**
  *  \brief Symplectic test of P.
  */
-void nfo2SympTest(gsl_odeiv2_driver *d, const double y0[], double t1, gsl_matrix* R);
+void symplecticity_test_for_P(gsl_odeiv2_driver *d, const double y0[], double t1, gsl_matrix* R);
 
-//-------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 // Change of base:
-//-------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 /**
  *  \brief Change of base: Dm = Sinv*M*S with M given as a product of matrices
  */
-void changeOfBase(gsl_matrix_complex *MMc_estimate, gsl_matrix_complex *Dm, gsl_matrix_complex **DAT, const gsl_matrix_complex *S, int INVERSE_TYPE, int M);
+void change_of_base(gsl_matrix_complex *MMc_estimate, gsl_matrix_complex *Dm, gsl_matrix_complex **DAT, const gsl_matrix_complex *S, int INVERSE_TYPE, int M);
 
 /**
  *  \brief Change of base: Dm = Sinv*M*S with M given as a single matrix
  */
-void changeOfBaseSingleMatrix(gsl_matrix_complex *Dm, gsl_matrix_complex *M, gsl_matrix_complex *S, int INVERSE_TYPE);
+void change_of_base_single_matrix(gsl_matrix_complex *Dm, gsl_matrix_complex *M, gsl_matrix_complex *S, int INVERSE_TYPE);
 
-//-------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 // Wielandt's deflation
-//-------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 /**
  *  \brief Application of the Wielandt deflation to the monodromy matrix. Algorithm taken from "Introduction to Numerical Analysis with C programs", A. Mate, 2004.
  *  \param MMc      the monodromy matrix to diagonalize.
@@ -377,14 +340,14 @@ void wielandt_deflation(gsl_matrix_complex *MMc,
  *
  *      See "Lectures on celestial mechanics", Siegel & Moser, p. 101
  **/
-void normS(gsl_matrix_complex *S);
+void norm_matrix_S(gsl_matrix_complex *S);
 
 /**
  *  \brief Prenormalisation of the matrix S. Used to enforce a decoupling between the real and imag parts
  *         of the vectors that bear the ELLIPTIC motion.
  *         Mainly here for reference, not used in current implementation. Use with care, hard coded values inside!
  **/
-void prenormS(gsl_matrix_complex *S);
+void prenorm_matrix_S(gsl_matrix_complex *S);
 
 /**
  *  \brief Update the matrices S and Dm using the center directions in evecr, evalr, and the hyperbolic directions in eigenVu/Vs.
@@ -398,7 +361,7 @@ void prenormS(gsl_matrix_complex *S);
  *                                          (vxy, vu, vz, conj(vxy), vs, conj(vz))
  *              - Dm contains the corresponding eigenvalues.
  **/
-void updateS(gsl_matrix_complex *S,
+void update_matrix_S(gsl_matrix_complex *S,
              gsl_matrix_complex *Dm,
              gsl_matrix_complex *evecr,
              gsl_vector_complex *evalr,
@@ -413,11 +376,11 @@ void updateS(gsl_matrix_complex *S,
  *  Storage of:
  *  - The hyperbolic directions (input in eigenVu/Lu and eigenVs/Ls)
  *  - The central directions (input in evecr, evalr)
- *  Used in monoDecomp to ensure that the eigenvectors
+ *  Used in mono_eigen to ensure that the eigenvectors
  *  that bear the vertical motion are at the right position in S (and Dm)
  *
  */
-void permutationS(gsl_matrix_complex *S,
+void permutation_matrix_S(gsl_matrix_complex *S,
                   gsl_matrix_complex *Dm,
                   gsl_matrix_complex *evecr,
                   gsl_vector_complex *evalr,
@@ -427,16 +390,11 @@ void permutationS(gsl_matrix_complex *S,
                   gsl_complex eigenLs,
                   int *keymap);
 
+
 /**
  *  \brief Checks that R is symplectic (real version of S). If not, performs an additional permutation/normalization on the couple (S,Dm)
  **/
-void symplecticR(gsl_matrix_complex *S, gsl_matrix_complex *Dm, gsl_matrix *R);
+void symplecticity_test_for_R(gsl_matrix_complex *S, gsl_matrix_complex *Dm, gsl_matrix *R);
 
-//-------------------------------------------------------------------------------------------------------
-// Multimin (DEPRECATED)
-//-------------------------------------------------------------------------------------------------------
-//Evaluate ||y - My/l||
-double eigenfunk(double p[], double b[], void * params);
-//deigenfunk/dxi
-void deigenfunk(double p[], double df[], double b[], void *params );
+
 #endif // NFO2_H_INCLUDED

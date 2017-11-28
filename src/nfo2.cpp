@@ -1,9 +1,17 @@
 /**
  * \file nfo2.cpp
- * \brief Computes the complete change of coordinates for the Normalized-Centered Hamiltonian of the QBCP (src).
+ * \brief Computes the complete change of coordinates for
+ *        the Normalized-Centered Hamiltonian of the QBCP (src). See the brief of the
+ *        routine nfo2 for details.
+ *
+ *        WARNING: Note that the routine nfo2 has been tailored for the QBCP and surely
+ *        requires a novel generic implementation so as to be able to tackle other
+ *        dynamical models.
+ *
+ *        Moreover, from a pure coding p.o.v., and in that same perspective,
+ *        the division of the code and naming of variables needs to be reviewed.
+ *
  * \author BLB.
- * \date May 2015
- * \version 1.0
  */
 
 #include "nfo2.h"
@@ -27,12 +35,11 @@ extern "C"
 // Main routine
 //----------------------------------------------------------------------------------------
 /**
- *  \brief Main routine. Compute the complete change of coordinates for the QBCP.
- *
- *  - Get rid of order 1...
- *  - Get a normal form for the order 2...
- *  of the Hamiltonian of the QBCP.
- *  Results are stored in the folder data/COC.
+ *  \brief Main routine. Stands for "normal form at order 2".
+ *         Compute the complete change of coordinates for the QBCP about a
+ *         given libration point, in order to get a diagonal form for the order 2 of the
+ *         Hamiltonian.
+ *         Results are stored in the folder data/COC.
  *
  *  We recall that the change of coordinates is of the form:
  *
@@ -41,13 +48,14 @@ extern "C"
  *  The following decompositions are computed as matrix/vector of Fourier series:
  *  - P
  *  - Q = inv(P)
- *  - FT11, FT12, FT21, FT22 that contains the c.o.c. for y_{theta}
+ *  - FT11, FT12, FT21, FT22 that contains the c.o.c. for y_{theta} the (unused) momentum associated to theta.
  *  - G1, that contains V(t) = (g1, g2, 0, g3, g4, 0)^T (see code for details)
  *  - Xe, Xm, Xs, the translated positions of the Earth, Moon and Sun so that Xe[i] = real Xe[i] - V[i].
- *  See the modified potential expansion in pdf for details. Note that:
+ *  See the modified potential expansion in BLB PhD manuscript for details. Note that:
  *  - Xe[0] contains the x position of the Earth
  *  - Xe[1] contains the y position of the Earth
- *  - Xe[2] does not contains the z position of the Earth (which is always zero) but contains sqrt(Xe[0]^2 + Xe[1]^2)
+ *  - Xe[2] does not contains the z position of the Earth (which is always zero)
+ *    but contains sqrt(Xe[0]^2 + Xe[1]^2)
  *  - Xe[3:5] contains the UNtranslated positions of the Earth (xe, ye, ze).
  *
  * Note: G1 contains the gi coefficients with the form:
@@ -56,11 +64,13 @@ extern "C"
  *      | g3  g4 |
  *
  *  The idea behind this form is to be able to use the routines implemented for the matrices.
+ *  This is a bit counterintuitive and should probably be changed in a future version of the code.
  *
  *  The results are stored in txt files.
  *  Each Fourer expansion is tested on a different grid than the one used for the FFT process
  *  For now, the test of the periodicity of P has been abandonned
- *  WARNING: to compute Q = inv(P), the following hypothesis is made (consistent with what monoDecomp produces):
+ *  WARNING: to compute Q = inv(P), the following hypothesis is made
+ *  (consistent with what mono_eigen produces):
  *
  *     | p11  p12   0   p14  p15    0  |
  *     | p21  p22   0   p24  p25    0  |
@@ -69,19 +79,24 @@ extern "C"
  *     | p51  p52   0   p54  p55    0  |
  *     |  0    0   p63   0    0    p66 |
  *
- *  WARNING: a lot of real matrices are manipulated as complex ones so that various scalar-matrix and vector-matrix can be made.
+ *  WARNING: a lot of real matrices are manipulated as complex ones so that various
+ *  scalar-matrix and vector-matrix operations can be made.
  */
-void nfo2(FBPL &fbpl, int isStored)
+void nfo2(FBPL &fbpl, int is_stored)
 {
-    cout << "----------------------------------------------" << endl;
+    cout << "nfo2 routine is called. " << endl;
+    cout << "-------------------------------------------------------------" << endl;
     cout << "Compute the complete change of coordinates to:" << endl;
     cout << "- Get rid of order 1                          " << endl;
     cout << "- Get a normal form for the order 2           " << endl;
     cout << "of the Hamiltonian of the QBCP                " << endl;
     cout << "Results are stored in the folder data/COC/    " << endl;
-    cout << "----------------------------------------------" << endl;
+    cout << "-------------------------------------------------------------" << endl;
+
+    //------------------------------------------------------------------------------------
     //Model must be normalized.
-    if(!fbpl.isNorm)
+    //------------------------------------------------------------------------------------
+    if(!fbpl.is_norm)
     {
         cout << "nfo2. Warning: selected model is not normalized. Premature ending." << endl;
         return;
@@ -90,9 +105,10 @@ void nfo2(FBPL &fbpl, int isStored)
     //------------------------------------------------------------------------------------
     //Plotting devices
     //------------------------------------------------------------------------------------
-    char ch;            //Used to close the gnuplot windows at the very end of the program
     gnuplot_ctrl  *h1;
     h1 = gnuplot_init();
+    gnuplot_cmd(h1, "set grid");
+    gnuplot_cmd(h1, "set title \" Dynamical equivalent of the libration point (synodical coordinates) \" ");
 
     //------------------------------------------------------------------------------------
     // Integration tools
@@ -117,24 +133,28 @@ void nfo2(FBPL &fbpl, int isStored)
     // 1. Differential correction to get the dynamical equivalent of
     // the libration point (lpdyneq)
     //====================================================================================
+    cout << "nfo2. Differential correction to get " << endl;
+    cout << " the dynamical equivalent " << endl;
+    cout << " of the libration point. " << endl;
+    cout << "-------------------------------------------------------------" << endl;
     double y0[42];
     lpdyneq(d, y0);
 
     //Plotting the refined solution
     int Npoints = 5000;
     odePlot(y0, 42,  fbpl.us.T*0.5, d, h1, Npoints, 8);
-    odePlot(y0, 42, -fbpl.us.T*0.5, d, h1, Npoints, 1);
-    printf("Press ENTER to close the gnuplot window(s)\n");
-    scanf("%c",&ch);
+    odePlot(y0, 42, -fbpl.us.T*0.5, d, h1, Npoints, 8);
+    pressEnter(true, "Press ENTER to close the gnuplot window(s)");
     gnuplot_close(h1);
 
     //------------------------------------------------------------------------------------
     // Once the orbit is obtained, the 6th dimension vector field is kept
-    // BUT the linearized translated variationnal equations are used!
+    // BUT the linearized translated variationnal equations are used
+    // (qbfbp_vfn_varlin_trans instead of qbfbp_vfn_varnonlin).
     //------------------------------------------------------------------------------------
     //System
     gsl_odeiv2_system sys2;
-    sys2.function      = qbfbp_vfn_varlin_trans;
+    sys2.function      = qbfbp_vfn_varlin_trans; //compare with "sys"
     sys2.jacobian      = NULL;
     sys2.dimension     = 42;
     sys2.params        = &fbpl;
@@ -168,19 +188,23 @@ void nfo2(FBPL &fbpl, int isStored)
     gsl_matrix* R               = gsl_matrix_calloc(6, 6);
 
     //====================================================================================
-    // 2 Decomposition of the Monodromy matrix through the use of custom routines
+    // 2. Decomposition of the Monodromy matrix through the use of custom routines
     // from a monodromy matrix given as a product of matrices
     //====================================================================================
-    monoDecomp(d2, y0, fbpl.us.n, &fbpl, M, Csts::STABLE_DIR_POW, MMc, MM, Dm, DB, B, S, JB, Br, R, DAT, isStored);
+    cout << "-------------------------------------------------------------" << endl;
+    cout << "nfo2. Decomposition of the Monodromy matrix via mono_eigen.  " << endl;
+    cout << "-------------------------------------------------------------" << endl;
+    mono_eigen(d2, y0, fbpl.us.n, &fbpl, M, Csts::STABLE_DIR_POW, MMc, MM, Dm, DB, B, S, JB, Br, R, DAT, is_stored);
 
-    //Change of Br to use B instead. Possible because we have ensured that B = real(B) inside monoDecomp.
+    //Change of Br to use B instead (usually better final precision).
+    //Possible because we have ensured that B = real(B) inside mono_eigen.
     for(int i=0; i<6; i++) for(int j = 0; j<6; j++) gsl_matrix_set(Br, i, j, GSL_REAL(gsl_matrix_complex_get(B, i, j)));
 
     //Storage of the matrix Br (real form of B in params)
     gslc_matrixToVector(fbpl.B, Br, 6, 6, 0);
 
     //------------------------------------------------------------------------------------
-    // Change of derivative routines in the system sys and the driver d
+    // Change of derivative routines in the system sys2
     // in order to be able to compute P, given by
     //               P'(t) = Q(t)P(t) - P(t)*B
     //               P(0)  = Id
@@ -190,54 +214,24 @@ void nfo2(FBPL &fbpl, int isStored)
     //------------------------------------------------------------------------------------
     // 3 Integration & storage of the COC
     //------------------------------------------------------------------------------------
-    nfo2coc(d2, y0, fbpl.us.n, &fbpl, Br, R, JB, (int) 8*OFS_ORDER, isStored);
+    cout << "-------------------------------------------------------------" << endl;
+    cout << "nfo2. Integration & storage of the COC                       " << endl;
+    cout << "-------------------------------------------------------------" << endl;
+    nfo2_coc(d2, y0, fbpl.us.n, &fbpl, Br, R, JB, (int) 8*OFS_ORDER, is_stored);
+
+    if(is_stored)
+    {
+        cout << "-------------------------------------------------------------" << endl;
+        cout << "nfo2. The COC has been stored in " << fbpl.cs.F_COC << endl;
+        cout << "-------------------------------------------------------------" << endl;
+    }
 }
 
 /**
- *  \brief Main routine. Compute the complete change of coordinates.
- *
- *  - Get rid of order 1
- *  - Get a normal form for the order 2
- *  of the Hamiltonian of the QBCP.
- *  Results are stored in the folder data/COC.
- *
- *  We recall that the change of coordinates is of the form:
- *
- *  z = P(t)C zt + V(t) with zt the new set of coordinates and z the NC set of coordinates.
- *
- *  The following decompositions are computed as matrix/vector of Fourier series:
- *  - P
- *  - Q = inv(P)
- *  - FT11, FT12, FT21, FT22 that contains the c.o.c. for y_{theta}
- *  - G1, that contains V(t) = (g1, g2, 0, g3, g4, 0)^T (see code for details)
- *  - Xe, Xm, Xs, the translated positions of the Earth, Moon and Sun so that Xe[i] = real Xe[i] - V[i].
- *  See the modified potential expansion in pdf for details. Note that:
- *  - Xe[0] contains the x position of the Earth
- *  - Xe[1] contains the y position of the Earth
- *  - Xe[2] does not contains the z position of the Earth (which is always zero) but contains sqrt(Xe[0]^2 + Xe[1]^2)
- *
- * Note: G1 contains the gi coefficients with the form:
- *
- * G1 = | g1  g2 |
- *      | g3  g4 |
- *
- *  The idea behind this form is to be able to use the routines implemented for the matrices
- *
- *  The results are stored in txt files.
- *  Each Fourer expansion is tested on a different grid than the one used for the FFT process
- *  For now, the test of the periodicity of P has been abandonned
- *  WARNING: to compute Q = inv(P), the following hypothesis is made (consistent with what monoDecomp produces):
- *
- *     | p11  p12   0   p14  p15    0  |
- *     | p21  p22   0   p24  p25    0  |
- * P = |  0    0   p33   0    0    p36 |
- *     | p41  p42   0   p44  p45    0  |
- *     | p51  p52   0   p54  p55    0  |
- *     |  0    0   p63   0    0    p66 |
- *
- *  WARNING: a lot of real matrices are manipulated as complex ones so that various scalar-matrix and vector-matrix can be made.
+ *  \brief Equivalent to nfo2 for the BCP, with continuation from the QBCP and/or
+ *         from the CRTBP. Currently NOT working !!
  */
-void nfo2_QBP(FBPL &fbpl, int isStored)
+void nfo2_QBP(FBPL &fbpl, int is_stored)
 {
     cout << "----------------------------------------------" << endl;
     cout << "Compute the complete change of coordinates to:" << endl;
@@ -248,7 +242,7 @@ void nfo2_QBP(FBPL &fbpl, int isStored)
     cout << "----------------------------------------------" << endl;
 
     //Model must be normalized.
-    if(!fbpl.isNorm)
+    if(!fbpl.is_norm)
     {
         cout << "nfo2. Warning: selected model is not normalized. Premature ending." << endl;
         return;
@@ -259,8 +253,8 @@ void nfo2_QBP(FBPL &fbpl, int isStored)
     //------------------------------------------------------------------------------------
     QBCP_I model;
     FBPL model1, model2;
-    init_FBP_I(&model, &model1, &model2, Csts::SUN, Csts::EARTH, Csts::MOON, fbpl.isNorm, SEML.li_EM, SEML.li_SEM, 0, Csts::QBCP, Csts::BCP, SEML.coordsys, SEML.pms);
-    //init_FBP_I(&model, &model1, &model2, Csts::SUN, Csts::EARTH, Csts::MOON, fbpl.isNorm, SEML.li_EM, SEML.li_SEM, 0, Csts::CRTBP, Csts::BCP, SEML.coordsys, SEML.pms);
+    init_fbp_cont(&model, &model1, &model2, Csts::SUN, Csts::EARTH, Csts::MOON, fbpl.is_norm, SEML.li_EM, SEML.li_SEM, 0, Csts::QBCP, Csts::BCP, SEML.coord_sys, SEML.param_style);
+    //init_fbp_cont(&model, &model1, &model2, Csts::SUN, Csts::EARTH, Csts::MOON, fbpl.is_norm, SEML.li_EM, SEML.li_SEM, 0, Csts::CRTBP, Csts::BCP, SEML.coord_sys, SEML.param_style);
 
     //------------------------------------------------------------------------------------
     //Plotting devices
@@ -350,9 +344,9 @@ void nfo2_QBP(FBPL &fbpl, int isStored)
     //====================================================================================
     //Decomposition of the Monodromy matrix through the use of custom routines from a monodromy matrix given as a product of matrices
     //====================================================================================
-    monoDecomp(d2, y0, fbpl.us.n, &fbpl, M, Csts::STABLE_DIR_POW, MMc, MM, Dm, DB, B, S, JB, Br, R, DAT, isStored);
+    mono_eigen(d2, y0, fbpl.us.n, &fbpl, M, Csts::STABLE_DIR_POW, MMc, MM, Dm, DB, B, S, JB, Br, R, DAT, is_stored);
 
-    //Change of Br to use B instead. Possible because we have ensured that B = real(B) inside monoDecomp.
+    //Change of Br to use B instead. Possible because we have ensured that B = real(B) inside mono_eigen.
     //for(int i=0; i<6; i++) for(int j = 0; j<6; j++) gsl_matrix_set(Br, i, j, GSL_REAL(gsl_matrix_complex_get(B, i, j)));
 
     //Storage of the matrix Br (real form of B in params)
@@ -369,163 +363,8 @@ void nfo2_QBP(FBPL &fbpl, int isStored)
     //====================================================================================
     //Integration & storage of the COC
     //====================================================================================
-    nfo2coc(d2, y0, fbpl.us.n, &fbpl, Br, R, JB, (int) pow(2,12), isStored);
+    nfo2_coc(d2, y0, fbpl.us.n, &fbpl, Br, R, JB, (int) pow(2,12), is_stored);
 }
-
-void nfo2_RTBP(FBPL &fbpl, int isStored)
-{
-    cout << "----------------------------------------------" << endl;
-    cout << "Compute the complete change of coordinates to:" << endl;
-    cout << "- Get rid of order 1                          " << endl;
-    cout << "- Get a normal form for the order 2           " << endl;
-    cout << "of the Hamiltonian of the QBCP                " << endl;
-    cout << "Results are stored in the folder data/COC     " << endl;
-    cout << "----------------------------------------------" << endl;
-
-    //Model must be normalized.
-    if(!fbpl.isNorm)
-    {
-        cout << "nfo2. Warning: selected model is not normalized. Premature ending." << endl;
-        return;
-    }
-
-    //------------------------------------------------------------------------------------
-    //Plotting devices
-    //------------------------------------------------------------------------------------
-    char ch;            //Used to close the gnuplot windows at the very end of the program
-    gnuplot_ctrl  *h1;
-    h1 = gnuplot_init();
-
-    //------------------------------------------------------------------------------------
-    // Integration tools
-    // Initial vector field include nonlinear variationnal equations
-    // to get the periodic orbit
-    //------------------------------------------------------------------------------------
-    //System
-    gsl_odeiv2_system sys;
-    sys.function      = qbfbp_vfn_varnonlin;
-    sys.jacobian      = NULL;
-    sys.dimension     = 42;
-    sys.params        = &fbpl;
-    //Stepper
-    const gsl_odeiv2_step_type *T = gsl_odeiv2_step_rk8pd;
-    //Driver
-    gsl_odeiv2_driver *d = gsl_odeiv2_driver_alloc_y_new (&sys, T,
-                           Config::configManager().G_PREC_HSTART(),
-                           Config::configManager().G_PREC_ABS(),
-                           Config::configManager().G_PREC_REL());
-
-    //------------------------------------------------------------------------------------
-    // 1. Differential correction to get the dynamical equivalent of the libration point (lpdyneq)
-    //------------------------------------------------------------------------------------
-    double y0[42];
-    double yEMv[6];
-    double yEMm[6];
-    double T1;
-
-    //--------------------------------------------
-    // Initial conditions
-    //--------------------------------------------
-    T1 = 1.466091787266107;
-
-    yEMv[0] = -0.987462727658358;
-    yEMv[1] = -                0;
-    yEMv[2] = +0.007110981795566;
-    yEMv[3] = -                0;
-    yEMv[4] = -1.820397108715291;
-    yEMv[5] = +                0;
-    //To NC coordinates
-    EMvtoEMm(0.0, yEMv, yEMm, &SEML);
-    EMtoNC(0.0, yEMm, y0, &SEML);
-
-    cout << "y0 = " << endl;
-    vector_printf(y0, 6);
-
-    //Identity matrix eye(6)
-    gsl_matrix *Id = gsl_matrix_calloc(6,6);
-    gsl_matrix_set_identity (Id);
-    //Storing eye(6) into the initial vector
-    gslc_matrixToVector(y0, Id, 6, 6, 6);
-
-    //--------------------------------------------
-    // Differential Correction
-    //--------------------------------------------
-    differential_correction_T(y0, T1, 1e-10, d, 42, 1);
-
-    //--------------------------------------------
-    //Plotting the refined solution
-    //--------------------------------------------
-    int Npoints = 5000;
-    odePlot3D(y0, 42,  T1*0.5, d, h1, Npoints, 8);
-    odePlot3D(y0, 42, -T1*0.5, d, h1, Npoints, 1);
-    printf("Press ENTER to close the gnuplot window(s)\n");
-    scanf("%c",&ch);
-    gnuplot_close(h1);
-
-    //------------------------------------------------------------------------------------
-    // Once the orbit is obtained, the 6th dimension vector field is kept
-    // BUT the linearized translated variationnal equations are used!
-    //------------------------------------------------------------------------------------
-    //System
-    gsl_odeiv2_system sys2;
-    sys2.function      = qbfbp_vfn_varlin_trans;
-    sys2.jacobian      = NULL;
-    sys2.dimension     = 42;
-    sys2.params        = &fbpl;
-    //Stepper
-    const gsl_odeiv2_step_type *T2 = gsl_odeiv2_step_rk8pd;
-    //Driver
-    gsl_odeiv2_driver *d2 = gsl_odeiv2_driver_alloc_y_new (&sys2, T2,
-                           Config::configManager().G_PREC_HSTART(),
-                           Config::configManager().G_PREC_ABS(),
-                           Config::configManager().G_PREC_REL());
-
-    //------------------------------------------------------------------------------------
-    // Initialization of various GSL objects
-    // for next step (Monodromy matrix decomposition)
-    //------------------------------------------------------------------------------------
-    //MMc = DAT[M]*DAT[M-1]*...DAT[1]
-    int M                       = 32;
-    gsl_matrix_complex **DAT    = gslc_matrix_complex_product_alloc(6, 6, M);
-    //MMc = MM = S*Dm*Sinv
-    gsl_matrix_complex *S       = gsl_matrix_complex_calloc(6, 6);
-    gsl_matrix_complex *MMc     = gsl_matrix_complex_calloc(6, 6);
-    gsl_matrix_complex *Dm      = gsl_matrix_complex_calloc(6, 6);
-    gsl_matrix* MM              = gsl_matrix_calloc(6, 6);
-    //B = S*DB*Sinv
-    gsl_matrix_complex *B       = gsl_matrix_complex_calloc(6, 6);
-    //DB = log(Dm)/T
-    gsl_matrix_complex *DB      = gsl_matrix_complex_calloc(6, 6);
-    //Br = R*JB*Rinv
-    gsl_matrix* JB              = gsl_matrix_calloc(6, 6);
-    gsl_matrix* Br              = gsl_matrix_calloc(6, 6);
-    gsl_matrix* R               = gsl_matrix_calloc(6, 6);
-
-    //====================================================================================
-    // 2 Decomposition of the Monodromy matrix through the use of custom routines from a monodromy matrix given as a product of matrices
-    //====================================================================================
-    monoDecomp_RTBP(d2, y0, 2*M_PI/T1, &fbpl, M, Csts::STABLE_DIR_POW, MMc, MM, Dm, DB, B, S, JB, Br, R, DAT, isStored);
-
-    //Change of Br to use B instead. Possible because we have ensured that B = real(B) inside monoDecomp.
-    for(int i=0; i<6; i++) for(int j = 0; j<6; j++) gsl_matrix_set(Br, i, j, GSL_REAL(gsl_matrix_complex_get(B, i, j)));
-
-    //Storage of the matrix Br (real form of B in params)
-    gslc_matrixToVector(fbpl.B, Br, 6, 6, 0);
-
-    //------------------------------------------------------------------------------------
-    // Change of derivative routines in the system sys and the driver d
-    // in order to be able to compute P, given by
-    //               P'(t) = Q(t)P(t) - P(t)*B
-    //               P(0) = Id
-    //------------------------------------------------------------------------------------
-    sys2.function = qbfbp_vfn_varlin_trans_P;
-
-    //====================================================================================
-    // 3 Integration & storage of the COC
-    //====================================================================================
-    nfo2coc(d2, y0, 2*M_PI/T1, &fbpl, Br, R, JB, (int) 8*max(OFS_ORDER, 20), isStored);
-}
-
 
 
 //----------------------------------------------------------------------------------------
@@ -538,7 +377,7 @@ void nfo2_RTBP(FBPL &fbpl, int isStored)
  *  \param t1: the end time.
  *  \param M: a pointer to the gsl_matrix to update
  */
-void stmMatrix(const double y[], gsl_odeiv2_driver *d, double t1, gsl_matrix* M)
+void stm_matrix_with_gsl(const double y[], gsl_odeiv2_driver *d, double t1, gsl_matrix* M)
 {
     gsl_odeiv2_driver_reset(d);
 
@@ -563,7 +402,7 @@ void stmMatrix(const double y[], gsl_odeiv2_driver *d, double t1, gsl_matrix* M)
  *  \param t1: the end time.
  *  \param M: a pointer to the gsl_matrix_complex to update
  */
-void stmComplexMatrix(const double y[], gsl_odeiv2_driver *d, double t1, gsl_matrix_complex* M, double ys[])
+void stm_complex(const double y[], gsl_odeiv2_driver *d, double t1, gsl_matrix_complex* M, double ys[])
 {
     double t;
     //Initial conditions
@@ -591,7 +430,7 @@ void stmComplexMatrix(const double y[], gsl_odeiv2_driver *d, double t1, gsl_mat
  *  So, the DAT has to be used from DAT[1] to DAT[M] and DAT[0] is USELESS.
  *  Not a smart move, since vepro is obsolete for now (May 2015)...
  */
-void stmSteppedComplexMatrix(const double y[], gsl_odeiv2_driver *d, double t1, int M, gsl_matrix_complex **DAT)
+void stm_stepped_complex(const double y[], gsl_odeiv2_driver *d, double t1, int M, gsl_matrix_complex **DAT)
 {
     gsl_odeiv2_driver_reset(d);
     gsl_matrix_complex *STM = gsl_matrix_complex_calloc(6,6);
@@ -633,7 +472,7 @@ void stmSteppedComplexMatrix(const double y[], gsl_odeiv2_driver *d, double t1, 
  *  So, the DAT has to be used from DAT[1] to DAT[M] and DAT[0] is USELESS.
  *  Not a smart move, since vepro is obsolete for now (May 2015)...
  */
-void stmSteppedComplexMatrix_alt(const double y[], gsl_odeiv2_driver *d, double t1, int M, gsl_matrix_complex **DAT)
+void stm_stepped_complex_alt(const double y[], gsl_odeiv2_driver *d, double t1, int M, gsl_matrix_complex **DAT)
 {
     gsl_odeiv2_driver_reset(d);
     gsl_matrix_complex *STM = gsl_matrix_complex_calloc(6,6);
@@ -692,7 +531,7 @@ void stmSteppedComplexMatrix_alt(const double y[], gsl_odeiv2_driver *d, double 
 
     dy = 0.0;
     for(int j=0; j< 6; j++) dy+= (ic[M/2][j]-ys[j])*(ic[M/2][j]-ys[j]);
-    cout << "stmSteppedComplexMatrix_alt. At half period, the error between the forward and backward integration is dy = " << sqrt(dy) << endl;
+
 
     //-----------------------------
     //Loop from T/2 to T
@@ -726,7 +565,7 @@ void stmSteppedComplexMatrix_alt(const double y[], gsl_odeiv2_driver *d, double 
  *  \param DAT: a double pointer to the gsl_matrix_complex* array to update
  *  \param M: the number of steps
  **/
-void monoProd(gsl_matrix_complex* MMc, gsl_matrix_complex** DAT, int M)
+void mono_from_prod(gsl_matrix_complex* MMc, gsl_matrix_complex** DAT, int M)
 {
     //GSL complex constants (1.0 and 0.0)
     gsl_complex one_c  = gslc_complex(1.0, 0.0);
@@ -752,7 +591,7 @@ void monoProd(gsl_matrix_complex* MMc, gsl_matrix_complex** DAT, int M)
  *  \param evald output: the eigenvalues  in vector format
  *  \param evmd  output: the eigenvalues  in matrix format (along the diagonal)
  **/
-void monoDiag(gsl_matrix* MM, gsl_matrix_complex *evecd, gsl_vector_complex *evald, gsl_matrix_complex *evmd)
+void mono_diag(gsl_matrix* MM, gsl_matrix_complex *evecd, gsl_vector_complex *evald, gsl_matrix_complex *evmd)
 {
     //Init
     gsl_eigen_nonsymmv_workspace * wr = gsl_eigen_nonsymmv_alloc(6);  //workspace for eigenspaces determination
@@ -785,7 +624,7 @@ void monoDiag(gsl_matrix* MM, gsl_matrix_complex *evecd, gsl_vector_complex *eva
  *
  *      See "Lectures on celestial mechanics", Siegel & Moser, p. 101
  **/
-void normS(gsl_matrix_complex *S)
+void norm_matrix_S(gsl_matrix_complex *S)
 {
     //---------------------------------------------------------------------------------
     // Initialization of GSL objects
@@ -841,7 +680,7 @@ void normS(gsl_matrix_complex *S)
  *         of the vectors that bear the ELLIPTIC motion.
  *         Mainly here for reference, not used in current implementation. Use with care, hard coded values inside!
  **/
-void prenormS(gsl_matrix_complex *S)
+void prenorm_matrix_S(gsl_matrix_complex *S)
 {
     gsl_vector_complex_view vecview;
     gsl_complex coefc;
@@ -904,7 +743,7 @@ void prenormS(gsl_matrix_complex *S)
  *                                          (vxy, vu, vz, conj(vxy), vs, conj(vz))
  *              - Dm contains the corresponding eigenvalues.
  **/
-void updateS(gsl_matrix_complex *S,
+void update_matrix_S(gsl_matrix_complex *S,
              gsl_matrix_complex *Dm,
              gsl_matrix_complex *evecr,
              gsl_vector_complex *evalr,
@@ -931,7 +770,7 @@ void updateS(gsl_matrix_complex *S,
     keymap[5] = 0;
 
     //Perform permutation
-    permutationS(S, Dm, evecr, evalr, eigenVu, eigenVs, eigenLu, eigenLs, keymap);
+    permutation_matrix_S(S, Dm, evecr, evalr, eigenVu, eigenVs, eigenLu, eigenLs, keymap);
 
     //Check that the vertical center is well placed.
     gsl_vector_complex_view V2;
@@ -952,30 +791,26 @@ void updateS(gsl_matrix_complex *S,
         keymap[5] = 5;
 
         //Perform permutation
-        permutationS(S, Dm, evecr, evalr, eigenVu, eigenVs, eigenLu, eigenLs, keymap);
+        permutation_matrix_S(S, Dm, evecr, evalr, eigenVu, eigenVs, eigenLu, eigenLs, keymap);
     }
 
-    cout << "--------------------------------" << endl;
-    cout << "S after permutation:" << endl;
-    cout << "--------------------------------" << endl;
+    cout << "update_matrix_S. Check of the form of S:" << endl;
     cout << "real(S)" << endl;
     gslc_matrix_complex_printf_real(S);
     cout << "imag(S):" << endl;
     gslc_matrix_complex_printf_imag(S);
-    cout << "The eigenvectors which bear the vertical motion should be set" << endl;
-    cout << "In column 3 and 6." << endl;
+    cout << "The eigenvectors which bear the vertical motion" << endl;
+    cout << "should appear in columns 3 and 6." << endl;
     cout << "Please press Enter to continue." << endl;
     char chc;
     scanf("%c",&chc);
-    cout << "--------------------------------" << endl;
 
     //------------------------------------------------------------
     // At this step:
-    // - S contains the eigenvector in the following order:
+    // - S contains the eigenvectors in the following order:
     //      (vxy, vu, vz, conj(vxy), vs, conj(vz))
     // - Dm contains the corresponding eigenvalues.
     //------------------------------------------------------------
-
 }
 
 /**
@@ -984,11 +819,11 @@ void updateS(gsl_matrix_complex *S,
  *  Storage of:
  *  - The hyperbolic directions (input in eigenVu/Lu and eigenVs/Ls)
  *  - The central directions (input in evecr, evalr)
- *  Used in monoDecomp to ensure that the eigenvectors
+ *  Used in mono_eigen to ensure that the eigenvectors
  *  that bear the vertical motion are at the right position in S (and Dm)
  *
  */
-void permutationS(gsl_matrix_complex *S,
+void permutation_matrix_S(gsl_matrix_complex *S,
                   gsl_matrix_complex *Dm,
                   gsl_matrix_complex *evecr,
                   gsl_vector_complex *evalr,
@@ -1055,7 +890,7 @@ void permutationS(gsl_matrix_complex *S,
 /**
  *  \brief Checks that R is symplectic (real version of S). If not, performs an additional permutation/normalization on the couple (S,Dm)
  **/
-void symplecticR(gsl_matrix_complex *S, gsl_matrix_complex *Dm, gsl_matrix *R)
+void symplecticity_test_for_R(gsl_matrix_complex *S, gsl_matrix_complex *Dm, gsl_matrix *R)
 {
     gsl_matrix *J     = gsl_matrix_calloc(6, 6);
     gsl_matrix *RH    = gsl_matrix_calloc(6, 6);
@@ -1121,7 +956,7 @@ void symplecticR(gsl_matrix_complex *S, gsl_matrix_complex *Dm, gsl_matrix *R)
     //---------------------------------------------------------------
     //  Normalize S again, if necessary
     //---------------------------------------------------------------
-    if(flag) normS(S);
+    if(flag) norm_matrix_S(S);
 
     //---------------------------------------------------------------
     //  Update again R from S columns
@@ -1146,7 +981,7 @@ void symplecticR(gsl_matrix_complex *S, gsl_matrix_complex *Dm, gsl_matrix *R)
     cout << "Please press Enter to continue." << endl;
     char chc;
     scanf("%c",&chc);
-    symplecticMatrixTest(S, Csts::INVERSE_SYMP);
+    symplecticity_test_complex(S, Csts::INVERSE_SYMP);
     cout << "Please press Enter to continue." << endl;
     scanf("%c",&chc);
 
@@ -1155,7 +990,7 @@ void symplecticR(gsl_matrix_complex *S, gsl_matrix_complex *Dm, gsl_matrix *R)
     cout << "---------------------------------------------" << endl;
     cout << "Please press Enter to continue." << endl;
     scanf("%c",&chc);
-    realSymplecticMatrixTest(R, Csts::INVERSE_SYMP);
+    symplecticity_test_real(R, Csts::INVERSE_SYMP);
     cout << "Please press Enter to continue." << endl;
     scanf("%c",&chc);
 }
@@ -1188,10 +1023,10 @@ void symplecticR(gsl_matrix_complex *S, gsl_matrix_complex *Dm, gsl_matrix *R)
  *
  *   Note that the current code ensures that real(B) = Br and imag(B) = 0. In other words, the real form of B is already selected when computing B = S*DB*Sinv.
  */
-void monoDecomp(gsl_odeiv2_driver *d,           //driver for odeRK78
+void mono_eigen(gsl_odeiv2_driver *d,           //driver for odeRK78
                 const double y0[],              //initial conditions
                 const double n,                 //pulsation
-                FBPL *fbpl,                 //Four-Body problem
+                FBPL *fbpl,                     //Four-Body problem
                 int M,                          //Number of steps for Monodromy matrix splitting in a product of matrices
                 int STABLE_DIR_TYPE,            //Type of computation of the stable direction
                 gsl_matrix_complex* MMc,        //Final monodromy matrix in complex form                                    |
@@ -1204,11 +1039,11 @@ void monoDecomp(gsl_odeiv2_driver *d,           //driver for odeRK78
                 gsl_matrix *Br,                 //Real form of B computed from the Jordan Form                              |
                 gsl_matrix *R,                  //B = R*JB*Rinv                                                             |
                 gsl_matrix_complex** DAT,       //Contains the STM at each of the M steps                                   |
-                int isStored)
+                int is_stored)
 {
-    //---------------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------
     // Initialization of GSL objects
-    //---------------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------
     //Hyperbolic directions
     gsl_vector_complex* eigenVu = gsl_vector_complex_calloc(6);  //Unstable eigenvector
     gsl_vector_complex* eigenVs = gsl_vector_complex_calloc(6);  //Stable eigenvector
@@ -1225,9 +1060,9 @@ void monoDecomp(gsl_odeiv2_driver *d,           //driver for odeRK78
     //Constants
     double tend = 2*M_PI/n;  //period
 
-    //------------------------------------------------------------
-    //Outputs
-    //------------------------------------------------------------
+    //------------------------------------------------------------------------------------
+    // Initialization of outputs
+    //------------------------------------------------------------------------------------
     //eigenvectors/eigenvalues of MMc obtained via Wieland deflation
     gsl_matrix_complex *evecr = gsl_matrix_complex_calloc(6, 6);
     gsl_vector_complex *evalr = gsl_vector_complex_calloc(6);
@@ -1237,21 +1072,21 @@ void monoDecomp(gsl_odeiv2_driver *d,           //driver for odeRK78
     gsl_matrix_complex *evmd  = gsl_matrix_complex_calloc(6, 6);
     gsl_vector_complex *evald = gsl_vector_complex_calloc(6);
 
-    //------------------------------------------------------------
-    // 0. Update of DAT: the Monodromy matrix obtained as a product of matrices.
-    // CAREFUL: DAT has to be used from DAT[1] to DAT[M]
-    // and DAT[0] is USELESS.
-    //------------------------------------------------------------
+    //------------------------------------------------------------------------------------
+    // The Monodromy matrix obtained as a product of matrices in DAT.
+    // CAREFUL: DAT has to be used from DAT[1] to DAT[M], and DAT[0] is USELESS.
+    //------------------------------------------------------------------------------------
+    cout << "mono_eigen. The monodromy matrix M is obtained as a product of matrices... " << endl;
     // DAT[1...M] is computed from the initial conditions y0
     // DAT[M] is computed at tend = orbital period of the system.
-    cout << "monoDecomp. Computation of DAT[1...M]... " << endl;
-    stmSteppedComplexMatrix(y0, d, tend, M, DAT);
+    // cout << "mono_eigen. Computation of DAT[1...M]... " << endl;
+    stm_stepped_complex(y0, d, tend, M, DAT);
 
     // Alternative computation of DAT[1...M] in DAT2, making use of the symmetries of the orbit
     gsl_matrix_complex **DAT2 = gslc_matrix_complex_product_alloc(6, 6, M);
     gsl_matrix_complex **DDAT = gslc_matrix_complex_product_alloc(6, 6, M);
-    cout << "monoDecomp. Alternative computation of DAT[1...M]... " << endl;
-    stmSteppedComplexMatrix_alt(y0, d, tend, M, DAT2);
+    // cout << "mono_eigen. Alternative computation of DAT[1...M]... " << endl;
+    stm_stepped_complex_alt(y0, d, tend, M, DAT2);
     //DDAT = DAT-DAT2
     for(int k = 1; k <=M; k++)
     {
@@ -1259,75 +1094,81 @@ void monoDecomp(gsl_odeiv2_driver *d,           //driver for odeRK78
         gsl_matrix_complex_sub(DDAT[k], DAT[k]);
     }
 
-    //Comparison
-    cout << Csts::SSEPR << endl;
-    cout << "monoDecomp. The difference between the two computations is:" << endl;
-    cout << setprecision(5);
-    cout << gslc_matrix_complex_infinity_norm(DDAT[0])   << " at t = 0 "   << endl;
-    cout << gslc_matrix_complex_infinity_norm(DDAT[M/2]) << " at t = T/2 "   << endl;
-    cout << gslc_matrix_complex_infinity_norm(DDAT[M])   << " at t = T "   << endl;
-    cout << setprecision(15);
-    cout << Csts::SSEPR << endl;
+    //------------------------------------------------------
+    // Comparison between DAT and DAT2 (uncomment to show)
+    //------------------------------------------------------
+    //    cout << Csts::SSEPR << endl;
+    //    cout << "mono_eigen. The difference between the two computations is:" << endl;
+    //    cout << setprecision(5);
+    //    cout << gslc_matrix_complex_infinity_norm(DDAT[0])   << " at t = 0 "   << endl;
+    //    cout << gslc_matrix_complex_infinity_norm(DDAT[M/2]) << " at t = T/2 "   << endl;
+    //    cout << gslc_matrix_complex_infinity_norm(DDAT[M])   << " at t = T "   << endl;
+    //    cout << setprecision(15);
+    //    cout << Csts::SSEPR << endl;
 
-    //DAT = DAT2 if desired (usually better precision)
+    //DAT = DAT2 is performed by default, because numerical tests show that it usually
+    //yields better precision. The interested user can comment the following line to see
+    //the result with DAT.
     for(int k = 1; k <=M; k++) gsl_matrix_complex_memcpy(DAT[k], DAT2[k]);
 
     //Memory release of DAT2 and DDAT
     gslc_matrix_complex_product_free(DAT2, M);
     gslc_matrix_complex_product_free(DDAT, M);
 
-    //------------------------------------------------------------
-    // 1. Monodromy computed by product, stored in MMc
-    //------------------------------------------------------------
-    cout << "monoDecomp. Monodromy computed by product... " << endl;
-    monoProd(MMc, DAT, M);
+    //------------------------------------------------------------------------------------
+    // Monodromy matrix computed by product, stored in MMc. Real version stored in MM.
+    //------------------------------------------------------------------------------------
+    cout << "mono_eigen. The monodromy matrix M is computed by product... " << endl;
+    mono_from_prod(MMc, DAT, M);
     //Real version stored in MM
     gslc_matrix_complex_real(MM, MMc);
     //Print on screen
-    cout << "real(Monodromy matrix): " << endl;
+    cout << "real(M) =  " << endl;
     gslc_matrix_complex_printf_real(MMc);
     cout << "--------------------------------" << endl;
 
-    //====================================================================================
-    // 2. Solving directly the system
-    //====================================================================================
-    monoDiag(MM, evecd, evald, evmd);
-    cout << "monoDecomp. Test of the eigensystem obtained via direct diagonalization:" << endl;
-    eigenSystemTest(evmd, evecd, DAT, M);
-    gslc_eigensystem_fprintf(evald, evecd, 6, (char*) "diagDirect.txt");
+    //------------------------------------------------------------------------------------
+    // Diagonalization of MM: solving directly the system
+    //------------------------------------------------------------------------------------
+    cout << "mono_eigen. Direct diagonalization of M... " << endl;
+    mono_diag(MM, evecd, evald, evmd);
+    cout << "mono_eigen. Test of the eigensystem obtained via direct diagonalization:" << endl;
+    eigensystem_test(evmd, evecd, DAT, M);
+    //gslc_eigensystem_fprintf(evald, evecd, 6, (char*) "diagDirect.txt");
     cout << "--------------------------------" << endl;
 
-    //====================================================================================
-    //Shifted power method (direct on MMc, bad precision)
-    //====================================================================================
+    //------------------------------------------------------------------------------------
+    //Shifted power method (direct on MMc, bad precision, uncomment to show)
+    //------------------------------------------------------------------------------------
     //gsl_vector_complex* eigenV = gsl_vector_complex_calloc(6);
     //gsl_complex eigenL;
-    //shiftedPowerMethod(MMc, 1e-15, 6, gsl_vector_complex_get(DECSl, 0), eigenV, &eigenL);
+    //shifted_power_method(MMc, 1e-15, 6, gsl_vector_complex_get(DECSl, 0), eigenV, &eigenL);
 
     //====================================================================================
     // Use of Power+Wielandt?
     // For very unstable cases (eg EML1,2 in the QBCP), use Power+Wielandt (the user enter 1).
     // For other cases, enter 0 (eg SEML1,2).
     //====================================================================================
-    printf("Please enter 1 if you want the Power+Wielandt process to start. 0 to use current eigendecomposition.");
+    printf("Please enter:\n 0 to use current eigendecomposition obtained via direct diagonalization \n 1 if you want the Power+Wielandt process to start\n");
+    printf("(by default, use the Power+Wielandt process on the Earth-Moon system, and not for the Sun-Earth case):");
     scanf("%d",&ch);
     if(ch == 1)
     {
-        //------------------------------------------------------------
+        //--------------------------------------------------------------------------------
         // 3. Hyp. unstable direction with product of matrices
-        //------------------------------------------------------------
-        cout << "monoDecomp. Power methods on hyperbolic directions." << endl;
+        //--------------------------------------------------------------------------------
+        cout << "mono_eigen. Power methods on hyperbolic directions." << endl;
         //Direct power method
         gsl_vector_complex_set_zero(VEP);
         gsl_vector_complex_set(VEP, 0, one_c);
-        dipowers(DAT+1, M, 6, VEP, &VUX, &VAPL, 1);
+        power_method_on_prod(DAT+1, M, 6, VEP, &VUX, &VAPL, 1);
         //Update of eigenVu and eigenLu
         gsl_vector_complex_memcpy(eigenVu, VEP);
         eigenLu = VUX;
 
-        //------------------------------------------------------------
+        //--------------------------------------------------------------------------------
         // 4. Hyp. stable direction with product of matrices
-        //------------------------------------------------------------
+        //--------------------------------------------------------------------------------
         if(STABLE_DIR_TYPE == Csts::STABLE_DIR_POW)
         {
             //Has to be used in priority: indeed, the computation using the symmetries
@@ -1335,7 +1176,7 @@ void monoDecomp(gsl_odeiv2_driver *d,           //driver for odeRK78
             //Inverse power method
             gsl_vector_complex_set_zero(VEP);
             gsl_vector_complex_set(VEP, 1, one_c);
-            dipowers(DAT+1, M, 6, VEP, &VUX, &VAPL, -1);
+            power_method_on_prod(DAT+1, M, 6, VEP, &VUX, &VAPL, -1);
 
             //Update of eigenVs and eigenLs
             gsl_vector_complex_memcpy(eigenVs, VEP);
@@ -1351,26 +1192,27 @@ void monoDecomp(gsl_odeiv2_driver *d,           //driver for odeRK78
         {
             //stable direction with inverse power method directly on the mon. matrix
             //GENERALLY GIVES BAD RESULTS, JUST HERE FOR REFERENCE
-            inversePowerMethod(MMc, 1e-15, 6, 0, eigenVs, &eigenLs);
+            inverse_power_method(MMc, 1e-15, 6, 0, eigenVs, &eigenLs);
         }
 
-        //----------------------------------------------------------------------------------
+        //--------------------------------------------------------------------------------
         // 5. Diagonalization of MMc via Wielandt deflation on the unstable direction
         // After this step:
         // - evecr contains the center eigenvectors of MMc.
         // - evalr contains the center eigenvalues  of MMc.
         // - eigenVu/Lu contains the unstable couple of MMc.
         // - eigenVs/Ls contains the stable couple of MMc.
-        //----------------------------------------------------------------------------------
+        //--------------------------------------------------------------------------------
         if(gsl_complex_abs(eigenLu) > 1e3)
         {
-            cout << "monoDecomp. Diagonalization of the mono. matrix via Wielandt deflation on the unstable direction." << endl;
+            cout << "mono_eigen. Diagonalization of the mono. matrix via Wielandt deflation on the unstable direction." << endl;
             wielandt_deflation(MMc, eigenVu, eigenLu, evecr, evalr);
-            gslc_eigensystem_fprintf(evalr, evecr, 6, (char*) "diagWielandt.txt");
+            //Uncomment to print in root folder
+            //gslc_eigensystem_fprintf(evalr, evecr, 6, (char*) "diagWielandt.txt");
         }
-        else //probably never used
+        else //probably never used, needs a proper check if the case occurs.
         {
-            cout << "monoDecomp. The unstable eigenvalue is small enough to avoid the use of Wielandt deflation." << endl;
+            cout << "mono_eigen. The unstable eigenvalue is small enough to avoid the use of Wielandt deflation." << endl;
             gsl_vector_complex_view viewd, viewl;
 
             viewd = gsl_matrix_complex_column(evecd, 0); //vs
@@ -1408,22 +1250,20 @@ void monoDecomp(gsl_odeiv2_driver *d,           //driver for odeRK78
 
             gsl_vector_complex_memcpy(eigenVu, &viewd.vector);
             eigenLu =  gsl_vector_complex_get(evald, 5);
-            //        gsl_vector_complex_memcpy(evalr, evald);
-            //        gsl_matrix_complex_memcpy(evecr, evecd);
         }
 
     }
     else
     {
-        //------------------------------------------------------------
+        //--------------------------------------------------------------------------------
         // Steps 3/4/5 in one step
         // After this step:
         // - evecr contains the center eigenvectors of MMc.
         // - evalr contains the center eigenvalues  of MMc.
         // - eigenVu/Lu contains the unstable couple of MMc.
         // - eigenVs/Ls contains the stable couple of MMc.
-        //------------------------------------------------------------
-        //Heuristic to ensure that the matrix R will be symplectic (see monoDecompLog)
+        //--------------------------------------------------------------------------------
+        //Heuristic to ensure that the matrix R will be symplectic (see mono_eigen_log)
         int kmp[6];
         switch(fbpl->li)
         {
@@ -1454,7 +1294,7 @@ void monoDecomp(gsl_odeiv2_driver *d,           //driver for odeRK78
             kmp[5] = 5;
         }
 
-        //------------------------------------------------------------
+        //--------------------------------------------------------------------------------
         // Copy of the direct eigendecomposition into evecr and evalr,
         // After this step:
         // - evecr contains the center eigenvectors of MMc.
@@ -1462,7 +1302,7 @@ void monoDecomp(gsl_odeiv2_driver *d,           //driver for odeRK78
         // - eigenVu/Lu contains the unstable couple of MMc.
         // - eigenVs/Ls contains the stable couple of MMc.
         // (As in the Power+Wielandt case).
-        //------------------------------------------------------------
+        //--------------------------------------------------------------------------------
         gsl_vector_complex_view viewd, viewl;
         viewd = gsl_matrix_complex_column(evecd, kmp[0]); //vs
         viewl = gsl_matrix_complex_column(evecr, 1);
@@ -1505,10 +1345,10 @@ void monoDecomp(gsl_odeiv2_driver *d,           //driver for odeRK78
     gsl_matrix_complex_set_zero(evmr);
     for(int i = 0; i <6; i++) gsl_matrix_complex_set(evmr, i, i, gsl_vector_complex_get(evalr, i));
 
-    //------------------------------------------------------------
-    // !!!Force some coefficients to zero: uncomment to set on
+    //------------------------------------------------------------------------------------
+    // Force some coefficients to zero: uncomment to set on
     // Help decoupling the vertical and xy motion
-    //------------------------------------------------------------
+    //------------------------------------------------------------------------------------
     for(int i = 0; i <6; i++)
     {
         for(int j = 0; j <6; j++)
@@ -1519,26 +1359,33 @@ void monoDecomp(gsl_odeiv2_driver *d,           //driver for odeRK78
         }
     }
 
-    //------------------------------------------------------------
+    //------------------------------------------------------------------------------------
     // At this step:
     // - evecr contains the center eigenvectors of MMc, at positions (1,2,3,4)
     // - evalr contains the center eigenvalues  of MMc, at positions (1,2,3,4)
     // - eigenVu/Lu contains the unstable couple of MMc.
     // - eigenVs/Ls contains the stable couple of MMc.
-    // (As in the Power+Wielandt case).
-    //------------------------------------------------------------
+    //------------------------------------------------------------------------------------
 
 
     //====================================================================================
     // 6. Computation of stable, unstable and central directions through vepro
     // After this step:
-    // - VECS(*, 2:5, 0) contains a 6*4 central subspace that contains no unstable component under DAT[M]*...*DAT[1]
-    // - VECS(*, 2:5, M) contains the same central subspace as if it has been integrated through the variationnal equations until t = T
+    // - VECS(*, 2:5, 0) contains a 6*4 central subspace that contains no unstable
+    //   component under DAT[M]*...*DAT[1]
+    // - VECS(*, 2:5, M) contains the same central subspace as if it has been
+    //   integrated through the variationnal equations until t = T
     // - DECSv = eigenvectors of the matrix DECS such that VECS[0]*DECS = VECS[M] in vepro
     // - DECSl = eigenvalues of the matrix DECS such that  VECS[0]*DECS = VECS[M] in vepro
+    //
+    // This part makes use of vepro, inspired from Fortran code by Masdemont.
+    //
+    //
+    // The results are NOT conclusive, and the central and hyperbolic directions are kept
+    // as is.
     //====================================================================================
     /*
-     cout << "monoDecomp. Computation of stable, unstable and central directions through vepro." << endl;
+     cout << "mono_eigen. Computation of stable, unstable and central directions through vepro." << endl;
      //VECS(*,*,0) contains a 4*4 central subspace that contains no unstable component under DAT[M]*...*DAT[1].
      gsl_matrix_complex **VECS = gslc_matrix_complex_product_alloc(6, 6, M);
      eigenvectors/eigenvalues of the matrix DECS such that VECS[0]*DECS = VECS[M] in vepro
@@ -1549,7 +1396,7 @@ void monoDecomp(gsl_odeiv2_driver *d,           //driver for odeRK78
      */
 
     //====================================================================================
-    // Annex: Solving the system by hand. Not conclusive
+    // Annex: Solving the system by hand. NOT conclusive either
     //====================================================================================
     /*
     gsl_vector_complex* y  = gsl_vector_complex_calloc(6);
@@ -1649,62 +1496,67 @@ void monoDecomp(gsl_odeiv2_driver *d,           //driver for odeRK78
     // As a consequence, the user is asked to manually check the former condition.
     // If it is not fulfilled, a permutation is made.
     //----------------------------------------------------------------------------------
-    updateS(S, Dm, evecr, evalr, eigenVu, eigenVs, eigenLu, eigenLs);
+    cout << "mono_eigen. Update the matrices S and Dm." << endl;
+    cout << "After this step:                         " << endl;
+    cout << "- S contains the eigenvectors in the following order:" << endl;
+    cout << "      (vxy, vu, vz, conj(vxy), vs, conj(vz))" << endl;
+    cout << "- Dm contains the corresponding eigenvalues." << endl;
+    update_matrix_S(S, Dm, evecr, evalr, eigenVu, eigenVs, eigenLu, eigenLs);
 
     //----------------------------------------------------------------------------------
     // 6.2 Prenormalization (if necessary) of S. Uncomment to let the user decide.
     //----------------------------------------------------------------------------------
-    prenormS(S);
+    prenorm_matrix_S(S);
 
     //----------------------------------------------------------------------------------
     // 7. Normalization of S to get a symplectic matrix
     //----------------------------------------------------------------------------------
-    normS(S);
+    norm_matrix_S(S);
 
     //----------------------------------------------------------------------------------
-    // 8. Second permutation within S to garantee that R is truly simplectic.
+    // 8. Second permutation within S to garantee that R is truly symplectic.
     //----------------------------------------------------------------------------------
-    symplecticR(S, Dm, R);
+    symplecticity_test_for_R(S, Dm, R);
 
     //----------------------------------------------------------------------------------
     // 9. Obtention of B, Br, DB and JB
     //----------------------------------------------------------------------------------
     //Obtain the real Jordan form of the matrix B
-    monoDecompLog(S, Dm, tend, DB, B, Br, JB, R);
+    mono_eigen_log(S, Dm, tend, DB, B, Br, JB, R);
 
 
     //----------------------------------------------------------------------------------
     // 10. Print in txt file
     //----------------------------------------------------------------------------------
-    if(isStored)
+    if(is_stored)
     {
         string F_COC = fbpl->cs.F_COC;
         string filename = F_COC+"complexCOC.txt";
-        cout << "monoDecomp. Storage of the complex change of coord. in " << filename << endl;
+        cout << "mono_eigen. For eye-checking: storage of the complex change of coord. in " << filename << endl;
         gslc_eigensystem_fprintf(Dm, S, 6, (char*) filename.c_str());
 
         filename = F_COC+"B.txt";
-        cout << "monoDecomp. Storage of the complex matrix B  in  " << filename << endl;
+        cout << "mono_eigen. Storage of the complex matrix B  in  " << filename << endl;
         gslc_matrix_complex_fprintf(B, (char*) filename.c_str());
 
         filename = F_COC+"DB.txt";
-        cout << "monoDecomp. Storage of the complex matrix DB in  " << filename << endl;
+        cout << "mono_eigen. Storage of the complex matrix DB in  " << filename << endl;
         gslc_matrix_complex_fprintf(DB, (char*) filename.c_str());
 
         filename = F_COC+"Dm.txt";
-        cout << "monoDecomp. Storage of the complex matrix Dm in  " << filename << endl;
+        cout << "mono_eigen. Storage of the complex matrix Dm in  " << filename << endl;
         gslc_matrix_complex_fprintf(Dm, (char*) filename.c_str());
 
         filename = F_COC+"S.txt";
-        cout << "monoDecomp. Storage of the complex matrix S  in  " << filename << endl;
+        cout << "mono_eigen. Storage of the complex matrix S  in  " << filename << endl;
         gslc_matrix_complex_fprintf(S, (char*) filename.c_str());
 
         filename = F_COC+"Br.txt";
-        cout << "monoDecomp. Storage of the real matrix    Br in  " << filename << endl;
+        cout << "mono_eigen. Storage of the real matrix    Br in  " << filename << endl;
         gslc_matrix_fprintf(Br, (char*) filename.c_str());
 
         filename = F_COC+"JB.txt";
-        cout << "monoDecomp. Storage of the real matrix    JB in  " << filename << endl;
+        cout << "mono_eigen. Storage of the real matrix    JB in  " << filename << endl;
         gslc_matrix_fprintf(JB, (char*) filename.c_str());
     }
 
@@ -1715,13 +1567,13 @@ void monoDecomp(gsl_odeiv2_driver *d,           //driver for odeRK78
     //Test of the eigenvectors
     //----------------------------------------------------------------------------------
     cout << "Test of Wielandt eigensystem:" << endl;
-    eigenSystemTest(Dm, S, DAT, M);
+    eigensystem_test(Dm, S, DAT, M);
 
     //Test of the change of base - uncomment if needed
     //----------------------------------------------------------------------------------
     /*
       gsl_matrix_complex *MMc_estimate  = gsl_matrix_complex_calloc(6, 6);
-      changeOfBase(MMc_estimate, Dm, DAT, S, Csts::INVERSE_GSL, M);
+      change_of_base(MMc_estimate, Dm, DAT, S, Csts::INVERSE_GSL, M);
 
       cout << "---------------------------------------------" << endl;
       cout << "M" << endl;
@@ -1748,14 +1600,14 @@ void monoDecomp(gsl_odeiv2_driver *d,           //driver for odeRK78
 
 
 /**
- *  \brief Compute:
+ *  \brief Compute the following matrices (see nfo2 brief):
  *          - DB = 1/T*log(Dm)
  *          - B = S*DB*Sinv
  *          - the real Jordan form JB of the matrix B
  *          - Br = R*JB*Rinv
  *  With the current implementation, real(B) = Br and imag(B) = 0
  */
-void monoDecompLog(gsl_matrix_complex *S,       //The eigenvectors are stored on  S(*,i), i = 0,...,5
+void mono_eigen_log(gsl_matrix_complex *S,       //The eigenvectors are stored on  S(*,i), i = 0,...,5
                    gsl_matrix_complex *Dm,      //The eigenvalues  are stored in Dm(i,i), i = 0,...,5
                    double T,                    //Full period
                    //double n,                    //Pulsation
@@ -1793,7 +1645,7 @@ void monoDecompLog(gsl_matrix_complex *S,       //The eigenvectors are stored on
 
         gsl_matrix_complex_set(DB, i, i, logL);
     }
-    cout << "monoDecompLog. Small real and imag parts of coefs of DB have been set null." << endl;
+    cout << "mono_eigen_log. Small real and imag parts of coefs of DB have been set null." << endl;
 
     //----------------------------------------------------------------------------------
     // B = S*DB*Sinv
@@ -1877,577 +1729,9 @@ void monoDecompLog(gsl_matrix_complex *S,       //The eigenvectors are stored on
 
 }
 
-void monoDecomp_RTBP(gsl_odeiv2_driver* d,           //driver for odeRK78
-                     const double y0[],              //initial conditions
-                     const double n,                 //pulsation
-                     FBPL* fbpl,                 //Four-Body problem
-                     int M,                          //Number of steps for Monodromy matrix splitting in a product of matrices
-                     int STABLE_DIR_TYPE,            //Type of computation of the stable direction
-                     gsl_matrix_complex* MMc,        //Final monodromy matrix in complex form                                    |
-                     gsl_matrix* MM,                 //Final monodromy matrix in real form                                       |
-                     gsl_matrix_complex* Dm,         //The eigenvalues  are stored in Dm(i,i), i = 0,...,5                       |   Outputs
-                     gsl_matrix_complex* DB,         //DB = 1/T*log(Dm)                                                          |
-                     gsl_matrix_complex* B,          //B = S*DB*Sinv                                                             |
-                     gsl_matrix_complex* S,          //The eigenvectors are stored on  S(i,*), i = 0,...,5                       |
-                     gsl_matrix* JB,                 //Real Jordan form of B                                                     |
-                     gsl_matrix* Br,                 //Real form of B computed from the Jordan Form                              |
-                     gsl_matrix* R,                  //B = R*JB*Rinv                                                             |
-                     gsl_matrix_complex** DAT,       //Contains the STM at each of the M steps                                   |
-                     int isStored)
-{
-    //---------------------------------------------------------------------------------
-    // Initialization of GSL objects
-    //---------------------------------------------------------------------------------
-    //Hyperbolic directions
-    gsl_vector_complex* eigenVu = gsl_vector_complex_calloc(6);  //Unstable eigenvector
-    gsl_vector_complex* eigenVs = gsl_vector_complex_calloc(6);  //Stable eigenvector
-    gsl_complex eigenLu, eigenLs;                               //(Un)stable eigenvalues
-
-    //Misc complex numbers
-    gsl_complex one_c  = gslc_complex(1.0, 0.0); //1.0
-
-    //Auxiliary objects
-    gsl_vector_complex *VEP  = gsl_vector_complex_calloc(6);     //auxiliary vector
-    gsl_complex VUX, VAPL;
-    int ch;
-
-    //period
-    double tend = 2*M_PI/n;
-
-    //------------------------------------------------------------
-    //Outputs
-    //------------------------------------------------------------
-    //eigenvectors/eigenvalues of MMc obtained via Wieland deflation
-    gsl_matrix_complex *evecr = gsl_matrix_complex_calloc(6, 6);
-    gsl_vector_complex *evalr = gsl_vector_complex_calloc(6);
-    gsl_matrix_complex *evmr  = gsl_matrix_complex_calloc(6, 6);
-    //eigenvectors/eigenvalues of MMc obtained via direct diagonalization
-    gsl_matrix_complex *evecd = gsl_matrix_complex_calloc(6, 6);
-    gsl_matrix_complex *evmd  = gsl_matrix_complex_calloc(6, 6);
-    gsl_vector_complex *evald = gsl_vector_complex_calloc(6);
-
-    //------------------------------------------------------------
-    // 0. Update of DAT: the Monodromy matrix obtained as a product of matrices.
-    // CAREFUL: DAT has to be used from DAT[1] to DAT[M]
-    // and DAT[0] is USELESS.
-    //------------------------------------------------------------
-    // DAT[1...M] is computed from the initial conditions y0
-    // DAT[M] is computed at tend = orbital period of the system.
-    cout << "monoDecomp. Computation of DAT[1...M]... " << endl;
-    stmSteppedComplexMatrix(y0, d, tend, M, DAT);
-
-    // Alternative computation of DAT[1...M] in DAT2, making use of the symmetries of the orbit
-    gsl_matrix_complex **DAT2 = gslc_matrix_complex_product_alloc(6, 6, M);
-    gsl_matrix_complex **DDAT = gslc_matrix_complex_product_alloc(6, 6, M);
-    cout << "monoDecomp. Alternative computation of DAT[1...M]... " << endl;
-    stmSteppedComplexMatrix_alt(y0, d, tend, M, DAT2);
-    //DDAT = DAT-DAT2
-    for(int k = 1; k <=M; k++)
-    {
-        gsl_matrix_complex_memcpy(DDAT[k], DAT2[k]);
-        gsl_matrix_complex_sub(DDAT[k], DAT[k]);
-    }
-
-    //Comparison
-    cout << Csts::SSEPR << endl;
-    cout << "monoDecomp. The difference between the two computations is:" << endl;
-    cout << setprecision(5);
-    cout << gslc_matrix_complex_infinity_norm(DDAT[0])   << " at t = 0 "   << endl;
-    cout << gslc_matrix_complex_infinity_norm(DDAT[M/2]) << " at t = T/2 "   << endl;
-    cout << gslc_matrix_complex_infinity_norm(DDAT[M])   << " at t = T "   << endl;
-    cout << setprecision(15);
-    cout << Csts::SSEPR << endl;
-
-    //DAT = DAT2 if desired (usually better precision)
-    for(int k = 1; k <=M; k++) gsl_matrix_complex_memcpy(DAT[k], DAT2[k]);
-
-    //Memory release of DAT2 and DDAT
-    gslc_matrix_complex_product_free(DAT2, M);
-    gslc_matrix_complex_product_free(DDAT, M);
-
-    //------------------------------------------------------------
-    // 1. Monodromy computed by product, stored in MMc
-    //------------------------------------------------------------
-    cout << "monoDecomp. Monodromy computed by product... " << endl;
-    monoProd(MMc, DAT, M);
-    //Real version stored in MM
-    gslc_matrix_complex_real(MM, MMc);
-    //Print on screen
-    cout << "real(Monodromy matrix): " << endl;
-    gslc_matrix_complex_printf_real(MMc);
-    cout << "--------------------------------" << endl;
-
-    //------------------------------------------------------------
-    // 1.2 Direct computation, stored in MMc
-    //------------------------------------------------------------
-    stmMatrix(y0, d, tend, MM);
-    cout << "Direct computation: " << endl;
-    gslc_matrix_printf(MM);
-    cout << "--------------------------------" << endl;
-
-
-    //====================================================================================
-    // 2. Solving directly the system
-    //====================================================================================
-    monoDiag(MM, evecd, evald, evmd);
-    cout << "monoDecomp. Test of the eigensystem obtained via direct diagonalization:" << endl;
-    eigenSystemTest(evmd, evecd, DAT, M);
-    gslc_eigensystem_fprintf(evald, evecd, 6, (char*) "diagDirect.txt");
-    cout << "--------------------------------" << endl;
-
-    //====================================================================================
-    //Shifted power method (direct on MMc, bad precision)
-    //====================================================================================
-    //gsl_vector_complex* eigenV = gsl_vector_complex_calloc(6);
-    //gsl_complex eigenL;
-    //shiftedPowerMethod(MMc, 1e-15, 6, gsl_vector_complex_get(DECSl, 0), eigenV, &eigenL);
-
-    //====================================================================================
-    // Use of Power+Wielandt?
-    // For very unstable cases (eg EML1,2 in the QBCP), use Power+Wielandt (the user enter 1).
-    // For other cases, enter 0 (eg SEML1,2).
-    //====================================================================================
-    printf("Please enter 1 if you want the Power+Wielandt process to start. 0 to use current eigendecomposition.");
-    scanf("%d",&ch);
-    if(ch == 1)
-    {
-        //------------------------------------------------------------
-        // 3. Hyp. unstable direction with product of matrices
-        //------------------------------------------------------------
-        cout << "monoDecomp. Power methods on hyperbolic directions." << endl;
-        //Direct power method
-        gsl_vector_complex_set_zero(VEP);
-        gsl_vector_complex_set(VEP, 0, one_c);
-        dipowers(DAT+1, M, 6, VEP, &VUX, &VAPL, 1);
-        //Update of eigenVu and eigenLu
-        gsl_vector_complex_memcpy(eigenVu, VEP);
-        eigenLu = VUX;
-
-        //------------------------------------------------------------
-        // 4. Hyp. stable direction with product of matrices
-        //------------------------------------------------------------
-        if(STABLE_DIR_TYPE == Csts::STABLE_DIR_POW)
-        {
-            //Has to be used in priority: indeed, the computation using the symmetries
-            //(through Csts::STABLE_DIR_SYM) does not take into account the numerical instabilities
-            //Inverse power method
-            gsl_vector_complex_set_zero(VEP);
-            gsl_vector_complex_set(VEP, 1, one_c);
-            dipowers(DAT+1, M, 6, VEP, &VUX, &VAPL, -1);
-
-            //Update of eigenVs and eigenLs
-            gsl_vector_complex_memcpy(eigenVs, VEP);
-            eigenLs = gsl_complex_inverse(VUX);
-        }
-        else if(STABLE_DIR_TYPE == Csts::STABLE_DIR_SYM)
-        {
-            //Update of eigenVs and eigenLs
-            gslc_vector_complex_symcpy(eigenVs, eigenVu);
-            eigenLs = gsl_complex_inverse(eigenLu);
-        }
-        else
-        {
-            //stable direction with inverse power method directly on the mon. matrix
-            //GENERALLY GIVES BAD RESULTS, JUST HERE FOR REFERENCE
-            inversePowerMethod(MMc, 1e-15, 6, 0, eigenVs, &eigenLs);
-        }
-
-        //----------------------------------------------------------------------------------
-        // 5. Diagonalization of MMc via Wielandt deflation on the unstable direction
-        // After this step:
-        // - evecr contains the center eigenvectors of MMc.
-        // - evalr contains the center eigenvalues  of MMc.
-        // - eigenVu/Lu contains the unstable couple of MMc.
-        // - eigenVs/Ls contains the stable couple of MMc.
-        //----------------------------------------------------------------------------------
-        if(gsl_complex_abs(eigenLu) > 1e3)
-        {
-            cout << "monoDecomp. Diagonalization of the mono. matrix via Wielandt deflation on the unstable direction." << endl;
-            wielandt_deflation(MMc, eigenVu, eigenLu, evecr, evalr);
-            gslc_eigensystem_fprintf(evalr, evecr, 6, (char*) "diagWielandt.txt");
-        }
-        else //probably never used
-        {
-            cout << "monoDecomp. The unstable eigenvalue is small enough to avoid the use of Wielandt deflation." << endl;
-            gsl_vector_complex_view viewd, viewl;
-
-            viewd = gsl_matrix_complex_column(evecd, 0); //vs
-            viewl = gsl_matrix_complex_column(evecr, 1);
-            gsl_vector_complex_memcpy(&viewl.vector, &viewd.vector);
-            gsl_vector_complex_set(evalr, 1, gsl_vector_complex_get(evald, 0));
-
-            gsl_vector_complex_memcpy(eigenVs, &viewd.vector);
-            eigenLs =  gsl_vector_complex_get(evald, 0);
-
-            viewd = gsl_matrix_complex_column(evecd, 1); //vxy
-            viewl = gsl_matrix_complex_column(evecr, 4);
-            gsl_vector_complex_memcpy(&viewl.vector, &viewd.vector);
-            gsl_vector_complex_set(evalr, 4, gsl_vector_complex_get(evald, 1));
-
-            viewd = gsl_matrix_complex_column(evecd, 2); //vxy
-            viewl = gsl_matrix_complex_column(evecr, 5);
-            gsl_vector_complex_memcpy(&viewl.vector, &viewd.vector);
-            gsl_vector_complex_set(evalr, 5, gsl_vector_complex_get(evald, 2));
-
-            viewd = gsl_matrix_complex_column(evecd, 3); //vz
-            viewl = gsl_matrix_complex_column(evecr, 2);
-            gsl_vector_complex_memcpy(&viewl.vector, &viewd.vector);
-            gsl_vector_complex_set(evalr, 2, gsl_vector_complex_get(evald, 3));
-
-            viewd = gsl_matrix_complex_column(evecd, 4); //vz
-            viewl = gsl_matrix_complex_column(evecr, 3);
-            gsl_vector_complex_memcpy(&viewl.vector, &viewd.vector);
-            gsl_vector_complex_set(evalr, 3, gsl_vector_complex_get(evald, 4));
-
-            viewd = gsl_matrix_complex_column(evecd, 5); //vu
-            viewl = gsl_matrix_complex_column(evecr, 0);
-            gsl_vector_complex_memcpy(&viewl.vector, &viewd.vector);
-            gsl_vector_complex_set(evalr, 0, gsl_vector_complex_get(evald, 5));
-
-            gsl_vector_complex_memcpy(eigenVu, &viewd.vector);
-            eigenLu =  gsl_vector_complex_get(evald, 5);
-            //        gsl_vector_complex_memcpy(evalr, evald);
-            //        gsl_matrix_complex_memcpy(evecr, evecd);
-        }
-
-    }
-    else
-    {
-        //------------------------------------------------------------
-        // Steps 3/4/5 in one step
-        // After this step:
-        // - evecr contains the center eigenvectors of MMc.
-        // - evalr contains the center eigenvalues  of MMc.
-        // - eigenVu/Lu contains the unstable couple of MMc.
-        // - eigenVs/Ls contains the stable couple of MMc.
-        //------------------------------------------------------------
-        //Heuristic to ensure that the matrix R will be symplectic (see monoDecompLog)
-        int kmp[6];
-        switch(fbpl->li)
-        {
-        case 1:
-            kmp[0] = 0;
-            kmp[1] = 2;
-            kmp[2] = 1;
-            kmp[3] = 3;
-            kmp[4] = 4;
-            kmp[5] = 5;
-            cout << "L1 case in heuristic." << endl;
-            break;
-        case 2:
-            kmp[0] = 0;
-            kmp[1] = 2;
-            kmp[2] = 1;
-            kmp[3] = 4;
-            kmp[4] = 3;
-            kmp[5] = 5;
-            cout << "L2 case in heuristic." << endl;
-            break;
-        default: //never here, L2 case by default
-            kmp[0] = 0;
-            kmp[1] = 2;
-            kmp[2] = 1;
-            kmp[3] = 4;
-            kmp[4] = 3;
-            kmp[5] = 5;
-        }
-
-        //------------------------------------------------------------
-        // Copy of the direct eigendecomposition into evecr and evalr,
-        // After this step:
-        // - evecr contains the center eigenvectors of MMc.
-        // - evalr contains the center eigenvalues  of MMc.
-        // - eigenVu/Lu contains the unstable couple of MMc.
-        // - eigenVs/Ls contains the stable couple of MMc.
-        // (As in the Power+Wielandt case).
-        //------------------------------------------------------------
-        gsl_vector_complex_view viewd, viewl;
-        viewd = gsl_matrix_complex_column(evecd, kmp[0]); //vs
-        viewl = gsl_matrix_complex_column(evecr, 1);
-        gsl_vector_complex_memcpy(&viewl.vector, &viewd.vector);
-        gsl_vector_complex_set(evalr, 1, gsl_vector_complex_get(evald, kmp[0]));
-
-        gsl_vector_complex_memcpy(eigenVs, &viewd.vector);
-        eigenLs =  gsl_vector_complex_get(evald, kmp[0]);
-
-        viewd = gsl_matrix_complex_column(evecd, kmp[1]); //vxy
-        viewl = gsl_matrix_complex_column(evecr, 4);
-        gsl_vector_complex_memcpy(&viewl.vector, &viewd.vector);
-        gsl_vector_complex_set(evalr, 4, gsl_vector_complex_get(evald, kmp[1]));
-
-        viewd = gsl_matrix_complex_column(evecd, kmp[2]); //vxy
-        viewl = gsl_matrix_complex_column(evecr, 5);
-        gsl_vector_complex_memcpy(&viewl.vector, &viewd.vector);
-        gsl_vector_complex_set(evalr, 5, gsl_vector_complex_get(evald, kmp[2]));
-
-        viewd = gsl_matrix_complex_column(evecd, kmp[3]); //vz
-        viewl = gsl_matrix_complex_column(evecr, 2);
-        gsl_vector_complex_memcpy(&viewl.vector, &viewd.vector);
-        gsl_vector_complex_set(evalr, 2, gsl_vector_complex_get(evald, kmp[3]));
-
-        viewd = gsl_matrix_complex_column(evecd, kmp[4]); //vz
-        viewl = gsl_matrix_complex_column(evecr, 3);
-        gsl_vector_complex_memcpy(&viewl.vector, &viewd.vector);
-        gsl_vector_complex_set(evalr, 3, gsl_vector_complex_get(evald, kmp[4]));
-
-        viewd = gsl_matrix_complex_column(evecd, kmp[5]); //vu
-        viewl = gsl_matrix_complex_column(evecr, 0);
-        gsl_vector_complex_memcpy(&viewl.vector, &viewd.vector);
-        gsl_vector_complex_set(evalr, 0, gsl_vector_complex_get(evald, kmp[5]));
-
-        gsl_vector_complex_memcpy(eigenVu, &viewd.vector);
-        eigenLu =  gsl_vector_complex_get(evald, kmp[5]);
-    }
-
-    //Set evald in matrix format in evmr
-    gsl_matrix_complex_set_zero(evmr);
-    for(int i = 0; i <6; i++) gsl_matrix_complex_set(evmr, i, i, gsl_vector_complex_get(evalr, i));
-
-    //------------------------------------------------------------
-    // !!!Force some coefficients to zero: uncomment to set on
-    // Help decoupling the vertical and xy motion
-    //------------------------------------------------------------
-    for(int i = 0; i <6; i++)
-    {
-        for(int j = 0; j <6; j++)
-        {
-            if(gsl_complex_abs(gsl_matrix_complex_get(evecr, i, j)) < 1e-14) gsl_matrix_complex_set(evecr, i, j, gslc_complex(0.0, 0.0));
-            if(gsl_complex_abs(gsl_vector_complex_get(eigenVu, j))  < 1e-14) gsl_vector_complex_set(eigenVu, j,  gslc_complex(0.0, 0.0));
-            if(gsl_complex_abs(gsl_vector_complex_get(eigenVs, j))  < 1e-14) gsl_vector_complex_set(eigenVs, j,  gslc_complex(0.0, 0.0));
-        }
-    }
-
-    //------------------------------------------------------------
-    // At this step:
-    // - evecr contains the center eigenvectors of MMc, at positions (1,2,3,4)
-    // - evalr contains the center eigenvalues  of MMc, at positions (1,2,3,4)
-    // - eigenVu/Lu contains the unstable couple of MMc.
-    // - eigenVs/Ls contains the stable couple of MMc.
-    // (As in the Power+Wielandt case).
-    //------------------------------------------------------------
-
-
-    //====================================================================================
-    // 6. Computation of stable, unstable and central directions through vepro
-    // After this step:
-    // - VECS(*, 2:5, 0) contains a 6*4 central subspace that contains no unstable component under DAT[M]*...*DAT[1]
-    // - VECS(*, 2:5, M) contains the same central subspace as if it has been integrated through the variationnal equations until t = T
-    // - DECSv = eigenvectors of the matrix DECS such that VECS[0]*DECS = VECS[M] in vepro
-    // - DECSl = eigenvalues of the matrix DECS such that  VECS[0]*DECS = VECS[M] in vepro
-    //====================================================================================
-    /*
-     cout << "monoDecomp. Computation of stable, unstable and central directions through vepro." << endl;
-     //VECS(*,*,0) contains a 4*4 central subspace that contains no unstable component under DAT[M]*...*DAT[1].
-     gsl_matrix_complex **VECS = gslc_matrix_complex_product_alloc(6, 6, M);
-     eigenvectors/eigenvalues of the matrix DECS such that VECS[0]*DECS = VECS[M] in vepro
-     gsl_matrix_complex *DECSv = gsl_matrix_complex_calloc(6, 6);
-     gsl_matrix_complex *DECS  = gsl_matrix_complex_calloc(6, 6);
-     gsl_vector_complex *DECSl = gsl_vector_complex_calloc(6);
-     vepro(DAT, M, VECS, DECS, DECSv, DECSl);
-     */
-
-    //====================================================================================
-    // Annex: Solving the system by hand. Not conclusive
-    //====================================================================================
-    /*
-    gsl_vector_complex* y  = gsl_vector_complex_calloc(6);
-    cout << "Multimin for lambda = " << GSL_REAL(gsl_vector_complex_get(DECSl, 0)) << " " << GSL_IMAG(gsl_vector_complex_get(DECSl, 0)) << endl;
-    cout << "The eigenvector approximation is taken from Wielandt's deflation procedure:" << endl;
-    evec_i = gsl_matrix_complex_column (evecr, 5);
-    gsl_vector_complex_set(&evec_i.vector, 2, zero_c);
-    gsl_vector_complex_set(&evec_i.vector, 5, zero_c);
-    gslc_vector_complex_printf(&evec_i.vector);
-
-
-    //mm = MMc - lamba id
-    cdouble **mm = dcmatrix(0, 5, 0, 5);
-    cdouble *v1 = dcvector(0,5);
-    cdouble lambda = GSL_REAL(gsl_vector_complex_get(DECSl, 0)) + GSL_IMAG(gsl_vector_complex_get(DECSl, 0))*I;
-    for(int i = 0; i<6; i++)
-    {
-        for(int j = 0; j<6; j++)
-        {
-            mm[i][j] = GSL_REAL(gsl_matrix_complex_get(MMc, i, j)) + GSL_IMAG(gsl_matrix_complex_get(MMc, i, j))*I;
-            if(i==j) mm[i][j] -= lambda;
-        }
-    }
-
-    v1[0] = GSL_REAL(gsl_vector_complex_get(&evec_i.vector, 0)) + GSL_IMAG(gsl_vector_complex_get(&evec_i.vector, 0))*I;
-    v1[1] = GSL_REAL(gsl_vector_complex_get(&evec_i.vector, 1)) + GSL_IMAG(gsl_vector_complex_get(&evec_i.vector, 1))*I;
-    v1[2] = 0.0;
-    v1[3] = GSL_REAL(gsl_vector_complex_get(&evec_i.vector, 3)) + GSL_IMAG(gsl_vector_complex_get(&evec_i.vector, 3))*I;
-    v1[4] = GSL_REAL(gsl_vector_complex_get(&evec_i.vector, 4)) + GSL_IMAG(gsl_vector_complex_get(&evec_i.vector, 4))*I;
-    v1[5] = 0.0;
-
-    cout << "v1 = " << endl;
-    for(int i = 0; i<6; i++)  cout << creal(v1[i]) << "  " << cimag(v1[i]) << endl;
-    cout << "M*v1?" << endl;
-    for(int i = 0; i < 6; i ++)
-    {
-        cdouble res = mm[i][0]*v1[0] + mm[i][1]*v1[1] + mm[i][2]*v1[2] + mm[i][3]*v1[3] + mm[i][4]*v1[4] + mm[i][5]*v1[5];
-        cout << creal(res) << "  " << cimag(res) << endl;
-    }
-
-    cdouble x1     = 1.0+1.0*I;
-    cdouble alpha1 = x1*(mm[1][0] - mm[1][1]*mm[0][0]/mm[0][1]);
-    cdouble alpha4 = mm[1][3] - mm[0][3]*mm[1][1]/mm[0][1];
-    cdouble alpha5 = mm[1][4] - mm[0][4]*mm[1][1]/mm[0][1];
-
-    cdouble eps1   = x1*(mm[3][0] - mm[3][1]*mm[0][0]/mm[0][1]);
-    cdouble eps4   = mm[3][3] - mm[3][1]*mm[0][3]/mm[0][1];
-    cdouble eps5   = mm[3][4] - mm[3][1]*mm[0][4]/mm[0][1];
-
-    cdouble det    = alpha4*eps5 - eps4*alpha5;
-    cdouble **a    = dcmatrix(0, 2, 0, 2);
-
-    a[0][0] = +eps5/det;
-    a[0][1] = -alpha5/det;
-    a[1][0] = -eps4/det;
-    a[1][1] = +alpha4/det;
-
-    cdouble x4 = -alpha1*a[0][0] - eps1*a[0][1];
-    cdouble x5 = -alpha1*a[1][0] - eps1*a[1][1];
-    cdouble x2 = -1.0/mm[0][1]*(mm[0][0]*x1 + mm[0][3]*x4 + mm[0][4]*x5);
-
-    gsl_vector_complex_set(y, 0, gslc_complex(creal(x1), cimag(x1)));
-    gsl_vector_complex_set(y, 1, gslc_complex(creal(x2), cimag(x2)));
-    gsl_vector_complex_set(y, 3, gslc_complex(creal(x4), cimag(x4)));
-    gsl_vector_complex_set(y, 4, gslc_complex(creal(x5), cimag(x5)));
-    gsl_vector_complex_scale(y, gslc_complex(-1.807784977191888e-01, +3.006437368959317e-02));
-    //gslc_vector_complex_normalize(y);
-
-    v1[0] = GSL_REAL(gsl_vector_complex_get(y, 0)) + GSL_IMAG(gsl_vector_complex_get(y, 0))*I;
-    v1[1] = GSL_REAL(gsl_vector_complex_get(y, 1)) + GSL_IMAG(gsl_vector_complex_get(y, 1))*I;
-    v1[3] = GSL_REAL(gsl_vector_complex_get(y, 3)) + GSL_IMAG(gsl_vector_complex_get(y, 3))*I;
-    v1[4] = GSL_REAL(gsl_vector_complex_get(y, 4)) + GSL_IMAG(gsl_vector_complex_get(y, 4))*I;
-
-    cout << "final vector = " << endl;
-    gslc_vector_complex_printf(y);
-
-
-
-    cout << "M*v1?" << endl;
-    for(int i = 0; i < 6; i ++)
-    {
-        long cdouble res = mm[i][0]*v1[0] + mm[i][1]*v1[1] + mm[i][2]*v1[2] + mm[i][3]*v1[3] + mm[i][4]*v1[4] + mm[i][5]*v1[5];
-        cout << creal(res) << "  " << cimag(res) << endl;
-    }
-
-    cout << "-------------------------------------------------" << endl;
-    cout << "-------------------------------------------------" << endl;
-    cout << "-------------------------------------------------" << endl;
-
-    //*/
-
-    //----------------------------------------------------------------------------------
-    // 7. Update S and Dm, with the form (center1 x saddle x center2),
-    // with center2 corresponding to the vertical components (z, pz)
-    // WARNING: the center 2 should really correspond to the vertical components (z, pz)
-    // Decoupled from the rest of the dynamics.
-    // As a consequence, the user is asked to manually check the former condition.
-    // If it is not fulfilled, a permutation is made.
-    //----------------------------------------------------------------------------------
-    updateS(S, Dm, evecr, evalr, eigenVu, eigenVs, eigenLu, eigenLs);
-
-    //----------------------------------------------------------------------------------
-    // 6.2 Prenormalization (if necessary) of S. Uncomment to let the user decide.
-    //----------------------------------------------------------------------------------
-    prenormS(S);
-
-    //----------------------------------------------------------------------------------
-    // 7. Normalization of S to get a symplectic matrix
-    //----------------------------------------------------------------------------------
-    normS(S);
-
-    //----------------------------------------------------------------------------------
-    // 8. Second permutation within S to garantee that R is truly simplectic.
-    //----------------------------------------------------------------------------------
-    symplecticR(S, Dm, R);
-
-    //----------------------------------------------------------------------------------
-    // 9. Obtention of B, Br, DB and JB
-    //----------------------------------------------------------------------------------
-    //Obtain the real Jordan form of the matrix B
-    monoDecompLog(S, Dm, tend, DB, B, Br, JB, R);
-
-
-    //----------------------------------------------------------------------------------
-    // 10. Print in txt file
-    //----------------------------------------------------------------------------------
-    if(isStored)
-    {
-        string F_COC = fbpl->cs.F_COC;
-        string filename = F_COC+"complexCOC.txt";
-        cout << "monoDecomp. Storage of the complex change of coord. in " << filename << endl;
-        gslc_eigensystem_fprintf(Dm, S, 6, (char*) filename.c_str());
-
-        filename = F_COC+"B.txt";
-        cout << "monoDecomp. Storage of the complex matrix B  in  " << filename << endl;
-        gslc_matrix_complex_fprintf(B, (char*) filename.c_str());
-
-        filename = F_COC+"DB.txt";
-        cout << "monoDecomp. Storage of the complex matrix DB in  " << filename << endl;
-        gslc_matrix_complex_fprintf(DB, (char*) filename.c_str());
-
-        filename = F_COC+"Dm.txt";
-        cout << "monoDecomp. Storage of the complex matrix Dm in  " << filename << endl;
-        gslc_matrix_complex_fprintf(Dm, (char*) filename.c_str());
-
-        filename = F_COC+"S.txt";
-        cout << "monoDecomp. Storage of the complex matrix S  in  " << filename << endl;
-        gslc_matrix_complex_fprintf(S, (char*) filename.c_str());
-
-        filename = F_COC+"Br.txt";
-        cout << "monoDecomp. Storage of the real matrix    Br in  " << filename << endl;
-        gslc_matrix_fprintf(Br, (char*) filename.c_str());
-
-        filename = F_COC+"JB.txt";
-        cout << "monoDecomp. Storage of the real matrix    JB in  " << filename << endl;
-        gslc_matrix_fprintf(JB, (char*) filename.c_str());
-    }
-
-
-    //----------------------------------------------------------------------------------
-    // 11. Tests
-    //----------------------------------------------------------------------------------
-    //Test of the eigenvectors
-    //----------------------------------------------------------------------------------
-    cout << "Test of Wielandt eigensystem:" << endl;
-    eigenSystemTest(Dm, S, DAT, M);
-
-    //Test of the change of base - uncomment if needed
-    //----------------------------------------------------------------------------------
-    /*
-      gsl_matrix_complex *MMc_estimate  = gsl_matrix_complex_calloc(6, 6);
-      changeOfBase(MMc_estimate, Dm, DAT, S, Csts::INVERSE_GSL, M);
-
-      cout << "---------------------------------------------" << endl;
-      cout << "M" << endl;
-      cout << "---------------------------------------------" << endl;
-      gslc_matrix_complex_printf_real(MMc);
-
-      cout << "---------------------------------------------" << endl;
-      cout << "M - M estimate (real part)"  << endl;
-      cout << "---------------------------------------------" << endl;
-      gsl_matrix_complex_sub(MMc_estimate, MMc);
-      gslc_matrix_complex_printf_real(MMc_estimate);
-      gsl_matrix_complex_free(MMc_estimate);
-    //*/
-
-    //----------------------------------------------------------------------------------
-    // 12. Memory release
-    //----------------------------------------------------------------------------------
-    gsl_matrix_complex_free(evecr);
-    gsl_vector_complex_free(VEP);
-    gsl_vector_complex_free(eigenVu);
-    gsl_vector_complex_free(eigenVs);
-    gsl_vector_complex_free(evalr);
-}
-
-
-//-------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 //Resolution of eigensystem: power methods and gsl methods on single matrices
-//-------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 /**
  *  \brief Power Method on a single matrix.
  */
@@ -2616,7 +1900,7 @@ void powerMethod(gsl_matrix_complex *Minit, double prec, int sizeM, int version,
 /**
  *  \brief Inverse Power Method on a single matrix.
  */
-void inversePowerMethod(gsl_matrix_complex *Minit, double prec, int sizeM, int version, gsl_vector_complex *eigenV, gsl_complex *eigenL)
+void inverse_power_method(gsl_matrix_complex *Minit, double prec, int sizeM, int version, gsl_vector_complex *eigenV, gsl_complex *eigenL)
 {
 
     //====================================================================================
@@ -2782,7 +2066,7 @@ void inversePowerMethod(gsl_matrix_complex *Minit, double prec, int sizeM, int v
 /**
  *  \brief Shifted Inverse Power Method on a single matrix.
  */
-void shiftedPowerMethod(gsl_matrix_complex *Minit, double prec, int sizeM, int version, gsl_complex shift, gsl_vector_complex *eigenV, gsl_complex *eigenL)
+void shifted_power_method(gsl_matrix_complex *Minit, double prec, int sizeM, int version, gsl_complex shift, gsl_vector_complex *eigenV, gsl_complex *eigenL)
 {
     //====================================================================================
     // Misc complex numbers
@@ -2946,7 +2230,7 @@ void shiftedPowerMethod(gsl_matrix_complex *Minit, double prec, int sizeM, int v
 /**
  *  \brief Shifted Inverse Power Method on a single matrix with alternative update of the eigenvalue
  */
-void shiftedPowerMethodEigenvalueUpdate(gsl_matrix_complex *Minit, double prec, int sizeM, gsl_complex shift, gsl_vector_complex *eigenV, gsl_complex *eigenL)
+void shifted_power_method_update(gsl_matrix_complex *Minit, double prec, int sizeM, gsl_complex shift, gsl_vector_complex *eigenV, gsl_complex *eigenL)
 {
     //====================================================================================
     // Misc complex numbers
@@ -3057,16 +2341,16 @@ void shiftedPowerMethodEigenvalueUpdate(gsl_matrix_complex *Minit, double prec, 
  *  \brief Decomposition of the Monodromy matrix through the use of GSL routines from a monodromy matrix given as a single matrix. Bad precision
  *
  *  Do not use in general: the precision achieved is not sufficient with a single matrix,
- *  the monodromy matrix should be given as a product, as in the routine monoDecomp.
+ *  the monodromy matrix should be given as a product, as in the routine mono_eigen.
  */
-void gslMonoDecomp(gsl_odeiv2_driver *d, const double y0[], double tend, gsl_matrix_complex* gsl_MMc, gsl_matrix* gsl_MM, gsl_vector_complex *eval, gsl_matrix_complex *evec)
+void gslc_mono_eigen(gsl_odeiv2_driver *d, const double y0[], double tend, gsl_matrix_complex* gsl_MMc, gsl_matrix* gsl_MM, gsl_vector_complex *eval, gsl_matrix_complex *evec)
 {
     //====================================================================================
     // Monodromy matrix
     //====================================================================================
     double ys[42];
-    stmComplexMatrix(y0, d, tend, gsl_MMc, ys);
-    stmMatrix(y0, d, tend, gsl_MM);
+    stm_complex(y0, d, tend, gsl_MMc, ys);
+    stm_matrix_with_gsl(y0, d, tend, gsl_MM);
 
     //====================================================================================
     //Eigenvectors & values from GSL routines
@@ -3078,21 +2362,21 @@ void gslMonoDecomp(gsl_odeiv2_driver *d, const double y0[], double tend, gsl_mat
     gsl_eigen_nonsymmv_sort (eval, evec, GSL_EIGEN_SORT_ABS_ASC);
 
     cout << "------------------------------------------" << endl;
-    cout << "gslMonoDecomp. Monodromy matrix" << endl;
+    cout << "gslc_mono_eigen. Monodromy matrix" << endl;
     //gslc_matrix_printf(gsl_MM);
     gslc_matrix_complex_printf_real(gsl_MMc);
 
     cout << "------------------------------------------" << endl;
-    cout << "gslMonoDecomp. Eigenvalues from GSL routine" << endl;
+    cout << "gslc_mono_eigen. Eigenvalues from GSL routine" << endl;
     gslc_vector_complex_printf(eval);
 
     gsl_matrix_free(monodromy_copy);
     gsl_eigen_nonsymmv_free(w);
 }
 
-//-------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 //Resolution of eigensystem: inspired by Fortran code
-//-------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 /**
  *  \brief Decomposition of a product of matrices DAT[M]*DAT[M-1]*...DAT[1] into unstable, stable and central part.
  *  \param DAT  the product of M matrices, given from indix 1 to indix M - and NOT 0 to M-1 as usually done in C.
@@ -3155,8 +2439,8 @@ void vepro(gsl_matrix_complex **DAT, int M, gsl_matrix_complex **VECS, gsl_matri
     //====================================================================================
     cout <<  Csts::SEPR << endl;
     cout << "vepro. Computing the initial and final hyperbolic directions." << endl;
-    dipowers(DAT+1,M,6,VEP1,&VAP1,&VAPL1, 1);  //Unstable, direct power method, IS = +1
-    dipowers(DAT+1,M,6,VEP2,&VAP2,&VAPL2,-1);  //Stable, inverse power method, IS = -1
+    power_method_on_prod(DAT+1,M,6,VEP1,&VAP1,&VAPL1, 1);  //Unstable, direct power method, IS = +1
+    power_method_on_prod(DAT+1,M,6,VEP2,&VAP2,&VAPL2,-1);  //Stable, inverse power method, IS = -1
 
     cout << "vepro. Hyperbolic eigenvalues: " << endl;
     cout <<  GSL_REAL(VAP1) << endl;
@@ -3237,13 +2521,13 @@ void vepro(gsl_matrix_complex **DAT, int M, gsl_matrix_complex **VECS, gsl_matri
         gsl_vector_complex_set_zero(BUX1);
         gsl_vector_complex_set(BUX1, IJ, one_c);
 
-        //--------------------------------------------------------------------------------------------------
+        //------------------------------------------------------------------------------------
         // NOTE: the column IJ of VECS[K] is denoted VECS(*, IJ, K)
         // Example @ this point for IJ
         // VECS(*, IJ, 0) = [0.0, 0.0, ..., 1.0 @ IJ, ..., 0.0]^T = w_0^0;
         //
         // See Dynamics and mission design near libration points III p.86 for the associated formalism
-        //--------------------------------------------------------------------------------------------------
+        //------------------------------------------------------------------------------------
 
         //Loop
         for(int K= 1; K<=M; K++)
@@ -3255,7 +2539,7 @@ void vepro(gsl_matrix_complex **DAT, int M, gsl_matrix_complex **VECS, gsl_matri
             //GAMMA = CUX1*(colum 0 of VECS[K])
             VECS_V = gsl_matrix_complex_column (VECS[K], 0);
             gsl_blas_zdotu(CUX1 , &VECS_V.vector , &GAMMA);
-            //--------------------------------------------------------------------------------------------------
+            //------------------------------------------------------------------------------------
             // Example @ this point for IJ, K = 1
             // CUX1  = A_1 w_0^0
             // gamma = A_1 w_0^0 u_1^T = lambda_1
@@ -3265,7 +2549,7 @@ void vepro(gsl_matrix_complex **DAT, int M, gsl_matrix_complex **VECS, gsl_matri
             // gamma = wb_2^0 u_2^T = lambda_2
             //
             // See Dynamics and mission design near libration points III p.86 for the associated formalism
-            //--------------------------------------------------------------------------------------------------
+            //------------------------------------------------------------------------------------
 
 
             //BUX1 = CUX1 - GAMMA*(colum 0 of VECS[K])
@@ -3274,7 +2558,7 @@ void vepro(gsl_matrix_complex **DAT, int M, gsl_matrix_complex **VECS, gsl_matri
             //(column IJ of VECS[K]) = BUX1
             VECS_V = gsl_matrix_complex_column (VECS[K], IJ);
             gsl_vector_complex_memcpy(&VECS_V.vector, BUX1);
-            //--------------------------------------------------------------------------------------------------
+            //------------------------------------------------------------------------------------
             // Example @ this point for IJ, K = 1
             // CUX1  = A_1 w_0^0
             // gamma = A_1 w_0^0 u_1^T = lambda_1
@@ -3288,7 +2572,7 @@ void vepro(gsl_matrix_complex **DAT, int M, gsl_matrix_complex **VECS, gsl_matri
             // VECS(*, IJ, 2) = BUX1 = wb_2^0 - lambda_2 u_2 = w_2^0
             //
             // See Dynamics and mission design near libration points III p.86 for the associated formalism
-            //--------------------------------------------------------------------------------------------------
+            //------------------------------------------------------------------------------------
 
 
             DEL=1.0;
@@ -3303,7 +2587,7 @@ void vepro(gsl_matrix_complex **DAT, int M, gsl_matrix_complex **VECS, gsl_matri
                 gsl_blas_zaxpy (gsl_complex_negative(gsl_complex_div_real(GAMMA, DEL)), &VECS_V2.vector , &VECS_V.vector);
             }
 
-            //--------------------------------------------------------------------------------------------------
+            //------------------------------------------------------------------------------------
             // Example @ this point for IJ, K = 1
             // CUX1  = A_1 w_0^0
             // gamma = A_1 w_0^0 u_1^T = lambda_1
@@ -3321,7 +2605,7 @@ void vepro(gsl_matrix_complex **DAT, int M, gsl_matrix_complex **VECS, gsl_matri
             //
             //
             // See Dynamics and mission design near libration points III p.86 for the associated formalism
-            //--------------------------------------------------------------------------------------------------
+            //------------------------------------------------------------------------------------
         }
 
     }
@@ -3355,7 +2639,7 @@ void vepro(gsl_matrix_complex **DAT, int M, gsl_matrix_complex **VECS, gsl_matri
     // Diag(DECS), output in DECSl, DECSv
     //====================================================================================
     gslc_matrix_complex_real(DECSr, DECS);
-    monoDiag(DECSr, DECSv, DECSl, DECSm);
+    mono_diag(DECSr, DECSv, DECSl, DECSm);
 
     //Print in txt file
     gslc_eigensystem_fprintf(DECSl, DECSv, 6,   (char*)"fprint/diagDECS.txt");
@@ -3422,8 +2706,8 @@ void vepro(gsl_matrix_complex **DAT, int M, gsl_matrix_complex **VECS, gsl_matri
     //------------------------------------------------------------------------------------------------------------------------
     // Solving the eigensystem central part via the information on VECS[0]
     //------------------------------------------------------------------------------------------------------------------------
-    diagcp(DAT, VECS[0], DECSl, DECSv, M);
-    //diagcp(DAT, DECS, DECSl, DECSv, M);
+    center_diag(DAT, VECS[0], DECSl, DECSv, M);
+    //center_diag(DAT, DECS, DECSl, DECSv, M);
 
 
     //------------------------------------------------------------------------------------------------------------------------
@@ -3449,7 +2733,7 @@ void vepro(gsl_matrix_complex **DAT, int M, gsl_matrix_complex **VECS, gsl_matri
  *  \brief Power (resp. Inverse Power) Method on a product of matrices to get the biggest (resp. smallest) eigenvalue in absolute value
  *         along with its associated eigenvectors. note that VAPL = log10(VAP)
  */
-void dipowers(gsl_matrix_complex **DAT, int M, int N, gsl_vector_complex *VEP, gsl_complex *VAP, gsl_complex *VAPL,  int IS)
+void power_method_on_prod(gsl_matrix_complex **DAT, int M, int N, gsl_vector_complex *VEP, gsl_complex *VAP, gsl_complex *VAPL,  int IS)
 {
     //Number MAX of iterations allowed
     int ITM = 20;
@@ -3463,7 +2747,7 @@ void dipowers(gsl_matrix_complex **DAT, int M, int N, gsl_vector_complex *VEP, g
     gsl_complex zero_c = gslc_complex(0.0, 0.0);
 
     //------------------------------------------------------------------------------------
-    // Specific gsl tools for the dipowers routine
+    // Specific gsl tools for the power_method_on_prod routine
     //------------------------------------------------------------------------------------
     gsl_matrix_complex *AUX = gsl_matrix_complex_calloc(N,N);
     gsl_vector_complex *BUX = gsl_vector_complex_calloc(N);
@@ -3542,14 +2826,14 @@ void dipowers(gsl_matrix_complex **DAT, int M, int N, gsl_vector_complex *VEP, g
 
             if(IT > ITM-5)
             {
-                cout << "dipowers. REL. ERROR in VAPL: " << DVAP << endl;
-                cout << "dipowers. ABS. ERROR in VECTOR: " << VN << endl;
+                cout << "power_method_on_prod. REL. ERROR in VAPL: " << DVAP << endl;
+                cout << "power_method_on_prod. ABS. ERROR in VECTOR: " << VN << endl;
             }
 
             //If desired precision is achieved, return!
             if(DVAP < PREC && VN < PREC)
             {
-                //cout << "dipowers. DESIRED PRECISION IS ACHIEVED, END OF THE ITERATIVE PROCESS." << endl;
+                //cout << "power_method_on_prod. DESIRED PRECISION IS ACHIEVED, END OF THE ITERATIVE PROCESS." << endl;
                 gsl_matrix_complex_free(AUX);
                 gsl_vector_complex_free(BUX);
                 gsl_vector_complex_free(CUX);
@@ -3566,7 +2850,7 @@ void dipowers(gsl_matrix_complex **DAT, int M, int N, gsl_vector_complex *VEP, g
 
         if(IT > ITM)
         {
-            cout << "dipowers. POWER METHOD SEEMS NOT CONVERGENT" << endl;
+            cout << "power_method_on_prod. POWER METHOD SEEMS NOT CONVERGENT" << endl;
             cout << "        VALUE OF IS: " << IS << endl;
             gsl_matrix_complex_free(AUX);
             gsl_vector_complex_free(BUX);
@@ -3852,9 +3136,9 @@ void ortho(gsl_matrix_complex **VECS, int IK, int M)
  *        with M the monodromy matrix, in order to get u1 and u1b.
  *
  **/
-void diagcp(gsl_matrix_complex **DAT, gsl_matrix_complex *VECS_0, gsl_vector_complex *DECSl, gsl_matrix_complex *DECSv, int M)
+void center_diag(gsl_matrix_complex **DAT, gsl_matrix_complex *VECS_0, gsl_vector_complex *DECSl, gsl_matrix_complex *DECSv, int M)
 {
-    //Computing the matrix M64 and its inverse M64i that appears in the routine diagcp
+    //Computing the matrix M64 and its inverse M64i that appears in the routine center_diag
     void setM64(gsl_matrix_complex *M64, gsl_matrix_complex *M64i, gsl_complex l1);
     //====================================================================================
     // GSL objects
@@ -3906,7 +3190,7 @@ void diagcp(gsl_matrix_complex **DAT, gsl_matrix_complex *VECS_0, gsl_vector_com
     //------------------------------------------------------------------------------------------------------------------------
     int i = 0;
     cout << Csts::SSEPR << endl;
-    cout << "diagcp. Getting the central eigenvectors. " << endl;
+    cout << "center_diag. Getting the central eigenvectors. " << endl;
     for(i = 0; i < 4; i+=2)
     {
         //Selecting the eigenvalue
@@ -3960,16 +3244,16 @@ void diagcp(gsl_matrix_complex **DAT, gsl_matrix_complex *VECS_0, gsl_vector_com
         //get rid of vu projection: v1 = v1 - <v1,vu>vu
         gsl_blas_zdotu(v1, vu, &dotu);
         gsl_blas_zdotu(v1, vs, &dots);
-        //cout << "diagcp. <v1,vu> = " << GSL_REAL(dotu) << "  " << GSL_IMAG(dotu) << endl;
-        //cout << "diagcp. <v1,vs> = " << GSL_REAL(dots) << "  " << GSL_IMAG(dots) << endl;
+        //cout << "center_diag. <v1,vu> = " << GSL_REAL(dotu) << "  " << GSL_IMAG(dotu) << endl;
+        //cout << "center_diag. <v1,vs> = " << GSL_REAL(dots) << "  " << GSL_IMAG(dots) << endl;
         //gsl_blas_zaxpy(gsl_complex_negative(dots), vs, v1);
         //gsl_blas_zaxpy(gsl_complex_negative(dotu), vu, v1);
 
         //get rid of vu projection: v2 = v2 - <v2,vu>vu
         gsl_blas_zdotu(v2, vu, &dotu);
         gsl_blas_zdotu(v2, vs, &dots);
-        //cout << "diagcp. <v2,vu> = " << GSL_REAL(dotu) << "  " << GSL_IMAG(dotu) << endl;
-        //cout << "diagcp. <v2,vs> = " << GSL_REAL(dots) << "  " << GSL_IMAG(dots) << endl;
+        //cout << "center_diag. <v2,vu> = " << GSL_REAL(dotu) << "  " << GSL_IMAG(dotu) << endl;
+        //cout << "center_diag. <v2,vs> = " << GSL_REAL(dots) << "  " << GSL_IMAG(dots) << endl;
         //gsl_blas_zaxpy(gsl_complex_negative(dots), vs, v2);
         //gsl_blas_zaxpy(gsl_complex_negative(dotu), vu, v2);
 
@@ -4012,9 +3296,9 @@ void diagcp(gsl_matrix_complex **DAT, gsl_matrix_complex *VECS_0, gsl_vector_com
             cout << "XY center. |Id - M64*M64i|_inf = " << gslc_matrix_complex_infinity_norm(Id64) << endl;
 
 
-        //--------------------------------------------------------------------------------------------------
+        //------------------------------------------------------------------------------------
         //Inversing the system
-        //--------------------------------------------------------------------------------------------------
+        //------------------------------------------------------------------------------------
         //H64 = M64i*V64
         gsl_blas_zgemv (CblasNoTrans, one_c , M64i, V64 , zero_c , H64);
         //V64 =  H64
@@ -4036,13 +3320,13 @@ void diagcp(gsl_matrix_complex **DAT, gsl_matrix_complex *VECS_0, gsl_vector_com
     }
 
     //Test of Mdiag/Ldiag
-    cout << "diagcp. Test of the results. " << endl;
-    eigenSystemTest(Ldiag, Mdiag, DAT, M);
+    cout << "center_diag. Test of the results. " << endl;
+    eigensystem_test(Ldiag, Mdiag, DAT, M);
     gslc_matrix_complex_fprintf_pretty(Mdiag, (char*) "fprint/Mdiag.txt");
 }
 
 /**
- *  \brief Computing the matrix M64 and its inverse M64i that appears in the routine diagcp
+ *  \brief Computing the matrix M64 and its inverse M64i that appears in the routine center_diag
  *
  * M64 is defined by:
  *
@@ -4053,9 +3337,9 @@ void diagcp(gsl_matrix_complex **DAT, gsl_matrix_complex *VECS_0, gsl_vector_com
  **/
 void setM64(gsl_matrix_complex *M64, gsl_matrix_complex *M64i, gsl_complex l1)
 {
-    //--------------------------------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------
     //Init
-    //--------------------------------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------
     gsl_complex l1b    = gsl_complex_conjugate(l1);         //conjugate of l1
     gsl_complex factor = gsl_complex_sub(l1, l1b);          //factor = l1 - l1b
     gsl_complex one_c  = gslc_complex(1.0, 0.0);
@@ -4063,9 +3347,9 @@ void setM64(gsl_matrix_complex *M64, gsl_matrix_complex *M64i, gsl_complex l1)
     gsl_matrix_complex_set_zero(M64i);
 
 
-    //--------------------------------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------
     //Views of M64
-    //--------------------------------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------
     gsl_matrix_complex_view S11 = gsl_matrix_complex_submatrix (M64 , 0 , 0  ,  6 , 6 );
     gsl_matrix_complex_view S12 = gsl_matrix_complex_submatrix (M64,  0 , 6  ,  6 , 6 );
     gsl_matrix_complex_view S13 = gsl_matrix_complex_submatrix (M64,  0 , 12 ,  6 , 6 );
@@ -4100,9 +3384,9 @@ void setM64(gsl_matrix_complex *M64, gsl_matrix_complex *M64i, gsl_complex l1)
     gsl_matrix_complex_scale(&S43.matrix, l1);     //S43 = l1*Id
     gsl_matrix_complex_scale(&S44.matrix, l1b);    //S44 = l1b*Id
 
-    //--------------------------------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------
     //Views of M64i
-    //--------------------------------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------
     S11 = gsl_matrix_complex_submatrix (M64i , 0 , 0  , 6 , 6 );
     S12 = gsl_matrix_complex_submatrix (M64i,  0 , 6  , 6 , 6 );
     S13 = gsl_matrix_complex_submatrix (M64i,  0 , 12 , 6 , 6 );
@@ -4175,7 +3459,7 @@ void setM64(gsl_matrix_complex *M64, gsl_matrix_complex *M64i, gsl_complex l1)
  *  The results are stored in txt files.
  *  Each Fourer expansion is tested on a different grid than the one used for the FFT process
  *  For now, the test of the periodicity of P has been abandonned
- *  WARNING: to compute Q = inv(P), the following hypothesis is made (consistent with what monoDecomp produces):
+ *  WARNING: to compute Q = inv(P), the following hypothesis is made (consistent with what mono_eigen produces):
  *
  *     | p11  p12   0   p14  p15    0  |
  *     | p21  p22   0   p24  p25    0  |
@@ -4183,13 +3467,18 @@ void setM64(gsl_matrix_complex *M64, gsl_matrix_complex *M64i, gsl_complex l1)
  *     | p41  p42   0   p44  p45    0  |
  *     | p51  p52   0   p54  p55    0  |
  *     |  0    0   p63   0    0    p66 |
+ *
+ *
+ *  Note that, as much as possible, the coefficients of P, Q, G1, Xe, Xs, and Xm
+ *  are computed on half a period rather than a full period of the QBCP (see nfo2_int).
+ *
  */
-void nfo2coc(gsl_odeiv2_driver *d,const double y0[], const double n,
+void nfo2_coc(gsl_odeiv2_driver *d,const double y0[], const double n,
              FBPL *fbpl, gsl_matrix* Br, gsl_matrix* R, gsl_matrix* JB,
-             int N, int isStored)
+             int N, int is_stored)
 {
     cout << "-----------------------------------------------" << endl;
-    cout << "               nfo2coc                         " << endl;
+    cout << "               nfo2_coc                         " << endl;
     cout << "-----------------------------------------------" << endl;
     //------------------------------------------------------------------------------------
     // Initialization
@@ -4229,123 +3518,123 @@ void nfo2coc(gsl_odeiv2_driver *d,const double y0[], const double n,
     gsl_matrix** Xmb   = gslc_matrix_array_alloc(6, 1, fftPlot);
     gsl_matrix** Xsb   = gslc_matrix_array_alloc(6, 1, fftPlot);
 
-    //--------------------------------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------
     // Integration
-    //--------------------------------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------
     //Integrate the matrices P, FT11, FT12, FT21 and FT22 on a N point grid
-    nfo2Int(d, y0, n, fbpl, R, JB, N, P, Pfb, Q, Qfb, FT11, FT12, FT21, FT22, G1, Xe, Xm, Xs);
+    nfo2_int(d, y0, n, fbpl, R, JB, N, P, Pfb, Q, Qfb, FT11, FT12, FT21, FT22, G1, Xe, Xm, Xs);
     //Integrate the matrices P, FT11, FT12, FT21 and FT22 on a fftPlot+1 point grid
-    nfo2Int(d, y0, n, fbpl, R, JB, fftPlot, Pt, Pfbt, Qt, Qfbt, FT11b, FT12b, FT21b, FT22b, G1b, Xeb, Xmb, Xsb);
+    nfo2_int(d, y0, n, fbpl, R, JB, fftPlot, Pt, Pfbt, Qt, Qfbt, FT11b, FT12b, FT21b, FT22b, G1b, Xeb, Xmb, Xsb);
 
 
-    //--------------------------------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------
     // Fourier Analysis of the coefficients of G1
-    //--------------------------------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------
     string F_COC = fbpl->cs.F_COC;
     string filename = F_COC+"G1_";
     Ofsc xFFT(fftN);
     cout << "-----------------------------------------------" << endl;
     cout << "FFT comp & validity: G1                        " << endl;
     cout << "-----------------------------------------------" << endl;
-    nfo2FFT(xFFT, G1, G1b, n,  N, fftN, fftPlot, filename, CLEANED_FFT, isStored);
+    nfo2_fft(xFFT, G1, G1b, n,  N, fftN, fftPlot, filename, CLEANED_FFT, is_stored);
 
-    //--------------------------------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------
     // Fourier Analysis of the coefficients of P
-    //--------------------------------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------
     filename = F_COC+"P";
     cout << "-----------------------------------------------" << endl;
     cout << "FFT comp & validity: P                         " << endl;
     cout << "-----------------------------------------------" << endl;
-    nfo2FFT(xFFT, P, Pt, n, N, fftN, fftPlot, filename, ORIGINAL_FFT, isStored);
+    nfo2_fft(xFFT, P, Pt, n, N, fftN, fftPlot, filename, ORIGINAL_FFT, is_stored);
 
-    //--------------------------------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------
     // Fourier Analysis of the coefficients of Pfb. Uncomment to replace P by Pfb
-    //--------------------------------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------
     if(fbpl->model == Csts::QBCP) //does not work for BCP
     {
         cout << "-----------------------------------------------"   << endl;
         cout << "FFT comp & validity: Pfb                         " << endl;
         cout << "-----------------------------------------------"   << endl;
-        nfo2FFT(xFFT, Pfb, Pfbt, n, N, fftN, fftPlot, filename, ORIGINAL_FFT, isStored);
+        nfo2_fft(xFFT, Pfb, Pfbt, n, N, fftN, fftPlot, filename, ORIGINAL_FFT, is_stored);
     }
 
-    //--------------------------------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------
     // Fourier Analysis of the coefficients of Q
-    //--------------------------------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------
     filename = F_COC+"Q";
     cout << "-----------------------------------------------" << endl;
     cout << "FFT comp & validity: Q                         " << endl;
     cout << "-----------------------------------------------" << endl;
-    nfo2FFT(xFFT, Q, Qt, n, N, fftN, fftPlot, filename, ORIGINAL_FFT, isStored);
+    nfo2_fft(xFFT, Q, Qt, n, N, fftN, fftPlot, filename, ORIGINAL_FFT, is_stored);
 
-    //--------------------------------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------
     // Fourier Analysis of the coefficients of Qfb. Uncomment to replace Q by Qfb
-    //--------------------------------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------
     if(fbpl->model == Csts::QBCP) //does not work for BCP
     {
         cout << "-----------------------------------------------" << endl;
         cout << "FFT comp & validity: Qfb                         " << endl;
         cout << "-----------------------------------------------" << endl;
-        nfo2FFT(xFFT, Qfb, Qfbt, n, N, fftN, fftPlot, filename, ORIGINAL_FFT, isStored);
+        nfo2_fft(xFFT, Qfb, Qfbt, n, N, fftN, fftPlot, filename, ORIGINAL_FFT, is_stored);
     }
 
-    //--------------------------------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------
     // Fourier Analysis of the coefficients of Xe, Xm and Xs
-    //--------------------------------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------
     filename = F_COC+"Xe";
     cout << "-----------------------------------------------" << endl;
     cout << "FFT comp & validity: Xe                        " << endl;
     cout << "-----------------------------------------------" << endl;
-    //nfo2FFT(xFFT, Xe, Xeb,  N, fftN, fftPlot, filename, CLEANED_FFT, isStored);
-    nfo2FFT(xFFT, Xe, Xeb, n, N, fftN, fftPlot, filename, ORIGINAL_FFT, isStored);
+    //nfo2_fft(xFFT, Xe, Xeb,  N, fftN, fftPlot, filename, CLEANED_FFT, is_stored);
+    nfo2_fft(xFFT, Xe, Xeb, n, N, fftN, fftPlot, filename, ORIGINAL_FFT, is_stored);
 
     filename = F_COC+"Xm";
     cout << "-----------------------------------------------" << endl;
     cout << "FFT comp & validity: Xm                        " << endl;
     cout << "-----------------------------------------------" << endl;
-    //nfo2FFT(xFFT, Xm, Xmb, N, fftN, fftPlot, filename, CLEANED_FFT, isStored);
-    nfo2FFT(xFFT, Xm, Xmb, n, N, fftN, fftPlot, filename, ORIGINAL_FFT, isStored);
+    //nfo2_fft(xFFT, Xm, Xmb, N, fftN, fftPlot, filename, CLEANED_FFT, is_stored);
+    nfo2_fft(xFFT, Xm, Xmb, n, N, fftN, fftPlot, filename, ORIGINAL_FFT, is_stored);
 
     filename = F_COC+"Xs";
     cout << "-----------------------------------------------" << endl;
     cout << "FFT comp & validity: Xs                        " << endl;
     cout << "-----------------------------------------------" << endl;
-    //nfo2FFT(xFFT, Xs, Xsb,  N, fftN, fftPlot, filename, CLEANED_FFT, isStored);
-    nfo2FFT(xFFT, Xs, Xsb, n, N, fftN, fftPlot, filename, ORIGINAL_FFT, isStored);
+    //nfo2_fft(xFFT, Xs, Xsb,  N, fftN, fftPlot, filename, CLEANED_FFT, is_stored);
+    nfo2_fft(xFFT, Xs, Xsb, n, N, fftN, fftPlot, filename, ORIGINAL_FFT, is_stored);
 
-    //--------------------------------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------
     // Optionnal tests
-    //--------------------------------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------
     //Periodicity test on P
-    //nfo2PerTest(d, y0, R);
+    //nfo2_periodicity_test(d, y0, R);
     //Symmetry test on P
-    //nfo2SymTest(d, y0, R, 10, 100);
+    //nfo2_symmetry_test(d, y0, R, 10, 100);
     //Symplectic test on P
-    nfo2SympTest(d, y0, 1.0, R);
+    symplecticity_test_for_P(d, y0, 1.0, R);
 
-    //--------------------------------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------
     // Fourier Analysis of the coefficients of the Fijs
-    //--------------------------------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------
     cout << "-----------------------------------------------" << endl;
     cout << "FFT comp & validity: FT11                      " << endl;
     cout << "-----------------------------------------------" << endl;
     filename = F_COC+"FT11_";
-    nfo2FFT(xFFT, FT11, FT11b, n, N, fftN, fftPlot, filename, ORIGINAL_FFT, isStored);
+    nfo2_fft(xFFT, FT11, FT11b, n, N, fftN, fftPlot, filename, ORIGINAL_FFT, is_stored);
     cout << "-----------------------------------------------" << endl;
     cout << "FFT comp & validity: FT12                      " << endl;
     cout << "-----------------------------------------------" << endl;
     filename = F_COC+"FT12_";
-    nfo2FFT(xFFT, FT12, FT12b, n, N, fftN, fftPlot, filename, ORIGINAL_FFT, isStored);
+    nfo2_fft(xFFT, FT12, FT12b, n, N, fftN, fftPlot, filename, ORIGINAL_FFT, is_stored);
     cout << "-----------------------------------------------" << endl;
     cout << "FFT comp & validity: FT21                      " << endl;
     cout << "-----------------------------------------------" << endl;
     filename = F_COC+"FT21_";
-    nfo2FFT(xFFT, FT21, FT21b, n, N, fftN, fftPlot, filename, ORIGINAL_FFT, isStored);
+    nfo2_fft(xFFT, FT21, FT21b, n, N, fftN, fftPlot, filename, ORIGINAL_FFT, is_stored);
     cout << "-----------------------------------------------" << endl;
     cout << "FFT comp & validity: FT22                      " << endl;
     cout << "-----------------------------------------------" << endl;
     filename = F_COC+"FT22_";
-    nfo2FFT(xFFT, FT22, FT22b, n, N, fftN, fftPlot, filename, ORIGINAL_FFT, isStored);
+    nfo2_fft(xFFT, FT22, FT22b, n, N, fftN, fftPlot, filename, ORIGINAL_FFT, is_stored);
 
 
 
@@ -4366,9 +3655,9 @@ void nfo2coc(gsl_odeiv2_driver *d,const double y0[], const double n,
 /**
  *  \brief Integrate the various matrices referenced on a N point grid to seed FFT process.
  *
- *  Same remarks as the routine nfo2coc.
+ *  Same remarks as the routine nfo2_coc.
  */
-void nfo2Int(gsl_odeiv2_driver *d,
+void nfo2_int(gsl_odeiv2_driver *d,
              const double y0[],
              const double n,
              FBPL *fbpl,
@@ -4432,9 +3721,6 @@ void nfo2Int(gsl_odeiv2_driver *d,
     double t  = 0.0;
     double t1 = 2*M_PI/n;
 
-    //For plotting
-    double tvec[N];
-    double yvec[N];
 
     //Reset the driver
     gsl_odeiv2_driver_reset(d);
@@ -4447,7 +3733,6 @@ void nfo2Int(gsl_odeiv2_driver *d,
         if(i>0)
         {
             ti = i * t1 / N;
-            tvec[i] = ti;
             gsl_odeiv2_driver_apply (d, &t , ti , y);
         }
 
@@ -4462,9 +3747,9 @@ void nfo2Int(gsl_odeiv2_driver *d,
         //------------------------------------
         //Translated primaries positions update
         //------------------------------------
-        evaluateCoef(ps, t, fbpl->us.n, fbpl->nf, fbpl->cs.ps, 3);
-        evaluateCoef(pe, t, fbpl->us.n, fbpl->nf, fbpl->cs.pe, 3);
-        evaluateCoef(pm, t, fbpl->us.n, fbpl->nf, fbpl->cs.pm, 3);
+        eval_array_coef(ps, t, fbpl->us.n, fbpl->n_order_fourier, fbpl->cs.ps, 3);
+        eval_array_coef(pe, t, fbpl->us.n, fbpl->n_order_fourier, fbpl->cs.pe, 3);
+        eval_array_coef(pm, t, fbpl->us.n, fbpl->n_order_fourier, fbpl->cs.pm, 3);
 
         //Xe update
         gsl_matrix_set(Xe[i], 0, 0, pe[0] - y[0]); //tilde(xe) of the Earth
@@ -4523,18 +3808,8 @@ void nfo2Int(gsl_odeiv2_driver *d,
         //Update Q1, Q2 and Q3
         //------------------------------------
         qbfbp_Q(t, y, Q1, Q2, Q3, fbpl);
-
-        //For plotting
-        yvec[i] = gsl_matrix_get(P[i], 0, 0);
     }
 
-    //char ch;            //Used to close the gnuplot windows at the very end of the program
-    gnuplot_ctrl  *h1;
-    h1 = gnuplot_init();
-    gnuplot_plot_xy(h1, tvec, yvec, N, (char*)"p(0,0)", "lines", "1", "1", 1);
-    //printf("Press ENTER to close the gnuplot window(s)\n");
-    //scanf("%c",&ch);
-    //gnuplot_close(h1);
 
     //------------------------------------------------------------------------------------
     // Integration Loop the 5th column of P (stable direction) and FT11, FT12, FT21, and FT22.
@@ -4746,9 +4021,9 @@ void nfo2Int(gsl_odeiv2_driver *d,
     d->h = 1.0e-6;
 
 
-    //--------------------------------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------
     // Third loop, onward, on half period, to guarantee precision on G1 and Xs, Xe, Xm
-    //--------------------------------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------
     ti = 0.0;
     t  = 0.0;
     t1 = 2*M_PI/n;
@@ -4779,9 +4054,9 @@ void nfo2Int(gsl_odeiv2_driver *d,
         //------------------------------------
         //Translated primaries positions update
         //------------------------------------
-        evaluateCoef(ps, t, fbpl->us.n, fbpl->nf, fbpl->cs.ps, 3);
-        evaluateCoef(pe, t, fbpl->us.n, fbpl->nf, fbpl->cs.pe, 3);
-        evaluateCoef(pm, t, fbpl->us.n, fbpl->nf, fbpl->cs.pm, 3);
+        eval_array_coef(ps, t, fbpl->us.n, fbpl->n_order_fourier, fbpl->cs.ps, 3);
+        eval_array_coef(pe, t, fbpl->us.n, fbpl->n_order_fourier, fbpl->cs.pe, 3);
+        eval_array_coef(pm, t, fbpl->us.n, fbpl->n_order_fourier, fbpl->cs.pm, 3);
 
         //Xe update
         gsl_matrix_set(Xe[i], 0, 0, pe[0] - y[0]); //tilde(xe) of the Earth
@@ -4846,12 +4121,9 @@ void nfo2Int(gsl_odeiv2_driver *d,
 //        gsl_linalg_LU_invert (Pc , p6 , Qfb[i]);
     }
 
-    //--------------------------------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------
     // Third loop, backward, on half period, to guarantee precision on G1 and Xs, Xe, Xm
-    //--------------------------------------------------------------------------------------------------
-    //For plotting
-    double tvec2[N/2];
-    double yvec2[N/2];
+    //------------------------------------------------------------------------------------
     ti = 2*M_PI/n;
     t  = 2*M_PI/n;
     t1 = 0.0;
@@ -4868,7 +4140,6 @@ void nfo2Int(gsl_odeiv2_driver *d,
         if(i>0)
         {
             ti = 2*M_PI/n*(1.0-1.0*i/N);
-            tvec2[i] = ti;
             gsl_odeiv2_driver_apply (d, &t , ti , y);
         }
 
@@ -4883,9 +4154,9 @@ void nfo2Int(gsl_odeiv2_driver *d,
         //------------------------------------
         //Translated primaries positions update
         //------------------------------------
-        evaluateCoef(ps, t, fbpl->us.n, fbpl->nf, fbpl->cs.ps, 3);
-        evaluateCoef(pe, t, fbpl->us.n, fbpl->nf, fbpl->cs.pe, 3);
-        evaluateCoef(pm, t, fbpl->us.n, fbpl->nf, fbpl->cs.pm, 3);
+        eval_array_coef(ps, t, fbpl->us.n, fbpl->n_order_fourier, fbpl->cs.ps, 3);
+        eval_array_coef(pe, t, fbpl->us.n, fbpl->n_order_fourier, fbpl->cs.pe, 3);
+        eval_array_coef(pm, t, fbpl->us.n, fbpl->n_order_fourier, fbpl->cs.pm, 3);
 
         //Xe update
         gsl_matrix_set(Xe[N-i], 0, 0, pe[0] - y[0]); //tilde(xe) of the Earth
@@ -4940,23 +4211,6 @@ void nfo2Int(gsl_odeiv2_driver *d,
         gslc_vectorToMatrix(Pb, y, 6, 6, 6);
         gsl_blas_dgemm (CblasNoTrans, CblasNoTrans, 1.0, Pb, R, 0.0, DUX);
 
-        //gsl_blas_dgemm (CblasNoTrans, CblasNoTrans, 1.0, Pb, R, 0.0, Pfb[N-i]);
-        //P = Pb*R for some values
-        //for(int k = 0; k <6; k++) gsl_matrix_set(Pfb[N-i], k, 4, gsl_matrix_get(DUX, k, 4));
-//        gsl_matrix_set(Pfb[N-i], 2, 2, gsl_matrix_get(DUX, 2, 2));
-//        gsl_matrix_set(Pfb[N-i], 2, 5, gsl_matrix_get(DUX, 2, 5));
-//        gsl_matrix_set(Pfb[N-i], 5, 2, gsl_matrix_get(DUX, 5, 2));
-//        gsl_matrix_set(Pfb[N-i], 5, 5, gsl_matrix_get(DUX, 5, 5));
-//
-//
-//        //--------------------
-//        //Q = inv(P)
-//        //--------------------
-//        //Use of GSL library
-//        gsl_matrix_memcpy(Pc, Pfb[N-i]);
-//        gsl_linalg_LU_decomp (Pc, p6, &s);
-//        gsl_linalg_LU_invert (Pc , p6 , Qfb[N-i]);
-
         //------------------------------------
         //Pb update
         //------------------------------------
@@ -4970,16 +4224,7 @@ void nfo2Int(gsl_odeiv2_driver *d,
         gsl_matrix_memcpy(Pc, Pfb[N-i]);
         gsl_linalg_LU_decomp (Pc, p6, &s);
         gsl_linalg_LU_invert (Pc , p6 , Qfb[N-i]);
-
-
-        //For plotting
-        yvec2[i] = gsl_matrix_get(Pfb[N-i], 0, 0);
     }
-
-    gnuplot_plot_xy(h1, tvec2, yvec2, N/2, (char*)"p(0,0), backwards", "lines", "1", "1", 2);
-    //printf("Press ENTER to close the gnuplot window(s)\n");
-    //scanf("%c",&ch);
-    //gnuplot_close(h1);
 
 
     d->h = 1.0e-6;
@@ -5000,9 +4245,9 @@ void nfo2Int(gsl_odeiv2_driver *d,
 
 
 
-//-------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 // FFTs
-//-------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 /**
  *  \brief GSL implementation of the FFT
  **/
@@ -5033,13 +4278,13 @@ void gslFFT_real(Ofsc &xFFT, int fftN, int N, gsl_vector *dEv, int parity)
     switch(parity)
     {
     case 1: //even case (cosinus)
-        xFFT.setCoef(+GSL_REAL(gsl_vector_complex_get(data_complex, 0))/(double)N,  0);
+        xFFT.set_coef(+GSL_REAL(gsl_vector_complex_get(data_complex, 0))/(double)N,  0);
         break;
     case 0: //odd case (sinus)
-        xFFT.setCoef(I*GSL_IMAG(gsl_vector_complex_get(data_complex, 0))/(double)N,  0);
+        xFFT.set_coef(I*GSL_IMAG(gsl_vector_complex_get(data_complex, 0))/(double)N,  0);
         break;
     default: //unknown
-        xFFT.setCoef(+GSL_REAL(gsl_vector_complex_get(data_complex, 0))/(double)N+I*GSL_IMAG(gsl_vector_complex_get(data_complex, 0))/(double)N,  0);
+        xFFT.set_coef(+GSL_REAL(gsl_vector_complex_get(data_complex, 0))/(double)N+I*GSL_IMAG(gsl_vector_complex_get(data_complex, 0))/(double)N,  0);
         break;
     }
 
@@ -5053,25 +4298,25 @@ void gslFFT_real(Ofsc &xFFT, int fftN, int N, gsl_vector *dEv, int parity)
         case 1: //even case (cosinus)
         {
             //Negative frequencies
-            xFFT.setCoef(+GSL_REAL(gsl_vector_complex_get(data_complex, N-i))/(double)N, -i);
+            xFFT.set_coef(+GSL_REAL(gsl_vector_complex_get(data_complex, N-i))/(double)N, -i);
             //Positive frequencies
-            xFFT.setCoef(+GSL_REAL(gsl_vector_complex_get(data_complex, i))/(double)N,  i);
+            xFFT.set_coef(+GSL_REAL(gsl_vector_complex_get(data_complex, i))/(double)N,  i);
             break;
         }
         case 0: //odd case (sinus)
         {
             //Negative frequencies
-            xFFT.setCoef(I*GSL_IMAG(gsl_vector_complex_get(data_complex, N-i))/(double)N, -i);
+            xFFT.set_coef(I*GSL_IMAG(gsl_vector_complex_get(data_complex, N-i))/(double)N, -i);
             //Positive frequencies
-            xFFT.setCoef(I*GSL_IMAG(gsl_vector_complex_get(data_complex, i))/(double)N,  i);
+            xFFT.set_coef(I*GSL_IMAG(gsl_vector_complex_get(data_complex, i))/(double)N,  i);
             break;
         }
         default: //unknown
         {
             //Negative frequecies
-            xFFT.setCoef(+GSL_REAL(gsl_vector_complex_get(data_complex, N-i))/(double)N+I*GSL_IMAG(gsl_vector_complex_get(data_complex, N-i))/(double)N, -i);
+            xFFT.set_coef(+GSL_REAL(gsl_vector_complex_get(data_complex, N-i))/(double)N+I*GSL_IMAG(gsl_vector_complex_get(data_complex, N-i))/(double)N, -i);
             //Positive frequencies
-            xFFT.setCoef(+GSL_REAL(gsl_vector_complex_get(data_complex, i))/(double)N+I*GSL_IMAG(gsl_vector_complex_get(data_complex, i))/(double)N,  i);
+            xFFT.set_coef(+GSL_REAL(gsl_vector_complex_get(data_complex, i))/(double)N+I*GSL_IMAG(gsl_vector_complex_get(data_complex, i))/(double)N,  i);
         }
 
         }
@@ -5106,7 +4351,7 @@ void fortranFFT_real(Ofsc &xFFT, int fftN, int N, gsl_vector *dEv, int parity)
     //--------------------------------------------------------------
     //Order 0
     //--------------------------------------------------------------
-    xFFT.setCoef(CSF[0],  0);
+    xFFT.set_coef(CSF[0],  0);
 
 
     //--------------------------------------------------------------
@@ -5119,25 +4364,25 @@ void fortranFFT_real(Ofsc &xFFT, int fftN, int N, gsl_vector *dEv, int parity)
         case 1: //even case (cosinus)
         {
             //Negative frequecies
-            xFFT.setCoef(0.5*(CSF[i]), -i);
+            xFFT.set_coef(0.5*(CSF[i]), -i);
             //Positive frequencies
-            xFFT.setCoef(0.5*(CSF[i]),  i);
+            xFFT.set_coef(0.5*(CSF[i]),  i);
             break;
         }
         case 0: //odd case (sinus)
         {
             //Negative frequecies
-            xFFT.setCoef(0.5*(I*SIF[i]), -i);
+            xFFT.set_coef(0.5*(I*SIF[i]), -i);
             //Positive frequencies
-            xFFT.setCoef(-0.5*(I*SIF[i]),  i);
+            xFFT.set_coef(-0.5*(I*SIF[i]),  i);
             break;
         }
         default: //unknown
         {
             //Negative frequecies
-            xFFT.setCoef(0.5*(CSF[i] + I*SIF[i]), -i);
+            xFFT.set_coef(0.5*(CSF[i] + I*SIF[i]), -i);
             //Positive frequencies
-            xFFT.setCoef(0.5*(CSF[i] - I*SIF[i]),  i);
+            xFFT.set_coef(0.5*(CSF[i] - I*SIF[i]),  i);
         }
 
         }
@@ -5158,7 +4403,7 @@ void fortranFFT_real(Ofsc &xFFT, int fftN, int N, gsl_vector *dEv, int parity)
  *  Each FFt is tested on a fftPlot points grid with the use of the matrix Pt.
  *  Note on the flag (int): for the G1 matrix, symmetries allow us to clean the FFT by forcing some coefficients to zero
  */
-void nfo2FFT(Ofsc& xFFT, gsl_matrix** P, gsl_matrix** Pt,  double n, int N, int fftN, int fftPlot, string filename, int flag, int isStored)
+void nfo2_fft(Ofsc& xFFT, gsl_matrix** P, gsl_matrix** Pt,  double n, int N, int fftN, int fftPlot, string filename, int flag, int is_stored)
 {
     //-----------------------------------------
     // Init
@@ -5201,9 +4446,9 @@ void nfo2FFT(Ofsc& xFFT, gsl_matrix** P, gsl_matrix** Pt,  double n, int N, int 
             //-----------------------------------------
             //Storage in txt file, if necessary
             //-----------------------------------------
-            if(isStored)
+            if(is_stored)
             {
-                cout << "nfo2FFT. The Fourier series is stored in txt file." << endl;
+                cout << "nfo2_fft. The Fourier series is stored in txt file." << endl;
                 ss1 = static_cast<ostringstream*>( &(ostringstream() << i0+1) )->str();
                 ss2 = static_cast<ostringstream*>( &(ostringstream() << j0+1) )->str();
                 curentStream.open((filename+ss1+ss2+".txt").c_str());
@@ -5214,7 +4459,7 @@ void nfo2FFT(Ofsc& xFFT, gsl_matrix** P, gsl_matrix** Pt,  double n, int N, int 
             //-----------------------------------------
             //Each FFt is tested on a fftPlot points grid with the use of the matrix Pt
             //-----------------------------------------
-            nfo2Test(xFFT, Pt, n, fftPlot, i0, j0);
+            nfo2_test(xFFT, Pt, n, fftPlot, i0, j0);
         }
     }
 
@@ -5224,7 +4469,7 @@ void nfo2FFT(Ofsc& xFFT, gsl_matrix** P, gsl_matrix** Pt,  double n, int N, int 
 /**
  *  \brief Test of the validity of the FFT on a fftPlot points grid.
  */
-void nfo2Test(Ofsc& xFFT, gsl_matrix** P, double n, int fftPlot, int i0, int j0)
+void nfo2_test(Ofsc& xFFT, gsl_matrix** P, double n, int fftPlot, int i0, int j0)
 {
     //Allocation
     gsl_vector * xxL2 = gsl_vector_calloc(fftPlot);
@@ -5245,13 +4490,13 @@ void nfo2Test(Ofsc& xFFT, gsl_matrix** P, double n, int fftPlot, int i0, int j0)
 }
 
 
-//-------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 // Tests
-//-------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 /**
  *  \brief Symplectic test of P.
  */
-void nfo2SympTest(gsl_odeiv2_driver *d, const double y0[], double t1, gsl_matrix* R)
+void symplecticity_test_for_P(gsl_odeiv2_driver *d, const double y0[], double t1, gsl_matrix* R)
 {
     //Allocation
     gsl_matrix* Pb = gsl_matrix_calloc (6, 6);
@@ -5284,11 +4529,11 @@ void nfo2SympTest(gsl_odeiv2_driver *d, const double y0[], double t1, gsl_matrix
     cout << "-----------------------------------------------" << endl;
     cout << "Symplectic test of the matrix Pb               " << endl;
     cout << "-----------------------------------------------" << endl;
-    realSymplecticMatrixTest(Pb, Csts::INVERSE_SYMP);
+    symplecticity_test_real(Pb, Csts::INVERSE_SYMP);
     cout << "-----------------------------------------------" << endl;
     cout << "Symplectic test of the matrix P                " << endl;
     cout << "-----------------------------------------------" << endl;
-    realSymplecticMatrixTest(Pf, Csts::INVERSE_SYMP);
+    symplecticity_test_real(Pf, Csts::INVERSE_SYMP);
 
     //Free memory
     gsl_matrix_free(Pb);
@@ -5299,7 +4544,7 @@ void nfo2SympTest(gsl_odeiv2_driver *d, const double y0[], double t1, gsl_matrix
 /**
  *  \brief Periodicity test of P.
  */
-void nfo2PerTest(gsl_odeiv2_driver *d, const double y0[], double n, gsl_matrix* R)
+void nfo2_periodicity_test(gsl_odeiv2_driver *d, const double y0[], double n, gsl_matrix* R)
 {
     //Allocation
     gsl_matrix* Pb = gsl_matrix_calloc (6, 6);
@@ -5350,7 +4595,7 @@ void nfo2PerTest(gsl_odeiv2_driver *d, const double y0[], double n, gsl_matrix* 
 /**
  *  \brief Symmetry test on P.
  */
-void nfo2SymTest(gsl_odeiv2_driver *d, const double y0[], double n, gsl_matrix* R, int p, int N)
+void nfo2_symmetry_test(gsl_odeiv2_driver *d, const double y0[], double n, gsl_matrix* R, int p, int N)
 {
     //Allocation
     gsl_matrix* Pb  = gsl_matrix_calloc (6, 6);
@@ -5411,7 +4656,7 @@ void nfo2SymTest(gsl_odeiv2_driver *d, const double y0[], double n, gsl_matrix* 
 /**
  *  \brief Test of the symplectic character of a given complex matrix.
  */
-void symplecticMatrixTest(const gsl_matrix_complex *M, int INVERSE_TYPE)
+void symplecticity_test_complex(const gsl_matrix_complex *M, int INVERSE_TYPE)
 {
     cout << "---------------------------------------------" << endl;
     cout << "Test of the symplectic nature of a matrix.   " << endl;
@@ -5506,7 +4751,7 @@ void symplecticMatrixTest(const gsl_matrix_complex *M, int INVERSE_TYPE)
 /**
  *  \brief Test of the symplectic character of a given real matrix.
  */
-void realSymplecticMatrixTest(const gsl_matrix *M, int INVERSE_TYPE)
+void symplecticity_test_real(const gsl_matrix *M, int INVERSE_TYPE)
 {
     cout << "---------------------------------------------" << endl;
     cout << "Test of the symplectic nature of a real matrix." << endl;
@@ -5593,19 +4838,23 @@ void realSymplecticMatrixTest(const gsl_matrix *M, int INVERSE_TYPE)
  *         For each eigencouple (y, ly) of the matrix Mc = DAT[1]*...*DAT[M],
  *         computation of the scalars |ly-Mc*y/ly| and  |y-Mc^-1*y*ly|.
  */
-void eigenSystemTest(gsl_matrix_complex *Dm, gsl_matrix_complex *S, gsl_matrix_complex **DAT, int M)
+void eigensystem_test(gsl_matrix_complex *Dm, gsl_matrix_complex *S, gsl_matrix_complex **DAT, int M)
 {
+    //------------------------------------------------------------------------------------
+    // Initialize the GSL objects
+    //------------------------------------------------------------------------------------
     gsl_vector_complex_view evec_i;
     gsl_complex eval_i;
     gsl_vector_complex *x = gsl_vector_complex_calloc(6);
-    gsl_matrix_complex *MMc = gsl_matrix_complex_calloc(6, 6);
-    //MMc = monodromy matrix from DAT
-    monoProd(MMc, DAT, M);
 
+    //------------------------------------------------------------------------------------
+    // Test of the eigenvectors/eigenvalues
+    //------------------------------------------------------------------------------------
     cout << Csts::SSEPR << endl;
     cout << "Test of the eigensystem decomposition.         " << endl;
+    cout << "The eigenvectors/eigenvalues are denoted y/ly.       " << endl;
     cout << Csts::SSEPR << endl;
-    cout << "1. With the matrix given as a product. "<< endl;
+    cout << "M*y is computed with the matrix M given as a product. "<< endl;
     cout << "    real(Eigenvalue) (ly)           |ly-M*y/ly| "   << endl;
     for(int eigN = 0; eigN < 6; eigN ++)
     {
@@ -5618,9 +4867,11 @@ void eigenSystemTest(gsl_matrix_complex *Dm, gsl_matrix_complex *S, gsl_matrix_c
         cout << eigN << " " << GSL_REAL(eval_i) << "   " << gsl_blas_dznrm2(x) << endl;
     }
 
-
+    //------------------------------------------------------------------------------------
+    // Test of the eigenvectors/eigenvalues with the inverse matrix
+    //------------------------------------------------------------------------------------
     cout << Csts::SSEPR << endl;
-    cout << "Test with matrix inverse                       " << endl;
+    cout << "Test with matrix inverse, still with the matrix M given as a product. " << endl;
     cout << Csts::SSEPR << endl;
     cout << "    real(Eigenvalue) (ly)          |y-M^-1*y*ly| "   << endl;
     for(int eigN = 0; eigN < 6; eigN ++)
@@ -5637,11 +4888,14 @@ void eigenSystemTest(gsl_matrix_complex *Dm, gsl_matrix_complex *S, gsl_matrix_c
 
     cout << Csts::SSEPR << endl;
     cout << "Note: the eigenvalue leading to bad precision  " << endl;
-    cout << "With the direct matrix is the stable direction " << endl;
+    cout << "with the direct matrix corresponds to the stable direction " << endl;
     cout << "(Obtained by inverse power method).            " << endl;
 
+    //------------------------------------------------------------------------------------
+    // Comparison of the modulus of the eigenvectors with one
+    //------------------------------------------------------------------------------------
     cout << Csts::SSEPR << endl;
-    cout << "Modulus of the eigenvalues                     " << endl;
+    cout << "Modulus of the eigenvalues and comparison to 1" << endl;
     cout << Csts::SSEPR << endl;
     for(int eigN = 0; eigN < 6; eigN ++)
     {
@@ -5649,15 +4903,20 @@ void eigenSystemTest(gsl_matrix_complex *Dm, gsl_matrix_complex *S, gsl_matrix_c
         cout << eigN << " " << gsl_complex_abs(eval_i) << " comparison to 1: " << 1-gsl_complex_abs(eval_i) << endl;
 
     }
+
+    //------------------------------------------------------------------------------------
+    //Free
+    //------------------------------------------------------------------------------------
+    gsl_vector_complex_free(x);
 }
 
-//-------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 // Change of base (currently not used)
-//-------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 /**
  *  \brief Change of base: Dm = Sinv*M*S with M given as a product of matrices
  */
-void changeOfBase(gsl_matrix_complex *MMc_estimate, gsl_matrix_complex *Dm, gsl_matrix_complex **DAT, const gsl_matrix_complex *S, int INVERSE_TYPE, int M)
+void change_of_base(gsl_matrix_complex *MMc_estimate, gsl_matrix_complex *Dm, gsl_matrix_complex **DAT, const gsl_matrix_complex *S, int INVERSE_TYPE, int M)
 {
 
     cout << "-------------------------------------------------------------------" << endl;
@@ -5736,7 +4995,7 @@ void changeOfBase(gsl_matrix_complex *MMc_estimate, gsl_matrix_complex *Dm, gsl_
 /**
  *  \brief Change of base: Dm = Sinv*M*S with M given as a single matrix
  */
-void changeOfBaseSingleMatrix(gsl_matrix_complex *Dm, gsl_matrix_complex *M, gsl_matrix_complex *S, int INVERSE_TYPE)
+void change_of_base_single_matrix(gsl_matrix_complex *Dm, gsl_matrix_complex *M, gsl_matrix_complex *S, int INVERSE_TYPE)
 {
     int n = M->size1;
     gsl_complex one_c  = gslc_complex(1.0, 0.0);
@@ -5784,9 +5043,9 @@ void changeOfBaseSingleMatrix(gsl_matrix_complex *Dm, gsl_matrix_complex *M, gsl
     gsl_permutation_free(p);
 }
 
-//-------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 // Wielandt's deflation
-//-------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 /**
  *  \brief Application of the Wielandt deflation to the monodromy matrix. Algorithm taken from "Introduction to Numerical Analysis with C programs", A. Mate, 2004.
  *  \param MMc      the monodromy matrix to diagonalize.
@@ -5864,123 +5123,4 @@ void wielandt_deflation(gsl_matrix_complex *MMc,
         evec_i = gsl_matrix_complex_column (evecr, i);
         gslc_wielandt_inv_trans(&evec_i.vector, eval_i, eigenVu, eigenLu, vux);
     }
-}
-
-
-//----------------------------------------------------------------------------------------
-// Multimin (DEPRECATED)
-//----------------------------------------------------------------------------------------
-//Evaluate ||y - My/l||
-double eigenfunk(double p[], double b[], void * params)
-{
-    gsl_complex one_c     = gslc_complex(1.0, 0.0);
-    gsl_complex zero_c    = gslc_complex(0.0, 0.0);
-    gsl_vector_complex *x = gsl_vector_complex_calloc(6);
-    gsl_vector_complex *y = gsl_vector_complex_calloc(6);
-
-    //Monodromy matrix is in params
-    gsl_matrix_complex *Mc = (gsl_matrix_complex *) params;
-    //The eigenvalue lambda is in b[2]
-    gsl_complex lambda = gslc_complex(b[0], b[1]);
-
-    //The eigenvector is in p[12]
-    gsl_vector_complex_set(x, 0, gslc_complex(p[0],  p[1]));
-    gsl_vector_complex_set(x, 1, gslc_complex(p[2],  p[3]));
-    gsl_vector_complex_set(x, 2, gslc_complex(p[4],  p[5]));
-    gsl_vector_complex_set(x, 3, gslc_complex(p[6],  p[7]));
-    gsl_vector_complex_set(x, 4, gslc_complex(p[8],  p[9]));
-    gsl_vector_complex_set(x, 5, gslc_complex(p[10], p[11]));
-
-    //y = Mx
-    gsl_blas_zgemv (CblasNoTrans, one_c , Mc, x , zero_c , y);
-    //y = Mx/lambda
-    gsl_vector_complex_scale(y, gsl_complex_inverse(lambda));
-    //y = y-x
-    gsl_vector_complex_sub(y, x);
-
-    //res = ||y||
-    double res = gsl_blas_dznrm2(y);
-
-    //free memory
-    gsl_vector_complex_free(x);
-    gsl_vector_complex_free(y);
-
-    cout << "eigenfunk. res = " << res << endl;
-    return res;
-}
-
-//deigenfunk/dxi
-void deigenfunk(double p[], double df[], double b[], void *params )
-{
-    gsl_complex one_c  = gslc_complex(1.0, 0.0);
-    gsl_complex zero_c = gslc_complex(0.0, 0.0);
-    gsl_complex temp;
-    gsl_vector_complex *x    = gsl_vector_complex_calloc(6);
-    gsl_vector_complex *y    = gsl_vector_complex_calloc(6);
-    gsl_vector_complex *dfg   = gsl_vector_complex_calloc(6);
-    gsl_matrix_complex *dydx = gsl_matrix_complex_calloc(6, 6);
-
-    //Monodromy matrix is in params
-    gsl_matrix_complex *Mc = (gsl_matrix_complex *) params;
-    //The eigenvalue lambda is in b[2]
-    gsl_complex lambda = gslc_complex(b[0], b[1]);
-
-    //The eigenvector is in p[12]
-    gsl_vector_complex_set(x, 0, gslc_complex(p[0],  p[1]));
-    gsl_vector_complex_set(x, 1, gslc_complex(p[2],  p[3]));
-    gsl_vector_complex_set(x, 2, gslc_complex(p[4],  p[5]));
-    gsl_vector_complex_set(x, 3, gslc_complex(p[6],  p[7]));
-    gsl_vector_complex_set(x, 4, gslc_complex(p[8],  p[9]));
-    gsl_vector_complex_set(x, 5, gslc_complex(p[10], p[11]));
-
-    //y = Mx
-    gsl_blas_zgemv (CblasNoTrans, one_c , Mc, x , zero_c , y);
-    //y = Mx/lambda
-    gsl_vector_complex_scale(y, gsl_complex_inverse(lambda));
-    //y = y-x
-    gsl_vector_complex_sub(y, x);
-
-    //factor = 1/||y||
-    double factor = 1.0/gsl_blas_dznrm2(y);
-
-    //Set dydx
-    for(int i = 0; i <6; i++)
-    {
-        for(int j = 0; j <6; j++)
-        {
-            //temp = Mc(i,j)
-            temp = gsl_matrix_complex_get(Mc, i, j);
-            //temp = -1/lambda*Mc(i,i)
-            temp = gsl_complex_div(temp, gsl_complex_negative(lambda));
-            if(i==j) temp = gsl_complex_add_real(temp, 1.0); //temp = 1.0-1/lambda*Mc(i,i)
-            //set in dydx
-            gsl_matrix_complex_set(dydx, i, j, temp);
-        }
-    }
-
-    //df = dydx^T*h (transpose!)
-    gsl_blas_zgemv (CblasTrans, one_c , dydx, y , zero_c , dfg);
-    //dfg/= ||y||
-    gsl_vector_complex_scale(dfg, gslc_complex(factor));
-
-    df[0] = GSL_REAL(gsl_vector_complex_get(dfg, 0));
-    df[1] = GSL_IMAG(gsl_vector_complex_get(dfg, 0));
-    df[2] = GSL_REAL(gsl_vector_complex_get(dfg, 1));
-    df[3] = GSL_IMAG(gsl_vector_complex_get(dfg, 1));
-    df[4] = GSL_REAL(gsl_vector_complex_get(dfg, 2));
-    df[5] = GSL_IMAG(gsl_vector_complex_get(dfg, 2));
-    df[6] = GSL_REAL(gsl_vector_complex_get(dfg, 3));
-    df[7] = GSL_IMAG(gsl_vector_complex_get(dfg, 3));
-    df[8] = GSL_REAL(gsl_vector_complex_get(dfg, 4));
-    df[9] = GSL_IMAG(gsl_vector_complex_get(dfg, 4));
-    df[10] = GSL_REAL(gsl_vector_complex_get(dfg, 5));
-    df[11] = GSL_IMAG(gsl_vector_complex_get(dfg, 5));
-
-
-    //free memory
-    //gsl_vector_complex_free(x);
-    //gsl_vector_complex_free(y);
-    //gsl_vector_complex_free(dfg);
-    //gsl_matrix_complex_free(dydx);
-
 }

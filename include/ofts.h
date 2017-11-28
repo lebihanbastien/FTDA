@@ -4,9 +4,7 @@
 /**
  * \file ofts.h
  * \brief Fourier-Taylor series template class
- * \author BLB.
- * \date May 2015
- * \version 1.0
+ * \author BLB
  */
 
 //std
@@ -26,18 +24,13 @@
 //gsl
 #include <gsl/gsl_errno.h>
 
-//--------------------------------------------------------------------------------//
-//  Important note: the delete of Ofts objects is badly handled because
-//  I do not konw how to properly delete a recursive object such as every
-//  Oftsh in **term.
-//  As a consequence, the Ofts object must be handled with care (do not create too many)
-//--------------------------------------------------------------------------------//
 using namespace std;
 
 template <typename T>
 class Ofts;
 
 typedef Ofts<Ofsc> Oftsc;
+typedef Ofts<Ofsd> Oftsd;
 
 template<typename T>
 std::ostream& operator << (std::ostream& stream, Ofts<T> const& ofts);
@@ -45,10 +38,26 @@ std::ostream& operator << (std::ostream& stream, Ofts<T> const& ofts);
 /** \class Ofts
  *  \brief Fourier-Taylor series class.
  *
- *  The Ofts class handles the operations on Fourier-Taylor series, with homogeneous term based on Oftsh class.
- *  Important note: the delete of Ofts objects is badly handled because
- *  we do not know how to properly delete a recursive object such as every
- *  Oftsh in the parameter **term.
+ *  The Ofts class implements Fourier-Taylor series where each homogeneous polynomial is
+ *  an Oftsh object.
+ *
+ *   *  Ofts is a templated class. In practice, it is used in the forms
+ *          - Ofts<Ofs<double>> i.e. Fourier-Taylor series with Fourier series of
+ *            real coefficients (Ofsd) as coefficients. They are denoted Oftsd.
+ *          - Ofts<Ofs<double complex>> i.e. Fourier-Taylor series with Fourier series of
+ *            complex coefficients (Ofsc) as coefficients. They are denoted Oftsc.
+ *
+ *  Since the Ofs class implements Fourier series in two formats (frequency domain - ofs -
+ *  and time domain - tfs), the Ofts also contain operation routines that works with these
+ *  two formats. The routines that must be used with ofs format have the prefix "oftsh_",
+ *  while the routines that must be used with tfs format have the prefix "tftsh_".
+ *
+ *  Since Ofts is a templated class, a .tpp is used instead of a .cpp, and this source
+ *  file is called directly in the header (the current file), via ' #include "ofts.tpp" '
+ *
+ *
+ *  Finally, an important note: the delete of Ofts objects is badly handled because
+ *  There is no proper destructor for the Oftsh objects.
  *  As a consequence, the Ofts object must be handled with care (do not create too many!).
  */
 template <typename T>
@@ -57,24 +66,24 @@ class Ofts
 
 private:
 
-    ///number of variables
-    int nv;
-    ///order
-    int order;
-    ///number of variables of the coefficients
-    int cnv;
-    ///order of the coefficients
+    //number of variables
+    int m_ofts_nvar;
+    //order
+    int m_ofts_order;
+    //number of variables of the coefficients
+    int m_ofs_nvar;
+    //order of the coefficients
     int corder;
-    ///Array pointing to the homogeneous polynomials
-    Oftsh<T> **term;
-    ///Array pointing to the coefficients
-    T *coefs;
+    //Array pointing to the homogeneous polynomials
+    Oftsh<T> **m_ofts_term;
+    //Array pointing to the coefficients
+    T *m_ofts_coefs;
 
 public:
 
-    //------------------
+    //------------------------------------------------------------------------------------
     //Create
-    //------------------
+    //------------------------------------------------------------------------------------
     /**
      *  \brief Default constructor of the class Ofts<T>.
      */
@@ -82,8 +91,8 @@ public:
 
     /**
      *  \brief Constructor with given order/number of variables both for the Fourier-Taylor series and the coefficients.
-     *  \param newNv: number of variables of the serie
-     *  \param newOrder: order of the serie
+     *  \param newNv: number of variables of the series
+     *  \param newOrder: order of the series
      *  \param newCnv: number of variables of the coefficients
      *  \param newOrder: order of the coefficients
      */
@@ -92,8 +101,8 @@ public:
     /**
      *  \brief Constructor with given order/number of variables both for the Fourier-Taylor series and the coefficients.
      *   The coefficients to set are given in an array.
-     *  \param newNv: number of variables of the serie
-     *  \param newOrder: order of the serie
+     *  \param newNv: number of variables of the series
+     *  \param newOrder: order of the series
      *  \param newCnv: number of variables of the coefficients
      *  \param newOrder: order of the coefficients
      *  \param coef0: the array of coefficients to set
@@ -106,67 +115,67 @@ public:
      */
     Ofts<T>(Ofts<T> const& b);
 
-    //------------------
+    //------------------------------------------------------------------------------------
     //Delete
-    //------------------
+    //------------------------------------------------------------------------------------
     /**
      *  \brief Default destructor of the class Ofts<T>. WARNING: potential memory leak here, through the terms of type Oftsh.
      */
     ~Ofts<T>();
 
-    //------------------
+    //------------------------------------------------------------------------------------
     //Copy
-    //------------------
+    //------------------------------------------------------------------------------------
     /**
-     *  \brief  Linked copy from a given Ofs object (exact same object is obtained).
+     *  \brief  Linked copy from a given Ofts object (exact same object is obtained).
      *  \param  b: a reference to the Ofts object to copy
      *  \return a reference to the current object
      */
-    Ofts<T>& lcopy(Ofts<T> const& b);                   //linked copy (probably useless at this step)
+    Ofts<T>& lcopy(Ofts<T> const& b); //linked copy (probably useless at this step)
     /**
      *  \brief  Copy from a given Ofts object (only the coefficients).
      *  \param  b: a reference to the Ofts object to copy
      *  \return a reference to the current object
      */
-    Ofts<T>& ccopy(Ofts<T> const& b);                   //coefficient copy (restricted to same order, same number of variables)
+    Ofts<T>& ccopy(Ofts<T> const& b); //coefficient copy (restricted to same order, same number of variables)
     /**
      *  \brief  Copy from a given Ofts object (only the coefficients) at order nrc.
      *  \param  b: a reference to the Ofts object to copy
      *  \param  nrc: a reference to the order to update
      *  \return a reference to the current object
      */
-    Ofts<T>& ccopy(Ofts<T> const& b, int const& nrc);   //coefficient copy (restricted to same order, same number of variables)
+    Ofts<T>& ccopy(Ofts<T> const& b, int const& nrc); //coefficient copy (restricted to same order, same number of variables)
     /**
      *  \brief  An operator. Constructor from a given Ofts object (only the coefficients).
      *  \param  b: a reference to the Ofts object to copy
      *  \return a reference to the current object
      */
-    Ofts<T>& operator = (Ofts<T> const& b);             //unlinked copy
+    Ofts<T>& operator = (Ofts<T> const& b); //unlinked copy
 
-    //------------------
+    //------------------------------------------------------------------------------------
     //Setters
-    //------------------
+    //------------------------------------------------------------------------------------
     /**
-     *  \brief Sets a coefficient at a given order \c ord and a given position \c i at this order in the serie.
+     *  \brief Sets a coefficient at a given order \c ord and a given position \c i at this order in the series.
      *  \param m: the value to set
      *  \param ord: the order to modify
      *  \param i: the position to modify
      */
-    void setCoef(T const& m, int ord, int i);
+    void set_coef(T const& m, int ord, int i);
 
     /**
-     *  \brief Adds a coefficient at a given order \c ord and a given position \c i at this order in the serie.
+     *  \brief Adds a coefficient at a given order \c ord and a given position \c i at this order in the series.
      *  \param m: the value to set
      *  \param ord: the order to modify
      *  \param i: the position to modify
      */
-    void addCoef(T const& m, int ord, int i);
+    void add_coef(T const& m, int ord, int i);
 
     /**
      *  \brief Sets of a given double/complex (typename U) subcoefficient everywhere (at each order and in each coefficient).
      *  \param m: the value to set
      */
-    template <typename U> void setAllCoefs(U const& m);
+    template <typename U> void set_all_coefs(U const& m);
 
     /**
      *  \brief Sets of a given U subcoefficient at order zero of the coefficient at position \c i of term of order \c n.
@@ -174,70 +183,70 @@ public:
      *  \param ord: the order to modify
      *  \param i: the position to modify
      */
-    template < typename U > void setCoef0(U const& m, int const& ord, int const& i);
+    template < typename U > void set_coef0(U const& m, int const& ord, int const& i);
 
     /**
-     *  \brief Sets random coefficients to all positions in the serie.
+     *  \brief Sets random coefficients to all positions in the series.
      */
-    void setRandomCoefs();
+    void set_random_coefs();
 
-    //------------------
+    //------------------------------------------------------------------------------------
     //Getters
-    //------------------
+    //------------------------------------------------------------------------------------
     /**
-     *  \brief  Gets the order of the serie.
-     *  \return the order of the serie as an \c int
+     *  \brief  Gets the order of the series.
+     *  \return the order of the series as an \c int
      */
-    int getOrder() const;
+    int get_order() const;
 
     /**
-     *  \brief  Gets the number of variables of serie.
-     *  \return the number of variables of the serie as an \c int
+     *  \brief  Gets the number of variables of series.
+     *  \return the number of variables of the series as an \c int
      */
-    int getNV() const;
+    int get_nvar() const;
 
     /**
      *  \brief  Gets the order of the coefficients.
      *  \return the order of the coefficients as an \c int
      */
-    int getCOrder() const;
+    int get_coef_order() const;
 
     /**
      *  \brief  Gets the number of variables of the coefficients.
      *  \return the number of variables of the coefficients as an \c int
      */
-    int getCVariables() const;
+    int get_coef_nvar() const;
 
     /**
      *  \brief  Gets the adress of the coefficient at order \c ord and position \c pos
      *  \return a pointer to the desired coefficient
      */
-    T* getCoef(int const& ord, int const& pos) const;
+    T* get_coef(int const& ord, int const& pos) const;
 
     /**
      *  \brief  Gets the adress of the term at order \c ord
      *  \return a pointer to the desired term
      */
-    Oftsh<T>* getTerm(int const& ord) const;
+    Oftsh<T>* get_term(int const& ord) const;
 
     /**
      *  \brief  Gets the adress of the Ofts object
      *  \return a pointer to the Ofts object
      */
-    Ofts<T>* getAddress() const;
+    Ofts<T>* get_ptr() const;
 
 
-    //------------------
+    //------------------------------------------------------------------------------------
     //Zeroing
-    //------------------
+    //------------------------------------------------------------------------------------
     /**
      *  \brief  Sets all coefficients to zero.
      */
     void zero();
 
-    //--------------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------
     //Operations
-    //--------------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------
     //------------------
     // Conjugate
     //------------------
@@ -506,11 +515,11 @@ public:
     template<typename U> Ofts<T>& ofts_pows(Ofts<T> const& a,  U const& alpha, int const& n);
 
     /**
-     *  \brief Power function: p = a^alpha at order n, for Ofts<Ofsd> objects with Fourier coefficients in Frequency domain.
+     *  \brief Power function: p = a^alpha at order n, for Oftsd objects with Fourier coefficients in Frequency domain.
      *         Moreover, the order zero of the FT series a[0] must satisfy: a[0] >> a[i], for all i > 0
      *         In this routine, the coefficient a0inv = 1/(a[0]) and a0palpha = a[0]^alpha
      **/
-    template<typename U> Ofts<T>& pows(Ofts< Ofsd > const& a,  //intitial Ofts
+    template<typename U> Ofts<T>& pows(Ofts< Ofsd > const& a,  //intiial Ofts
                                        Ofsd a0inv,             //inverse of order 0
                                        Ofsd a0palpha,          //order 0 ^alpha
                                        U const& alpha);        //power coef
@@ -519,18 +528,18 @@ public:
     // Order 0 routines
     //------------------
     /**
-     * \brief Returns the address of the first coefficient of order 0 of the taylor serie s
+     * \brief Returns the address of the first coefficient of order 0 of the taylor series s
      */
     T* coef0s(Ofts<T> const& a);
 
     /**
-     * \brief Sets the coefficient of order 0 of the taylor serie s equal to x0
+     * \brief Sets the coefficient of order 0 of the taylor series s equal to x0
      */
     void acoef0s(T const& x0);
 
-    //---------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------
     //Derivation
-    //---------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------
     /**
      *  \brief Partial derivative wrt to the variable z[ni], with \f$ n_i \in [[1, n]] \f$: \c this \f$ = \frac{\partial a}{\partial z_{n_i}} \f$.
      **/
@@ -636,9 +645,9 @@ public:
     int nsd(int const& m, int odmax, double sdmax);
 
 
-    //--------------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------
     //Operations with TFS coefficients - pure operations
-    //--------------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------
     //----------------
     // Frequency to Time domain
     //---------------
@@ -798,9 +807,9 @@ public:
      **/
     Ofts<T>& tfts_sder(Ofts< T > const& a, int ni, int m);
 
-    //--------------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------
     //Stream
-    //--------------------------------------------------------------------------------
+    //------------------------------------------------------------------------------------
     /**
      *   \brief Stream operator << for Ofts objects.
      **/
@@ -814,9 +823,9 @@ public:
 };
 
 
-//--------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 // Ofts 2 Ofs
-//--------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 /**
  *  \brief Transform a one-variable Ofts< Ofs<U> > fts_z into an Ofs<U> object fs object such that fts_z(epsilon) = fs.
  **/
@@ -829,18 +838,16 @@ template <typename U>  void fts2fs(Ofs<U> *fs, Ofts< Ofs<U> > const& fts_z, doub
 template <typename U>  cdouble fts2scalar(Ofts< Ofs<U> > const& fts_z, double epsilon, double t);
 
 
-//---------------------------------------------------------------------------------------------------------------------------------------
-//
-//          Reading & writing
-//
-//---------------------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
+//          Reading & writing (I/O)
+//----------------------------------------------------------------------------------------
 //----------------------------------------------
 // Text format, write
 //----------------------------------------------
 /**
  * \brief Writes a given vector W of type \c Ofts<Ofsc >  in a txt files of the form "filename+i.txt", with i = 0, length(W)-1.
  **/
-inline void  writeVOFTS_txt(vector<Ofts<Ofsc > > &W, string filename);
+inline void  write_vofts_txt(vector<Ofts<Ofsc > > &W, string filename);
 
 //----------------------------------------------
 // Text format, read
@@ -848,15 +855,15 @@ inline void  writeVOFTS_txt(vector<Ofts<Ofsc > > &W, string filename);
 /**
  * \brief Reads a given \c Ofsc  object within a \c Ofts<Ofsc >, in txt format.
  **/
-inline void readOFS_txt(Ofsc &xFFT, ifstream &readStream, int fftN);
+inline void read_ofs_txt(Ofsc &xFFT, ifstream &readStream, int fftN);
 /**
  * \brief Reads a given \c Ofts<Ofsc >  object, in txt format.
  **/
-inline int readOFTS_txt(Ofts<Ofsc > &x, string filename, int fftN);
+inline int read_ofts_txt(Ofts<Ofsc > &x, string filename, int fftN);
 /**
  * \brief Reads a given vector W of type \c Ofts<Ofsc >  in a txt files of the form "filename+i.txt", with i = 0, length(W)-1.
  **/
-inline void readVOFTS_txt(vector<Ofts<Ofsc > >  &W, string filename, int fftN);
+inline void read_vofts_txt(vector<Ofts<Ofsc > >  &W, string filename, int fftN);
 
 //----------------------------------------------
 // Binary format, write
@@ -864,15 +871,15 @@ inline void readVOFTS_txt(vector<Ofts<Ofsc > >  &W, string filename, int fftN);
 /**
  * \brief Writes a given \c Ofsc  object within a \c Ofts<Ofsc >, in bin format.
  **/
-inline void  writeOFS_bin(Ofsc  &xFFT, fstream &myfile);
+inline void  write_ofs_bin(Ofsc  &xFFT, fstream &myfile);
 /**
  * \brief Writes a given \c Ofts<Ofsc >  object, in bin format.
  **/
-inline void  writeOFTS_bin(Ofts<Ofsc > &W, string filename);
+inline void  write_ofts_bin(Ofts<Ofsc > &W, string filename);
 /**
  * \brief Writes a given vector W of type \c Ofts<Ofsc >  in a binary files of the form "filename+i.bin", with i = 0, length(W)-1.
  **/
-inline void  writeVOFTS_bin(vector<Ofts<Ofsc > > &W, string filename);
+inline void  write_vofts_bin(vector<Ofts<Ofsc > > &W, string filename);
 
 
 //----------------------------------------------
@@ -881,17 +888,17 @@ inline void  writeVOFTS_bin(vector<Ofts<Ofsc > > &W, string filename);
 /**
  * \brief Reads a given \c Ofsc  object within a \c Ofts<Ofsc >, in bin format.
  **/
-inline void readOFS_bin(Ofsc  &xFFT, fstream &myfile);
+inline void read_ofs_bin(Ofsc  &xFFT, fstream &myfile);
 
 /**
  * \brief Reads a given \c Ofts<Ofsc >  object, in bin format.
  **/
-inline int readOFTS_bin(Ofts<Ofsc > &W, string filename);
+inline int read_ofts_bin(Ofts<Ofsc > &W, string filename);
 
 /**
  * \brief Reads a given vector W of type \c Ofts<Ofsc >  in binary files of the form "filename+i.bin", with i = 0, length(W)-1.
  **/
-inline void readVOFTS_bin(vector<Ofts<Ofsc > >  &W, string filename, int fftN);
+inline void read_vofts_bin(vector<Ofts<Ofsc > >  &W, string filename, int fftN);
 
 //----------------------------------------------
 // Text 2 binary
@@ -900,8 +907,7 @@ inline void readVOFTS_bin(vector<Ofts<Ofsc > >  &W, string filename, int fftN);
  * \brief Reads a given vector W of type \c Ofts<Ofsc >  in a txt files of the form "filename+i.txt", with i = 0, length(W)-1.
  *        Writes it again in binary form, in binary files of the form "filename+i.bin", with i = 0, length(W)-1.
  **/
-inline void writeVOFTS_txt2bin(vector<Ofts<Ofsc > > &W, string filename, int fftN);
-
+inline void txt2bin_vofts(vector<Ofts<Ofsc > > &W, string filename, int fftN);
 
 
 //Include the implementation .tpp

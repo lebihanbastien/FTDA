@@ -5,7 +5,7 @@
  * \file define_env.h
  * \brief Routines for the definition of the working environment via several C structure
  *        that represent Three or Four-Body models of the Sun-Earth-Moon system.
- *        The main routine is init_FBPL, which initializes a FBPL structure, i.e. a
+ *        The main routine is init_fbp_lib, which initializes a FBPL structure, i.e. a
  *        structure that contains all the necessary constants and coefficients
  *        (equations of motion, Hamiltonian) for a given Four-Body problem
  *        around a given libration point. The coefficients are retrieved from txt files
@@ -174,7 +174,7 @@ struct CSYS
     double c2;      //c2 coefficient, defined wrt to a given libration point li
     double gamma;   //gamma coefficient, defined wrt to a given libration point li
     int li;         //associated libration point
-    int manType;    //associated manifold type
+    int man_type;    //associated manifold type
 
     //Arrays
     double* coeffs; //Default set of vector field coefficients
@@ -247,13 +247,13 @@ struct FBP
  *
  *          Moreover, the USYS and CSYS structures are duplicated for easy access:
  *          - us, equal one of the previous USYS structures:
- *                  * us_em if coordsys == Csts::EM,
- *                  * us_Sem if coordsys == Csts::SEM.
+ *                  * us_em if coord_sys == Csts::EM,
+ *                  * us_Sem if coord_sys == Csts::SEM.
  *          - cs_em, equal to cs_em_l1,2 if li_EM == 1,2.
  *          - cs_sem, equal to cs_sem_l1,2 if li_SEM == 1,2.
  *          - cs, equal to
- *                  * cs_em_l1,2 if li_EM == 1,2 & coordsys == Csts::EM,
- *                  * cs_sem_l1,2 if li_SEM == 1,2 & coordsys == Csts::SEM.
+ *                  * cs_em_l1,2 if li_EM == 1,2 & coord_sys == Csts::EM,
+ *                  * cs_sem_l1,2 if li_SEM == 1,2 & coord_sys == Csts::SEM.
  *
  *         See code below for the other variables.
  *
@@ -271,9 +271,9 @@ struct FBPL
 
     //Model
     int model;     // Current model Csts::QBCP, Csts::CRTBP, etc.
-    int coordsys;  // Current framework: Either Csts:EM or Csts::SEM
+    int coord_sys;  // Current framework: Either Csts:EM or Csts::SEM
     int li;        // Current libration point: Either li_EM or li_SEM
-    int pms;       // Current style of parameterization
+    int param_style;       // Current style of parameterization
 
     //Unit systems
     USYS us_em;   //EM unit system: constants in EM normalized units
@@ -294,9 +294,9 @@ struct FBPL
     CSYS cs;        //Default csys     (for integration)
 
     // Misc
-    int nf;            //Order of the Fourier expansions
+    int n_order_fourier;            //Order of the Fourier expansions
     int eff_nf;        //Effective order of the Fourier expansions, for some specific computations
-    int isNorm;        //Are the equations of motion normalized?
+    int is_norm;        //Are the equations of motion normalized?
     int numberOfCoefs; //number of coefficients in the equations of motion
 
     //6*6 matrix B used for Floquet transformation
@@ -344,13 +344,13 @@ struct QBCP_I
  *
  *          Moreover, the USYS and CSYS structures are duplicated for easy access:
  *          - fbpl.us, equal one of the previous USYS structures:
- *                  * us_em if coordsys == Csts::EM,
- *                  * us_Sem if coordsys == Csts::SEM.
+ *                  * us_em if coord_sys == Csts::EM,
+ *                  * us_Sem if coord_sys == Csts::SEM.
  *          - fbpl.cs_em, equal to cs_em_l1,2 if li_EM == 1,2.
  *          - fbpl.cs_sem, equal to cs_sem_l1,2 if li_SEM == 1,2.
  *          - fbpl.cs, equal to
- *                  * cs_em_l1,2 if li_EM == 1,2 & coordsys == Csts::EM,
- *                  * cs_sem_l1,2 if li_SEM == 1,2 & coordsys == Csts::SEM.
+ *                  * cs_em_l1,2 if li_EM == 1,2 & coord_sys == Csts::EM,
+ *                  * cs_sem_l1,2 if li_SEM == 1,2 & coord_sys == Csts::SEM.
  *
  *        In the end, we mainly use fbpl.li (libration point), fbpl.us (constants in the
  *        suitable normalized units), and fbpl.cs (constants and coefficients about the
@@ -370,40 +370,40 @@ struct QBCP_I
  * \param li_EM number of the libration point for the EM system.
  * \param li_SEM number of the libration point for the SEM system.
  * \param model: either Csts::QBCP, Csts::BCP, Csts::CRTBP, etc.
- * \param coordsys: default coordinate system for this structure:
- *           - if coordsys == Csts::EM,  the fbpl is focused on the li_EM  point of the
+ * \param coord_sys: default coordinate system for this structure:
+ *           - if coord_sys == Csts::EM,  the fbpl is focused on the li_EM  point of the
  *             EM system.
- *           - if coordsys == Csts::SEM, the fbpl is focused on the li_SEM point of the
+ *           - if coord_sys == Csts::SEM, the fbpl is focused on the li_SEM point of the
  *             SEM system.
  *        The focus can be change dynamically during computation, via the routines
  *        change_coord and change_li_coord.
- * \param pms: type of parameterization of the manifolds (Csts::GRAPH, etc). Note that
- *        the pms influences the number of coefficients taken into account in the
+ * \param param_style: type of parameterization of the manifolds (Csts::GRAPH, etc). Note that
+ *        the param_style influences the number of coefficients taken into account in the
  *        Fourier series. Indeed, for graph method, the reduced vector field is non
  *        autonomous, and full Fourier series are used. For normal form, the reduced
  *        vector field is quasi autonomous and we can safely reduce the order of the
  *        series to 5 (11 coefficients taken into account).
- * \param manType_EM: type of manifold about li_EM (Csts::MAN_CENTER, etc).
- * \param manType_SEM: type of manifold about li_SEM.
- * \param isNew an integer: equal to 1 if no solution has been previously
+ * \param man_type_EM: type of manifold about li_EM (Csts::MAN_CENTER, etc).
+ * \param man_type_SEM: type of manifold about li_SEM.
+ * \param is_new an integer: equal to 1 if no solution has been previously
  *        computed with the routine qbtbp(), 0 otherwise.
- * \param isNorm: are the equations of motion normalized?  Probably deprecated,
+ * \param is_norm: are the equations of motion normalized?  Probably deprecated,
  *        should be always true. Kept for consistency with older code.
  *
  *
  * Note that the FBP structure fbp is used only for the initialization of the coordinate
  * systems. More precisely, it contains some parameters specific to each libration point
  * (gamma, c1, etc), via its CR3BP structures
- * (see init_FBP, the routine that initializes the QBCP structures).
+ * (see init_fbp, the routine that initializes the QBCP structures).
  *
  * Note also that there is no speficic need to use two libration points at the
  * same time (one of the EM and one of the SEM systems). This choice was made with the
  * study of li_EM-li_SEM connections in mind, which are now computed in another package.
  *
  **/
-void init_FBPL(FBPL* fbpl, FBP* fbp, int li_EM, int li_SEM,
-               int model, int coordsys, int pms, int manType_EM, int manType_SEM,
-               int isNew, int isNorm);
+void init_fbp_lib(FBPL* fbpl, FBP* fbp, int li_EM, int li_SEM,
+               int model, int coord_sys, int param_style, int man_type_EM, int man_type_SEM,
+               int is_new, int is_norm);
 
 /**
  * \brief Initializes a unit system in the form of a USYS structure,
@@ -414,7 +414,7 @@ void init_FBPL(FBPL* fbpl, FBP* fbp, int li_EM, int li_SEM,
  * \param label the type of unit system (Csts:EM, Csts:SEM, etc).
  * \param model the type of model (Csts::QBCP, etc).
  **/
-void init_USYS(USYS* usys, int label, int model);
+void init_usys(USYS* usys, int label, int model);
 
 /**
  * \brief Initializes a coordinate systems (CSYS structure), with associated
@@ -424,17 +424,17 @@ void init_USYS(USYS* usys, int label, int model);
  * \param fbp pointer on the FBP structure that contains parameters specific to
  *        each libration points (namely, the value of gamma)
  * \param li number of the libration point to focus on (L1, L2).
- * \param coordsys indix of the coordinate system to use (Csts::EM, Csts::SEM).
- * \param manType: type of manifold about li (Csts::MAN_CENTER, Csts::MAN_CENTER_S...).
- * \param isNew boolean. if true, the qbtbp has not been computed via the qbtbp() routine,
+ * \param coord_sys indix of the coordinate system to use (Csts::EM, Csts::SEM).
+ * \param man_type: type of manifold about li (Csts::MAN_CENTER, Csts::MAN_CENTER_S...).
+ * \param is_new boolean. if true, the qbtbp has not been computed via the qbtbp() routine,
  *        so the vector field coefficients is not initialized.
  *
  *   Note that the FBP structure is used only for the initialization of the coordinate
  *   systems. More precisely, it contains some parameters specific to each libration point
  *  (gamma), via its CR3BP structures.
  **/
-void init_CSYS(CSYS* csys, FBPL* fbpl, FBP* fbp, int li,
-               int coordsys, int manType, int isNew);
+void init_csys(CSYS* csys, FBPL* fbpl, FBP* fbp, int li,
+               int coord_sys, int man_type, int is_new);
 
 /**
  * \brief Initialize a Four-Body Problem in the form of a FBP structure.
@@ -453,15 +453,15 @@ void init_CSYS(CSYS* csys, FBPL* fbpl, FBP* fbp, int li,
  * the result will NOT be (first, second) in fbp->cr3bp2, but (first, second+third).
  *
  **/
-void init_FBP(FBP* fbp, int first, int second, int third);
+void init_fbp(FBP* fbp, int first, int second, int third);
 
 /**
  * \brief Initializes a certain Circular Restricted 3-Body Problem as a CR3BP structure.
  * \param cr3bp pointer on the CR3BP structure
- * \param n1 name of the first primary
- * \param n2 name of the second primary
+ * \param name_1 name of the first primary
+ * \param name_2 name of the second primary
  **/
-void init_CR3BP(CR3BP* cr3bp, int n1, int n2);
+void init_cr3bp(CR3BP* cr3bp, int name_1, int name_2);
 
 /**
  * \brief Initializes a libration point.
@@ -469,37 +469,37 @@ void init_CR3BP(CR3BP* cr3bp, int n1, int n2);
  * \param cr3bp a CR3BP structure that contains useful coefficients.
  * \param number the indix of the libration point to init.
  **/
-void init_LibPoint(LibPoint* libp, CR3BP cr3bp, int number);
+void init_lib_point(LibPoint* libp, CR3BP cr3bp, int number);
 
 /**
 * \brief Initialize one celestial body
 * \param body a pointer on the Body structure to init.
 * \param name the name of the body in integer format (consistent with SPICE numerotation)
 **/
-void init_Body(Body* body, int name);
+void init_body(Body* body, int name);
 
 /**
  *  \brief Initializes two FBPL (model1 and model2) with two different models for
  *         continuation process from one model (epsilon = 0.0) to the other
  *        (epsilon = 1.0).
  **/
-void init_FBP_I(QBCP_I* model, FBPL* model1, FBPL* model2,
-                int n1, int n2, int n3, int isNorm, int li_EM, int li_SEM,
-                int isNew, int mod1, int mod2, int coordsys, int pmStyle);
+void init_fbp_cont(QBCP_I* model, FBPL* model1, FBPL* model2,
+                int name_1, int name_2, int name_3, int is_norm, int li_EM, int li_SEM,
+                int is_new, int mod1, int mod2, int coord_sys, int param_style);
 
 //----------------------------------------------------------------------------------------
 //            Change of coordinate systems
 //----------------------------------------------------------------------------------------
 /**
- *  \brief Change the default coordinate system of the FBPL structure to coordsys.
+ *  \brief Change the default coordinate system of the FBPL structure to coord_sys.
  **/
-void change_coord(FBPL& fbpl, int coordsys);
+void change_coord(FBPL& fbpl, int coord_sys);
 
 /**
- *  \brief Change the default coordinate system to coordsys and
+ *  \brief Change the default coordinate system to coord_sys and
  *         the libration point to li in the FBPL structure.
  **/
-void change_li_coord(FBPL& fbpl, int coordsys, int li);
+void change_li_coord(FBPL& fbpl, int coord_sys, int li);
 
 //----------------------------------------------------------------------------------------
 //            Subroutines - I/O
@@ -518,27 +518,27 @@ string init_F_MODEL(int model);
 
 /**
  *  \brief Return the string corresponding to the coordinate system
- *         provided (e.g. "EM" if coordsys == Csts::EM).
+ *         provided (e.g. "EM" if coord_sys == Csts::EM).
  **/
-string init_F_COORDSYS(int coordsys);
+string init_F_COORDSYS(int coord_sys);
 
 /**
  *  \brief Return the folder name corresponding to the prefix/model/framework/libration
  *         point number combination provided (e.g. "prefix/QBCP/EM/L1").
  **/
-string init_F_FOLDER(string prefix, int model, int coordsys, int li);
+string init_F_FOLDER(string prefix, int model, int coord_sys, int li);
 
 /**
  * \brief Retrieve a set of coefficients, given as Fourier series from a txt file.
  * \param filename the name of the txt file.
  * \param params a pointer toward the array to update.
- * \param nf the order of the Fourier series.
+ * \param n_order_fourier the order of the Fourier series.
  * \param shift the indix from which to start the storage of the coefficients in params.
  * \param flag: if flag == 1, the coefficients computed via Fast Fourier Transform (FFT)
  *        are used. Otherwise, the expansions obtained through Fourier series algebraic
  *        manipulations are used.
  **/
-void read_fourier_coef(string filename, double* params, int nf, int shift, int flag, int number);
+void read_fourier_coef(string filename, double* params, int n_order_fourier, int shift, int flag, int number);
 
 //----------------------------------------------------------------------------------------
 //            Subroutines - Computation
@@ -554,9 +554,9 @@ double crtbp_energy(double y[], double mu);
  * \brief Compute the coefficient cn for a given libration point (L1, L2, and L3 for now)
  * \param fbpl a reference to the FBPL initialized around the selected libration point.
  * \param n the indix of the coefficient to compute.
- *  See double cn(int li, double gamma, double mu, int n).
+ *  See double cn_coeff(int li, double gamma, double mu, int n).
  **/
-double cn(FBPL& fbpl, int n);
+double cn_coeff(FBPL& fbpl, int n);
 
 /**
  * \brief Compute the coefficient cn for a given libration point (L1, L2, and L3 for now)
@@ -574,7 +574,7 @@ double cn(FBPL& fbpl, int n);
  *
  * \f$  c_n = \frac{1}{\gamma_j^3} \left( 1 - \mu  + \frac{\mu \gamma_j^{n+1}}{(1 + \gamma_j)^{n+1}} \right) \f$.
  **/
-double cn(int li, double gamma, double mu, int n);
+double cn_coeff(int li, double gamma, double mu, int n);
 
 /**
  * \brief Using the Newton-Raphson method, find the root of a function known to lie close
@@ -590,14 +590,14 @@ double rtnewt(void (*funcd)(double, int, double, double*, double*),
  *        f corresponds to the quintic equation satisfied by the Li-m2 distance for
  *        the L1/L2 cases and by 1-(Li-m1 distance) for the L3 case.
  **/
-void quinticeq(double mu, int number, double y, double* f, double* df);
+void quintic_eq(double mu, int number, double y, double* f, double* df);
 
 /**
  *  \brief This routine performs a change of coordinates:
  *         From SYSTEM (EM or SEM) to NORMALIZED-CENTERED (NC) coordinates.
  *         It is just used here for the primaries.
  */
-void SYStoNC_prim(double Zc[3], double zc[3], double c1, double gamma);
+void sys_to_nc_prim(double Zc[3], double zc[3], double c1, double gamma);
 
 
 #endif // DEFINE_ENV_H_INCLUDED

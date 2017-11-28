@@ -127,10 +127,10 @@ void init_ode_CCM(OdeStruct& ode_s_8, RVF& rvf, Ofsc& rvf_ofs, Pmap& pmap)
  **/
 string nameFile(Pmap& pmap, int method)
 {
-    string ssHv        = numTostring(pmap.dHv);
-    string ssorder     = numTostring(pmap.order);
-    string ssofs_order = numTostring(pmap.ofs_order);
-    string ssMaxEvents = numTostring(pmap.max_events);
+    string ssHv        = num_to_string(pmap.dHv);
+    string ssorder     = num_to_string(pmap.order);
+    string ssofs_order = num_to_string(pmap.ofs_order);
+    string ssMaxEvents = num_to_string(pmap.max_events);
     string type, smethod;
 
     //Get the type
@@ -157,11 +157,11 @@ string nameFile(Pmap& pmap, int method)
     }
 
     //Frequency of projection per period
-    string ssProj = numTostring(pmap.projFreq);
+    string ssProj = num_to_string(pmap.projFreq);
 
     //Get the PM style
     string filename;
-    switch(SEML.pms)
+    switch(SEML.param_style)
     {
     case Csts::GRAPH:
         filename = SEML.cs.F_PRINT+type; //default case, so no additionnal notations
@@ -185,7 +185,7 @@ string nameFile(Pmap& pmap, int method)
  *   \brief Computes a Poincare map
  *   \param pmap a reference to the Poincare map parameters
  *
- *    Requires initCM and initCOC
+ *    Requires init_inv_man and init_coc
  **/
 void pmap_build(Pmap& pmap, int append, int method, bool isPar)
 {
@@ -370,7 +370,7 @@ void pmap_build(Pmap& pmap, int append, int method, bool isPar)
  *   \brief Precision on a Poincare map. Parallelized version
  *   \param pmap a reference to the Poincare maps parameters
  *
- *    Requires initCM and initCOC
+ *    Requires init_inv_man and init_coc
  *
  *   REMARK: may be good to "force" p36(t0= 0.0) (e.g. pmap.t0 =  +1.044814582930593 for L2) so that each IC begins on z = 0 plane
  *   If so, the way H(0) = cst is guaranteed must be changed because we need also to ensure that s4 = 0.0 (which is not the case, since it is the variable
@@ -403,9 +403,9 @@ void pmap_precision(Pmap& pmap, int append, bool isPar)
     //------------------------------------------------------------------------------------
     //Filename to print
     string ssOrder, ssOfs, ssEnergy;
-    ssOrder    = numTostring(pmap.order);
-    ssOfs      = numTostring(pmap.ofs_order);
-    ssEnergy   = numTostring(pmap.dHv);
+    ssOrder    = num_to_string(pmap.order);
+    ssOfs      = num_to_string(pmap.ofs_order);
+    ssEnergy   = num_to_string(pmap.dHv);
 
 
     //------------------------------------------------------------------------------------
@@ -439,7 +439,7 @@ void pmap_precision(Pmap& pmap, int append, bool isPar)
     //------------------------------------------------------------------------------------
     string filename;
     string type = "s1eqs3";//s1eqs3fs2";
-    switch(SEML.pms)
+    switch(SEML.param_style)
     {
     case Csts::GRAPH:
         filename = F_PRINT+"eOm_"+type+"_ofs_"+ssOfs+"_order_"+ssOrder; //default case, so no additionnal notations
@@ -576,7 +576,7 @@ void pmap_precision(Pmap& pmap, int append, bool isPar)
  *   \param hzmax the maximum energy value allowed.
  *          Note that only positive dhz are selected
  *
- *    Requires initCM and initCOC
+ *    Requires init_inv_man and init_coc
  *
  *   REMARK: may be good to "force" p36(t0= 0.0) (e.g. pmap.t0 =  +1.044814582930593 for L2) so that each IC begins on z = 0 plane
  *   If so, the way H(0) = cst is guaranteed must be changed because we need also to ensure that s4 = 0.0 (which is not the case, since it is the variable
@@ -605,9 +605,9 @@ void pmap_invariance_error(Pmap& pmap, int append, bool isPar, double hzmax)
     //------------------------------------------------------------------------------------
     //Filename to print
     string ssOrder, ssOfs, ssEnergy;
-    ssOrder = numTostring(pmap.order);
-    ssOfs   = numTostring(pmap.ofs_order);
-    ssEnergy   = numTostring(hzmax);
+    ssOrder = num_to_string(pmap.order);
+    ssOfs   = num_to_string(pmap.ofs_order);
+    ssEnergy   = num_to_string(hzmax);
 
     //------------------------------------------------------------------------------------
     //Energy of Li (sti = 0)
@@ -638,7 +638,7 @@ void pmap_invariance_error(Pmap& pmap, int append, bool isPar, double hzmax)
     string filename;
     string type = "s1s3";
 
-    switch(SEML.pms)
+    switch(SEML.param_style)
     {
     case Csts::GRAPH:
         filename = F_PRINT+"eIm_"+type+"_ofs_"+ssOfs+"_order_"+ssOrder+"_hmax_"+ssEnergy; //default case, so no additionnal notations
@@ -814,7 +814,7 @@ void pmap_invariance_error(Pmap& pmap, int append, bool isPar, double hzmax)
  *   \param hzmax the maximum energy value allowed.
  *          Note that only positive dhz are selected
  *
- *    Requires initCM and initCOC
+ *    Requires init_inv_man and init_coc
  *
  *   REMARK: may be good to "force" p36(t0= 0.0) (e.g. pmap.t0 =  +1.044814582930593 for L2) so that each IC begins on z = 0 plane
  *   If so, the way H(0) = cst is guaranteed must be changed because we need also to ensure that s4 = 0.0 (which is not the case, since it is the variable
@@ -843,9 +843,9 @@ void pmap_invariance_error_random(Pmap& pmap, int append, bool isPar, double hzm
     //------------------------------------------------------------------------------------
     //Filename to print
     string ssOrder, ssOfs, ssEnergy;
-    ssOrder = numTostring(pmap.order);
-    ssOfs   = numTostring(pmap.ofs_order);
-    ssEnergy   = numTostring(hzmax);
+    ssOrder = num_to_string(pmap.order);
+    ssOfs   = num_to_string(pmap.ofs_order);
+    ssEnergy   = num_to_string(hzmax);
 
     //------------------------------------------------------------------------------------
     //Energy of Li (sti = 0)
@@ -1056,7 +1056,7 @@ void pmap_invariance_error_random(Pmap& pmap, int append, bool isPar, double hzm
  *   \param hzmax the maximum energy value allowed.
  *          Note that only positive dhz are selected
  *
- *    Requires initCM and initCOC
+ *    Requires init_inv_man and init_coc
  *
  *   REMARK: may be good to "force" p36(t0= 0.0) (e.g. pmap.t0 =  +1.044814582930593 for L2) so that each IC begins on z = 0 plane
  *   If so, the way H(0) = cst is guaranteed must be changed because we need also to ensure that s4 = 0.0 (which is not the case, since it is the variable
@@ -1132,9 +1132,9 @@ void pmap_invariance_error_random(Pmap& pmap, int append, bool isPar, double hzm
         //--------------------------------------------------------------------------------
         //Filename to print
         string ssOrder, ssOfs, ssEnergy;
-        ssOrder = numTostring(pmap.order);
-        ssOfs   = numTostring(pmap.ofs_order);
-        ssEnergy   = numTostring(hzmax);
+        ssOrder = num_to_string(pmap.order);
+        ssOfs   = num_to_string(pmap.ofs_order);
+        ssEnergy   = num_to_string(hzmax);
 
         //--------------------------------------------------------------------------------
         //Header in txt file if no appending (reset the file!)
@@ -1294,7 +1294,7 @@ void pmap_invariance_error_random(Pmap& pmap, int append, bool isPar, double hzm
  *   \param hzmax the maximum energy value allowed.
  *          Note that only positive dhz are selected
  *
- *    Requires initCM and initCOC
+ *    Requires init_inv_man and init_coc
  *
  *   REMARK: may be good to "force" p36(t0= 0.0) (e.g. pmap.t0 =  +1.044814582930593 for L2) so that each IC begins on z = 0 plane
  *   If so, the way H(0) = cst is guaranteed must be changed because we need also to ensure that s4 = 0.0 (which is not the case, since it is the variable
@@ -1370,9 +1370,9 @@ void pmap_invariance_error_random_planar(Pmap& pmap, int append, bool isPar, dou
         //--------------------------------------------------------------------------------
         //Filename to print
         string ssOrder, ssOfs, ssEnergy;
-        ssOrder = numTostring(pmap.order);
-        ssOfs   = numTostring(pmap.ofs_order);
-        ssEnergy   = numTostring(hzmax);
+        ssOrder = num_to_string(pmap.order);
+        ssOfs   = num_to_string(pmap.ofs_order);
+        ssEnergy   = num_to_string(hzmax);
 
         //--------------------------------------------------------------------------------
         //Header in txt file if no appending (reset the file!)
@@ -1531,7 +1531,7 @@ void pmap_invariance_error_random_planar(Pmap& pmap, int append, bool isPar, dou
  *   \param hzmax the maximum energy value allowed.
  *          Note that only positive dhz are selected
  *
- *    Requires initCM and initCOC
+ *    Requires init_inv_man and init_coc
  *
  *   REMARK: may be good to "force" p36(t0= 0.0) (e.g. pmap.t0 =  +1.044814582930593 for L2) so that each IC begins on z = 0 plane
  *   If so, the way H(0) = cst is guaranteed must be changed because we need also to ensure that s4 = 0.0 (which is not the case, since it is the variable
@@ -1560,9 +1560,9 @@ void pmap_test_error(Pmap& pmap, int append, bool isPar, double hzmax)
     //------------------------------------------------------------------------------------
     //Filename to print
     string ssOrder, ssOfs, ssEnergy;
-    ssOrder = numTostring(pmap.order);
-    ssOfs   = numTostring(pmap.ofs_order);
-    ssEnergy   = numTostring(hzmax);
+    ssOrder = num_to_string(pmap.order);
+    ssOfs   = num_to_string(pmap.ofs_order);
+    ssEnergy   = num_to_string(hzmax);
 
     //------------------------------------------------------------------------------------
     //Energy of Li (sti = 0)
@@ -1593,7 +1593,7 @@ void pmap_test_error(Pmap& pmap, int append, bool isPar, double hzmax)
     string filename;
     string type = "s1s3";
 
-    switch(SEML.pms)
+    switch(SEML.param_style)
     {
     case Csts::GRAPH:
         filename = F_PRINT+"eIm_"+type+"_ofs_"+ssOfs+"_order_"+ssOrder+"_hmax_"+ssEnergy; //default case, so no additionnal notations
@@ -1616,7 +1616,7 @@ void pmap_test_error(Pmap& pmap, int append, bool isPar, double hzmax)
     //------------------------------------------------------------------------------------
     double cR[pmap.ofs_order];
     double sR[pmap.ofs_order];
-    initcRsR(SEML.us_em.n*pmap.t0, cR, sR, pmap.ofs_order);
+    init_cR_sR(SEML.us_em.n*pmap.t0, cR, sR, pmap.ofs_order);
 
     //------------------------------------------------------------------------------------
     //Loop
@@ -1770,7 +1770,7 @@ void pmap_test_error(Pmap& pmap, int append, bool isPar, double hzmax)
  *   \param hzmax the maximum energy value allowed.
  *          Note that only positive dhz are selected
  *
- *    Requires initCM and initCOC
+ *    Requires init_inv_man and init_coc
  *
  *   REMARK: may be good to "force" p36(t0= 0.0) (e.g. pmap.t0 =  +1.044814582930593 for L2) so that each IC begins on z = 0 plane
  *   If so, the way H(0) = cst is guaranteed must be changed because we need also to ensure that s4 = 0.0 (which is not the case, since it is the variable
@@ -1811,10 +1811,10 @@ void pmap_energy(Pmap& pmap, int append, bool isPar, double hzmax)
     //Plot & Print
     //------------------------------------------------------------------------------------
     //Filename to print
-    string ssHv        = numTostring(pmap.dHv);
-    string ssorder     = numTostring(pmap.order);
-    string ssofs_order = numTostring(pmap.ofs_order);
-    string sst0        = numTostring(pmap.t0/SEML.us.T);
+    string ssHv        = num_to_string(pmap.dHv);
+    string ssorder     = num_to_string(pmap.order);
+    string ssofs_order = num_to_string(pmap.ofs_order);
+    string sst0        = num_to_string(pmap.t0/SEML.us.T);
     string type;
 
     //Get the type
@@ -1822,7 +1822,7 @@ void pmap_energy(Pmap& pmap, int append, bool isPar, double hzmax)
     string filename;
 
     //Get the PM style
-    switch(SEML.pms)
+    switch(SEML.param_style)
     {
     case Csts::GRAPH:
         filename = F_PRINT+type; //default case, so no additionnal notations
@@ -1975,7 +1975,7 @@ void pmap_energy(Pmap& pmap, int append, bool isPar, double hzmax)
  *   \param hzmax the maximum energy value allowed.
  *          Note that only positive dhz are selected
  *
- *    Requires initCM and initCOC
+ *    Requires init_inv_man and init_coc
  *
  *   REMARK: may be good to "force" p36(t0= 0.0) (e.g. pmap.t0 =  +1.044814582930593 for L2) so that each IC begins on z = 0 plane
  *   If so, the way H(0) = cst is guaranteed must be changed because we need also to ensure that s4 = 0.0 (which is not the case, since it is the variable
@@ -2016,10 +2016,10 @@ void pmap_energy_3d(Pmap& pmap, int append, bool isPar, double hzmax)
     //Plot & Print
     //------------------------------------------------------------------------------------
     //Filename to print
-    string ssHv        = numTostring(pmap.dHv);
-    string ssorder     = numTostring(pmap.order);
-    string ssofs_order = numTostring(pmap.ofs_order);
-    string sst0        = numTostring(pmap.t0/SEML.us.T);
+    string ssHv        = num_to_string(pmap.dHv);
+    string ssorder     = num_to_string(pmap.order);
+    string ssofs_order = num_to_string(pmap.ofs_order);
+    string sst0        = num_to_string(pmap.t0/SEML.us.T);
     string type;
 
     //Get the type
@@ -2027,7 +2027,7 @@ void pmap_energy_3d(Pmap& pmap, int append, bool isPar, double hzmax)
     string filename;
 
     //Get the PM style
-    switch(SEML.pms)
+    switch(SEML.param_style)
     {
     case Csts::GRAPH:
         filename = F_PRINT+type; //default case, so no additionnal notations
@@ -2181,7 +2181,7 @@ void pmap_energy_3d(Pmap& pmap, int append, bool isPar, double hzmax)
  *   \param pmap a reference to the Stroboscopic map parameters
  *   \param isPlot if true, the Stroboscopic map is plotted during the computation
  *
- *    Requires initCM and initCOC
+ *    Requires init_inv_man and init_coc
  **/
 void tmap_build(Pmap& pmap, int append, int method, bool isPlot, bool isPar)
 {
@@ -2230,9 +2230,9 @@ void tmap_build(Pmap& pmap, int append, int method, bool isPlot, bool isPar)
     //Plot & Print
     //------------------------------------------------------------------------------------
     //Filename to print
-    string ssHv = numTostring(pmap.dHv);
-    string ssorder     = numTostring(pmap.order);
-    string ssofs_order = numTostring(pmap.ofs_order);
+    string ssHv = num_to_string(pmap.dHv);
+    string ssorder     = num_to_string(pmap.order);
+    string ssofs_order = num_to_string(pmap.ofs_order);
 
     //Get the type
     string type = "Serv_tm_";
@@ -2260,7 +2260,7 @@ void tmap_build(Pmap& pmap, int append, int method, bool isPlot, bool isPar)
 
     //Get the PM style
     string filename;
-    switch(SEML.pms)
+    switch(SEML.param_style)
     {
     case Csts::GRAPH:
         filename = F_PRINT+type; //default case, so no additionnal notations
@@ -3174,7 +3174,7 @@ void header_fprint_bin(string filename)
 void update_s0(Orbit* orbit, double st0[], double sr)
 {
     //Set the current state
-    if(SEML.model == Csts::CRTBP) //if model = RTBP
+    if(SEML.model == Csts::CRTBP) //if model = CRTBP
     {
         switch(orbit->vdim)
         {
@@ -3220,7 +3220,7 @@ void update_s0(Orbit* orbit, double st0[], double sr)
     }
     else //if model = QBCP
     {
-        //If coordsys = Csts::SEM
+        //If coord_sys = Csts::SEM
         //The starting condition z(t0) = 0 is s2 == s4
         //AND there is not root of P36(nt)
         switch(orbit->vdim)
@@ -4211,8 +4211,8 @@ int single_pmap(Orbit* orbit)
     //------------------------------------------------------------------------------
     //Find the projection parameters (€€TODO: make it more general)
     //------------------------------------------------------------------------------
-    double omega1 = cimag(Fh[0].getCoef(1,0)->ofs_getCoef(0));
-    double omega3 = cimag(Fh[1].getCoef(1,1)->ofs_getCoef(0));
+    double omega1 = cimag(Fh[0].get_coef(1,0)->ofs_get_coef(0));
+    double omega3 = cimag(Fh[1].get_coef(1,1)->ofs_get_coef(0));
 
     //------------------------------------------------------------------------------
     //Integration and event detection up to t = tf or the number of events is maximal
@@ -4332,8 +4332,8 @@ int single_pmap_proj(Orbit* orbit)
     //------------------------------------------------------------------------------
     //Find the projection parameters (€€TODO: make it more general)
     //------------------------------------------------------------------------------
-    double omega1 = cimag(Fh[0].getCoef(1,0)->ofs_getCoef(0));
-    double omega3 = cimag(Fh[1].getCoef(1,1)->ofs_getCoef(0));
+    double omega1 = cimag(Fh[0].get_coef(1,0)->ofs_get_coef(0));
+    double omega3 = cimag(Fh[1].get_coef(1,1)->ofs_get_coef(0));
 
     //------------------------------------------------------------------------------
     //Integration and event detection up to t = tf or the number of events is maximal
@@ -4460,8 +4460,8 @@ int single_pmap_plot(Orbit* orbit)
     //------------------------------------------------------------------------------
     //Find the projection parameters (€€TODO: make it more general)
     //------------------------------------------------------------------------------
-    double omega1 = cimag(Fh[0].getCoef(1,0)->ofs_getCoef(0));
-    double omega3 = cimag(Fh[1].getCoef(1,1)->ofs_getCoef(0));
+    double omega1 = cimag(Fh[0].get_coef(1,0)->ofs_get_coef(0));
+    double omega3 = cimag(Fh[1].get_coef(1,1)->ofs_get_coef(0));
 
     //------------------------------------------------------------------------------
     //Integration and event detection up to t = tf or the number of events is maximal
@@ -4891,8 +4891,8 @@ int single_tmap(Orbit* orbit)
     double radius;
 
 
-    double omega1 = cimag(Fh[0].getCoef(1,0)->ofs_getCoef(0));
-    double omega3 = cimag(Fh[1].getCoef(1,1)->ofs_getCoef(0));
+    double omega1 = cimag(Fh[0].get_coef(1,0)->ofs_get_coef(0));
+    double omega3 = cimag(Fh[1].get_coef(1,1)->ofs_get_coef(0));
 
     //------------------------------------------------------------------------------
     //Initialization of the state & time
@@ -5033,8 +5033,8 @@ int single_tmap_tested(Orbit* orbit)
     cdouble scp[4];
 
 
-    double omega1 = cimag(Fh[0].getCoef(1,0)->ofs_getCoef(0));
-    double omega3 = cimag(Fh[1].getCoef(1,1)->ofs_getCoef(0));
+    double omega1 = cimag(Fh[0].get_coef(1,0)->ofs_get_coef(0));
+    double omega3 = cimag(Fh[1].get_coef(1,1)->ofs_get_coef(0));
 
     //------------------------------------------------------------------------------
     //Initialization of the state & time

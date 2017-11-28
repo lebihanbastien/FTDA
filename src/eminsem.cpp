@@ -25,7 +25,7 @@ void SEMvtoSEMm(double t, const double ySEv[], double ySEm[], void *params_void)
 
     double delta[3];
     //evaluate the deltas
-    evaluateCoef(delta, t, n, qbp->nf, qbp->cs_sem.coeffs, 3);
+    eval_array_coef(delta, t, n, qbp->n_order_fourier, qbp->cs_sem.coeffs, 3);
 
     //-------------------------------------------------------------------------------
     //Position to position
@@ -55,7 +55,7 @@ void SEMmtoSEMv(double t, const double ySEm[], double ySEv[], void *params_void)
 
     double delta[3];
     //evaluate the deltas
-    evaluateCoef(delta, t, n, qbp->nf, qbp->cs_sem.coeffs, 3);
+    eval_array_coef(delta, t, n, qbp->n_order_fourier, qbp->cs_sem.coeffs, 3);
 
     //-------------------------------------------------------------------------------
     //Position to position
@@ -90,7 +90,7 @@ void EMvtoEMm(double t, const double yEMv[], double yEMm[], void *params_void)
     //2, 5, 8 odd
     //-------------------------------------------------------------------------------
     double alpha[3];
-    evaluateCoef(alpha, t, n, qbp->nf, qbp->cs_em.coeffs, 3);
+    eval_array_coef(alpha, t, n, qbp->n_order_fourier, qbp->cs_em.coeffs, 3);
 
     //-------------------------------------------------------------------------------
     //Position to position
@@ -126,7 +126,7 @@ void EMmtoEMv(double t, const double yEMm[], double yEMv[], void *params_void)
     //2, 5, 8 odd
     //-------------------------------------------------------------------------------
     double alpha[3];
-    evaluateCoef(alpha, t, n, qbp->nf, qbp->cs_em.coeffs, 3);
+    eval_array_coef(alpha, t, n, qbp->n_order_fourier, qbp->cs_em.coeffs, 3);
 
     //-------------------------------------------------------------------------------
     //Position to position
@@ -196,20 +196,20 @@ void EMtoIN(double t, const double yEM[], double yIN[], FBPL *fbpl)
     double ni = fbpl->us_em.ni;
     double ai = fbpl->us_em.ai;
     //r
-    double r1 = creal(evz(fbpl->cs_em.zt, t, n, ni, ai));
-    double r2 = cimag(evz(fbpl->cs_em.zt, t, n, ni, ai));
+    double r1 = creal(eval_z(fbpl->cs_em.zt, t, n, ni, ai));
+    double r2 = cimag(eval_z(fbpl->cs_em.zt, t, n, ni, ai));
     double r  = sqrt(r1*r1 + r2*r2);
 
     //R
-    double R1 = creal(evz(fbpl->cs_em.Zt, t, n, ns, as));
-    double R2 = cimag(evz(fbpl->cs_em.Zt, t, n, ns, as));
+    double R1 = creal(eval_z(fbpl->cs_em.Zt, t, n, ns, as));
+    double R2 = cimag(eval_z(fbpl->cs_em.Zt, t, n, ns, as));
     //rdot
-    double r1dot = creal(evzdot(fbpl->cs_em.zt, fbpl->cs_em.ztdot, t, n, ni, ai));
-    double r2dot = cimag(evzdot(fbpl->cs_em.zt, fbpl->cs_em.ztdot, t, n, ni, ai));
+    double r1dot = creal(eval_zdot(fbpl->cs_em.zt, fbpl->cs_em.ztdot, t, n, ni, ai));
+    double r2dot = cimag(eval_zdot(fbpl->cs_em.zt, fbpl->cs_em.ztdot, t, n, ni, ai));
     double rdot  = 1.0/r*(r1*r1dot + r2*r2dot);
     //Rdot
-    double R1dot = creal(evzdot(fbpl->cs_em.Zt, fbpl->cs_em.Ztdot, t, n, ns, as));
-    double R2dot = cimag(evzdot(fbpl->cs_em.Zt, fbpl->cs_em.Ztdot, t, n, ns, as));
+    double R1dot = creal(eval_zdot(fbpl->cs_em.Zt, fbpl->cs_em.Ztdot, t, n, ns, as));
+    double R2dot = cimag(eval_zdot(fbpl->cs_em.Zt, fbpl->cs_em.Ztdot, t, n, ns, as));
 
     //-------------------------------------------------------------------------------
     // EM to IN: Position
@@ -244,18 +244,18 @@ void INtoEM(double t, const double yIN[], double yEM[],
     double ai = fbpl->us_em.ai;
 
     //r
-    double r1 = creal(evz(fbpl->cs_em.zt, t, n, ni, ai));
-    double r2 = cimag(evz(fbpl->cs_em.zt, t, n, ni, ai));
+    double r1 = creal(eval_z(fbpl->cs_em.zt, t, n, ni, ai));
+    double r2 = cimag(eval_z(fbpl->cs_em.zt, t, n, ni, ai));
     double r = sqrt(r1*r1 + r2*r2);
     //R
-    double R1 = creal(evz(fbpl->cs_em.Zt, t, n, ns, as));
-    double R2 = cimag(evz(fbpl->cs_em.Zt, t, n, ns, as));
+    double R1 = creal(eval_z(fbpl->cs_em.Zt, t, n, ns, as));
+    double R2 = cimag(eval_z(fbpl->cs_em.Zt, t, n, ns, as));
     //rdot
-    double r1dot = creal(evzdot(fbpl->cs_em.zt, fbpl->cs_em.ztdot, t, n, ni, ai));
-    double r2dot = cimag(evzdot(fbpl->cs_em.zt, fbpl->cs_em.ztdot, t, n, ni, ai));
+    double r1dot = creal(eval_zdot(fbpl->cs_em.zt, fbpl->cs_em.ztdot, t, n, ni, ai));
+    double r2dot = cimag(eval_zdot(fbpl->cs_em.zt, fbpl->cs_em.ztdot, t, n, ni, ai));
     //Rdot
-    double R1dot = creal(evzdot(fbpl->cs_em.Zt, fbpl->cs_em.Ztdot, t, n, ns, as));
-    double R2dot = cimag(evzdot(fbpl->cs_em.Zt, fbpl->cs_em.Ztdot, t, n, ns, as));
+    double R1dot = creal(eval_zdot(fbpl->cs_em.Zt, fbpl->cs_em.Ztdot, t, n, ns, as));
+    double R2dot = cimag(eval_zdot(fbpl->cs_em.Zt, fbpl->cs_em.Ztdot, t, n, ns, as));
 
     //Additional parameters
     double a = +pow(r, -4.0)*(r1dot*r*r - 2*r1*(r1*r1dot + r2*r2dot)); //dot(r1/(r*r))
@@ -300,16 +300,16 @@ void SEMtoIN(double t, const double ySE[], double yIN[],
     //r & R
     //-------------------------------------------------------------------------------
     //R
-    double R1 = creal(evz(fbpl->cs_sem.Zt, t, n, ns, as));
-    double R2 = cimag(evz(fbpl->cs_sem.Zt, t, n, ns, as));
+    double R1 = creal(eval_z(fbpl->cs_sem.Zt, t, n, ns, as));
+    double R2 = cimag(eval_z(fbpl->cs_sem.Zt, t, n, ns, as));
     double R = sqrt(R1*R1 + R2*R2);
 
     //-------------------------------------------------------------------------------
     //Derivatives
     //-------------------------------------------------------------------------------
     //Rdot
-    double R1dot = creal(evzdot(fbpl->cs_sem.Zt, fbpl->cs_sem.Ztdot, t, n, ns, as));
-    double R2dot = cimag(evzdot(fbpl->cs_sem.Zt, fbpl->cs_sem.Ztdot, t, n, ns, as));
+    double R1dot = creal(eval_zdot(fbpl->cs_sem.Zt, fbpl->cs_sem.Ztdot, t, n, ns, as));
+    double R2dot = cimag(eval_zdot(fbpl->cs_sem.Zt, fbpl->cs_sem.Ztdot, t, n, ns, as));
     double Rdot  = 1.0/R*(R1*R1dot + R2*R2dot);
 
     //-------------------------------------------------------------------------------
@@ -357,8 +357,8 @@ void INtoSEM(double t, const double yIN[], double ySE[],
     //r & R
     //-------------------------------------------------------------------------------
     //R
-    double R1 = creal(evz(fbpl->cs_sem.Zt, t, n, ns, as));
-    double R2 = cimag(evz(fbpl->cs_sem.Zt, t, n, ns, as));
+    double R1 = creal(eval_z(fbpl->cs_sem.Zt, t, n, ns, as));
+    double R2 = cimag(eval_z(fbpl->cs_sem.Zt, t, n, ns, as));
     //h
     double h1 = R1;
     double h2 = R2;
@@ -368,8 +368,8 @@ void INtoSEM(double t, const double yIN[], double ySE[],
     //Derivatives
     //-------------------------------------------------------------------------------
     //Rdot
-    double R1dot = creal(evzdot(fbpl->cs_sem.Zt, fbpl->cs_sem.Ztdot, t, n, ns, as));
-    double R2dot = cimag(evzdot(fbpl->cs_sem.Zt, fbpl->cs_sem.Ztdot, t, n, ns, as));
+    double R1dot = creal(eval_zdot(fbpl->cs_sem.Zt, fbpl->cs_sem.Ztdot, t, n, ns, as));
+    double R2dot = cimag(eval_zdot(fbpl->cs_sem.Zt, fbpl->cs_sem.Ztdot, t, n, ns, as));
     //hdot
     double h1dot = R1dot;
     double h2dot = R2dot;

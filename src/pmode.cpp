@@ -2,10 +2,8 @@
 
 /**
  * \file pmode.cpp
- * \brief Integration of the equations of motion for the outputs of the parameterization method.
- * \author BLB.
- * \date 2016
- * \version 1.0
+ * \brief Integration and test of the outputs of the parameterization method.
+ * \author BLB
  */
 
 
@@ -25,16 +23,18 @@
  *           (3) the pulsation n of the system
  *           (4) an OFS temp variable.
  *
- *     Note that the use of void *params_void instead of the direct use of an RVF structure is to comply with GSL ODE integration tools,
- *     that require a vector field of the exact form : int vf(double t, const double y[], double f[], void *params_void)
+ *     Note that the use of void *params_void instead of the direct use of an
+ *     RVF structure is to comply with GSL ODE integration tools,
+ *     that require a vector field of the exact form :
+ *          int vf(double t, const double y[], double f[], void *params_void)
  *
  **/
-int qbfbp_fh(double t, const double y[], double f[], void *params_void)
+int qbfbp_fh(double t, const double y[], double f[], void* params_void)
 {
     //-------------------------------
     //Initialization
     //-------------------------------
-    RVF *rvf = (RVF*) params_void;
+    RVF* rvf = (RVF*) params_void;
 
     //-------------------------------
     //Evaluation of the reduced vector field at order rvf->order
@@ -51,17 +51,344 @@ int qbfbp_fh(double t, const double y[], double f[], void *params_void)
 //
 //----------------------------------------------------------------------------------------
 /**
- *  \brief Test of the pm of the central manifold of L1,2 on a given orbit, through the computation of various errors (eO, eI, eH), along an orbit initialized by the pm.
- *         Various orders are tested, among the available values.
+ *  \brief Computations of the orbital and invariance errors along an orbit initialized by
+ *         the parameterization of the center manifold W(s,t) = PC(t)*Wh(s,t) + V(t), at
+ *         order ofts_order for the Taylor series and ofs_order for the Fourier series.
+ *         The errors are computed on the interval tvec and plotted.
+ **/
+int orb_inv_error(const double st0[],      //RCM initial conditions
+                  vector<Oftsc>& Wh,       //TFC manifold
+                  matrix<Ofsc>& PC,        //COC matrix: z = PC*zh+V
+                  vector<Ofsc>& V,         //COC vector: z = PC*zh+V
+                  vector<Oftsc>& FW,       //NC vector field
+                  vector<Oftsc>& DWf,      //Jacobian of FW
+                  vector<Oftsc>& Wdot,     //Partial derivative of W wrt time
+                  double tvec[2],          //Integration interval
+                  OdeStruct* ode_s_nc,     //ode structure for NC integration
+                  OdeStruct* ode_s_rvf,    //ode structure for RVF integration (reduced vector field)
+                  int Npoints,             //Number of points on which the errors are estimated
+                  FBPL& fbpl,              //current QBCP
+                  int ofts_order,          //Order for the eval of the OFTS objects
+                  int ofs_order,           //Order for the eval of the OFS objects
+                  gnuplot_ctrl**  ht,      //Gnuplot handlers
+                  int color)               //Color of the plots
+{
+    //------------------------------------------------------------------------------------
+    // Strings
+    //------------------------------------------------------------------------------------
+    string F_GS    = fbpl.cs.F_GS;
+    string F_PLOT  = fbpl.cs.F_PLOT;
+    string F_COC   = fbpl.cs.F_COC;
+
+
+    //------------------------------------------------------------------------------------
+    //Reset integrator
+    //------------------------------------------------------------------------------------
+    reset_ode_structure(ode_s_nc);
+    reset_ode_structure(ode_s_rvf);
+
+    //------------------------------------------------------------------------------------
+    //Variables for error computation & plotting
+    //------------------------------------------------------------------------------------
+    //Time
+    double tv[Npoints+1];
+    //Orbits (from NC or TFC integration)
+    double z_nc[3][Npoints+1], z_nc_from_tfc[3][Npoints+1];
+    //Errors and relative energy
+    double eOc[Npoints+1], eIc[Npoints+1], rHc[Npoints+1];
+    cdouble eId;
+    double eIm, eOm, eI[6], eO[6];
+    //Energy
+    double h_sys, h_li_sys;
+
+    //------------------------------------------------------------------------------------
+    // Inner state (NC, TFC...)
+    //------------------------------------------------------------------------------------
+    double  s1_rcm[REDUCED_NV];    //RCM
+    cdouble s1_ccm[REDUCED_NV];    //CCM
+    double  s1_ccm8[2*REDUCED_NV]; //CCM8
+    double  z1_nc[6], z0_nc[6];   //NC, integrated with NC vector field
+    double  z1_nc_from_tfc[6];    //NC, but computed from z = W(s,t)
+    double  z1_sys[6], z0_sys[6]; //SYS (either EM or SEM)
+    double  f_nc[6];               //NC vector field
+    double  n_z1_nc;              //Euclidian norm in NC coordinates
+    double  n_z1_km;              //Euclidian norm in km
+    Ofsc AUX;                     //OFS temp variable
+
+    //------------------------------------------------------------------------------------
+    //Retrieving the pulsation of the QBCP
+    //------------------------------------------------------------------------------------
+    double n = fbpl.us.n;
+
+    //------------------------------------------------------------------------------------
+    //Hamiltonian at the origin s = (0,0,0,0), in SYS coordinates
+    //------------------------------------------------------------------------------------
+    double st_li[REDUCED_NV];
+    for(int i = 0; i < REDUCED_NV; i++) st_li[i] = 0.0;
+    RCMtoNCbyTFC(st_li, tvec[0], n, ofts_order, ofs_order, Wh, PC, V, z0_nc, false);
+    NCtoSYS(tvec[0], z0_nc, z0_sys, (FBPL*) ode_s_nc->d->sys->params);
+    h_li_sys = qbfbp_H(tvec[0], z0_sys, ode_s_nc->d->sys->params);
+
+    //------------------------------------------------------------------------------------
+    // RCM to NC for the initial conditions st0
+    //------------------------------------------------------------------------------------
+    RCMtoNCbyTFC(st0, tvec[0], n, ofts_order, ofs_order, Wh, PC, V, z1_nc, false);
+
+    //------------------------------------------------------------------------------------
+    // RCM to CCM8 (real reduced coordinates to complex reduced coordinates)
+    //------------------------------------------------------------------------------------
+    RCMtoCCM8(st0, s1_ccm8);
+
+    //------------------------------------------------------------------------------------
+    // Euclidian Norm in NC and in km
+    //------------------------------------------------------------------------------------
+    n_z1_nc = ENorm(z1_nc, 3);
+    n_z1_km = n_z1_nc*fbpl.cs.gamma*fbpl.cs.cr3bp.L;
+
+    //------------------------------------------------------------------------------------
+    // Print Initial Conditions
+    //------------------------------------------------------------------------------------
+    //Initial conditions
+    printf("-----------------------------------------------------------\n");
+    printf("orb_inv_error. With current reduced coordinates and order, \n");
+    printf("the initial conditions in NC coordinates are: \n");
+    printf("(%3.5f, %3.5f, %3.5f, %3.5f, %3.5f, %3.5f)\n",
+           z1_nc[0], z1_nc[1], z1_nc[2], z1_nc[3], z1_nc[4], z1_nc[5]);
+    //Euclidian norm in km
+    printf("orb_inv_error. Approximated distance from Li: %3.5f km\n", n_z1_km);
+
+    //------------------------------------------------------------------------------------
+    // Initial relative Hamiltonian in SYS coordinates
+    //------------------------------------------------------------------------------------
+    NCtoSYS(tvec[0], z1_nc, z1_sys, (FBPL*) ode_s_nc->d->sys->params);
+    h_sys = qbfbp_H(tvec[0], z1_sys, ode_s_nc->d->sys->params) ;
+    printf("orb_inv_error. Relative Hamiltonian in SYS coordinates: %3.5f\n", h_sys - h_li_sys);
+
+    //------------------------------------------------------------------------------------
+    // For plotting (first value)
+    //------------------------------------------------------------------------------------
+    //Time
+    tv[0] = tvec[0];
+    //NC
+    for(int p = 0; p < 3; p++) z_nc[p][0] = z1_nc[p];
+    //NC from manifold
+    for(int p = 0; p < 3; p++) z_nc_from_tfc[p][0] = z1_nc[p];
+    //Errors
+    eIc[0]  = 0.0;
+    eOc[0]  = 0.0;
+    rHc[0]  = sqrt((h_sys - h_li_sys)*(h_sys - h_li_sys));
+
+    //------------------------------------------------------------------------------------
+    // Loop on time
+    //------------------------------------------------------------------------------------
+    double t  = tvec[0];
+    double t2 = tvec[0];
+    double ti = 0;
+    if(tvec[1] < tvec[0])
+    {
+        //Change direction of integration if necessary
+        flip_ode_structure(ode_s_nc);
+        flip_ode_structure(ode_s_rvf);
+    }
+    for(int i =0; i<= Npoints; i++)
+    {
+        //--------------------------------------------------------------------------------
+        // Integrate until t = ti
+        //--------------------------------------------------------------------------------
+        ti = (double) i * (tvec[1] - tvec[0]) / Npoints + tvec[0];
+        gsl_odeiv2_driver_apply (ode_s_nc->d, &t, ti, z1_nc);
+        gsl_odeiv2_driver_apply(ode_s_rvf->d, &t2, ti, s1_ccm8);
+
+        //--------------------------------------------------------------------------------
+        // Semi-analytical computation
+        //--------------------------------------------------------------------------------
+        //CCM8 to RCM
+        CCM8toRCM(s1_ccm8, s1_rcm);
+        //CCM8 to CCM
+        CCM8toCCM(s1_ccm8, s1_ccm);
+        //z1_nc_from_tfc = W(s1_rcm, ti)
+        RCMtoNCbyTFC(s1_rcm, ti, n, ofts_order, ofs_order, Wh, PC, V, z1_nc_from_tfc, false);
+
+        //Evaluating the vector field at z1_nc_from_tfc = W(s1_rcm, ti)
+        qbfbp_vfn_novar(ti, z1_nc_from_tfc, f_nc, ode_s_nc->d->sys->params);
+
+        //Hamiltonian, at the origin
+        RCMtoNCbyTFC(st_li, ti, n, ofts_order, ofs_order, Wh, PC, V, z0_nc, false);
+        NCtoSYS(ti, z0_nc, z0_sys, (FBPL*) ode_s_nc->d->sys->params);
+        h_li_sys = qbfbp_H(ti, z0_sys, ode_s_nc->d->sys->params);
+
+
+        //Hamiltonian, taken at z1_nc_from_tfc = W(s1_rcm, ti)
+        NCtoSYS(ti, z1_nc_from_tfc, z1_sys, (FBPL*) ode_s_nc->d->sys->params);
+        h_sys  = qbfbp_H(ti, z1_sys, ode_s_nc->d->sys->params);
+
+        //--------------------------------------------------------------------------------
+        //Error computation
+        //--------------------------------------------------------------------------------
+        for(int p = 0; p < Csts::NV; p++)
+        {
+            //eO = |z(t) - W(s(t), t)|
+            eO[p] = cabs(z1_nc[p] - z1_nc_from_tfc[p]);
+
+            //eI
+            //-------------------------------
+            //What is the definition of eI?
+            // either :
+            // - F(W(s,t)) - FW(s,t)
+            // - F(W(s,t)) - DWf(s,t) - Wdot(s,t)
+            //------------------------------
+            eId = f_nc[p]+0.0*I;
+            //FW[p].evaluate(s1_ccm, AUX, ofts_order);
+            //eId = AUX.evaluate(n*ti);
+            //OR
+            DWf[p].evaluate(s1_ccm, AUX, ofts_order, ofs_order);
+            eId -= AUX.evaluate(n*ti);
+            Wdot[p].evaluate(s1_ccm, AUX, ofts_order, ofs_order);
+            eId -= AUX.evaluate(n*ti);
+            eI[p] = cabs(eId);
+        }
+
+        //Taking the maximum (infinity norm)
+        eOm = eO[0];
+        eIm = eI[0];
+        for(int p = 1; p < Csts::NV; p++)
+        {
+            if(eO[p] > eOm) eOm = eO[p];
+            if(eI[p] > eIm) eIm = eI[p];
+        }
+
+        //--------------------------------------------------------------------------------
+        //Store for plotting
+        //--------------------------------------------------------------------------------
+        //Time
+        tv[i]  = ti;
+        //NC
+        for(int p = 0; p < 3; p++) z_nc[p][i] = z1_nc[p];
+        //NC from manifold
+        for(int p = 0; p < 3; p++) z_nc_from_tfc[p][i] = z1_nc_from_tfc[p];
+        //Errors
+        eOc[i] = eOm;
+        eIc[i] = eIm;
+        rHc[i] = sqrt((h_sys - h_li_sys)*(h_sys - h_li_sys));
+    }
+    if(tvec[1] < tvec[0])
+    {
+        //Reset direction of integration if necessary
+        flip_ode_structure(ode_s_nc);
+        flip_ode_structure(ode_s_rvf);
+    }
+
+
+    //------------------------------------------------------------------------------------
+    //Define the output name
+    //------------------------------------------------------------------------------------
+    string str_eO    = orb_inv_error_output_name(F_PLOT, "eO", st0, ofts_order, ofs_order);
+    string str_eI    = orb_inv_error_output_name(F_PLOT, "eI", st0, ofts_order, ofs_order);
+    string str_rH    = orb_inv_error_output_name(F_PLOT, "rH", st0, ofts_order, ofs_order);
+    string str_z_nc  = orb_inv_error_output_name(F_PLOT, "z_nc", st0, ofts_order, ofs_order);
+    string str_z_tfc = orb_inv_error_output_name(F_PLOT, "z_nc_from_tfc", st0, ofts_order, ofs_order);
+
+
+    cout << "orb_inv_error. Outputs are stored in " << F_PLOT+"orbits/" << endl;
+    gnuplot_fplot_xy(tv, eOc, Npoints+1, str_eO.c_str()); //eO
+    gnuplot_fplot_xy(tv, eIc, Npoints+1, str_eI.c_str()); //eI
+    gnuplot_fplot_xy(tv, rHc, Npoints+1, str_rH.c_str()); //eH
+    gnuplot_fplot_txyz(tv, z_nc[0], z_nc[1], z_nc[2],   Npoints, str_z_nc.c_str());   //orbit
+    gnuplot_fplot_txyz(tv, z_nc_from_tfc[0], z_nc_from_tfc[1], z_nc_from_tfc[2],  Npoints, str_z_tfc.c_str());  //PM orbit
+
+
+    //------------------------------------------------------------------------------------
+    //Plotting
+    //------------------------------------------------------------------------------------
+    string str_otfs_order  = num_to_string(ofts_order);
+    string str_ofs_order   = num_to_string(ofs_order);
+    string str_legend      = "Order ("+str_otfs_order+", "+str_ofs_order+")";
+
+    //Logscale if necessary (all errors)
+    gnuplot_cmd(ht[0], "set logscale y");
+    gnuplot_cmd(ht[0], "set format y \"1e\%%L\"");
+    gnuplot_cmd(ht[4], "set logscale y");
+    gnuplot_cmd(ht[4], "set format y \"1e\%%L\"");
+    //Grid set by default
+    for(int i = 0; i <6; i++) gnuplot_cmd(ht[i],  "set grid");
+
+    //Orbital error
+    //----------------
+    gnuplot_set_xlabel(ht[0], (char*)"t [-]");
+    gnuplot_set_ylabel(ht[0], (char*)"eO [-]");
+    gnuplot_plot_xy(ht[0], tv, eOc, Npoints+1, (char*)str_legend.c_str(), "lines", "1", "2", color);
+
+    //XY
+    //----------------
+    gnuplot_set_xlabel(ht[1], (char*)"x [-]");
+    gnuplot_set_ylabel(ht[1], (char*)"y [-]");
+    gnuplot_plot_xy(ht[1], z_nc[0], z_nc[1], Npoints+1, (char*)str_legend.c_str(), "lines", "1", "2", color);
+    gnuplot_plot_xy(ht[1], z_nc_from_tfc[0], z_nc_from_tfc[1], Npoints+1, (char*)str_legend.c_str(), "lines", "dashed", "2", color);
+
+    gnuplot_plot_xy(ht[1], &z_nc[0][0], &z_nc[1][0], 1, "", "points", "1", "2", color);
+
+    //XZ
+    //----------------
+    gnuplot_set_xlabel(ht[2], (char*)"x [-]");
+    gnuplot_set_ylabel(ht[2], (char*)"z [-]");
+    gnuplot_plot_xy(ht[2], z_nc[0], z_nc[2], Npoints+1, (char*)str_legend.c_str(), "lines", "1", "2", color);
+    gnuplot_plot_xy(ht[2], z_nc_from_tfc[0], z_nc_from_tfc[2], Npoints+1, (char*)str_legend.c_str(), "lines", "dashed", "2", color);
+
+    //YZ
+    //----------------
+    gnuplot_set_xlabel(ht[3], (char*)"y [-]");
+    gnuplot_set_ylabel(ht[3], (char*)"z [-]");
+    gnuplot_plot_xy(ht[3], z_nc[1], z_nc[2], Npoints+1, (char*)str_legend.c_str(), "lines", "1", "2", color);
+    gnuplot_plot_xy(ht[3], z_nc_from_tfc[1], z_nc_from_tfc[2], Npoints+1, (char*)str_legend.c_str(), "lines", "dashed", "2", color);
+
+
+    //Invariance error
+    //----------------
+    gnuplot_set_xlabel(ht[4], (char*)"t [-]");
+    gnuplot_set_ylabel(ht[4], (char*)"eI [-]");
+    gnuplot_plot_xy(ht[4], tv, eIc, Npoints+1, (char*)str_legend.c_str(), "lines", "1", "2", color);
+
+
+    //Relative Hamiltonian
+    //----------------
+    gnuplot_set_xlabel(ht[5], (char*)"t [-]");
+    gnuplot_set_ylabel(ht[5], (char*)"rH [-]");
+    gnuplot_plot_xy(ht[5], tv, rHc,  Npoints+1, (char*)str_legend.c_str(), "lines", "1", "3", color);
+
+
+    //Titles
+    //----------------
+    gnuplot_cmd(ht[0], "set title \"Orbital error");
+    gnuplot_cmd(ht[1], "set title \"Orbit in XY plane in NC coordinates");
+    gnuplot_cmd(ht[2], "set title \"Orbit in XZ plane in NC coordinates");
+    gnuplot_cmd(ht[3], "set title \"Orbit in YZ plane in NC coordinates");
+    gnuplot_cmd(ht[4], "set title \"Invariance error");
+    gnuplot_cmd(ht[5], "set title \"Relative Hamiltonian: H(t) - H_Li(t)");
+
+    return GSL_SUCCESS;
+}
+
+
+
+/**
+ *  \brief Test of the parameterization of the central manifold on a
+ *         given orbit, through the computation of various errors (eO, eI) and the
+ *         relative energy.
+ *              - The orbit is initialized by the reduced state vector si[].
+ *              - The errors are computed on the interval tvec.
+ *              - The errors are computed for the n_ofts_order Taylor orders stored in v_ofts_order.
+ *              - The errors are computed for the n_ofs_order Fourier orders stored in v_ofs_order.
  *
  *   Note that: the expansions FW, DWf and Wdot are taken from files,
  *   whereas the parameterization itself CM and CMh, and the reduced vector field Fh
  *   are taken from global objects, defined in init.cpp.
  *
- *   Requires initCM().
+ *   Requires init_inv_man().
  *
  **/
-void pmErrorvsOrderTest(int nkm, int km[], double si[])
+void pm_error_vs_orders_test(int n_ofts_order, int v_ofts_order[],
+                             int n_ofs_order, int v_ofs_order[],
+                             double si[], double tvec[])
 {
     //------------------------------------------------------------------------------------
     // Strings
@@ -72,42 +399,26 @@ void pmErrorvsOrderTest(int nkm, int km[], double si[])
 
 
     //------------------------------------------------------------------------------------
-    // Initialisation of the expansion
+    // Initialization of additional expansions needed to compute the invariance error
     //------------------------------------------------------------------------------------
     vector<Oftsc> FW(6);
     vector<Oftsc> DWf(6);
     vector<Oftsc> Wdot(6);
 
-    readVOFTS_bin(FW,   F_GS+"FW/C_FW",       OFS_ORDER);
-    readVOFTS_bin(DWf,  F_GS+"DWf/C_DWf",     OFS_ORDER);
-    readVOFTS_bin(Wdot, F_GS+"Wdot/C_Wdot",   OFS_ORDER);
+    read_vofts_bin(FW,   F_GS+"FW/C_FW",       OFS_ORDER);
+    read_vofts_bin(DWf,  F_GS+"DWf/C_DWf",     OFS_ORDER);
+    read_vofts_bin(Wdot, F_GS+"Wdot/C_Wdot",   OFS_ORDER);
 
-    //------------------------------------------------------------------------------------
-    // Initialisation of the COC
-    //------------------------------------------------------------------------------------
-    matrix<Ofsc> P(6,6);
-    matrix<Ofsc> PC(6,6);
-    matrix<Ofsc> CQ(6,6);
-    matrix<Ofsc> Q(6,6);
-    vector<Ofsc> V(6);
-    initCOC(P, PC, Q, CQ, V, SEML);
 
     //------------------------------------------------------------------------------------
     //Integration tools
     //------------------------------------------------------------------------------------
-    //For dot(z) = F(z)
-    gsl_odeiv2_system sys;
-    sys.function = qbfbp_vfn_novar;
-    sys.jacobian = NULL;
-    sys.dimension = 6;
-    sys.params = &SEML;
-    const gsl_odeiv2_step_type *T = gsl_odeiv2_step_rk8pd;
-    gsl_odeiv2_driver *d = gsl_odeiv2_driver_alloc_y_new (&sys, T,
-    Config::configManager().G_PREC_HSTART(),
-    Config::configManager().G_PREC_ABS(),
-    Config::configManager().G_PREC_REL());
+    // ODE structure for integration in NC coordinates
+    OdeStruct ode_s_nc;
+    init_ode_structure(&ode_s_nc, gsl_odeiv2_step_rk8pd, gsl_root_fsolver_brent, 6, qbfbp_vfn_novar, &SEML);
 
-    //For dot(s) = fh(s)
+
+    // RVF structure for integration in reduced coordinates
     RVF rvf;
     rvf.ofs_order = SEML.eff_nf;
     Ofsc AUX(rvf.ofs_order);
@@ -115,17 +426,10 @@ void pmErrorvsOrderTest(int nkm, int km[], double si[])
     rvf.ofs       = &AUX;
     rvf.order     = OFTS_ORDER;
     rvf.n         = SEML.us.n;
-    gsl_odeiv2_system sys_fh;
-    sys_fh.function  = qbfbp_fh;
-    sys_fh.jacobian  = NULL;
-    sys_fh.dimension = 2*REDUCED_NV;
-    sys_fh.params    = &rvf;
-    const gsl_odeiv2_step_type *T_fh = gsl_odeiv2_step_rk8pd;
-    gsl_odeiv2_driver *d_fh = gsl_odeiv2_driver_alloc_y_new (&sys_fh, T_fh,
-    Config::configManager().G_PREC_HSTART(),
-    Config::configManager().G_PREC_ABS(),
-    Config::configManager().G_PREC_REL());
 
+    // ODE structure for integration in reduced coordinates
+    OdeStruct ode_s_rvf;
+    init_ode_structure(&ode_s_rvf, gsl_odeiv2_step_rk8pd, gsl_root_fsolver_brent,2*REDUCED_NV, qbfbp_fh, &rvf);
 
     cout << "---------------------------------------------------" << endl;
     cout << "                                                   " << endl;
@@ -146,142 +450,20 @@ void pmErrorvsOrderTest(int nkm, int km[], double si[])
     //------------------------------------------------------------------------------------
     // Orders of the expansions
     //------------------------------------------------------------------------------------
-    int order = 5;
-    int ofs_order = OFS_ORDER;
+    int ofts_order = OFTS_ORDER;
+    int ofs_order  = OFS_ORDER;
 
-    //------------------------------------------------------------------------------------
-    // Maximum time
-    //------------------------------------------------------------------------------------
-    double tmax = (SEML.model == Csts::CRTBP)? 2*M_PI: SEML.us.T;
-    tmax *= (SEML.coordsys == Csts::SEM && SEML.model != Csts::CRTBP)? 10.0: 1.0;
-    switch(SEML.cs.manType)
-    {
-        case Csts::MAN_CENTER_S:
-            //If we are in the center-stable manifold, we set negative time.
-            tmax = -fabs(tmax);
-    }
-
-    //------------------------------------------------------------------------------------
-    // Initial conditions
-    //------------------------------------------------------------------------------------
-    string st0s = "";
-    for(int p = 0; p < REDUCED_NV; p++) st0[p] = si[p];
-
-    //------------------------------------------------------------------------------------
-    //For plotting
-    //------------------------------------------------------------------------------------
-    //Gnuplot handlers
-    gnuplot_ctrl  **ht = (gnuplot_ctrl**) calloc(6, sizeof(gnuplot_ctrl*));
-    for(int i = 0; i <6; i++) ht[i] = gnuplot_init();
-
-    //------------------------------------------------------------------------------------
-    //Loop on order
-    //------------------------------------------------------------------------------------
-    int color = 1;
-    for(int ii = 0; ii< nkm; ii++)
-    {
-        //order of the expansions
-        order = km[ii];
-        //--------------------------------------------------------------------------------
-        // eO, eI, and orbit
-        //--------------------------------------------------------------------------------
-        rvf.order = order;
-        tic();
-        errorPlot(st0, CMh, PC, V, FW, DWf, Wdot, 0.5*tmax, d, d_fh, 1000, SEML, order, ofs_order, ht, color++);
-        cout << "errorPlot in: " << toc() << endl;
-    }
-
-    char ch;
-    printf("Press ENTER to close the gnuplot window(s)\n");
-    scanf("%c",&ch);
-
-
-    //Closing handlers
-    for(int i = 0; i <6; i++) gnuplot_close(ht[i]);
-    free(ht);
-
-
-    free(d);
-    free(d_fh);
-
-}
-
-/**
- *  \brief Test of the pm of the central manifold of L1,2 on a given orbit, through the computation of the orbital error eO, along an orbit initialized by the pm.
- *         Various orders are tested, among the available values.
- *
- *   Requires initCM().
- *
- **/
-void pmEOvsOrderTest(int nkm, int km[], double si[])
-{
-    //------------------------------------------------------------------------------------
-    // Strings
-    //------------------------------------------------------------------------------------
-    string F_GS    = SEML.cs.F_PMS;
-    string F_PLOT  = SEML.cs.F_PLOT;
-    string F_COC   = SEML.cs.F_COC;
-
-    //------------------------------------------------------------------------------------
-    //Integration tools
-    //------------------------------------------------------------------------------------
-    //For dot(z) = F(z)
-    gsl_odeiv2_system sys;
-    sys.function = qbfbp_vfn_novar;
-    sys.jacobian = NULL;
-    sys.dimension = 6;
-    sys.params = &SEML;
-    const gsl_odeiv2_step_type *T = gsl_odeiv2_step_rk8pd;
-    gsl_odeiv2_driver *d = gsl_odeiv2_driver_alloc_y_new (&sys, T,
-    Config::configManager().G_PREC_HSTART(),
-    Config::configManager().G_PREC_ABS(),
-    Config::configManager().G_PREC_REL());
-
-    //For dot(s) = fh(s)
-    RVF rvf;
-    rvf.ofs_order = SEML.eff_nf;
-    Ofsc AUX(rvf.ofs_order);
-    rvf.fh        = &Fh;
-    rvf.ofs       = &AUX;
-    rvf.order     = OFTS_ORDER;
-    rvf.n         = SEML.us.n;
-    gsl_odeiv2_system sys_fh;
-    sys_fh.function  = qbfbp_fh;
-    sys_fh.jacobian  = NULL;
-    sys_fh.dimension = 2*REDUCED_NV;
-    sys_fh.params    = &rvf;
-    const gsl_odeiv2_step_type *T_fh = gsl_odeiv2_step_rk8pd;
-    gsl_odeiv2_driver *d_fh = gsl_odeiv2_driver_alloc_y_new (&sys_fh, T_fh,
-    Config::configManager().G_PREC_HSTART(),
-    Config::configManager().G_PREC_ABS(),
-    Config::configManager().G_PREC_REL());
-
-
-    cout << "---------------------------------------------------" << endl;
-    cout << "                                                   " << endl;
-    cout << "               Test of the obtained PM             " << endl;
-    cout << "                                                   " << endl;
-    cout << "---------------------------------------------------" << endl;
-    cout << std::showpos << setiosflags(ios::scientific)  << setprecision(15);
-
-    //------------------------------------------------------------------------------------
-    //Misc variables
-    //------------------------------------------------------------------------------------
-    //Int variables
-    double st0[REDUCED_NV];
-    //temp
-    Ofsc BUX(OFS_ORDER);
-
-    //------------------------------------------------------------------------------------
-    // Orders of the expansions
-    //------------------------------------------------------------------------------------
-    int order = 5;
-    int ofs_order = OFS_ORDER;
-
-    //------------------------------------------------------------------------------------
-    // Maximum time
-    //------------------------------------------------------------------------------------
-    double tmax = (SEML.model == Csts::CRTBP)? 2*M_PI: SEML.us.T;
+    //    //------------------------------------------------------------------------------------
+    //    // Maximum time
+    //    //------------------------------------------------------------------------------------
+    //    double tmax = (SEML.model == Csts::CRTBP)? 2*M_PI: SEML.us.T;
+    //    tmax *= (SEML.coord_sys == Csts::SEM && SEML.model != Csts::CRTBP)? 10.0: 1.0;
+    //    switch(SEML.cs.man_type)
+    //    {
+    //    case Csts::MAN_CENTER_S:
+    //        //If we are in the center-stable manifold, we set negative time.
+    //        tmax = -fabs(tmax);
+    //    }
 
     //------------------------------------------------------------------------------------
     // Initial conditions
@@ -293,163 +475,34 @@ void pmEOvsOrderTest(int nkm, int km[], double si[])
     //For plotting
     //------------------------------------------------------------------------------------
     //Gnuplot handlers
-    gnuplot_ctrl  **ht = (gnuplot_ctrl**) calloc(6, sizeof(gnuplot_ctrl*));
-    for(int i = 0; i < 6; i++) ht[i] = gnuplot_init();
-
-    //------------------------------------------------------------------------------------
-    //Loop on order
-    //------------------------------------------------------------------------------------
-    int color = 1;
-    for(int ii = 0; ii< nkm; ii++)
-    {
-        //order of the expansions
-        order = km[ii];
-        //------------------------------------------------------------------------------------
-        // eO, eI, and orbit
-        //------------------------------------------------------------------------------------
-        rvf.order = order;
-        tic();
-        eOPlot(st0, CMh, Mcoc, Vcoc, tmax, d, d_fh, 500, SEML, order, ofs_order, ht, color++);
-        cout << "eOPlot ended in: " << toc() << endl;
-    }
-
-
-    char ch;
-    printf("Press ENTER to close the gnuplot window(s)\n");
-    scanf("%c",&ch);
-
-
-    //Closing handlers
-    for(int i = 0; i <6; i++) gnuplot_close(ht[i]);
-    free(ht);
-
-
-    free(d);
-    free(d_fh);
-}
-
-/**
- *  \brief Test of the pm of the central manifold of L1,2 on a given orbit, through the computation of the orbital error eO, along an orbit initialized by the pm.
- *         Various OFS orders (of the Fourier expansions) are tested, among the available values.
- *   \param order the order of the Taylor expansions (OFTS objects).
- *   Requires initCM().
- *
- **/
-void pmOfsOrderTest(int order)
-{
-    //------------------------------------------------------------------------------------
-    // Strings
-    //------------------------------------------------------------------------------------
-    string F_GS    = SEML.cs.F_GS;
-    string F_PLOT  = SEML.cs.F_PLOT;
-    string F_COC   = SEML.cs.F_COC;
-
-
-    //------------------------------------------------------------------------------------
-    // Initialisation of the COC
-    //------------------------------------------------------------------------------------
-    matrix<Ofsc> P(6,6);
-    matrix<Ofsc> PC(6,6);
-    matrix<Ofsc> CQ(6,6);
-    matrix<Ofsc> Q(6,6);
-    vector<Ofsc> V(6);
-    initCOC(P, PC, Q, CQ, V, SEML);
-
-    //------------------------------------------------------------------------------------
-    //Integration tools
-    //------------------------------------------------------------------------------------
-    //For dot(z) = F(z)
-    gsl_odeiv2_system sys;
-    sys.function = qbfbp_vfn_novar;
-    sys.jacobian = NULL;
-    sys.dimension = 6;
-    sys.params = &SEML;
-    const gsl_odeiv2_step_type *T = gsl_odeiv2_step_rk8pd;
-    gsl_odeiv2_driver *d = gsl_odeiv2_driver_alloc_y_new (&sys, T,
-    Config::configManager().G_PREC_HSTART(),
-    Config::configManager().G_PREC_ABS(),
-    Config::configManager().G_PREC_REL());
-
-    //For dot(s) = fh(s)
-    RVF rvf;
-    Ofsc AUX(OFS_ORDER);
-    rvf.fh        = &Fh;
-    rvf.ofs       = &AUX;
-    rvf.order     = OFTS_ORDER;
-    rvf.ofs_order = OFS_ORDER;
-    rvf.n         = SEML.us.n;
-    gsl_odeiv2_system sys_fh;
-    sys_fh.function  = qbfbp_fh;
-    sys_fh.jacobian  = NULL;
-    sys_fh.dimension = 2*REDUCED_NV;
-    sys_fh.params    = &rvf;
-    const gsl_odeiv2_step_type *T_fh = gsl_odeiv2_step_rk8pd;
-    gsl_odeiv2_driver *d_fh = gsl_odeiv2_driver_alloc_y_new (&sys_fh, T_fh,
-    Config::configManager().G_PREC_HSTART(),
-    Config::configManager().G_PREC_ABS(),
-    Config::configManager().G_PREC_REL());
-
-
-    cout << "---------------------------------------------------" << endl;
-    cout << "                                                   " << endl;
-    cout << "               Test of the obtained PM             " << endl;
-    cout << "                                                   " << endl;
-    cout << "---------------------------------------------------" << endl;
-    cout << std::showpos << setiosflags(ios::scientific)  << setprecision(15);
-
-    //------------------------------------------------------------------------------------
-    //Misc variables
-    //------------------------------------------------------------------------------------
-    //Time variables
-    double theta1;
-    theta1 = 2*M_PI;
-    //Int variables
-    double st0[4];
-    //temp
-    Ofsc BUX(OFS_ORDER);
-    //Keymap for loop on order
-    int km[4];
-    km[0] = 10;
-    km[1] = 15;
-    km[2] = 20;
-    km[3] = 30;
-
-    //------------------------------------------------------------------------------------
-    // Orders of the Fourier expansions
-    //------------------------------------------------------------------------------------
-    int ofs_order;
-
-    //------------------------------------------------------------------------------------
-    // Initial conditions
-    //------------------------------------------------------------------------------------
-    for(int p = 0; p < 4; p++) st0[p] = 0.0;
-    st0[0] = 20.0;
-
-    //------------------------------------------------------------------------------------
-    //For plotting
-    //------------------------------------------------------------------------------------
-    //Gnuplot handlers
-    gnuplot_ctrl  **ht = (gnuplot_ctrl**) calloc(6, sizeof(gnuplot_ctrl*));
+    gnuplot_ctrl**  ht = (gnuplot_ctrl**) calloc(6, sizeof(gnuplot_ctrl*));
     for(int i = 0; i <6; i++) ht[i] = gnuplot_init();
 
     //------------------------------------------------------------------------------------
-    //Loop on order
+    //Loop on orders
     //------------------------------------------------------------------------------------
     int color = 1;
-    for(int ii = 0; ii< 4; ii++)
+    for(int ii = 0; ii< n_ofts_order; ii++)
     {
-        //order of the expansions
-        ofs_order = km[ii];
-        //------------------------------------------------------------------------------------
-        // eO, eI, and orbit
-        //------------------------------------------------------------------------------------
-        rvf.order     = order;
-        rvf.ofs_order = ofs_order;
-        tic();
-        eOPlot(st0, CMh, PC, V, theta1/SEML.us.n, d, d_fh, 500, SEML, order, ofs_order, ht, color++);
-        cout << "eOPlot in: " << toc() << endl;
-    }
+        //Update ofts_order
+        ofts_order = min(v_ofts_order[ii], OFTS_ORDER);
 
+        for(int jj = 0; jj< n_ofs_order; jj++)
+        {
+            //Update ofs_order
+            ofs_order = min(v_ofs_order[jj], OFS_ORDER);
+
+            // Update orders in rvf structure
+            rvf.order     = ofts_order;
+            rvf.ofs_order = ofs_order;
+
+            // eO, eI, and orbit
+            tic();
+            orb_inv_error(st0, CMh, Mcoc, Vcoc, FW, DWf, Wdot, tvec, &ode_s_nc,
+                          &ode_s_rvf, 1000, SEML, ofts_order, ofs_order, ht, color++);
+            cout << "orb_inv_error in: " << toc() << endl;
+        }
+    }
 
     char ch;
     printf("Press ENTER to close the gnuplot window(s)\n");
@@ -461,10 +514,40 @@ void pmOfsOrderTest(int order)
     free(ht);
 
 
-    free(d);
-    free(d_fh);
+    free_ode_structure(&ode_s_nc);
+    free_ode_structure(&ode_s_rvf);
+
 }
 
+/**
+ *  \brief Computations of the filenames used in the routine orb_inv_error (orbital error, invariance error, etc).
+ **/
+string orb_inv_error_output_name(string f_plot, string title, const double *st0, int ofts_order, int ofs_order)
+{
+    string str_p, str_otfs_order, str_ofs_order, str_st;
+
+    str_otfs_order  = num_to_string(ofts_order);
+    str_ofs_order   = num_to_string(ofs_order);
+
+    string filename = (f_plot+"orbits/"+title+"_ofts_order_"+str_otfs_order+"_ofs_order_"+str_ofs_order);
+
+    for(int p = 0; p < REDUCED_NV; p++)
+    {
+        str_st = num_to_string(st0[p]);
+        str_p  = num_to_string(p+1);
+
+        filename += "_s"+str_p+"_"+str_st;
+    }
+    filename += ".txt";
+
+    return filename;
+}
+
+//----------------------------------------------------------------------------------------
+//
+//          DEPRECATED (to be cleaned up)
+//
+//----------------------------------------------------------------------------------------
 /**
  *  \brief Evaluates the contributions of each order in W to the computation of W(s,t), with an arbitrary state (s,t)
  **/
@@ -480,12 +563,12 @@ void pmContributions()
     cout << std::showpos << setiosflags(ios::scientific)  << setprecision(5);
 
     //------------------------------------------------------------------------------------
-    // Initialisation of the NC manifolds
+    // Initialization of the NC manifolds
     //------------------------------------------------------------------------------------
     vector<Oftsc> W(6);
     vector<Oftsc> Wh(6);
-    readVOFTS_txt(Wh, F_GS+"W/Wh", OFS_ORDER);
-    readVOFTS_txt(W,  F_GS+"W/W", OFS_ORDER);
+    read_vofts_txt(Wh, F_GS+"W/Wh", OFS_ORDER);
+    read_vofts_txt(W,  F_GS+"W/W", OFS_ORDER);
 
 
     //------------------------------------------------------------------------------------
@@ -538,17 +621,17 @@ void pmNorms()
 
     cout << std::showpos << setiosflags(ios::scientific)  << setprecision(5);
     //------------------------------------------------------------------------------------
-    // Initialisation of the NC manifolds
+    // Initialization of the NC manifolds
     //------------------------------------------------------------------------------------
     vector<Oftsc> W(6);
     vector<Oftsc> Wh(6);
-    readVOFTS_bin(Wh, F_GS+"W/Wh", OFS_ORDER);
-    readVOFTS_bin(W,  F_GS+"W/W", OFS_ORDER);
+    read_vofts_bin(Wh, F_GS+"W/Wh", OFS_ORDER);
+    read_vofts_bin(W,  F_GS+"W/W", OFS_ORDER);
 
     //------------------------------------------------------------------------------------
     //L1-norm
     //------------------------------------------------------------------------------------
-    gnuplot_ctrl  *h5;
+    gnuplot_ctrl*  h5;
     h5 = gnuplot_init();
     gnuplot_cmd(h5, "set logscale y");
     gnuplot_cmd(h5, "set format y \"1e\%%L\"");
@@ -598,10 +681,10 @@ void pmSmallDivisors(double sdmax)
 
     cout << std::showpos << setiosflags(ios::scientific)  << setprecision(5);
     //------------------------------------------------------------------------------------
-    // Initialisation of the NC manifolds
+    // Initialization of the NC manifolds
     //------------------------------------------------------------------------------------
     vector<Oftsc> smallDiv(6);
-    readVOFTS_txt(smallDiv, F_NF+"W/smallDiv", OFS_ORDER);
+    read_vofts_txt(smallDiv, F_NF+"W/smallDiv", OFS_ORDER);
 
     //------------------------------------------------------------------------------------
     //Small divisors
@@ -643,9 +726,9 @@ void pmSmallDivisors(double sdmax)
 void pmTestIC()
 {
     //------------------------------------------------------------------------------------
-    // Initialisation of the central manifold
+    // Initialization of the invariant manifold
     //------------------------------------------------------------------------------------
-    initCM(SEML);
+    init_inv_man(SEML);
 
     //------------------------------------------------------------------------------------
     // Strings
@@ -702,658 +785,4 @@ void pmTestIC()
     }
 
 }
-
-
-//----------------------------------------------------------------------------------------
-//
-//          Plot in tests
-//
-//----------------------------------------------------------------------------------------
-/**
- *  \brief Computations of various errors (eO, eI, eH) along an orbit initialized by the pm of the center manifold W(s,t)
- **/
-int errorPlot(const double st0[],      //RCM initial conditions
-              vector<Oftsc>& Wh,       //TFC manifold
-              matrix<Ofsc>& PC,        //COC matrix: z = PC*zh+V
-              vector<Ofsc>& V,         //COC vector: z = PC*zh+V
-              vector<Oftsc>& FW,       //NC vector field
-              vector<Oftsc>& DWf,      //Jacobian of FW
-              vector<Oftsc>& Wdot,     //Partial derivative of W wrt time
-              double t1,               //Final integration tim
-              gsl_odeiv2_driver *dnc,  //driver for NC integration
-              gsl_odeiv2_driver *drvf, //drive for RVF integration (reduced vector field)
-              int Npoints,             //Number of points on which the errors are estimated
-              FBPL& fbpl,          //current QBCP
-              int order,               //Order for the eval of the OFTS objects
-              int ofs_order,           //Order for the eval of the OFS objects
-              gnuplot_ctrl  **ht,      //Gnuplot handlers
-              int color)               //Color of the plots
-{
-    //------------------------------------------------------------------------------------
-    // Strings
-    //------------------------------------------------------------------------------------
-    string F_GS    = fbpl.cs.F_GS;
-    string F_PLOT  = fbpl.cs.F_PLOT;
-    string F_COC   = fbpl.cs.F_COC;
-
-
-    //------------------------------------------------------------------------------------
-    //Reset integrator
-    //------------------------------------------------------------------------------------
-    gsl_odeiv2_driver_reset(dnc);
-    gsl_odeiv2_driver_reset(drvf);
-
-    //------------------------------------------------------------------------------------
-    //Variables for plotting
-    //------------------------------------------------------------------------------------
-    //Time
-    double tc[Npoints+1];
-    //Orbits
-    double xc[Npoints+1], yc[Npoints+1], zc[Npoints+1];
-    //Orbit in TFC
-    double xsc[Npoints+1], ysc[Npoints+1], zsc[Npoints+1];
-    //Errors
-    double eOc[Npoints+1], eIc[Npoints+1], eHc[Npoints+1];
-
-    //------------------------------------------------------------------------------------
-    //Energy
-    //------------------------------------------------------------------------------------
-    double H, H0;
-
-    //------------------------------------------------------------------------------------
-    //Errors
-    //------------------------------------------------------------------------------------
-    cdouble eId;
-    double eIm, eOm;
-    double eI[6], eO[6];
-
-    //------------------------------------------------------------------------------------
-    // Inner state (NC, TFC...)
-    //------------------------------------------------------------------------------------
-    double  s1rcm[REDUCED_NV];    //RCM
-    cdouble s1ccm[REDUCED_NV];    //CCM
-    double  s1ccm8[2*REDUCED_NV]; //CCM8
-    double  z1ncr[6], z0ncr[6];   //NC, integrated with NC vector field
-    double  z1ncr2[6];            //NC, but computed from z = W(s,t)
-    double  z1em[6], z0em[6];     //EM
-    double  fnc[6];               //NC vector field
-    double  W0;                   //Euclidian norm in NC coordinates
-    double  W0km;                 //Euclidian norm in km
-    Ofsc AUX;                     //OFS temp variable
-
-    //------------------------------------------------------------------------------------
-    //Retrieving the parameters
-    //------------------------------------------------------------------------------------
-    double n = fbpl.us.n;
-
-    //------------------------------------------------------------------------------------
-    //Hamiltonian at the origin
-    //------------------------------------------------------------------------------------
-    double stLi[REDUCED_NV];
-    for(int i = 0; i < REDUCED_NV; i++) stLi[i] = 0.0;
-    RCMtoNCbyTFC(stLi, 0.0, n, order, ofs_order, Wh, PC, V, z0ncr, false);
-    NCtoSYS(0.0, z0ncr, z0em, (FBPL*) dnc->sys->params);  //Hamiltonian in sys coordinates (for reference)
-    double HLi = qbfbp_H(0.0, z0em, dnc->sys->params);
-
-    //------------------------------------------------------------------------------------
-    // RCM to NC for NC initial conditions
-    //------------------------------------------------------------------------------------
-    RCMtoNCbyTFC(st0, 0.0, n, order, ofs_order, Wh, PC, V, z1ncr, false);
-
-    //------------------------------------------------------------------------------------
-    // RCM to CCM8 for CCM initial conditions
-    //------------------------------------------------------------------------------------
-    RCMtoCCM8(st0, s1ccm8);
-
-    //------------------------------------------------------------------------------------
-    // Euclidian Norm
-    //------------------------------------------------------------------------------------
-    W0 = ENorm(z1ncr, 3);
-    W0km = W0*fbpl.cs.gamma*fbpl.cs.cr3bp.L;
-
-    //------------------------------------------------------------------------------------
-    // Print Initial Conditions
-    //------------------------------------------------------------------------------------
-    //Initial conditions
-    cout << "With current s0 and order, the initial conditions are: " << endl;
-    for(int p = 0; p < 6; p++) cout << p << "  " << z1ncr[p] << endl;
-    //Euclidian norm in km
-    cout << "Approximated distance from Li [km]: " << W0km << endl;
-
-    //------------------------------------------------------------------------------------
-    // Initial relative Hamiltonian
-    //-----------------------------------------
-    //H0 = qbfbp_Hn(0.0, z1ncr, dnc->sys->params)-HLi0;           //Hamiltonian
-    NCtoSYS(0.0, z1ncr, z1em, (FBPL*) dnc->sys->params);        //Hamiltonian in EM coordinates (for reference)
-    H0 = qbfbp_H(0.0, z1em, dnc->sys->params) -HLi ;
-    cout << "H in EM coordinates: " << H0 << endl;
-
-    //------------------------------------------------------------------------------------
-    // For plotting (first value)
-    //------------------------------------------------------------------------------------
-    //Time
-    tc[0] = 0.0;
-    //NC
-    xc[0] = z1ncr[0];
-    yc[0] = z1ncr[1];
-    zc[0] = z1ncr[2];
-    //NC from manifold
-    xsc[0] = z1ncr[0];
-    ysc[0] = z1ncr[1];
-    zsc[0] = z1ncr[2];
-    //Errors
-    eIc[0]  = 0.0;
-    eOc[0]  = 0.0;
-    eHc[0]  = sqrt((H0 - HLi)*(H0 - HLi));
-
-    //------------------------------------------------------------------------------------
-    // Loop on time
-    //------------------------------------------------------------------------------------
-    double t = 0.0;
-    double t2 = 0.0;
-    double ti = 0;
-    if(t1 <0)
-    {
-        dnc->h = -dnc->h;
-        drvf->h = -drvf->h;
-    }
-    for(int i =0; i<= Npoints; i++)
-    {
-        //------------------------------------------------------------------------------------
-        // Apply driver
-        //------------------------------------------------------------------------------------
-        ti = (double) i * t1 / Npoints;
-        gsl_odeiv2_driver_apply (dnc, &t, ti, z1ncr);
-        gsl_odeiv2_driver_apply(drvf, &t2, ti, s1ccm8);
-
-        //------------------------------------------------------------------------------------
-        // Comparison
-        //------------------------------------------------------------------------------------
-
-        //---------------------
-        // Using the PM: z = W(s,t)
-        // Computed in z1ncr2
-        //---------------------
-        //CCM8 to RCM
-        CCM8toRCM(s1ccm8, s1rcm);
-        //CCM8 to CCM
-        CCM8toCCM(s1ccm8, s1ccm);
-        //z1ncr2 = W(s1rcm, ti)
-        RCMtoNCbyTFC(s1rcm, ti, n, order, ofs_order, Wh, PC, V, z1ncr2, false);
-
-        //Evaluating the vector field at z1ncr2 = W(s1rcm, ti)
-        qbfbp_vfn_novar(ti, z1ncr2, fnc, dnc->sys->params);
-
-        //Hamiltonian, at the origin
-        RCMtoNCbyTFC(stLi, ti, n, order, ofs_order, Wh, PC, V, z0ncr, false);
-        NCtoSYS(ti, z0ncr, z0em, (FBPL*) dnc->sys->params);  //Hamiltonian in sys coordinates (for reference)
-        HLi = qbfbp_H(ti, z0em, dnc->sys->params);
-
-
-        //Hamiltonian, taken at z1ncr2 = W(s1rcm, ti)
-        NCtoSYS(ti, z1ncr2, z1em, (FBPL*) dnc->sys->params);
-        H  = qbfbp_H(ti, z1em, dnc->sys->params);
-
-
-        //---------------------
-        //Error computation
-        //---------------------
-        for(int p = 0; p < Csts::NV; p++)
-        {
-            //eO = |z(t) - W(s(t), t)|
-            eO[p] = cabs(z1ncr[p] - z1ncr2[p]);
-            //eI
-            //-------------------------------
-            //What is the definition of eI?
-            // either :
-            // - F(W(s,t)) - FW(s,t)
-            // - F(W(s,t)) - DWf(s,t) - Wdot(s,t)
-            //------------------------------
-            eId = fnc[p]+0.0*I;
-            //FW[p].evaluate(s1ccm, AUX, order);
-            //eId = AUX.evaluate(n*ti);
-            //OR
-            DWf[p].evaluate(s1ccm, AUX, order, ofs_order);
-            eId -= AUX.evaluate(n*ti);
-            Wdot[p].evaluate(s1ccm, AUX, order, ofs_order);
-            eId -= AUX.evaluate(n*ti);
-            eI[p] = cabs(eId);
-        }
-
-
-        //Taking the maximum (infinity norm)
-        eOm = eO[0];
-        eIm = eI[0];
-        for(int p = 1; p < Csts::NV; p++)
-        {
-            if(eO[p] > eOm) eOm = eO[p];
-            if(eI[p] > eIm) eIm = eI[p];
-        }
-
-        //--------------------------------------------------------------------------------
-        //Store for plotting
-        //--------------------------------------------------------------------------------
-        //Timde
-        tc[i]  = ti;
-        //NC
-        xc[i]  = z1ncr[0];
-        yc[i]  = z1ncr[1];
-        zc[i]  = z1ncr[2];
-        //NC from manifold
-        xsc[i] = z1ncr2[0];
-        ysc[i] = z1ncr2[1];
-        zsc[i] = z1ncr2[2];
-        //Errors
-        eOc[i] = eOm;
-        eIc[i] = eIm;
-        eHc[i] = sqrt((H - HLi)*(H - HLi));
-    }
-    if(t1 <0)
-    {
-        dnc->h = -dnc->h;
-        drvf->h = -drvf->h;
-    }
-
-
-    //------------------------------------------------------------------------------------
-    //Define the output name
-    //------------------------------------------------------------------------------------
-    ifstream readStream;
-    string ss1, ssW, st0s;
-    ss1  = static_cast<ostringstream*>( &(ostringstream() << order) )->str();
-    ssW  = static_cast<ostringstream*>( &(ostringstream() << W0) )->str();
-    if(SEML.cs.manType == Csts::MAN_CENTER)
-    {
-        st0s = static_cast<ostringstream*>( &(ostringstream() << creal(st0[0]+st0[1]+st0[2]+st0[3])) )->str();
-    }
-    else
-    {
-        st0s = static_cast<ostringstream*>( &(ostringstream() << creal(st0[0]+st0[1]+st0[2]+st0[3])) )->str();
-        string s5s = static_cast<ostringstream*>( &(ostringstream() << creal(st0[4])) )->str();
-        st0s = st0s+"_s5_"+s5s;
-    }
-    st0s = st0s+"_test";
-
-
-    //------------------------------------------------------------------------------------
-    //In txt files
-    //------------------------------------------------------------------------------------
-    string eOstr   = (F_PLOT+"orbits/"+"eO_"+"Order_"+ss1+"_Size_"+st0s+".txt");
-    string eIstr   = (F_PLOT+"orbits/"+"eI_"+"Order_"+ss1+"_Size_"+st0s+".txt");
-    string eHstr   = (F_PLOT+"orbits/"+"eH_"+"Order_"+ss1+"_Size_"+st0s+".txt");
-    string eXYZstr = (F_PLOT+"orbits/"+"XYZ_"+"Order_"+ss1+"_Size_"+st0s+".txt");
-    string ePMstr  = (F_PLOT+"orbits/"+"XYZ_PM_"+"Order_"+ss1+"_Size_"+st0s+".txt");
-    gnuplot_fplot_xy(tc, eOc, Npoints+1, eOstr.c_str());                //eO
-    gnuplot_fplot_xy(tc, eIc, Npoints+1, eIstr.c_str());                //eI
-    gnuplot_fplot_xy(tc, eHc, Npoints+1, eHstr.c_str());                //eH
-    gnuplot_fplot_txyz(tc, xc, yc,   zc,   Npoints, eXYZstr.c_str());   //orbit
-    gnuplot_fplot_txyz(tc, xsc, ysc, zsc,  Npoints, ePMstr.c_str());    //PM orbit
-
-
-    //------------------------------------------------------------------------------------
-    //Plotting
-    //------------------------------------------------------------------------------------
-    //Logscale if necessary (all errors)
-    gnuplot_cmd(ht[0], "set logscale y");
-    gnuplot_cmd(ht[0], "set format y \"1e\%%L\"");
-    gnuplot_cmd(ht[4], "set logscale y");
-    gnuplot_cmd(ht[4], "set format y \"1e\%%L\"");
-    gnuplot_cmd(ht[5], "set logscale y");
-    gnuplot_cmd(ht[5], "set format y \"1e\%%L\"");
-    //Grid set by default
-    for(int i = 0; i <6; i++) gnuplot_cmd(ht[i],  "set grid");
-
-    //Orbital error
-    //----------------
-    gnuplot_set_xlabel(ht[0], (char*)"t [-]");
-    gnuplot_set_ylabel(ht[0], (char*)"eO [-]");
-    gnuplot_plot_xy(ht[0], tc, eOc, Npoints+1, (char*)("Order "+ss1).c_str(), "lines", "1", "2", color);
-
-    //XY
-    //----------------
-    gnuplot_set_xlabel(ht[1], (char*)"x [-]");
-    gnuplot_set_ylabel(ht[1], (char*)"y [-]");
-    gnuplot_plot_xy(ht[1], xc, yc, Npoints+1, (char*)("Order "+ss1).c_str(), "lines", "1", "2", color);
-    gnuplot_plot_xy(ht[1], xsc, ysc, Npoints+1, (char*)("Order "+ss1).c_str(), "lines", "dashed", "2", color);
-
-    gnuplot_plot_xy(ht[1], &xc[0], &yc[0], 1, "", "points", "1", "2", color);
-
-    //XZ
-    //----------------
-    gnuplot_set_xlabel(ht[2], (char*)"x [-]");
-    gnuplot_set_ylabel(ht[2], (char*)"z [-]");
-    gnuplot_plot_xy(ht[2], xc, zc, Npoints+1, (char*)("Order "+ss1).c_str(), "lines", "1", "2", color);
-    gnuplot_plot_xy(ht[2], xsc, zsc, Npoints+1, (char*)("Order "+ss1).c_str(), "lines", "dashed", "2", color);
-
-    //YZ
-    //----------------
-    gnuplot_set_xlabel(ht[3], (char*)"y [-]");
-    gnuplot_set_ylabel(ht[3], (char*)"z [-]");
-    gnuplot_plot_xy(ht[3], yc, zc, Npoints+1, (char*)("Order "+ss1).c_str(), "lines", "1", "2", color);
-    gnuplot_plot_xy(ht[3], ysc, zsc, Npoints+1, (char*)("Order "+ss1).c_str(), "lines", "dashed", "2", color);
-
-
-    //Invariance error
-    //----------------
-    gnuplot_set_xlabel(ht[4], (char*)"t [-]");
-    gnuplot_set_ylabel(ht[4], (char*)"eI [-]");
-    gnuplot_plot_xy(ht[4], tc, eIc, Npoints+1, (char*)("Order "+ss1).c_str(), "lines", "1", "2", color);
-
-
-    //Hamiltonian error
-    //----------------
-    gnuplot_set_xlabel(ht[5], (char*)"t [-]");
-    gnuplot_set_ylabel(ht[5], (char*)"eH [-]");
-    gnuplot_plot_xy(ht[5], tc, eHc,  Npoints+1, (char*)("Order "+ss1).c_str(), "lines", "1", "3", color);
-
-
-    //Titles
-    //----------------
-    gnuplot_cmd(ht[0],  ("set title \"Error in the orbit, |W(s,0)| = "+ssW+"\" ").c_str());
-    gnuplot_cmd(ht[1], ("set title \"Orbit in XY plane,  |W(s,0)| = "+ssW+"\" ").c_str());
-    gnuplot_cmd(ht[2], ("set title \"Orbit in XZ plane,  |W(s,0)| = "+ssW+"\" ").c_str());
-    gnuplot_cmd(ht[3], ("set title \"Orbit in YZ plane,  |W(s,0)| = "+ssW+"\" ").c_str());
-    gnuplot_cmd(ht[4],  ("set title \"Error in the invariance equation, |W(s,0)| = "+ssW+"\" ").c_str());
-    gnuplot_cmd(ht[5],  ("set title \"Error in the hamiltonian, |W(s,0)| = "+ssW+"\" ").c_str());
-
-    //Additional names
-    string eXYstr = (F_PLOT+"orbits/"+"XY_"+"Order_"+ss1+"_Size_"+st0s+".txt");
-    string eXZstr = (F_PLOT+"orbits/"+"XZ_"+"Order_"+ss1+"_Size_"+st0s+".txt");
-    string eYZstr = (F_PLOT+"orbits/"+"YZ_"+"Order_"+ss1+"_Size_"+st0s+".txt");
-
-
-//    //Save in EPS format
-//    gnuplot_cmd(ht[0],"set terminal postscript eps enhanced solid color font 'Helvetica,20' linewidth 3");
-//    gnuplot_cmd(ht[0], ("set output \""+eOstr+".eps\"").c_str());
-//    gnuplot_cmd(ht[0], "replot");
-//
-//    gnuplot_cmd(ht[1],"set terminal postscript eps enhanced solid color font 'Helvetica,20' linewidth 3");
-//    gnuplot_cmd(ht[1], ("set output \""+eXYstr+".eps\"").c_str());
-//    gnuplot_cmd(ht[1], "replot");
-//
-//    gnuplot_cmd(ht[2],"set terminal postscript eps enhanced solid color font 'Helvetica,20' linewidth 3");
-//    gnuplot_cmd(ht[2], ("set output \""+eXZstr+".eps\"").c_str());
-//    gnuplot_cmd(ht[2], "replot");
-//
-//    gnuplot_cmd(ht[3],"set terminal postscript eps enhanced solid color font 'Helvetica,20' linewidth 3");
-//    gnuplot_cmd(ht[3], ("set output \""+eYZstr+".eps\"").c_str());
-//    gnuplot_cmd(ht[3], "replot");
-//
-//    gnuplot_cmd(ht[4],"set terminal postscript eps enhanced solid color font 'Helvetica,20' linewidth 3");
-//    gnuplot_cmd(ht[4], ("set output \""+eIstr+".eps\"").c_str());
-//    gnuplot_cmd(ht[4], "replot");
-//
-//    gnuplot_cmd(ht[5],"set terminal postscript eps enhanced solid color font 'Helvetica,20' linewidth 3");
-//    gnuplot_cmd(ht[5], ("set output \""+eIstr+".eps\"").c_str());
-//    gnuplot_cmd(ht[5], "replot");
-
-    return GSL_SUCCESS;
-}
-
-/**
- *  \brief Computations of various the orbial error eO along an orbit initialized by the pm of the center manifold W(s,t)
- **/
-int eOPlot(const double st0[],         //RCM initial conditions
-              vector<Oftsc>& Wh,       //TFC manifold
-              matrix<Ofsc>& PC,        //COC matrix: z = PC*zh+V
-              vector<Ofsc>& V,         //COC vector: z = PC*zh+V
-              double t1,               //Final integration tim
-              gsl_odeiv2_driver *dnc,  //driver for NC integration
-              gsl_odeiv2_driver *drvf, //drive for RVF integration (reduced vector field)
-              int Npoints,             //Number of points on which the errors are estimated
-              FBPL& fbpl,          //current QBCP
-              int order,               //Order for the eval of the OFTS objects
-              int ofs_order,           //Order for the eval of the OFS objects
-              gnuplot_ctrl  **ht,      //Gnuplot handlers
-              int color)               //Color of the plots
-{
-    //------------------------------------------------------------------------------------
-    // Strings
-    //------------------------------------------------------------------------------------
-    string F_GS    = fbpl.cs.F_GS;
-    string F_PLOT  = fbpl.cs.F_PLOT;
-    string F_COC   = fbpl.cs.F_COC;
-
-
-    //------------------------------------------------------------------------------------
-    //Reset integrator
-    //------------------------------------------------------------------------------------
-    gsl_odeiv2_driver_reset(dnc);
-    gsl_odeiv2_driver_reset(drvf);
-
-    //------------------------------------------------------------------------------------
-    //Variables for plotting
-    //------------------------------------------------------------------------------------
-    //Time
-    double tc[Npoints+1];
-    //Orbits
-    double xc[Npoints+1], yc[Npoints+1], zc[Npoints+1];
-    //Orbit in TFC
-    double xsc[Npoints+1], ysc[Npoints+1], zsc[Npoints+1];
-    //Errors
-    double eOc[Npoints+1];
-
-
-    //------------------------------------------------------------------------------------
-    //Errors
-    //------------------------------------------------------------------------------------
-    double eOm, eO[6];
-
-    //------------------------------------------------------------------------------------
-    // Inner state (NC, TFC...)
-    //------------------------------------------------------------------------------------
-    double  s1rcm[REDUCED_NV];  //RCM
-    cdouble s1ccm[REDUCED_NV];  //CCM
-    double  s1ccm8[2*REDUCED_NV]; //CCM8
-    double  z1ncr[6];  //NC, integrated with NC vector field
-    double  z1ncr2[6]; //NC, but computed from z = W(s,t)
-    double  fnc[6];  //NC vector field
-    double  W0;         //Euclidian norm in NC coordinates
-    double  W0km;       //Euclidian norm in km
-    Ofsc AUX;       //OFS temp variable
-
-    //------------------------------------------------------------------------------------
-    //Retrieving the parameters
-    //------------------------------------------------------------------------------------
-    double n = fbpl.us.n;
-
-
-    //------------------------------------------------------------------------------------
-    //Initial time
-    //------------------------------------------------------------------------------------
-    double t0 = 0.0;//pij(2,5);
-
-    //------------------------------------------------------------------------------------
-    // RCM to NC for NC initial conditions
-    //------------------------------------------------------------------------------------
-    RCMtoNCbyTFC(st0, t0, n, order, ofs_order, Wh, PC, V, z1ncr, false);
-
-    //------------------------------------------------------------------------------------
-    // RCM to CCM8 for CCM initial conditions
-    //------------------------------------------------------------------------------------
-    RCMtoCCM8(st0, s1ccm8);
-
-    //------------------------------------------------------------------------------------
-    // Euclidian Norm
-    //------------------------------------------------------------------------------------
-    W0   = ENorm(z1ncr, 3);
-    W0km = W0*fbpl.cs.gamma*fbpl.cs.cr3bp.L;
-
-    //------------------------------------------------------------------------------------
-    // Print Initial Conditions
-    //------------------------------------------------------------------------------------
-    //Initial conditions
-    cout << "With current s0 and order, the initial conditions are: " << endl;
-    for(int p = 0; p < 6; p++) cout << p << "  " << z1ncr[p] << endl;
-    //Euclidian norm in km
-    cout << "Approximated distance from Li [km]: " << W0km << endl;
-
-    //------------------------------------------------------------------------------------
-    // For plotting (first value)
-    //------------------------------------------------------------------------------------
-    //Time
-    tc[0] = t0;
-    //NC
-    xc[0] = z1ncr[0];
-    yc[0] = z1ncr[1];
-    zc[0] = z1ncr[2];
-    //NC from manifold
-    xsc[0] = z1ncr[0];
-    ysc[0] = z1ncr[1];
-    zsc[0] = z1ncr[2];
-
-
-    //------------------------------------------------------------------------------------
-    // Loop on time
-    //------------------------------------------------------------------------------------
-    double t = t0;
-    double t2 = t0;
-    double ti = t0;
-    if(t1 <0)
-    {
-        dnc->h = -dnc->h;
-        drvf->h = -drvf->h;
-    }
-
-    for(int i =1; i<= Npoints; i++)
-    {
-        //------------------------------------------------------------------------------------
-        // Apply driver
-        //------------------------------------------------------------------------------------
-        ti = t0 + (double) i * t1 / Npoints;
-        gsl_odeiv2_driver_apply (dnc, &t, ti, z1ncr);
-        gsl_odeiv2_driver_apply (drvf, &t2, ti, s1ccm8);
-
-        //------------------------------------------------------------------------------------
-        // Comparison
-        //------------------------------------------------------------------------------------
-        //---------------------
-        // Using the PM: z = W(s,t)
-        // Computed in z1ncr2
-        //---------------------
-        //CCM8 to RCM
-        CCM8toRCM(s1ccm8, s1rcm);
-        //CCM8 to CCM
-        CCM8toCCM(s1ccm8, s1ccm);
-        //z1ncr2 = W(s1rcm, ti)
-        RCMtoNCbyTFC(s1rcm, ti, n, order, ofs_order, Wh, PC, V, z1ncr2, false);
-        //Evaluating the vector field at z1ncr2 = W(s1rcm, ti)
-        qbfbp_vfn_novar(ti, z1ncr2, fnc, dnc->sys->params);
-
-        //---------------------
-        //Error computation
-        //---------------------
-        for(int p = 0; p < Csts::NV; p++)
-        {
-            //eO = |z(t) - W(s(t), t)|
-            eO[p] = cabs(z1ncr[p] - z1ncr2[p]);
-        }
-
-
-        //Taking the maximum (infinity norm)
-        eOm = eO[0];
-        for(int p = 1; p < Csts::NV; p++) if(eO[p] > eOm) eOm = eO[p];
-
-        //------------------------------------------------------------------------------------
-        //Store for plotting
-        //------------------------------------------------------------------------------------
-        //Timde
-        tc[i]  = ti;
-        //NC
-        xc[i]  = z1ncr[0];
-        yc[i]  = z1ncr[1];
-        zc[i]  = z1ncr[2];
-        //NC from manifold
-        xsc[i] = z1ncr2[0];
-        ysc[i] = z1ncr2[1];
-        zsc[i] = z1ncr2[2];
-        //Errors
-        eOc[i] = eOm;
-    }
-    if(t1 <0)
-    {
-        dnc->h = -dnc->h;
-        drvf->h = -drvf->h;
-    }
-
-
-    cout << "End angle is : " << t*n << endl;
-
-
-    //------------------------------------------------------------------------------------
-    //Define the output name
-    //------------------------------------------------------------------------------------
-    ifstream readStream;
-    string ss1, ssW, st0s, ssofs;
-    ss1   = static_cast<ostringstream*>( &(ostringstream() << order) )->str();
-    ssofs = static_cast<ostringstream*>( &(ostringstream() << ofs_order) )->str();
-    ssW   = static_cast<ostringstream*>( &(ostringstream() << W0) )->str();
-    st0s  = static_cast<ostringstream*>( &(ostringstream() << creal(st0[0]+st0[1]+st0[2]+st0[3])) )->str();
-    st0s  = st0s+"_test";
-
-
-    //------------------------------------------------------------------------------------
-    //In txt files
-    //------------------------------------------------------------------------------------
-    string eOstr   = (F_PLOT+"orbits/"+"eO_"+"Order_"+ss1+"_Size_"+st0s+".txt");
-    string eXYZstr = (F_PLOT+"orbits/"+"XYZ_"+"Order_"+ss1+"_Size_"+st0s+".txt");
-    string ePMstr  = (F_PLOT+"orbits/"+"XYZ_PM_"+"Order_"+ss1+"_Size_"+st0s+".txt");
-    gnuplot_fplot_xy(tc, eOc, Npoints+1, eOstr.c_str());                //eO
-    gnuplot_fplot_txyz(tc, xc, yc,   zc,   Npoints, eXYZstr.c_str());   //orbit
-    gnuplot_fplot_txyz(tc, xsc, ysc, zsc,  Npoints, ePMstr.c_str());    //PM orbit
-
-
-    //------------------------------------------------------------------------------------
-    //Plotting
-    //------------------------------------------------------------------------------------
-    //Logscale if necessary (all errors)
-    gnuplot_cmd(ht[0], "set logscale y");
-    gnuplot_cmd(ht[0], "set format y \"1e\%%L\"");
-    gnuplot_cmd(ht[4], "set logscale y");
-    gnuplot_cmd(ht[4], "set format y \"1e\%%L\"");
-    gnuplot_cmd(ht[5], "set logscale y");
-    gnuplot_cmd(ht[5], "set format y \"1e\%%L\"");
-    //Grid set by default
-    for(int i = 0; i <6; i++) gnuplot_cmd(ht[i],  "set grid");
-
-    //Orbital error
-    //----------------
-    gnuplot_set_xlabel(ht[0], (char*)"t [-]");
-    gnuplot_set_ylabel(ht[0], (char*)"eO [-]");
-    gnuplot_plot_xy(ht[0], tc, eOc, Npoints+1, (char*)("Order "+ss1+ " OFS "+ssofs).c_str(), "lines", "1", "2", color);
-
-    //XY
-    //----------------
-    gnuplot_set_xlabel(ht[1], (char*)"x [-]");
-    gnuplot_set_ylabel(ht[1], (char*)"y [-]");
-    gnuplot_plot_xy(ht[1], xc, yc, Npoints+1, (char*)("Order "+ss1+ " OFS "+ssofs).c_str(), "lines", "1", "2", color);
-    gnuplot_plot_xy(ht[1], xsc, ysc, Npoints+1, (char*)("Order "+ss1+ " OFS "+ssofs).c_str(), "lines", "dashed", "2", color);
-
-    //XZ
-    //----------------
-    gnuplot_set_xlabel(ht[2], (char*)"x [-]");
-    gnuplot_set_ylabel(ht[2], (char*)"z [-]");
-    gnuplot_plot_xy(ht[2], xc, zc, Npoints+1, (char*)("Order "+ss1+ " OFS "+ssofs).c_str(), "lines", "1", "2", color);
-    gnuplot_plot_xy(ht[2], xsc, zsc, Npoints+1, (char*)("Order "+ss1+ " OFS "+ssofs).c_str(), "lines", "dashed", "2", color);
-
-    //YZ
-    //----------------
-    gnuplot_set_xlabel(ht[3], (char*)"y [-]");
-    gnuplot_set_ylabel(ht[3], (char*)"z [-]");
-    gnuplot_plot_xy(ht[3], yc, zc, Npoints+1, (char*)("Order "+ss1+ " OFS "+ssofs).c_str(), "lines", "1", "2", color);
-    gnuplot_plot_xy(ht[3], ysc, zsc, Npoints+1, (char*)("Order "+ss1+ " OFS "+ssofs).c_str(), "lines", "dashed", "2", color);
-
-
-    //Titles
-    //----------------
-    gnuplot_cmd(ht[0], ("set title \"Error in the orbit, |W(s,0)| = "+ssW+"\" ").c_str());
-    gnuplot_cmd(ht[1], ("set title \"Orbit in XY plane,  |W(s,0)| = "+ssW+"\" ").c_str());
-    gnuplot_cmd(ht[2], ("set title \"Orbit in XZ plane,  |W(s,0)| = "+ssW+"\" ").c_str());
-    gnuplot_cmd(ht[3], ("set title \"Orbit in YZ plane,  |W(s,0)| = "+ssW+"\" ").c_str());
-
-
-    return GSL_SUCCESS;
-}
-
-
 
