@@ -59,12 +59,20 @@ void init_env(int t_model, int t_li, int t_man_type, int t_pms)
             init_fbp_lib(&SEML, &SEM, 2, 1, t_model, Csts::EM, t_pms, t_man_type, t_man_type, false, true);
         break;
 
+        case Csts::EML3:
+            init_fbp_lib(&SEML, &SEM, 3, 1, t_model, Csts::EM, t_pms, t_man_type, t_man_type, false, true);
+        break;
+
         case Csts::SEL1:
              init_fbp_lib(&SEML, &SEM, 1, 1, t_model, Csts::SEM, t_pms, t_man_type, t_man_type, false, true);
         break;
 
         case Csts::SEL2:
             init_fbp_lib(&SEML, &SEM,  1, 2, t_model, Csts::SEM, t_pms, t_man_type, t_man_type, false, true);
+        break;
+
+        case Csts::SEL3:
+            init_fbp_lib(&SEML, &SEM,  1, 3, t_model, Csts::SEM, t_pms, t_man_type, t_man_type, false, true);
         break;
 
         default:

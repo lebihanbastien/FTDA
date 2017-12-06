@@ -453,18 +453,6 @@ void pm_error_vs_orders_test(int n_ofts_order, int v_ofts_order[],
     int ofts_order = OFTS_ORDER;
     int ofs_order  = OFS_ORDER;
 
-    //    //------------------------------------------------------------------------------------
-    //    // Maximum time
-    //    //------------------------------------------------------------------------------------
-    //    double tmax = (SEML.model == Csts::CRTBP)? 2*M_PI: SEML.us.T;
-    //    tmax *= (SEML.coord_sys == Csts::SEM && SEML.model != Csts::CRTBP)? 10.0: 1.0;
-    //    switch(SEML.cs.man_type)
-    //    {
-    //    case Csts::MAN_CENTER_S:
-    //        //If we are in the center-stable manifold, we set negative time.
-    //        tmax = -fabs(tmax);
-    //    }
-
     //------------------------------------------------------------------------------------
     // Initial conditions
     //------------------------------------------------------------------------------------

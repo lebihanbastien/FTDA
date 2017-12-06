@@ -537,9 +537,9 @@ void tfts_initVF(vector<Ofsc>& alpha)
         alpha[5].set_coef(1.0, 0);               //alpha6  = 1.0
         alpha[12].set_coef(-SEML.cs.c1, 0);      //alpha13 = -c1
 
-//Not useful here:
-//        alpha[8].set_coef(SEML.cs.mu, 0);        //alpha9  = Xe
-//        alpha[10].set_coef(SEML.cs.mu, 0);       //alpha11 = Xm
+        //Not useful here:
+        //        alpha[8].set_coef(SEML.cs.mu, 0);        //alpha9  = Xe
+        //        alpha[10].set_coef(SEML.cs.mu, 0);       //alpha11 = Xm
 
         break;
     }

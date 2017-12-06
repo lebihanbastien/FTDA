@@ -1,6 +1,6 @@
-# Configuration file for OOFTDA - See config/constants.h for details on the constants.
+# Configuration file for sempm - See config/constants.h for details on the constants.
 #
-# This file calls OOFTDA in order to test the high-order parameterization of the center
+# This file calls sempm in order to test the high-order parameterization of the center
 # manifold about the libration point $LIBPOINT, previously computed.
 #
 # The orbital and invariance errors are computed along half an orbit.
@@ -74,6 +74,6 @@ N_OFS_ORDERS=${#OFS_ORDERS[@]}
 # Time interval on which to compute the errors
 #-----------------------------------------------------------------------------------------
 TMIN=0.0     # (given as %T, with T the SEM period)
-TMAX=5.0     # (given as %T, with T the SEM period)
+TMAX=1.0     # (given as %T, with T the SEM period)
 
 

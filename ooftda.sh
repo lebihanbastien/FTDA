@@ -1,5 +1,5 @@
 #!/bin/sh
-# script file for OOFTDA
+# script file for sempm
 # RECALL: make it executable with "$ chmod +x script.sh"
 
 
@@ -22,7 +22,7 @@ source "config/tools.sh"
 #-----------------------------------------------------------------------------------------
 echo
 echo "#------------------------------------------#"
-echo "#          OOFTDA configuration            #"
+echo "#          sempm configuration            #"
 echo "#------------------------------------------#"
 
 #-----------------------------------------------------------------------------------------
@@ -559,9 +559,9 @@ if [ "$ans" == "y" ]; then
 				OUT='default.out'
 			fi
 			#Call software
-			nohup bin/Release/OOFTDA ${COEFFS[*]} > $OUT &
+			nohup bin/Release/sempm ${COEFFS[*]} > $OUT &
 	else
-			bin/Release/OOFTDA ${COEFFS[*]}
+			bin/Release/sempm ${COEFFS[*]}
 	fi
 
 	

@@ -1,4 +1,4 @@
-# Constants & parameters for OOFTDA. Must be consistent with include/Constants.h
+# Constants & parameters for sempm. Must be consistent with include/Constants.h
 #=========================================================================================
 
 #-----------------------------------------------------------------------------------------
@@ -65,6 +65,10 @@ export SEL2=4
 #Copy for consistency with previous notations
 export SEML1=3
 export SEML2=4
+
+# L3, for future extension
+export EML3=5
+export SEL3=6
 
 #-----------------------------------------------------------------------------------------
 # Normalization (ISNORM)

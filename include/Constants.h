@@ -106,6 +106,8 @@ public:
     static const int SEL1=3;
     static const int SEL2=4;
 
+    static const int EML3=5;
+    static const int SEL3=6;
 
     //====================================================================================
     // Constants for NFO2 computation

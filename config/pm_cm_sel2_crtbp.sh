@@ -1,6 +1,6 @@
-# Configuration file for OOFTDA - See config/constants.h for details on the constants.
+# Configuration file for sempm - See config/constants.h for details on the constants.
 #
-# This file calls OOFTDA in order to compute the high-order parameterization of the center
+# This file calls sempm in order to compute the high-order parameterization of the center
 # manifold about the libration point $LIBPOINT at order $OFTS_ORDER.
 # Such computations requires the corresponding subfolders of data/VF and data/COC to have 
 # been previously filled via qbcp.sh and nfo2.sh

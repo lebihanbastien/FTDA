@@ -297,6 +297,7 @@ void init_usys(USYS *usys, int label, int model)
     //------------------------------------------------------------------------------------
     // These values are used as reference values for all other constants.
     //------------------------------------------------------------------------------------
+    //Earth-Moon mass ratio
     usys->mu_EM  = +1.215058162343360e-02;
     //Lunar eccentricity
     usys->lecc   = +0.054900489;
@@ -307,7 +308,7 @@ void init_usys(USYS *usys, int label, int model)
     // as reference values
     // for all other constants
     //------------------------------------------------------------------------------------
-    //Pulsation of the system
+    //Relative pulsation of the SEM system
     double n_EM  = 0.925195985520347;
     //Outer pulsation
     double ns_EM = 1.0-n_EM;
@@ -397,8 +398,8 @@ void init_usys(USYS *usys, int label, int model)
 
             //Physical params in EM units
             //--------------------------
-            usys->n  = n_EM;
-            usys->ns = ns_EM;
+            usys->n  = 1.0;
+            usys->ns = 0.0;
             usys->ni = 1.0;
             usys->as = as_EM;
             usys->ai = 1.0;
@@ -412,9 +413,9 @@ void init_usys(USYS *usys, int label, int model)
 
             //Physical params in SEM units
             //--------------------------
-            usys->ns = 1.0;
-            usys->ni = 1.0/ns_EM;
-            usys->n  = usys->ni-usys->ns;
+            usys->n  = 1.0;
+            usys->ns = -1.0;
+            usys->ni = 0.0;
             usys->as = 1.0;
             usys->ai = 1.0/as_EM;
             usys->T  = 2*M_PI/usys->n;
@@ -467,15 +468,15 @@ void init_csys(CSYS *csys, FBPL *fbpl, FBP *fbp, int li,
     //------------------------------------------------------------------------------------
     // Retrieve variables from fbpl
     //------------------------------------------------------------------------------------
-    int n_order_fourier         = fbpl->n_order_fourier;
-    int model      = fbpl->model;
-    int coefNumber = fbpl->numberOfCoefs;
-    int param_style        = fbpl->param_style;
+    int n_order_fourier = fbpl->n_order_fourier;
+    int model           = fbpl->model;
+    int coef_number     = fbpl->numberOfCoefs;
+    int param_style     = fbpl->param_style;
 
     //------------------------------------------------------------------------------------
     //Complete folders, all of the forms "data/..."
     //------------------------------------------------------------------------------------
-    csys->F_GS     = init_F_FOLDER("data/CM", model, coord_sys, li);     //Graph style (PM)
+    csys->F_GS     = init_F_FOLDER("data/CM",    model, coord_sys, li);     //Graph style (PM)
     csys->F_NF     = init_F_FOLDER("data/NF",    model, coord_sys, li);     //Normal form style(PM)
     csys->F_MS     = init_F_FOLDER("data/MS",    model, coord_sys, li);     //Mixed style (PM)
 
@@ -604,7 +605,7 @@ void init_csys(CSYS *csys, FBPL *fbpl, FBP *fbp, int li,
     //------------------------------------------------------------------------------------
     // Creating the arrays of coefficients
     //------------------------------------------------------------------------------------
-    csys->coeffs = (double*) calloc(coefNumber*(fbpl->n_order_fourier+1), sizeof(double)); //Default set of vector field coefficients
+    csys->coeffs = (double*) calloc(coef_number*(fbpl->n_order_fourier+1), sizeof(double)); //Default set of vector field coefficients
     csys->Ps  = (double*) calloc(3*(n_order_fourier+1), sizeof(double));  //Sun   position in EM coordinates
     csys->Pe  = (double*) calloc(3*(n_order_fourier+1), sizeof(double));  //Earth position in EM coordinates
     csys->Pm  = (double*) calloc(3*(n_order_fourier+1), sizeof(double));  //Moon  position in EM coordinates
@@ -631,7 +632,7 @@ void init_csys(CSYS *csys, FBPL *fbpl, FBP *fbp, int li,
             //----------------------------------------------------------------------------
             // Default set of vector field coefficients
             //----------------------------------------------------------------------------
-            read_fourier_coef(csys->F_COEF+"alpha", csys->coeffs, n_order_fourier, 0, compType, coefNumber);
+            read_fourier_coef(csys->F_COEF+"alpha", csys->coeffs, n_order_fourier, 0, compType, coef_number);
             //----------------------------------------------------------------------------
             // primaries position
             //----------------------------------------------------------------------------

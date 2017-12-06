@@ -1,6 +1,6 @@
-# Configuration file for OOFTDA - See config/constants.h for details on the constants.
+# Configuration file for sempm - See config/constants.h for details on the constants.
 #
-# This file calls OOFTDA in order to compute the change of coordinates that set the 
+# This file calls sempm in order to compute the change of coordinates that set the 
 # Hamiltonian of the QBCP about a given libration point ($LIBPOINT) in normal diagonal
 # form at order two.
 #
